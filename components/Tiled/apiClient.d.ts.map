@@ -1,0 +1,1 @@
+{"version":3,"file":"apiClient.d.ts","sourceRoot":"","sources":["../../../src/components/Tiled/apiClient.ts"],"names":[],"mappings":"AAMA,QAAA,MAAM,kBAAkB,cAYvB,CAAC;AAoBF,QAAA,MAAM,gBAAgB,gBAAsB,MAAM,OAAK,QAAQ,QAAe,MAAM,SAAO,OAAO,iBAcjG,CAAC;AAEF,QAAA,MAAM,YAAY,eAAoB,MAAM,aAAY,MAAM,OAAK,QAAQ,QAAc,MAAM,kBAiB9F,CAAA;AAgLD,OAAO,EAAE,gBAAgB,EAAE,kBAAkB,EAAE,YAAY,GAAG,CAAA"}

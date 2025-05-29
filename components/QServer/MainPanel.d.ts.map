@@ -1,0 +1,1 @@
+{"version":3,"file":"MainPanel.d.ts","sourceRoot":"","sources":["../../../src/components/QServer/MainPanel.tsx"],"names":[],"mappings":"AAGA,KAAK,cAAc,GAAG;IAClB,kBAAkB,CAAC,EAAE,OAAO,CAAC;IAC7B,WAAW,EAAE,CAAC,IAAI,EAAC,OAAO,KAAK,IAAI,CAAC;IACpC,QAAQ,EAAE,KAAK,CAAC,SAAS,CAAC;CAC7B,CAAC;AACF,MAAM,CAAC,OAAO,UAAU,SAAS,CAAC,EAC9B,kBAAwB,EACxB,WAAkB,EAClB,QAAQ,EACX,EAAE,cAAc,2CAyBhB"}

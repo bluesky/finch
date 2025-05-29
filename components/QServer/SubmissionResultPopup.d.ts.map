@@ -1,0 +1,1 @@
+{"version":3,"file":"SubmissionResultPopup.d.ts","sourceRoot":"","sources":["../../../src/components/QServer/SubmissionResultPopup.tsx"],"names":[],"mappings":"AAKA,KAAK,0BAA0B,GAAG;IAC9B,EAAE,EAAE,CAAC,OAAO,EAAC,OAAO,KAAK,IAAI,CAAC;IAC9B,QAAQ,EAAE,GAAG,CAAC;CACjB,CAAC;AACF,MAAM,CAAC,OAAO,UAAU,qBAAqB,CAAE,EAAE,EAAS,EAAE,QAAW,EAAE,EAAE,0BAA0B,2CAsDpG"}

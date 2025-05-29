@@ -1,0 +1,1 @@
+{"version":3,"file":"navigationRouterTypes.d.ts","sourceRoot":"","sources":["../../src/types/navigationRouterTypes.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,SAAS,GAAG;IACpB,IAAI,EAAE,MAAM,CAAC;IACb,KAAK,EAAE,MAAM,CAAC;IACd,OAAO,EAAE,KAAK,CAAC,SAAS,CAAC;IACzB,IAAI,CAAC,EAAE,KAAK,CAAC,SAAS,CAAC;CAC1B,CAAA"}

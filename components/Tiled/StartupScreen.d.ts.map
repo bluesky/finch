@@ -1,0 +1,1 @@
+{"version":3,"file":"StartupScreen.d.ts","sourceRoot":"","sources":["../../../src/components/Tiled/StartupScreen.tsx"],"names":[],"mappings":"AAKA,KAAK,kBAAkB,GAAG;IACtB,GAAG,EAAE,MAAM,GAAG,SAAS,CAAC;IACxB,eAAe,EAAE,QAAQ,CAAC;IAC1B,YAAY,EAAE,QAAQ,CAAA;CACzB,CAAA;AACD,MAAM,CAAC,OAAO,UAAU,aAAa,CAAC,EAClC,GAAG,EACH,eAAe,EACf,YAAY,EACZ,GAAG,KAAK,EACX,EAAE,kBAAkB,2CAyCpB"}

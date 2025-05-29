@@ -1,0 +1,1 @@
+{"version":3,"file":"InputFloat.d.ts","sourceRoot":"","sources":["../../../src/components/Camera/InputFloat.tsx"],"names":[],"mappings":"AAEA,KAAK,eAAe,GAAG;IACnB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf,QAAQ,CAAC,EAAE,CAAC,KAAK,EAAE,MAAM,KAAK,IAAI,CAAC;IACnC,UAAU,CAAC,EAAE,OAAO,CAAC;CACxB,CAAC;AACF,MAAM,CAAC,OAAO,UAAU,UAAU,CAAE,EAAC,KAAQ,EAAE,QAAiD,EAAE,UAAgB,EAAE,EAAE,eAAe,2CAkCpI"}

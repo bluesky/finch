@@ -1,0 +1,1 @@
+{"version":3,"file":"InputCheckBox.d.ts","sourceRoot":"","sources":["../../src/components/InputCheckBox.tsx"],"names":[],"mappings":"AAEA,KAAK,kBAAkB,GAAG;IACxB,KAAK,CAAC,EAAE,MAAM,GAAG,OAAO,CAAC;IACzB,EAAE,EAAE,CAAC,SAAS,EAAE,OAAO,KAAK,IAAI,CAAC;IACjC,SAAS,CAAC,EAAE,OAAO,CAAC;CACrB,CAAC;AACF,MAAM,CAAC,OAAO,UAAU,aAAa,CAAC,EAAE,KAAa,EAAE,EAAE,EAAE,SAAiB,EAAE,EAAE,kBAAkB,2CAsCjG"}

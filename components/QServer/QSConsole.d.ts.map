@@ -1,0 +1,1 @@
+{"version":3,"file":"QSConsole.d.ts","sourceRoot":"","sources":["../../../src/components/QServer/QSConsole.tsx"],"names":[],"mappings":"AAGA,OAAO,EAAE,gBAAgB,EAAE,MAAM,UAAU,CAAC;AAC5C,OAAO,sBAAsB,CAAC;AAY9B,KAAK,cAAc,GAAG,gBAAgB,GAAE;IAEpC,qBAAqB,EAAE,CAAC,OAAO,EAAE,MAAM,KAAK,IAAI,CAAA;CACnD,CAAA;AACD,MAAM,CAAC,OAAO,UAAU,SAAS,CAAC,EAAE,qBAA6B,EAAE,EAAE,cAAc,2CA6MlF"}
