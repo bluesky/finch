@@ -1,4 +1,4 @@
-import{j as n}from"./jsx-runtime-BjgbQsUx.js";import{useMDXComponents as r}from"./index-BFB5bZRa.js";import{ao as i,ap as s}from"./index-DSjZj-4I.js";import"./index-D2MAbzvX.js";import"./index-BuYn5Wpo.js";import"./iframe-BOLwAkjk.js";import"../sb-preview/runtime.js";import"./index-D3Kh2uYK.js";import"./index-CTOC-uzv.js";import"./index-CHGET4sZ.js";import"./index-DrFu-skq.js";const a=`# Installation
+import{j as n}from"./jsx-runtime-BjgbQsUx.js";import{useMDXComponents as r}from"./index-BFB5bZRa.js";import{ao as i,ap as s}from"./index-Bqqq47Ak.js";import"./index-D2MAbzvX.js";import"./index-BuYn5Wpo.js";import"./iframe-CkzCGE0C.js";import"../sb-preview/runtime.js";import"./index-D3Kh2uYK.js";import"./index-CTOC-uzv.js";import"./index-CHGET4sZ.js";import"./index-DrFu-skq.js";const a=`# Installation
 Assuming you have an existing React application, go to your app directory and install Finch.
 
 \`\`\`bash
