@@ -1,0 +1,1 @@
+import{j as n}from"./jsx-runtime-BjgbQsUx.js";import{useMDXComponents as e}from"./index-BFB5bZRa.js";import"./index-D2MAbzvX.js";import"./index-BuYn5Wpo.js";function r(t){return n.jsx(n.Fragment,{})}function u(t={}){const{wrapper:o}={...e(),...t.components};return o?n.jsx(o,{...t,children:n.jsx(r,{...t})}):r()}export{u as default};

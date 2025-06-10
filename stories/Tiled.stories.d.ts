@@ -5,9 +5,6 @@ declare const meta: {
     component: typeof Tiled;
     parameters: {
         layout: string;
-        msw: {
-            handlers: import('msw').HttpHandler[];
-        };
     };
     tags: string[];
     argTypes: {};
@@ -15,4 +12,6 @@ declare const meta: {
 export default meta;
 type Story = StoryObj<typeof meta>;
 export declare const Primary: Story;
+export declare const LocalHostUrl: Story;
+export declare const CustomUrl: Story;
 //# sourceMappingURL=Tiled.stories.d.ts.map
