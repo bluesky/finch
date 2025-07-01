@@ -32,3 +32,40 @@
     scrollbar-width: thin; /* Thin scrollbar */
     scrollbar-color: #cbd5e1 #f8fafc; /* Thumb color and track color */
 }
+
+.main-container {
+    display: grid;
+    height: 100vh;
+    grid-template-columns: 2fr 1fr;
+    background: white;
+    padding: 15px;
+    gap: 15px;
+
+}
+.main-header {
+    font-size: 30px;
+    color: white;
+}
+
+.synoptic-panel {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    justify-content: center;
+    position: relative;
+    border: 1px solid black;
+}
+
+.beamvis-panel {
+    position: relative;
+}
+
+.beamvis-container {
+    position: absolute;
+    top:0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
