@@ -152,11 +152,11 @@ const BeamlineContainer: FC = () => {
   if (!beamlineDefinition) return <div>Loading beamline...</div>;
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh' }}>
-      <div style={{ flex: '1 1 auto', position: 'relative' }}>
+    <div>
+      <div>
         <ThreeScene key={selectedBeamline} sceneConfig={configs} />
       </div>
-      <div style={rightPanelStyle}>
+      {/* <div style={rightPanelStyle}>
         <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>
         <select value={selectedBeamline} onChange={handleBeamlineChange} style={{ margin: '8px', marginBottom: '8px' }}>
           {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
@@ -186,7 +186,7 @@ const BeamlineContainer: FC = () => {
           controlLayout={beamlineDefinition.controlLayout}
           handleSampleMeshChange={handleSampleMeshChange}
         />
-      </div>
+      </div> */}
     </div>
   );
 };

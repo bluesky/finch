@@ -134,7 +134,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#f0f0f0');
+    scene.background = new THREE.Color('#D3D3D3');
     sceneRef.current = scene;
 
     // Main Orthographic Camera

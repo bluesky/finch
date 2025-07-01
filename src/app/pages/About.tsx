@@ -59,7 +59,10 @@ const App: React.FC = () => (
 
     </aside>
     <section className='beamvis-panel'>
-        <BeamlineContainer/>
+        <div className='beamvis-container'>
+            <h2>BeamVis 3D</h2>
+            <BeamlineContainer/>
+        </div>
     </section>
 
   </div>
