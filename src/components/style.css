@@ -32,3 +32,19 @@
     scrollbar-width: thin; /* Thin scrollbar */
     scrollbar-color: #cbd5e1 #f8fafc; /* Thumb color and track color */
 }
+
+.main-container {
+    display: flex;
+    height: 100vh;
+    background: white;
+    padding: 20px;
+}
+
+.synoptic-panel {
+    flex: 0 0 300px;
+}
+
+.beamvis-panel {
+    flex:1;
+    position: relative;
+}
