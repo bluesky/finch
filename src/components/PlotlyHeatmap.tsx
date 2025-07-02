@@ -4,6 +4,10 @@ import Plot from 'react-plotly.js';
 export type PlotlyHeatmapProps = {
     /** A nested array displayed top-down */
     array: number[][],
+    /** Optional 1-d array for x values, use when data is not linearly spaced */
+    xArray: number[],
+    /** Option 1-d array for y values, use when data is not linearly spaced */
+    yArray: number[],
     /** The plot title */
     title?: string,
     /** x axis title, adds padding to bottom */
@@ -28,11 +32,16 @@ export type PlotlyHeatmapProps = {
     lockPlotWidthHeightToInputArray?: boolean,
     /** Should the color scale show up? it will take up some space to the right of the plot */
     showScale?: boolean
+    /**Minimum value to set the scaling for the heatmap colors */
+    zMin?: number,
+    zMax?: number,
 }
 
 //TODO: there are some issues with the display when zooming out
 export default function PlotlyHeatmap({
     array, //2d array [[1, 2, 3], [2, 2 1]]
+    xArray,
+    yArray,
     title = '',
     xAxisTitle = '',
     yAxisTitle = '',
@@ -45,6 +54,8 @@ export default function PlotlyHeatmap({
     showScale = true,
     lockPlotHeightToParent=false, //locks the height of the plot to the height of the container, should not be set to True if lockPlotWidthHeightToInputArray is on
     lockPlotWidthHeightToInputArray=false, //restricts the maximum view of the plot so that it never exceeds a 1 pixel to 1 array element density
+    zMin,
+    zMax
 }: PlotlyHeatmapProps) {
     const plotContainer = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); //applied to plot, not the container
@@ -72,10 +83,12 @@ export default function PlotlyHeatmap({
                 data={[
                     {
                         z: array,
+                        x: xArray,
+                        y: yArray,
                         type: 'heatmap',
                         colorscale: colorScale,
-                        zmin: 0,
-                        zmax: 255,
+                        zmin: zMin,
+                        zmax: zMax,
                         showscale: showScale,
                     }
                 ]}

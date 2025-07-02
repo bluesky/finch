@@ -7,6 +7,8 @@ import BoltControl from '@/features/bolt/BoltControl';
 import Paper from '@/components/Paper';
 import BL531Control from './pages/BL531Control';
 import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
+import TiledLiveScanViewer from '@/components/TiledLiveScanViewer/TiledLiveScanViewer';
+
 import { deviceIcons } from "@/assets/icons";
 
 
@@ -20,7 +22,11 @@ function App() {
     {element:<BL531Control/>, path: "/control", label: "Sample", icon: <Joystick size={32} />},
     {element:<ContainerQServer className="m-8 h-[calc(100%-4rem)] w-[calc(100%-4rem)] bg-white/50"/>, path: "/qserver", label: "Q Server", icon: <StackPlus size={32} />},
     {element:
-        <TiledHeatmapSelector />,
+      <>
+        <Tiled />
+        <TiledLiveScanViewer />
+      </>
+        ,
  
     path: "/data", 
     label: "Data", 
