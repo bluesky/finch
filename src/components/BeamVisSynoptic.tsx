@@ -1,36 +1,6 @@
 import React, { useMemo } from 'react';
 import { line, curveLinear, curveStepAfter } from 'd3-shape';
-
-// point for path generation
-export interface Point {
-  x: number;
-  y: number;
-}
-
-// node on beamline
-export interface Node {
-  id: string;
-  label: string;
-  x: number;
-  y: number;
-  status: keyof typeof statusColor;
-}
-
-// edge between nodes, optional right-angle via points
-export interface Edge {
-  from: string;
-  to: string;
-  orthogonalVia?: Point[];
-}
-
-// map statuses to fill colors
-const statusColor = {
-  ok:           '#005B88',
-  moving:       '#F9C80E',
-  finished:     '#A1C181',
-  limit:        '#F86624',
-  disconnected: '#EF476F',
-};
+import { Node, Edge, Point, statusColor } from 'src/components/BeamVis/Synoptic_Config';
 
 const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges }) => {
   // fast lookup by id

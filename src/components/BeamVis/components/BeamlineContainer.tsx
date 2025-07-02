@@ -13,7 +13,7 @@ import { usePV, useEpics } from '../EPICS/EpicsContext';
 const BeamlineContainer: FC = () => {
   // Available beamlines
   const availableBeamlines = useMemo(() => Object.keys(beamlineDefinitions), []);
-  const [selectedBeamline, setSelectedBeamline] = useState(availableBeamlines[0] || '');
+  const [selectedBeamline, setSelectedBeamline] = useState(availableBeamlines[2] || '');
 
   // Static beamline definition and configs
   const [beamlineDefinition, setBeamlineDefinition] = useState<BeamlineDefinition | null>(null);
@@ -107,39 +107,39 @@ const BeamlineContainer: FC = () => {
   const handleCenteringStageXChange = (val: number) => publish('IOC:m1.VAL', val);
   const handleCenteringStageYChange = (val: number) => publish('IOC:m2.VAL', val);
   const handleCenteringStageZChange = (val: number) => publish('IOC:m3.VAL', val);
-  const handleStageXChange = (val: number) => publish('IOC:m4.VAL', val);
-  const handleStageYChange = (val: number) => publish('IOC:m5.VAL', val);
-  const handleStageZChange = (val: number) => publish('IOC:m6.VAL', val);
+  // const handleStageXChange = (val: number) => publish('IOC:m4.VAL', val);
+  // const handleStageYChange = (val: number) => publish('IOC:m5.VAL', val);
+  // const handleStageZChange = (val: number) => publish('IOC:m6.VAL', val);
   const handleManualAngleChange = (val: number) => publish('IOC:m7.VAL', val);
 
   // Horizontal stage (local only)
-  // const handleStageXChange = (val: number) => {
-  //   setConfigs(prev =>
-  //     prev.map(cfg =>
-  //       cfg.id === 'horizontalStage'
-  //         ? { ...cfg, transform: { ...cfg.transform, position: [val, cfg.transform.position[1], cfg.transform.position[2]] } }
-  //         : cfg
-  //     )
-  //   );
-  // };
-  // const handleStageYChange = (val: number) => {
-  //   setConfigs(prev =>
-  //     prev.map(cfg =>
-  //       cfg.id === 'horizontalStage'
-  //         ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], val, cfg.transform.position[2]] } }
-  //         : cfg
-  //     )
-  //   );
-  // };
-  // const handleStageZChange = (val: number) => {
-  //   setConfigs(prev =>
-  //     prev.map(cfg =>
-  //       cfg.id === 'horizontalStage'
-  //         ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], cfg.transform.position[1], val] } }
-  //         : cfg
-  //     )
-  //   );
-  // };
+  const handleStageXChange = (val: number) => {
+    setConfigs(prev =>
+      prev.map(cfg =>
+        cfg.id === 'horizontalStage'
+          ? { ...cfg, transform: { ...cfg.transform, position: [val, cfg.transform.position[1], cfg.transform.position[2]] } }
+          : cfg
+      )
+    );
+  };
+  const handleStageYChange = (val: number) => {
+    setConfigs(prev =>
+      prev.map(cfg =>
+        cfg.id === 'horizontalStage'
+          ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], val, cfg.transform.position[2]] } }
+          : cfg
+      )
+    );
+  };
+  const handleStageZChange = (val: number) => {
+    setConfigs(prev =>
+      prev.map(cfg =>
+        cfg.id === 'horizontalStage'
+          ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], cfg.transform.position[1], val] } }
+          : cfg
+      )
+    );
+  };
 
   // Visibility toggle
   const handleToggleVisibility = (id: string) => setConfigs(prev => prev.map(cfg => (cfg.id === id ? { ...cfg, visible: !cfg.visible } : cfg)));
@@ -147,7 +147,7 @@ const BeamlineContainer: FC = () => {
   // Beamline selector
   const handleBeamlineChange = (e: ChangeEvent<HTMLSelectElement>) => setSelectedBeamline(e.target.value);
 
-  const rightPanelStyle: CSSProperties = { width: 350, borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' };
+  const rightPanelStyle: CSSProperties = { width: '100%', borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' };
 
   if (!beamlineDefinition) return <div>Loading beamline...</div>;
 
@@ -156,7 +156,7 @@ const BeamlineContainer: FC = () => {
       <div>
         <ThreeScene key={selectedBeamline} sceneConfig={configs} />
       </div>
-      {/* <div style={rightPanelStyle}>
+      <div style={rightPanelStyle}>
         <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>
         <select value={selectedBeamline} onChange={handleBeamlineChange} style={{ margin: '8px', marginBottom: '8px' }}>
           {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
@@ -184,9 +184,9 @@ const BeamlineContainer: FC = () => {
           handleStageZChange={handleStageZChange}
           handleToggleVisibility={handleToggleVisibility}
           controlLayout={beamlineDefinition.controlLayout}
-          handleSampleMeshChange={handleSampleMeshChange}
+          // handleSampleMeshChange={handleSampleMeshChange}
         />
-      </div> */}
+      </div>
     </div>
   );
 };

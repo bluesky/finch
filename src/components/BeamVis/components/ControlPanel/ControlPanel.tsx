@@ -24,7 +24,7 @@ interface ControlPanelProps {
   handleStageYChange: (val: number) => void;
   handleStageZChange: (val: number) => void;
   handleToggleVisibility: (id: string) => void;
-  handleSampleMeshChange: (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => void;
+  // handleSampleMeshChange: (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => void;
   controlLayout: {
     common?: { camera?: boolean; beam?: boolean; shutter?: boolean };
     stages?: any[];
@@ -54,22 +54,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   handleStageYChange,
   handleStageZChange,
   handleToggleVisibility,
-  handleSampleMeshChange,
+  // handleSampleMeshChange,
   controlLayout,
 }) => {
   // Original inline styles
   const outerStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
-    width: panelOpen ? '320px' : '0px',
-    minWidth: panelOpen ? '320px' : '0px',
+    width: panelOpen ? '100%' : '0px',
+    minWidth: panelOpen ? '100%' : '0px',
     maxWidth: panelOpen ? '320px' : '0px',
     overflowY: 'auto',
     borderLeft: panelOpen ? '1px solid #ccc' : 'none',
     backgroundColor: '#C1D3E3',
     transition: 'width 0.3s ease',
     boxShadow: panelOpen ? '2px 0 5px rgba(0,0,0,0.1)' : 'none',
-    color: '#464B53',
+    color: '#d3d3d3',
     flexShrink: 0,
     position: 'relative',
   };
@@ -77,10 +77,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const panelContentStyle: CSSProperties = {
     display: panelOpen ? 'flex' : 'none',
     flexDirection: 'column',
-    height: '100%',
+    height: '300px',
+    width: '100%',
     padding: panelOpen ? '1.5rem' : '0',
     transition: 'opacity 0.3s ease',
     opacity: panelOpen ? 1 : 0,
+    overflowY: 'scroll',
   };
 
   const buttonStyle: CSSProperties = {
@@ -98,8 +100,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     transition: 'background-color 0.2s ease',
   };
 
-  const sectionStyle: CSSProperties = { marginBottom: '1.5rem' };
-  const labelStyle: CSSProperties = { marginBottom: '0.5rem', fontWeight: 'bold' };
+  const sectionStyle: CSSProperties = { marginBottom: '1.5rem', color: 'black' };
+  const labelStyle: CSSProperties = { marginBottom: '0.5rem', fontWeight: 'bold', color: 'black' };
   const sliderStyle: CSSProperties = { width: '100%' };
 
   return (
@@ -160,7 +162,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             labelStyle={labelStyle}
             sliderStyle={sliderStyle}
             controlLayout={controlLayout}
-            handleSampleMeshChange={handleSampleMeshChange}
+            // handleSampleMeshChange={handleSampleMeshChange}
             />
 
           <div style={sectionStyle}>

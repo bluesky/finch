@@ -44,9 +44,8 @@
 }
 .main-header {
     font-size: 30px;
+    color: white;
 }
-
-
 
 .synoptic-panel {
     display: flex;
@@ -54,7 +53,7 @@
     box-sizing: border-box;
     justify-content: center;
     position: relative;
-    left: 100px;
+    border: 1px solid black;
 }
 
 .beamvis-panel {
@@ -67,6 +66,6 @@
     right: 0;
     width: 100%;
     height: 100%;
-    border-radius: var(--radius);
-    overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }

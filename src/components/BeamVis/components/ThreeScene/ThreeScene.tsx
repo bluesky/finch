@@ -130,7 +130,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     const w = containerRef.current.clientWidth;
     const h = containerRef.current.clientHeight;
     const aspect = w / h;
-    const viewSize = 3;
+    const viewSize = 1.5;
 
     // Scene
     const scene = new THREE.Scene();
@@ -146,7 +146,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
       0.1,
       100
     );
-    mainCamera.position.set(-10, 10, 10); // initial x set to -10; if using cameraX, update below
+    mainCamera.position.set(-10, 5, 10); // initial x set to -10; if using cameraX, update below
     mainCamera.lookAt(0, 0, 0);
     // mainCamera.layers.enable(1);
     mainCameraRef.current = mainCamera;
@@ -210,7 +210,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
 
     // Ground Plane
     const planeGeom = new THREE.PlaneGeometry(20, 20);
-    const planeMat = new THREE.MeshPhongMaterial({ color: '#64768D' });
+    const planeMat = new THREE.MeshPhongMaterial({ color: '#D3D3D3' });
     const plane = new THREE.Mesh(planeGeom, planeMat);
     plane.rotation.x = -Math.PI / 2;
     plane.position.y = -0.5;

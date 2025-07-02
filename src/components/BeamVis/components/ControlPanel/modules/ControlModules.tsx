@@ -245,7 +245,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
       {/* ----------------------
           Camera Controls UI
       ---------------------- */}
-      <div style={sectionStyle}>
+      {/* <div style={sectionStyle}>
         <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
         <div style={{ marginBottom: '1rem' }}>
           <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
@@ -259,7 +259,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
             style={sliderStyle}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* ----------------------
           Beam Controls UI

@@ -34,7 +34,7 @@ interface ControlModulesProps {
   labelStyle: CSSProperties;
   sliderStyle: CSSProperties;
   controlLayout: ControlLayout;
-  handleSampleMeshChange: (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => void;
+  // handleSampleMeshChange: (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => void;
 }
 
 const ControlModules: React.FC<ControlModulesProps> = ({
@@ -55,7 +55,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   labelStyle,
   sliderStyle,
   controlLayout,
-  handleSampleMeshChange,
+  // handleSampleMeshChange,
 }) => {
   // Look up specific stage configs by their IDs.
   const horizontalStage = configs.find((c) => c.id === 'horizontalStage');
@@ -222,7 +222,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
       )}
 
       {/* Sample Mesh Controls */}
-      <div style={sectionStyle}>
+      {/* <div style={sectionStyle}>
         <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Sample Mesh</h3>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <label style={{ display: 'flex', marginBottom: '0.5rem', cursor: 'pointer' }}>
@@ -270,7 +270,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
             OBJ Model
           </label>
         </div>
-      </div>
+      </div> */}
 
       {/* Shutter Controls */}
       {showShutterControls && (
@@ -292,7 +292,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
       )}
 
       {/* Camera Controls */}
-      {showCameraControls && (
+      {/* {showCameraControls && (
         <div style={sectionStyle}>
           <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
           <div style={{ marginBottom: '1rem' }}>
@@ -308,7 +308,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
             />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Beam Controls */}
       {showBeamControls && (

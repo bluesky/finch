@@ -255,11 +255,33 @@ export const exampleDefinition: BeamlineDefinition = {
   name: 'Example Beamline',
 };
 
+export const bl531Definition: BeamlineDefinition = {
+  sceneConfig: [
+    {
+      id: 'horizontalStage',
+      type: 'stage',
+      stageType: 'xyz',
+      transform: { position: [0, 0, 0], rotation: [0, 0, 0] },
+      parentId: 'floor',
+      visible: true,
+      geometry: { width: 2, depth: 1, height: 0.3}
+    },
+  ],
+  controlLayout: {
+    common: {camera: true},
+    stages: [
+      { id: 'horizontalStage1', type: 'xyz' }
+    ]
+  },
+  name: 'BL5.3.1 R&D',
+};
+
 /**
  * Export the available beamline definitions as a lookup.
  */
 export const beamlineDefinitions: Record<string, BeamlineDefinition> = {
   bl733: bl733Definition,
   bl832: bl832Definition,
+  bl531: bl531Definition,
   example: exampleDefinition,
 };
