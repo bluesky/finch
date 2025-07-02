@@ -52,9 +52,14 @@ const edges: Edge[] = [
 ];
 
 const App: React.FC = () => (
+  <>
+    <header className='main-header'>
+      <h1>BL5.3.1</h1>
+    </header>
   <div className='main-container'>
+
     <aside className='synoptic-panel'>
-        <h2 style={{ color: 'black' }}>Synoptic Beamline Prototype</h2>
+
         <SynopticView nodes={nodes} edges={edges} />
 
     </aside>
@@ -66,6 +71,7 @@ const App: React.FC = () => (
     </section>
 
   </div>
+  </>
 );
 
 export default App;

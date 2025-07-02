@@ -52,7 +52,7 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
   );
 
   return (
-    <svg width={720} height={400} style={{ background: 'white', border: '1px solid #444' }}>
+    <svg width={720} height={400} style={{ background: 'white'}}>
       {/* edges */}
       {edges.map((e, idx) => {
         const a = nodeMap.get(e.from);
