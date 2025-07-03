@@ -11,6 +11,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { createObjectFromConfig } from './factories';
 import { ComponentConfig } from '../../types/ComponentConfig';
 import { beamColorMap } from '../../types/ComponentConfig';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 
 /** Types for photon streaming */
 interface Photon {
@@ -117,6 +118,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     sceneConfigRef.current = sceneConfig;
   }, [sceneConfig]);
 
+  const controlsRef = useRef<OrbitControls | null>(null);
+
   /********************************************************
    * 1) Initialization (runs only once)
    ********************************************************/
@@ -136,6 +139,30 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#D3D3D3');
     sceneRef.current = scene;
+
+    const L = 50;           // how long your axes are
+    const dashMat = new THREE.LineDashedMaterial({
+    color: 0x000000,      // black
+    dashSize: 0.25,          // length of dash
+    gapSize: 0.25,           // length of gap
+    linewidth: 5          // (<— often ignored by WebGL/ANGLE)
+  });
+
+  // helper to build one axis
+  function makeAxis( dir: THREE.Vector3 ) {
+    const pts = [ new THREE.Vector3(0,0,0), dir.clone().multiplyScalar(L) ];
+    const geom = new THREE.BufferGeometry().setFromPoints(pts);
+    const line = new THREE.Line(geom, dashMat);
+    line.computeLineDistances();   // required for dashed to appear
+    scene.add(line);
+  }
+
+  makeAxis(new THREE.Vector3(1,0,0));
+  makeAxis(new THREE.Vector3(-1,0,0));
+  makeAxis(new THREE.Vector3(0,1,0));
+  makeAxis(new THREE.Vector3(0,-1,0));
+  makeAxis(new THREE.Vector3(0,0,1));
+  makeAxis(new THREE.Vector3(0,0,-1));
 
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
@@ -181,6 +208,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
+
+    // if (renderer) {
+    //   const controls = new OrbitControls(mainCamera, renderer.domElement);
+    //   controls.enableDamping = true;
+    //   controls.dampingFactor = 0.05;
+    //   controlsRef.current = controls;
+    // }
 
     // Postprocessing Composer
     const composer = new EffectComposer(renderer);
@@ -263,6 +297,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     let animationId: number;
     const clock = new THREE.Clock();
     const animate = () => {
+      //controlsRef.current?.update();
 
       animationId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
@@ -384,11 +419,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     animate();
 
     return () => {
+      //scene.remove(axesHelper, gridHelper)
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
       xRayRenderTarget.dispose();
       scene.clear();
+      //controlsRef.current?.dispose();
     };
   }, []
 ); // initialization runs only once

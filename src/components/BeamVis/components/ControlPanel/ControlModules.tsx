@@ -138,7 +138,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
       )}
 
       {/* Horizontal Stage Movement Controls */}
-      {showHorizontalStageControls && horizontalStage && (
+      {/* {showHorizontalStageControls && horizontalStage && (
         <div style={sectionStyle}>
           <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Horizontal Stage Movement</h3>
           <div style={{ marginBottom: '1rem' }}>
@@ -184,7 +184,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
             />
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Centering Motor Controls */}
       {showCenteringMotor && centeringStage && (

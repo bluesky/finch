@@ -1,7 +1,8 @@
 // components/ControlPanel/ControlPanel.tsx
-import React, { CSSProperties } from 'react';
+import React, { CSSProperties, useState, useEffect } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
+
 
 interface ControlPanelProps {
   panelOpen: boolean;
@@ -57,6 +58,34 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   // handleSampleMeshChange,
   controlLayout,
 }) => {
+
+  const [jogStep, setJogStep] = useState(0.1);
+  const [pos, setPos] = useState({ X: motorX, Y: motorY, Z: motorZ });
+  const [targets, setTargets] = useState({ X: 10, Y: 20, Z: 30 });
+
+  useEffect(() => {
+    setPos({ X: motorX, Y: motorY, Z: motorZ });
+  }, [motorX, motorY, motorZ]);
+
+  const jogAxis = (axis: 'X'|'Y'|'Z', delta: number) => {
+    setPos(p => {
+      const next = p[axis] + delta;
+      // 1) update our local copy
+      const updated = { ...p, [axis]: next };
+      // 2) ask parent to move there as well
+      if (axis==='X') handleStageXChange(next);
+      if (axis==='Y') handleStageYChange(next);
+      if (axis==='Z') handleStageZChange(next);
+      return updated;
+    });
+  };
+  const moveAxis = (axis: 'X'|'Y'|'Z') => {
+  const target = targets[axis]; // your setPos state
+  setPos(p => ({ ...p, [axis]: target }));
+  if (axis==='X') handleStageXChange(target);
+  if (axis==='Y') handleStageYChange(target);
+  if (axis==='Z') handleStageZChange(target);
+};
   // Original inline styles
   const outerStyle: CSSProperties = {
     display: 'flex',
@@ -106,40 +135,96 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div style={outerStyle}>
+      {/* <button
+        onClick={togglePanel}
+        style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
+        onMouseOver={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
+        }
+        onMouseOut={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
+        }
+      >
+        { panelOpen ? 'Hide Panel' : 'Show Panel'}
+      </button> */}
       {panelOpen && (
-        <div style={panelContentStyle}>
-          <button
-            onClick={togglePanel}
-            style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
-            onMouseOver={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
-            }
-            onMouseOut={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
-            }
-          >
-            Hide Panel
-          </button>
+        <div style={panelContentStyle}> <span style={{ color: 'black' }}>Controls </span>
 
-          <h2 style={{ marginTop: '1rem', marginBottom: '1rem', color: '#07304B' }}>
-            Controls
-          </h2>
+          {/* ── INSERT THE “Position｜Jog｜Set” GRID HERE ── */}
+          <div style={{
+            border: '1px solid #007bff',
+            borderRadius: 4,
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            color: '#000'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1.5fr 2fr 2fr',
+              fontWeight: 'bold',
+              marginBottom: '0.5rem'
+            }}>
+              <div>Position</div><div>Jog</div><div>Set</div>
+            </div>
 
-          {/* Render common controls if allowed by controlLayout */}
-          {controlLayout.common?.beam && (
-            <button
-              onClick={handlePlayPause}
-              style={buttonStyle}
-              onMouseOver={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#0056b3')
-              }
-              onMouseOut={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#007bff')
-              }
-            >
-              {isPlaying ? 'Pause' : 'Play'}
-            </button>
-          )}
+            {(['X','Y','Z'] as const).map(axis => {
+              const current = pos[axis]
+
+              return (
+                <div key={axis} style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1.5fr 2fr 2fr',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  {/* Position */}
+                  <div>
+                    {axis}:&nbsp;
+                    <input
+                      type="number"
+                      value={current.toFixed(2)}
+                      readOnly
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem', backgroundColor: 'white', border: '1px solid black' }}
+                    /> mm
+                  </div>
+
+                  {/* Jog */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button style={{
+                    backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                    }}
+                    onClick={() => jogAxis(axis, -jogStep)}>-</button>
+                    <input
+                      type="number"
+                      step={0.01}
+                      value={jogStep}
+                      onChange={e => setJogStep(parseFloat(e.target.value))}
+                      style={{ textAlign: 'center', width: '3rem', margin: '0 0.25rem', backgroundColor: 'white', border: '1px solid black' }}
+                    /> mm
+                    <button style={{
+                    backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                    }} onClick={() => jogAxis(axis, +jogStep)}>+</button>
+                  </div>
+
+                  {/* Set */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      value={targets[axis]}
+                      onChange={e =>
+                        setTargets(p => ({ ...p, [axis]: parseFloat(e.target.value) }))
+                      }
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor: 'white', border: '1px solid black' }}
+                    /> mm
+                    <button style={{
+                    backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                    }} onClick={() => moveAxis(axis)}>move</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* ── END GRID ── */}
 
           <ControlModules
             configs={configs}
@@ -181,7 +266,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             ))}
           </div>
 
-          {controlLayout.common?.camera && (
+          {/* {controlLayout.common?.camera && (
             <div style={sectionStyle}>
               <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
               <div style={{ marginBottom: '1rem' }}>
@@ -197,7 +282,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 />
               </div>
             </div>
-          )}
+          )} */}
         </div>
       )}
     </div>

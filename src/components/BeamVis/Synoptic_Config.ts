@@ -17,7 +17,7 @@ export interface Node {
   status: keyof typeof statusColor;
 }
 
-// edge between nodes, optional right-angle via points
+// edge between nodes
 export interface Edge {
   from: string;
   to: string;
