@@ -10,7 +10,7 @@ export function createXYZStage(cfg: StageConfig): THREE.Object3D {
   const depth = cfg.geometry?.depth ?? 1;
 
   const geom = new THREE.BoxGeometry(width, height, depth);
-  const mat = new THREE.MeshPhongMaterial({ color: '#7d7d7d' }); // golden
+  const mat = new THREE.MeshPhongMaterial({ color: '#818181' });
   const mesh = new THREE.Mesh(geom, mat);
   mesh.castShadow = true;
   mesh.receiveShadow = true;

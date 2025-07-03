@@ -44,16 +44,45 @@
 }
 .main-header {
     font-size: 30px;
-    color: white;
+    color: #07304b;
+    padding: 10px;
 }
 
 .synoptic-panel {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    justify-content: center;
+    justify-content: flex-start;
     position: relative;
     border: 1px solid black;
+}
+
+.synoptic-panel svg {
+
+}
+
+.synoptic-legend {
+    position: relative;
+    z-index: 10;
+    top: 16px; left: 16px;
+    background: white;
+    padding: 8px;
+    font-size: 16px;
+    width: 50%;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+
 }
 
 .beamvis-panel {
@@ -68,4 +97,14 @@
     height: 100%;
     overflow-y: hidden;
     overflow-x: hidden;
+}
+
+.synoptic-node {
+    transition: filter 0.25s ease;
+}
+.synoptic-node-icon {
+    pointer-events: none;
+}
+.synoptic-node:hover {
+    filter: brightness(1.5);
 }

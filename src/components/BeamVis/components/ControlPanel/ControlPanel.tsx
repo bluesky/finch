@@ -1,9 +1,11 @@
-// components/ControlPanel/ControlPanel.tsx
-import React, { CSSProperties } from 'react';
+// components/ControlPanel / ControlPanel.tsx
+import React, { CSSProperties, useState } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
 
 interface ControlPanelProps {
+  onAxisHover: (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => void;
+  onAxisUnhover: () => void;
   panelOpen: boolean;
   togglePanel: () => void;
   configs: ComponentConfig[];
@@ -17,6 +19,9 @@ interface ControlPanelProps {
   motorX: number;
   motorY: number;
   motorZ: number;
+  horizX: number;
+  horizY: number;
+  horizZ: number;
   handleCenteringStageXChange: (val: number) => void;
   handleCenteringStageYChange: (val: number) => void;
   handleCenteringStageZChange: (val: number) => void;
@@ -47,6 +52,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   motorX,
   motorY,
   motorZ,
+  horizX,
+  horizY,
+  horizZ,
   handleCenteringStageXChange,
   handleCenteringStageYChange,
   handleCenteringStageZChange,
@@ -56,8 +64,34 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   handleToggleVisibility,
   // handleSampleMeshChange,
   controlLayout,
+  onAxisHover,
+  onAxisUnhover
 }) => {
-  // Original inline styles
+
+  const [jogStep, setJogStep] = useState<{ X: number; Y: number; Z: number; }>({
+    X: 0.1, Y: 0.1, Z: 0.1
+  });
+  const [targets, setTargets] = useState({ X: 0, Y: 0, Z: 0 });
+
+  const axisHandlers = {
+    X: handleStageXChange,
+    Y: handleStageYChange,
+    Z: handleStageZChange
+  }
+
+
+  const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
+    const currentPosition = { X: horizX, Y: horizY, Z: horizZ }[axis];
+    const next = +(currentPosition + delta).toFixed(3);
+    axisHandlers[axis](next);
+  };
+
+  const moveAxis = (axis: 'X' | 'Y' | 'Z') => {
+    const target = targets[axis];
+    axisHandlers[axis](target);
+  };
+
+  // inline styles
   const outerStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -106,40 +140,104 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div style={outerStyle}>
+      {/* <button
+        onClick={togglePanel}
+        style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
+        onMouseOver={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
+        }
+        onMouseOut={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
+        }
+      >
+        {panelOpen ? 'Hide Panel' : 'Show Panel'}
+      </button> */}
       {panelOpen && (
-        <div style={panelContentStyle}>
-          <button
-            onClick={togglePanel}
-            style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
-            onMouseOver={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
-            }
-            onMouseOut={(e) =>
-              ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
-            }
-          >
-            Hide Panel
-          </button>
+        <div style={panelContentStyle}> <span style={{ color: 'black' }}>Controls </span>
+          <div style={{
+            border: '1px solid #007bff',
+            borderRadius: 4,
+            padding: '1rem',
+            marginBottom: '1.5rem',
+            color: '#000'
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1.5fr 2fr 2fr',
+              fontWeight: 'bold',
+              marginBottom: '0.5rem'
+            }}>
+              <div>Position</div><div>Jog</div><div>Set</div>
+            </div>
 
-          <h2 style={{ marginTop: '1rem', marginBottom: '1rem', color: '#07304B' }}>
-            Controls
-          </h2>
+            {(['X', 'Y'] as const).map(axis => {
+              const current = { X: horizX, Y: horizY, Z: horizZ }[axis];
+              const js = jogStep[axis];
 
-          {/* Render common controls if allowed by controlLayout */}
-          {controlLayout.common?.beam && (
-            <button
-              onClick={handlePlayPause}
-              style={buttonStyle}
-              onMouseOver={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#0056b3')
-              }
-              onMouseOut={(e) =>
-                ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#007bff')
-              }
-            >
-              {isPlaying ? 'Pause' : 'Play'}
-            </button>
-          )}
+              return (
+                <div key={axis} style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1.5fr 2fr 2fr',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  {/* Position */}
+                  <div>
+                    {axis}:&nbsp;
+                    <input
+                      type="number"
+                      value={(current).toFixed(3)}
+                      readOnly
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem' }}
+                    /> mm
+                  </div>
+
+                  {/* Jog */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button
+                      className='w-8 h-8 bg-white'
+                      style={{
+                        clipPath: 'polygon(0% 50%, 100% 0, 100% 100%)'
+                      }}
+                      onMouseEnter={() => onAxisHover(axis, -1)}
+                      onMouseLeave={onAxisUnhover}
+                      onClick={() => jogAxis(axis, -js)}> - </button>
+                    <input
+                      type="number"
+                      step={0.01}
+                      value={js}
+                      onChange={e =>
+                        setJogStep(j => ({ ...j, [axis]: parseFloat(e.target.value) }))
+                      }
+                      style={{ textAlign: 'center', width: '3rem', margin: '0 0.25rem', backgroundColor: 'white', border: '1px solid black' }}
+                    /> mm
+                    <button style={{
+                      width: '2rem', height: '2rem', clipPath: 'polygon(0 0, 100% 50%, 0 100%', backgroundColor: 'white'
+                    }}
+                      onMouseEnter={() => onAxisHover(axis, 1)}
+                      onMouseLeave={onAxisUnhover}
+                      onClick={() => jogAxis(axis, +js)}> + </button>
+                  </div>
+
+                  {/* Set */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <input
+                      type="number"
+                      value={targets[axis]}
+                      onChange={e =>
+                        setTargets(p => ({ ...p, [axis]: parseFloat(e.target.value) }))
+                      }
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor: 'white', border: '1px solid black' }}
+                    /> mm
+                    <button style={{
+                      backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                    }} onClick={() => moveAxis(axis)}>move</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {/* ── END GRID ── */}
 
           <ControlModules
             configs={configs}
@@ -162,10 +260,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             labelStyle={labelStyle}
             sliderStyle={sliderStyle}
             controlLayout={controlLayout}
-            // handleSampleMeshChange={handleSampleMeshChange}
-            />
+          // handleSampleMeshChange={handleSampleMeshChange}
+          />
 
-          <div style={sectionStyle}>
+          {/* <div style={sectionStyle}>
             <h3>Visibility</h3>
             {configs.map((cfg) => (
               <div key={cfg.id}>
@@ -179,25 +277,25 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 </label>
               </div>
             ))}
-          </div>
+          </div> */}
 
-          {controlLayout.common?.camera && (
-            <div style={sectionStyle}>
-              <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
-                <input
-                  type="range"
-                  min={-20}
-                  max={10}
-                  step={0.1}
-                  value={cameraX}
-                  onChange={(e) => setCameraX(Number(e.target.value))}
-                  style={sliderStyle}
-                />
-              </div>
-            </div>
-          )}
+          {/* {controlLayout.common?.camera && (
+ <div style={sectionStyle}>
+ <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
+ <div style={{ marginBottom: '1rem' }}>
+ <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
+ <input
+ type="range"
+ min={-20}
+ max={10}
+ step={0.1}
+ value={cameraX}
+ onChange={(e) => setCameraX(Number(e.target.value))}
+ style={sliderStyle}
+ />
+ </div>
+ </div>
+ )} */}
         </div>
       )}
     </div>

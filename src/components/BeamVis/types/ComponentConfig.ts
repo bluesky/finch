@@ -14,6 +14,12 @@ export interface BaseConfig {
   parentId?: string;    // if this object is attached to another
   visible?: boolean;
   transform: Transform;
+  synopticId?: string;
+  inversions?: {
+    x?: -1 | 1;
+    y?: -1 | 1;
+    z?: -1 | 1;
+  };
 }
 
 /** Stage sub-types (e.g., tilt, cylindrical, stacked translations) */
