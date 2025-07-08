@@ -164,6 +164,17 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
   makeAxis(new THREE.Vector3(0,0,1));
   makeAxis(new THREE.Vector3(0,0,-1));
 
+  const beamDir = new THREE.Vector3(0, 0, -1).normalize();
+  const origin = new THREE.Vector3(0,0,7);
+  const length = 5;
+  const headLength = 0.1;
+  const headWidth = 0.1;
+
+  const arrow = new THREE.ArrowHelper(
+    beamDir, origin, length, 0x000000, headLength, headWidth
+  );
+
+  scene.add(arrow);
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
       -viewSize * aspect,
@@ -173,7 +184,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
       0.1,
       100
     );
-    mainCamera.position.set(-10, 5, 10); // initial x set to -10; if using cameraX, update below
+    mainCamera.position.set(-10, 7, 10); // initial x set to -10; if using cameraX, update below
     mainCamera.lookAt(0, 0, 0);
     // mainCamera.layers.enable(1);
     mainCameraRef.current = mainCamera;
