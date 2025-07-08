@@ -12,6 +12,9 @@ import { createObjectFromConfig } from './factories';
 import { ComponentConfig } from '../../types/ComponentConfig';
 import { beamColorMap } from '../../types/ComponentConfig';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { Line2 } from 'three/examples/jsm/lines/Line2.js';
+import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 
 /** Types for photon streaming */
 interface Photon {
@@ -20,10 +23,12 @@ interface Photon {
   active: boolean;
 }
 
+export type HoveredAxis = { axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null;
 interface ThreeSceneProps {
   sceneConfig: ComponentConfig[];
   // Optionally, if you want to control camera x externally:
   // cameraX: number;
+  highlightedAxis: HoveredAxis;
 }
 
 export interface SharedResources {
@@ -37,7 +42,7 @@ export interface SharedResources {
   geometries?: object;
 }
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*, cameraX */ }) => {
   /********************************************************
    * Refs for Scene, Cameras, Renderer, etc.
    ********************************************************/
@@ -119,6 +124,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
   }, [sceneConfig]);
 
   const controlsRef = useRef<OrbitControls | null>(null);
+  const hoveredRef = useRef<HoveredAxis>(highlightedAxis);
+  useEffect(() => { hoveredRef.current = highlightedAxis; }, [highlightedAxis]);
 
   /********************************************************
    * 1) Initialization (runs only once)
@@ -134,47 +141,42 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
     const h = containerRef.current.clientHeight;
     const aspect = w / h;
     const viewSize = 1.5;
+    const size = new THREE.Vector2(w, h);
 
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#D3D3D3');
     sceneRef.current = scene;
 
-    const L = 50;           // how long your axes are
-    const dashMat = new THREE.LineDashedMaterial({
-    color: 0x000000,      // black
-    dashSize: 0.25,          // length of dash
-    gapSize: 0.25,           // length of gap
-    linewidth: 5          // (<— often ignored by WebGL/ANGLE)
-  });
+    // Custom axes dashed lines
+    const L = 3;
+    const axesMat = {
+    resolution: size,
+    dashed: true,
+    dashScale: 1,
+    dashSize: 0.25,
+    gapSize: 0.1,
+    linewidth: 3,
+  };
 
-  // helper to build one axis
-  function makeAxis( dir: THREE.Vector3 ) {
+  function makeAxis( dir: THREE.Vector3, hexColor: number, axis: 'X' | 'Y' | 'Z' = 'X') {
+    const mat = new LineMaterial({...axesMat, color: hexColor });
+    const dirSign = Math.sign(dir.x + dir.y + dir.z) as 1 | -1;
+    mat.userData = { axis, dirSign };
     const pts = [ new THREE.Vector3(0,0,0), dir.clone().multiplyScalar(L) ];
-    const geom = new THREE.BufferGeometry().setFromPoints(pts);
-    const line = new THREE.Line(geom, dashMat);
-    line.computeLineDistances();   // required for dashed to appear
+    const geom = new LineGeometry().setFromPoints(pts);
+    const line = new Line2(geom, mat);
+    line.computeLineDistances();
     scene.add(line);
   }
 
-  makeAxis(new THREE.Vector3(1,0,0));
-  makeAxis(new THREE.Vector3(-1,0,0));
-  makeAxis(new THREE.Vector3(0,1,0));
-  makeAxis(new THREE.Vector3(0,-1,0));
-  makeAxis(new THREE.Vector3(0,0,1));
-  makeAxis(new THREE.Vector3(0,0,-1));
+  makeAxis(new THREE.Vector3(1,0,0), 0xff0000, 'X'); // Red X-axis
+  makeAxis(new THREE.Vector3(-1,0,0), 0xff0000, 'X'); // Red -X-axis
+  makeAxis(new THREE.Vector3(0,1,0), 0x00ff00, 'Y'); // Green Y-axis
+  makeAxis(new THREE.Vector3(0,-1,0), 0x00ff00, 'Y'); // Green -Y-axis
+  makeAxis(new THREE.Vector3(0,0,1), 0x0000ff, 'Z'); // Blue Z-axis
+  makeAxis(new THREE.Vector3(0,0,-1), 0x0000ff, 'Z'); // Blue -Z-axis
 
-  const beamDir = new THREE.Vector3(0, 0, -1).normalize();
-  const origin = new THREE.Vector3(0,0,7);
-  const length = 5;
-  const headLength = 0.1;
-  const headWidth = 0.1;
-
-  const arrow = new THREE.ArrowHelper(
-    beamDir, origin, length, 0x000000, headLength, headWidth
-  );
-
-  scene.add(arrow);
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
       -viewSize * aspect,
@@ -255,7 +257,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
 
     // Ground Plane
     const planeGeom = new THREE.PlaneGeometry(20, 20);
-    const planeMat = new THREE.MeshPhongMaterial({ color: '#D3D3D3' });
+    const planeMat = new THREE.MeshPhongMaterial({ color: '#c4c4c4' });
     const plane = new THREE.Mesh(planeGeom, planeMat);
     plane.rotation.x = -Math.PI / 2;
     plane.position.y = -0.5;
@@ -325,6 +327,29 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
       const detectorObj = scene.getObjectByName('detector');
       const beamMaterial = sharedResources.materials.beam;
 
+      // animate dashed axis lines
+      const h = hoveredRef.current;
+      if (h) {
+        const { axis: hoverAxis, dirSign: hoverSide } = h;
+        scene.traverse(obj => {
+          if (!(obj instanceof Line2 && obj.material instanceof LineMaterial)) return;
+          const mat = obj.material as LineMaterial & {
+        dashOffset?: number;
+        userData: { axis: string; dirSign: 1 | -1 };
+          };
+          const { axis, dirSign } = mat.userData;
+
+          // only the exact half‐axis you hovered
+          if (axis === hoverAxis && dirSign === hoverSide) {
+        const baseSpeed = 0.75;
+        // always add a positive offset
+        mat.dashOffset = (mat.dashOffset ?? 0) + delta * baseSpeed * -1;
+        mat.needsUpdate = true;
+          }
+        });
+      }
+
+
       if (beamCfg?.beamMono) {
         const targetColor = beamColorMap[beamCfg.beamMono];
         if (beamMaterial.color.getStyle() !== targetColor) {
@@ -345,8 +370,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig /*, cameraX */ }) =
         detectorX = vec1.x;
         stopX = vec2.x;
       }
-      else if (!detectorObj) {console.warn('Detector object not found in scene.');}
-      else if (!beamStopPivot) {console.warn('Beam Stop pivot not found in scene.');}
+      // else if (!detectorObj) {console.warn('Detector object not found in scene.');}
+      // else if (!beamStopPivot) {console.warn('Beam Stop pivot not found in scene.');}
 
       if (beamCyl) {
         const targetX = isOpen ? detectorX : stopX;

@@ -5,6 +5,8 @@ import { ComponentConfig } from '../../types/ComponentConfig';
 
 
 interface ControlPanelProps {
+  onAxisHover: (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => void;
+  onAxisUnhover: () => void;
   panelOpen: boolean;
   togglePanel: () => void;
   configs: ComponentConfig[];
@@ -57,6 +59,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   handleToggleVisibility,
   // handleSampleMeshChange,
   controlLayout,
+  onAxisHover,
+  onAxisUnhover
 }) => {
 
   const [jogStep, setJogStep] = useState<{ X: number; Y: number; Z: number; }>({
@@ -194,6 +198,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     <button style={{
                     backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
                     }}
+                    onMouseEnter={() => onAxisHover(axis, -1)}
+                    onMouseLeave={onAxisUnhover}
                     onClick={() => jogAxis(axis, -js)}>-</button>
                     <input
                       type="number"
@@ -204,7 +210,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       }
                       style={{ textAlign: 'center', width: '3rem', margin: '0 0.25rem', backgroundColor: 'white', border: '1px solid black' }}
                     /> mm
-                    <button style={{
+                    <button
+                    onMouseEnter={() => onAxisHover(axis, 1)}
+                    onMouseLeave={onAxisUnhover}
+                    style={{
                     backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
                     }} onClick={() => jogAxis(axis, +js)}>+</button>
                   </div>
@@ -217,7 +226,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       onChange={e =>
                         setTargets(p => ({ ...p, [axis]: parseFloat(e.target.value) }))
                       }
-                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor: 'white', border: '1px solid black' }}
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor:'white', border: '1px solid black' }}
                     /> mm
                     <button style={{
                     backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'

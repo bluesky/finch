@@ -11,6 +11,9 @@ import { beamlineDefinitions, BeamlineDefinition } from '../beam_configs';
 import { usePV, useEpics } from '../EPICS/EpicsContext';
 
 const BeamlineContainer: FC = () => {
+
+  // hover state for axes
+  const [hovered, setHovered] = useState<{axis:'X'|'Y'|'Z';dirSign:1|-1}|null>(null)
   // Available beamlines
   const availableBeamlines = useMemo(() => Object.keys(beamlineDefinitions), []);
   const [selectedBeamline, setSelectedBeamline] = useState(availableBeamlines[2] || '');
@@ -154,7 +157,7 @@ const BeamlineContainer: FC = () => {
   return (
     <div>
       <div>
-        <ThreeScene key={selectedBeamline} sceneConfig={configs} />
+        <ThreeScene key={selectedBeamline} sceneConfig={configs} highlightedAxis={hovered} />
       </div>
       <div style={rightPanelStyle}>
         <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>
@@ -162,6 +165,8 @@ const BeamlineContainer: FC = () => {
           {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
         </select>
         <ControlPanel
+          onAxisHover={(axis, dirSign) => setHovered({ axis, dirSign })}
+          onAxisUnhover={() => setHovered(null)}
           key={selectedBeamline}
           panelOpen={panelOpen}
           togglePanel={togglePanel}

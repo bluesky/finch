@@ -73,6 +73,7 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
               fill={statusColor[n.status]}
               stroke="#000"
               strokeWidth={1}
+              className='synoptic-node'
             />
             <text
               y={labelY}
