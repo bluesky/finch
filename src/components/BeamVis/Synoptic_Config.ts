@@ -1,4 +1,4 @@
-const TOP_Y = 100;
+export const TOP_Y = 100;
 const BOT_Y = 250;
 const MID_Y = (TOP_Y + BOT_Y) / 2;
 

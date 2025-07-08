@@ -59,7 +59,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   controlLayout,
 }) => {
 
-  const [jogStep, setJogStep] = useState(0.1);
+  const [jogStep, setJogStep] = useState<{ X: number; Y: number; Z: number; }>({
+    X: 0.1, Y: 0.1, Z: 0.1
+  });
   const [pos, setPos] = useState({ X: motorX, Y: motorY, Z: motorZ });
   const [targets, setTargets] = useState({ X: 10, Y: 20, Z: 30 });
 
@@ -149,8 +151,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </button> */}
       {panelOpen && (
         <div style={panelContentStyle}> <span style={{ color: 'black' }}>Controls </span>
-
-          {/* ── INSERT THE “Position｜Jog｜Set” GRID HERE ── */}
           <div style={{
             border: '1px solid #007bff',
             borderRadius: 4,
@@ -169,6 +169,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
             {(['X','Y','Z'] as const).map(axis => {
               const current = pos[axis]
+              const js = jogStep[axis];
 
               return (
                 <div key={axis} style={{
@@ -184,7 +185,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       type="number"
                       value={current.toFixed(2)}
                       readOnly
-                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem', backgroundColor: 'white', border: '1px solid black' }}
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem'}}
                     /> mm
                   </div>
 
@@ -193,17 +194,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     <button style={{
                     backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
                     }}
-                    onClick={() => jogAxis(axis, -jogStep)}>-</button>
+                    onClick={() => jogAxis(axis, -js)}>-</button>
                     <input
                       type="number"
                       step={0.01}
-                      value={jogStep}
-                      onChange={e => setJogStep(parseFloat(e.target.value))}
+                      value={js}
+                      onChange={e =>
+                        setJogStep(j => ({ ...j, [axis]: parseFloat(e.target.value)}))
+                      }
                       style={{ textAlign: 'center', width: '3rem', margin: '0 0.25rem', backgroundColor: 'white', border: '1px solid black' }}
                     /> mm
                     <button style={{
                     backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
-                    }} onClick={() => jogAxis(axis, +jogStep)}>+</button>
+                    }} onClick={() => jogAxis(axis, +js)}>+</button>
                   </div>
 
                   {/* Set */}
