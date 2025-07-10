@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 
-import { getSearchResults } from "./apiClient";
+import { getSearchResults, getFirstSearchWithApiKey } from "./apiClient";
 import { 
     TiledSearchResult, 
     TiledSearchItem, 
@@ -15,11 +15,13 @@ import {
     isTableStructure,
  } from "./types";
 import { getTiledStructureIcon, generateSearchPath, } from "./utils";
-type useTiledProps = {
-    url?: string
+export type useTiledProps = {
+    url?: string,
+    apiKey?: string,
+    searchPath?: string,
 }
 type Url = string;
-export const useTiled = (url?:Url) => {
+export const useTiled = (url?:Url, apiKey?:string, searchPath?:string) => {
 
     const [ columns, setColumns ] = useState<TiledSearchResult[]>([]);
     const [ breadcrumbs, setBreadcrumbs ] = useState<Breadcrumb[]>([]);
@@ -27,6 +29,7 @@ export const useTiled = (url?:Url) => {
     const [ popoutUrl, setPopoutUrl ] = useState<string | undefined>();
     const [ previewSize, setPreviewSize ] = useState<PreviewSize>('hidden');
     const [ previewItem, setPreviewItem ]  = useState<TiledSearchItem<ArrayStructure> | TiledSearchItem<TableStructure> | null >(null);
+    const [ warning, setWarning ] = useState<string | undefined>(undefined);
     const ancestorStack = useRef<TiledSearchItem<TiledStructures>[]>([]);
     const currentAncestorId = useRef<number>(-1);
 
@@ -43,7 +46,7 @@ export const useTiled = (url?:Url) => {
             currentAncestorId.current = currentAncestorId.current - 1;
             if (currentAncestorId.current < 0) {
                 //uesr has clicked back onto the root directory
-                getSearchResults('', (res:TiledSearchResult) => setColumns([res]));
+                getSearchResults(searchPath, url, (res:TiledSearchResult) => setColumns([res]));
                 setBreadcrumbs([]);
                 setImageUrl('');
                 setPopoutUrl('');
@@ -150,7 +153,7 @@ export const useTiled = (url?:Url) => {
         //search container, put results into column, disable preview
         setPreviewItem(null)
         const searchPath = generateSearchPath(item);
-        getSearchResults(searchPath, (res:TiledSearchResult) => handleSearchResponse(item, res), url);
+        getSearchResults(searchPath, url, (res:TiledSearchResult) => handleSearchResponse(item, res));
         closePreview();
     };
 
@@ -165,25 +168,31 @@ export const useTiled = (url?:Url) => {
         currentAncestorId.current = -1;
         setPreviewItem(null);
         setPreviewSize('hidden');
-        getSearchResults('', (res:TiledSearchResult) => setColumns([res]), url);
+        getSearchResults(searchPath, url, (res:TiledSearchResult) => setColumns([res]));
     }
 
     const initializeData = async () => {
         //attempt to get data from base Tiled Url. Display error on UI if no data comes back
-        const response = await getSearchResults('', ()=>{}, url);
-        if (typeof response !== 'string' && 'data' in response) {
-            setColumns([response]);
+        let response = null;
+        if (apiKey) {
+            response = await getFirstSearchWithApiKey(apiKey, searchPath, url); //only need to use apiKey once to set cookie for future requests
+        } else {
+            response = await getSearchResults(searchPath, url);
         }
-        console.log({response})
+        if (response!== null && typeof response !== 'string' && 'data' in response) {
+            setColumns([response]);
+        } else {
+            setWarning('No data found at the provided Tiled URL. Please check the URL or API key.');
+        }
     }
 
     useEffect(() => {
         //get first set of results from root
         try{
             initializeData();
-
         } catch (e) {
             console.error('error getting first tiled request: ', e);
+            setWarning('Error initializing Tiled data. Please check the console for more details.');
         }
     }, []);
 
@@ -198,6 +207,7 @@ export const useTiled = (url?:Url) => {
         handleLeftArrowClick,
         handleRightArrowClick,
         resetAllData,
-    }), [columns, breadcrumbs, imageUrl, popoutUrl, previewSize, handleColumnItemClick])
+        warning,
+    }), [columns, breadcrumbs, imageUrl, popoutUrl, previewSize, handleColumnItemClick, warning])
 
 }

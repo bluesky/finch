@@ -22,6 +22,7 @@ type TiledContainerProps = {
     singleColumnMode?: boolean,
     handleExpandClick: Function,
     isExpanded: boolean,
+    apiKey?: string,
 }
 export default function TiledContainer({
     url,
@@ -31,6 +32,7 @@ export default function TiledContainer({
     singleColumnMode,
     handleExpandClick,
     isExpanded,
+    apiKey,
     ...props
 }: TiledContainerProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +46,7 @@ export default function TiledContainer({
         handleLeftArrowClick, 
         handleRightArrowClick,
         resetAllData,
-    } = useTiled(url);
+    } = useTiled(url, apiKey);
 
     const handleSelectClick = (item:TiledSearchItem<TiledStructures>) => {
         const links = generateLinksForCallback(item, url);

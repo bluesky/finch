@@ -1,4 +1,6 @@
-const sampleTiledSearchData = {
+import { TiledSearchResult } from "./types";
+
+const sampleTiledSearchData: TiledSearchResult = {
     "data": [
         {
             "id": "big_image",

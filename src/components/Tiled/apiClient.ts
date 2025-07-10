@@ -1,8 +1,11 @@
 import axios from "axios";
+axios.defaults.withCredentials = true; // allow cookies to be sent with requests
 import { sampleTiledSearchData } from "./sampleData";
+import { TiledSearchResult } from "./types";
 
+// Getting a CORS error?
 // when you start tiled, need to pass in CORS
-//TILED_ALLOW_ORIGINS=http://localhost:5174 tiled serve demo
+//ex) TILED_ALLOW_ORIGINS=http://localhost:5174 tiled serve demo
 
 const getDefaultTiledUrl = () => {
     const address = window.location.hostname;
@@ -36,24 +39,43 @@ const getTiledApiKey = () => {
 
 const defaultTiledUrl = getDefaultTiledUrl();
 const tiledApiKey = getTiledApiKey();
-
-const getSearchResults = async (searchPath?:string, cb:Function =()=>{}, url?:string, mock:boolean = false) => {
+//add return type of tiledresponse or null
+const getSearchResults = async (searchPath?:string, url?:string, cb?:(res:TiledSearchResult)=>void, mock?:boolean):Promise<TiledSearchResult | null> => {
     if (mock) {
-        cb(sampleTiledSearchData.data);
-        return;
+        cb && cb(sampleTiledSearchData.data);
+        return sampleTiledSearchData.data;
     }
     try {
+        console.log('doing search')
         const baseUrl = url ? url : defaultTiledUrl;
-        const response = await axios.get(baseUrl + '/search/' + searchPath);
-        cb(response.data);
-        return response.data;
+        const response = await axios.get(baseUrl + '/search/' + (searchPath ? searchPath : ''));
+        cb && cb(response.data as TiledSearchResult);
+        return response.data as TiledSearchResult;
     } catch (error) {
         console.error('Error searching path: ', error);
+        console.log('If you are getting a CORS error, make sure to start tiled with the TILED_ALLOW_ORIGINS environment variable set to your frontend URL');
         return null;
     }
 };
 
-const getTableData = async(searchPath:string, partition:number, cb:Function=()=>{}, url?:string) => {
+const getFirstSearchWithApiKey = async (apiKey:string, searchPath?:string, url?:string, cb?:(res:TiledSearchResult)=>void,  mock?:boolean):Promise<TiledSearchResult | null> => {
+    //after first successful GET using apikey, tiled stores a cookie and the apiKey is no longer required for subsequent requests
+    if (mock) {
+        cb && cb(sampleTiledSearchData.data);
+        return sampleTiledSearchData.data as TiledSearchResult;
+    }
+    try {
+        const baseUrl = url ? url : defaultTiledUrl;
+        const response = await axios.get(baseUrl + '/search/' + (searchPath ? searchPath : '') + '?api_key=' + apiKey);
+        return response.data;
+    } catch (error) {
+        console.error('Error searching path: ', error);
+        console.log('If you are getting a CORS error, make sure to start tiled with the TILED_ALLOW_ORIGINS environment variable set to your frontend URL');
+        return null;
+    }
+};
+
+const getTableData = async(searchPath:string, partition:number, url?:string) => {
     try {
         const baseUrl = url ? url : defaultTiledUrl;
         const response = await axios.get(baseUrl + '/table/partition/' + searchPath + '?partition=' + partition + '&format=application/json-seq');
@@ -65,8 +87,7 @@ const getTableData = async(searchPath:string, partition:number, cb:Function=()=>
 
         //console.log(parsedData); // Now it's an array of objects
         // [{ A: 0.5699, B: 1.1398, C: 1.7098 }, ...]
-
-        cb(parsedData);
+        return parsedData;
     } catch (error) {
         console.error('Error searching table data: ', error);
     }
@@ -246,4 +267,4 @@ const sampleColumnData = [
 ];
 
 
-export { getSearchResults, getDefaultTiledUrl, getTableData, }
+export { getSearchResults, getDefaultTiledUrl, getTableData, getFirstSearchWithApiKey}
