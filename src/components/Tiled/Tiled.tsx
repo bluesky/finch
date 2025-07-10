@@ -9,6 +9,7 @@ import { TiledItemLinks } from "./types";
 export type TiledProps = {
     onSelectCallback?: (links: TiledItemLinks) => void,
     apiKey?: string,
+    bearerToken?: string,
     size?: 'small' | 'medium' | 'large'
     closeOnSelect?: boolean,
     isPopup?: boolean,
@@ -22,6 +23,7 @@ export type TiledProps = {
 export default function Tiled({
     onSelectCallback,
     apiKey,
+    bearerToken,
     size,
     closeOnSelect=false,
     isPopup,
@@ -80,6 +82,7 @@ export default function Tiled({
                             handleExpandClick={handleExpandClick}
                             isExpanded={isExpanded}
                             apiKey={apiKey}
+                            bearerToken={bearerToken}
                         />
                     }
                 </div>

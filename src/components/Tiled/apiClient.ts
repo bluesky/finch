@@ -35,6 +35,13 @@ const getTiledApiKey = () => {
     }
 }
 
+const setBearerToken = (token:string) => {
+    if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+        delete axios.defaults.headers.common['Authorization'];
+    }
+};
 // const sampleTableUrl = http://localhost:8000/api/v1/table/partition/short_table?partition=0&format=application/json-seq
 
 const defaultTiledUrl = getDefaultTiledUrl();
@@ -267,4 +274,4 @@ const sampleColumnData = [
 ];
 
 
-export { getSearchResults, getDefaultTiledUrl, getTableData, getFirstSearchWithApiKey}
+export { getSearchResults, getDefaultTiledUrl, getTableData, getFirstSearchWithApiKey, setBearerToken}

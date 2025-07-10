@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 
-import { getSearchResults, getFirstSearchWithApiKey } from "./apiClient";
+import { getSearchResults, getFirstSearchWithApiKey, setBearerToken } from "./apiClient";
 import { 
     TiledSearchResult, 
     TiledSearchItem, 
@@ -19,9 +19,10 @@ export type useTiledProps = {
     url?: string,
     apiKey?: string,
     searchPath?: string,
+    bearerToken?: string,
 }
 type Url = string;
-export const useTiled = (url?:Url, apiKey?:string, searchPath?:string) => {
+export const useTiled = (url?:Url, apiKey?:string, searchPath?:string, bearerToken?:string) => {
 
     const [ columns, setColumns ] = useState<TiledSearchResult[]>([]);
     const [ breadcrumbs, setBreadcrumbs ] = useState<Breadcrumb[]>([]);
@@ -174,6 +175,7 @@ export const useTiled = (url?:Url, apiKey?:string, searchPath?:string) => {
     const initializeData = async () => {
         //attempt to get data from base Tiled Url. Display error on UI if no data comes back
         let response = null;
+        if (bearerToken) setBearerToken(bearerToken); //set the bearer token for all future requests
         if (apiKey) {
             response = await getFirstSearchWithApiKey(apiKey, searchPath, url); //only need to use apiKey once to set cookie for future requests
         } else {
