@@ -1,6 +1,12 @@
 import React, { useMemo } from 'react';
 import { line, curveLinear, curveStepAfter } from 'd3-shape';
 import { Node, Edge, Point, statusColor, TOP_Y } from 'src/components/BeamVis/Synoptic_Config';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Button } from "@/components/ui/button"
 
 const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges }) => {
   // fast lookup by id
@@ -57,34 +63,49 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
         const labelY = isTopRow ? -30 : 35;
 
         return (
-          <g
-            key={n.id}
-            transform={`translate(${n.x},${n.y})`}
-            onClick={() => console.log(`Clicked ${n.label}`)}
-            style={{ cursor: 'pointer' }}
-          >
-            <rect
-              x={-20}
-              y={-20}
-              width={40}
-              height={40}
-              rx={6}
-              ry={6}
-              fill={statusColor[n.status]}
-              stroke="#000"
-              strokeWidth={1}
-              className='synoptic-node'
-            />
-            <text
-              y={labelY}
-              textAnchor="middle"
-              fontSize={12}
-              fontFamily="sans-serif"
-              fill="black"
+          <Popover key={n.id}>
+            <PopoverTrigger asChild>
+            <g
+              key={n.id}
+              transform={`translate(${n.x},${n.y})`}
+              onClick={() => console.log(`Clicked ${n.label}`)}
+              style={{ cursor: 'pointer' }}
             >
-              {n.label}
-            </text>
-          </g>
+
+              <rect
+                x={-20}
+                y={-20}
+                width={40}
+                height={40}
+                rx={6}
+                ry={6}
+                fill={statusColor[n.status]}
+                stroke="#000"
+                strokeWidth={1}
+                className='synoptic-node'
+              />
+              <text
+                y={labelY}
+                textAnchor="middle"
+                fontSize={12}
+                fontFamily="sans-serif"
+                fill="black"
+              >
+                {n.label}
+              </text>
+            </g>
+            </PopoverTrigger>
+            <PopoverContent className='!bg-white bg-opacity-100 w-48'>
+              <div className='p-2'>
+                <strong>{n.label}</strong><br />
+                <img src='src/components/BeamVis/assets/sample-mount.svg'/>
+                <span>Status: {n.status}</span><br />
+                <Button style={{color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px',}}>
+                  3D View
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         );
       })}
     </svg>

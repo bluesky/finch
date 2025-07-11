@@ -7,16 +7,13 @@ import {Legend} from 'src/components/BeamVis/Legend'
 
 const App: React.FC = () => (
   <>
-
     <div className='main-container'>
-
       <div className='synoptic-panel'>
         <header className='main-header'>
           <h1>BL5.3.1</h1>
         </header>
         <Legend/>
         <SynopticView nodes={nodes} edges={edges} />
-
       </div>
       <div className='beamvis-panel'>
           <div className='beamvis-container'>
@@ -24,7 +21,6 @@ const App: React.FC = () => (
               <BeamlineContainer/>
           </div>
       </div>
-
     </div>
   </>
 );

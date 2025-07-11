@@ -29,6 +29,8 @@
   "module": "./dist/finch.es.js",
   "dependencies": {
     "@phosphor-icons/react": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
     "@storybook/addons": "^7.6.17",
     "@storybook/theming": "^8.6.14",
     "class-variance-authority": "^0.7.1",
@@ -37,7 +39,7 @@
     "dayjs": "^1.11.13",
     "lucide-react": "^0.487.0",
     "react-router-dom": "^6.30.0",
-    "tailwind-merge": "^3.2.0",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.178.0"
   },
