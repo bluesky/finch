@@ -65,46 +65,56 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
         return (
           <Popover key={n.id}>
             <PopoverTrigger asChild>
-            <g
-              key={n.id}
-              transform={`translate(${n.x},${n.y})`}
-              onClick={() => console.log(`Clicked ${n.label}`)}
-              style={{ cursor: 'pointer' }}
-            >
-
-              <rect
-                x={-20}
-                y={-20}
-                width={40}
-                height={40}
-                rx={6}
-                ry={6}
-                fill={statusColor[n.status]}
-                stroke="#000"
-                strokeWidth={1}
-                className='synoptic-node'
-              />
-              <text
-                y={labelY}
-                textAnchor="middle"
-                fontSize={12}
-                fontFamily="sans-serif"
-                fill="black"
+              <g
+                key={n.id}
+                transform={`translate(${n.x},${n.y})`}
+                onClick={() => console.log(`Clicked ${n.label}`)}
+                style={{ cursor: 'pointer' }}
               >
-                {n.label}
-              </text>
-            </g>
+
+                <rect
+                  x={-20}
+                  y={-20}
+                  width={40}
+                  height={40}
+                  rx={6}
+                  ry={6}
+                  fill={statusColor[n.status]}
+                  stroke="#000"
+                  strokeWidth={1}
+                  className='synoptic-node'
+                />
+                <text
+                  y={labelY}
+                  textAnchor="middle"
+                  fontSize={12}
+                  fontFamily="sans-serif"
+                  fill="black"
+                >
+                  {n.label}
+                </text>
+              </g>
             </PopoverTrigger>
-            <PopoverContent className='!bg-white bg-opacity-100 w-48'>
+            <PopoverContent className='!bg-white bg-opacity-100 w-64'>
               <div className='p-2'>
-                <strong>{n.label}</strong><br />
-                <img src='src/components/BeamVis/assets/sample-mount.svg'/>
-                <span>Status: {n.status}</span><br />
-                <Button style={{color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px',}}>
+                <strong>{n.label}</strong>
+                <table className='mt-2 text-xs w-full'>
+                  <tbody>
+                    <tr><td className='font-semibold pr-2'>PV</td><td>{n.id}</td></tr>
+                    <tr><td className='font-semibold pr-2'>Value</td><td>N/A</td></tr>
+                    <tr><td className='font-semibold pr-2'>Connected</td><td>N/A</td></tr>
+                    <tr><td className='font-semibold pr-2'>Locked</td><td>N/A</td></tr>
+                    <tr><td className='font-semibold pr-2'>Timestamp</td><td>N/A</td></tr>
+                    <tr><td className='font-semibold pr-2'>Read Access</td><td>N/A</td></tr>
+                    <tr><td className='font-semibold pr-2'>Write Access</td><td>N/A</td></tr>
+                  </tbody>
+                </table>
+                <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px', }}>
                   3D View
                 </Button>
               </div>
             </PopoverContent>
+
           </Popover>
         );
       })}

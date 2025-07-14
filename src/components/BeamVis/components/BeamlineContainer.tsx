@@ -12,6 +12,7 @@ import { usePV, useEpics } from '../EPICS/EpicsContext';
 
 const BeamlineContainer: FC = () => {
 
+  const [active3d, setActive3d] = useState<string | null>(null)
   // hover state for axes
   const [hovered, setHovered] = useState<{axis:'X'|'Y'|'Z';dirSign:1|-1}|null>(null)
   // Available beamlines

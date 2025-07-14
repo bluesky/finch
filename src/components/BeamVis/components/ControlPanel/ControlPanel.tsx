@@ -2,7 +2,7 @@
 import React, { CSSProperties, useState, useEffect } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
-
+import { Button } from "@/components/ui/button"
 
 interface ControlPanelProps {
   onAxisHover: (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => void;
@@ -73,25 +73,27 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     setPos({ X: motorX, Y: motorY, Z: motorZ });
   }, [motorX, motorY, motorZ]);
 
-  const jogAxis = (axis: 'X'|'Y'|'Z', delta: number) => {
-    setPos(p => {
-      const next = p[axis] + delta;
-      // 1) update our local copy
-      const updated = { ...p, [axis]: next };
-      // 2) ask parent to move there as well
-      if (axis==='X') handleStageXChange(next);
-      if (axis==='Y') handleStageYChange(next);
-      if (axis==='Z') handleStageZChange(next);
-      return updated;
-    });
+  const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
+    setPos(prev => ({ ...prev, [axis]: prev[axis] + delta }));
   };
-  const moveAxis = (axis: 'X'|'Y'|'Z') => {
-  const target = targets[axis]; // your setPos state
-  setPos(p => ({ ...p, [axis]: target }));
-  if (axis==='X') handleStageXChange(target);
-  if (axis==='Y') handleStageYChange(target);
-  if (axis==='Z') handleStageZChange(target);
-};
+
+  const moveAxis = (axis: 'X' | 'Y' | 'Z') => {
+    const target = targets[axis];
+    setPos(prev => ({ ...prev, [axis]: target }));
+  };
+
+  useEffect(() => {
+    handleStageXChange(pos.X);
+  }, [pos.X]);
+
+  useEffect(() => {
+    handleStageYChange(pos.Y);
+  }, [pos.Y]);
+
+  useEffect(() => {
+    handleStageZChange(pos.Z);
+  }, [pos.Z]);
+
   // Original inline styles
   const outerStyle: CSSProperties = {
     display: 'flex',
@@ -195,12 +197,12 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
                   {/* Jog */}
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <button style={{
-                    backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                    <Button style={{
+                    width: '2rem', height: '2rem', clipPath: 'polygon(0% 50%, 100% 0, 100% 100%', backgroundColor: 'white'
                     }}
                     onMouseEnter={() => onAxisHover(axis, -1)}
                     onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, -js)}>-</button>
+                    onClick={() => jogAxis(axis, -js)}> - </Button>
                     <input
                       type="number"
                       step={0.01}

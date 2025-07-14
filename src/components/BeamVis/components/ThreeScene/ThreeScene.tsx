@@ -186,7 +186,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       0.1,
       100
     );
-    mainCamera.position.set(-10, 7, 10); // initial x set to -10; if using cameraX, update below
+    mainCamera.position.set(-10, 7, 12); // initial x set to -10; if using cameraX, update below
     mainCamera.lookAt(0, 0, 0);
     // mainCamera.layers.enable(1);
     mainCameraRef.current = mainCamera;
