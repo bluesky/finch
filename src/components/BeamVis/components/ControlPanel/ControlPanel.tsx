@@ -198,11 +198,11 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                   {/* Jog */}
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <button style={{
-                    width: '2rem', height: '2rem', clipPath: 'polygon(0% 50%, 100% 0, 100% 100%', backgroundColor: 'white'
+                    width: '2rem', height: '2rem', clipPath: 'polygon(0% 50%, 100% 0, 100% 100%', backgroundColor: 'white', textAlign: 'center'
                     }}
                     onMouseEnter={() => onAxisHover(axis, -1)}
                     onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, -js)}>_ - </button>
+                    onClick={() => jogAxis(axis, -js)}>- </button>
                     <input
                       type="number"
                       step={0.01}
@@ -217,7 +217,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     }}
                     onMouseEnter={() => onAxisHover(axis, 1)}
                     onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, +js)}> + .</button>
+                    onClick={() => jogAxis(axis, +js)}> + </button>
                   </div>
 
                   {/* Set */}

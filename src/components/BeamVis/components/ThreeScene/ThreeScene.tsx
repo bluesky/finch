@@ -145,7 +145,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
 
     // Scene
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#D3D3D3');
+    scene.background = new THREE.Color('#c6c6c6');
     sceneRef.current = scene;
 
     // Custom axes dashed lines
@@ -172,8 +172,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
 
   makeAxis(new THREE.Vector3(1,0,0), 0xff0000, 'X'); // Red X-axis
   makeAxis(new THREE.Vector3(-1,0,0), 0xff0000, 'X'); // Red -X-axis
-  makeAxis(new THREE.Vector3(0,1,0), 0x00ff00, 'Y'); // Green Y-axis
-  makeAxis(new THREE.Vector3(0,-1,0), 0x00ff00, 'Y'); // Green -Y-axis
+  makeAxis(new THREE.Vector3(0,1,0), 0x00cd00, 'Y'); // Green Y-axis
+  makeAxis(new THREE.Vector3(0,-1,0), 0x00cd00, 'Y'); // Green -Y-axis
   makeAxis(new THREE.Vector3(0,0,1), 0x0000ff, 'Z'); // Blue Z-axis
   makeAxis(new THREE.Vector3(0,0,-1), 0x0000ff, 'Z'); // Blue -Z-axis
 
@@ -234,7 +234,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     composer.addPass(new RenderPass(scene, mainCamera));
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(w, h), 1.5, 0.4, 0.85);
     bloomPass.threshold = 0.25;
-    bloomPass.strength = 0.3;
+    bloomPass.strength = 0.1;
     bloomPass.radius = 0.03;
     composer.addPass(bloomPass);
     composerRef.current = composer;
@@ -244,9 +244,9 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     xRayRenderTargetRef.current = xRayRenderTarget;
 
     // Lights
-    const ambientLight = new THREE.AmbientLight('#ffffff', 1.0);
+    const ambientLight = new THREE.AmbientLight('#ffffff', 0.5);
     scene.add(ambientLight);
-    const dirLight = new THREE.DirectionalLight('#ffffff', 0.8);
+    const dirLight = new THREE.DirectionalLight('#ffffff', 0.5);
     dirLight.position.set(-5, 12, 12);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 1024;
@@ -256,13 +256,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.add(dirLight);
 
     // Ground Plane
-    const planeGeom = new THREE.PlaneGeometry(20, 20);
-    const planeMat = new THREE.MeshPhongMaterial({ color: '#c4c4c4' });
-    const plane = new THREE.Mesh(planeGeom, planeMat);
-    plane.rotation.x = -Math.PI / 2;
-    plane.position.y = -0.5;
-    plane.receiveShadow = true;
-    scene.add(plane);
+    // const planeGeom = new THREE.PlaneGeometry(20, 20);
+    // const planeMat = new THREE.MeshPhongMaterial({ color: '#c4c4c4' });
+    // const plane = new THREE.Mesh(planeGeom, planeMat);
+    // plane.rotation.x = -Math.PI / 2;
+    // plane.position.y = -0.5;
+    // plane.receiveShadow = true;
+    // scene.add(plane);
 
     // Photon InstancedMesh for Photon Stream (global pool)
     const sphereGeom = new THREE.SphereGeometry(0.05, 8, 8);

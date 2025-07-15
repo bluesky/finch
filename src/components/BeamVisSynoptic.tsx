@@ -28,7 +28,9 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
   );
 
   return (
-    <svg width={720} height={400} style={{ background: 'white' }}>
+    <svg
+    viewBox="0 0 720 400"
+    style={{ background: 'white' }}>
       {/* edges */}
       {edges.map((e, idx) => {
         const a = nodeMap.get(e.from);
@@ -109,12 +111,11 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
                     <tr><td className='font-semibold pr-2'>Write Access</td><td>N/A</td></tr>
                   </tbody>
                 </table>
-                <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px', }}>
+                <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }}>
                   3D View
                 </Button>
               </div>
             </PopoverContent>
-
           </Popover>
         );
       })}
