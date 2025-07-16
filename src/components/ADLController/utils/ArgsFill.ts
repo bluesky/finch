@@ -4,7 +4,7 @@ export const replaceArgs = (templateString: string, args: Record<string, any>): 
     const parts: string[] = [];
     let lastIndex = 0;
 
-    templateString.replace(/\$\(([^)]+)\)/g, (match, key, offset) => {
+      templateString.replace(/\$\(([^)]+)\)/g, (match: string, key: string, offset: number): string => {
       // Add any literal text before this placeholder
       if (offset > lastIndex) {
         parts.push(templateString.slice(lastIndex, offset));

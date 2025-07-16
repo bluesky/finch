@@ -1,19 +1,19 @@
-import { Entry } from './types/ADLEntry';
+import { Entry } from './types/UIEntry';
 import { replaceArgs } from './utils/ArgsFill';
 
 export type DeviceRenderProps = {
-  ADLEntry: Entry;
+  UIEntry: Entry;
   val?: string | number | boolean;
   vis?: string;
   dynamic?: boolean;
   [key: string]: any;
 };
 
-function StyleRender({ ADLEntry, val, vis, dynamic, ...args }: DeviceRenderProps) {
+function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps) {
 
-  const name = replaceArgs(ADLEntry.name, args); // replaces P and R with 13SIM1 and cam1 e.g.
-  const { x, y } = ADLEntry.location;
-  const { width, height } = ADLEntry.size;
+  const name = replaceArgs(UIEntry.name, args); // replaces P and R with 13SIM1 and cam1 e.g.
+  const { x, y } = UIEntry.location;
+  const { width, height } = UIEntry.size;
 
   const commonProps = {
     style: {
@@ -28,7 +28,7 @@ function StyleRender({ ADLEntry, val, vis, dynamic, ...args }: DeviceRenderProps
   };
 
   if (!dynamic) {
-    if (ADLEntry.var_type === 'rectangle') {
+    if (UIEntry.var_type === 'rectangle') {
       const { children, ...propsWithoutChildren } = commonProps;
       return <div {...propsWithoutChildren} className="border-2 border-gray-300" />;
     }
@@ -39,7 +39,7 @@ function StyleRender({ ADLEntry, val, vis, dynamic, ...args }: DeviceRenderProps
       "horiz. left": "text-left"
     } as const;
 
-    const alignmentClass = ADLEntry.align ? alignmentClasses[ADLEntry.align as keyof typeof alignmentClasses] : null;
+    const alignmentClass = UIEntry.align ? alignmentClasses[UIEntry.align as keyof typeof alignmentClasses] : null;
 
     return <div {...commonProps} className={alignmentClass || undefined} />;
   }

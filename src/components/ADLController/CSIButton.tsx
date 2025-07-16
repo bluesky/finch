@@ -1,6 +1,6 @@
 import { CSSProperties, useState } from "react";
 
-type ADLButtonProps = {
+type CSIButtonProps = {
     label?: string;
     onSubmit?: (value: number) => void;
     isDisabled?: boolean;
@@ -8,13 +8,13 @@ type ADLButtonProps = {
     val?: number;
 };
 
-export default function ADLButton({
+export default function CSIButton({
     label = '',
     onSubmit = (input) => { console.log('submit ' + input) },
     isDisabled = false,
     style,
     val
-}: ADLButtonProps) {
+}: CSIButtonProps) {
     const [isPressed, setIsPressed] = useState(false);
 
     const handleClick = () => {

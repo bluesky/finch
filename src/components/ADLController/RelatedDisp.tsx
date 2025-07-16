@@ -1,8 +1,8 @@
 import { Browsers } from "@phosphor-icons/react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTabManagement } from "../Tabs/context/TabsContext";
-import { Entry } from "./types/ADLEntry";
-import ADLView from "./ADLView";
+import { Entry } from "./types/UIEntry";
+import CSIView from "./CSIView";
 import { replaceArgs } from "./utils/ArgsFill";
 
 type RelatedDispProps = {
@@ -34,18 +34,22 @@ function RelatedDisp({
   }
   const { addTab } = useTabManagement();
   const handleCreateTab = (index: number) => {
+    const fileNameRaw: string = fileArray![index].file.split(".")[0];
+      const fileType: string = fileArray![index].file.split(".")[1];
+      const fileNameClean = fileType.toLowerCase() === "opi" ? `${fileNameRaw}.bob` : fileArray![index].file;
+      const fileTypeClean: string = fileType.toLowerCase() === "opi" ? 'bob' : fileType
     const tabContent = (
-      <ADLView
-        fileName={fileArray![index].file}
+      <CSIView
+        fileName={fileNameClean}
         {...substituteVariables(fileArray![index].args, args)}
       />
     );
 
     // Pass fileName and args to addTab for localStorage persistence
     addTab(
-      fileArray![index].file,
+      fileNameClean,
       tabContent,
-      fileArray![index].file,
+      fileNameClean,
       substituteVariables(fileArray![index].args, args)
     );
   };

@@ -1,4 +1,4 @@
-import { Entry } from "../types/ADLEntry";
+import { Entry } from "../types/UIEntry";
 import { replaceArgs } from "./ArgsFill";
 
 export const createDeviceNameArray = (Data: Entry[], args: { [key: string]: any }) => {

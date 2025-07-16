@@ -1,20 +1,20 @@
 import { CSSProperties } from 'react'
 import { Device } from "@/types/deviceControllerTypes";
-import { Entry } from './types/ADLEntry';
+import { Entry } from './types/UIEntry';
 import InputNumber from './InputNumber';
 import InputEnum from './InputEnum';
-import ADLButton from './ADLButton';
+import ADLButton from './CSIButton';
 import InputText from './InputText';
 import RelatedDisp from './RelatedDisp';
 
 export type DeviceRenderProps = {
     PV: Device;
-    ADLEntry: Entry;
+    UIEntry: Entry;
     [key: string]: any;
     onSubmit: (pv: string, value: string | boolean | number) => void
 }
 
-function DeviceRender({ PV, ADLEntry, onSubmit, ...args }: DeviceRenderProps) {
+function DeviceRender({ PV, UIEntry, onSubmit, ...args }: DeviceRenderProps) {
     if (!PV) return;
     const pv = PV.name
     const handleSubmitWithPV = (newValue: string | number | boolean) => {
@@ -23,17 +23,17 @@ function DeviceRender({ PV, ADLEntry, onSubmit, ...args }: DeviceRenderProps) {
 
     const renderInput = () => {
         const positionStyle: CSSProperties = {
-            left: `${ADLEntry.location.x}px`,
-            top: `${ADLEntry.location.y}px`,
-            width: `${ADLEntry.size.width}px`,
-            height: `${ADLEntry.size.height}px`,
+            left: `${UIEntry.location.x}px`,
+            top: `${UIEntry.location.y}px`,
+            width: `${UIEntry.size.width}px`,
+            height: `${UIEntry.size.height}px`,
             fontSize: '0.85rem',
             position: 'absolute'
         };
-        switch (ADLEntry.var_type) {
+        switch (UIEntry.var_type) {
             case "entry":
 
-                if (ADLEntry.format === 'string' || typeof PV.value === 'string') {
+                if (UIEntry.format === 'string' || typeof PV.value === 'string') {
                     return <InputText val={PV.value} onSubmit={handleSubmitWithPV} style={positionStyle} />;
                 }
                 else {
@@ -62,9 +62,9 @@ function DeviceRender({ PV, ADLEntry, onSubmit, ...args }: DeviceRenderProps) {
             case "menu":
                 return <InputEnum val={PV.value} enums={PV.enum_strs} onSubmit={handleSubmitWithPV} style={positionStyle} />
             case "button":
-                return <ADLButton label={ADLEntry.label} val={parseInt(ADLEntry.press_msg!)} onSubmit={handleSubmitWithPV} style={positionStyle} />
+                return <ADLButton label={UIEntry.label} val={parseInt(UIEntry.press_msg!)} onSubmit={handleSubmitWithPV} style={positionStyle} />
             case "related display":
-                return <RelatedDisp fileArray={ADLEntry.display} label={ADLEntry.label} style={positionStyle} {...args} />
+                return <RelatedDisp fileArray={UIEntry.display} label={UIEntry.label} style={positionStyle} {...args} />
             default:
                 return <p></p>;
         }
