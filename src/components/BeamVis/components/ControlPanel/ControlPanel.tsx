@@ -2,7 +2,6 @@
 import React, { CSSProperties, useState, useEffect } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
-import { Button } from "@/components/ui/button"
 
 interface ControlPanelProps {
   onAxisHover: (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => void;
@@ -197,12 +196,14 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
                   {/* Jog */}
                   <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <button style={{
-                    width: '2rem', height: '2rem', clipPath: 'polygon(0% 50%, 100% 0, 100% 100%', backgroundColor: 'white', textAlign: 'center'
+                    <button
+                    className='w-8 h-8 bg-white'
+                    style={{
+                    clipPath: 'polygon(0% 50%, 100% 0, 100% 100%)'
                     }}
                     onMouseEnter={() => onAxisHover(axis, -1)}
                     onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, -js)}>- </button>
+                    onClick={() => jogAxis(axis, -js)}> - </button>
                     <input
                       type="number"
                       step={0.01}
