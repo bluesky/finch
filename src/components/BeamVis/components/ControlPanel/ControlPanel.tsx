@@ -1,4 +1,4 @@
-// components/ControlPanel/ControlPanel.tsx
+// components/ControlPanel / ControlPanel.tsx
 import React, { CSSProperties, useState, useEffect } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
@@ -19,6 +19,9 @@ interface ControlPanelProps {
   motorX: number;
   motorY: number;
   motorZ: number;
+  horizX: number;
+  horizY: number;
+  horizZ: number;
   handleCenteringStageXChange: (val: number) => void;
   handleCenteringStageYChange: (val: number) => void;
   handleCenteringStageZChange: (val: number) => void;
@@ -49,6 +52,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   motorX,
   motorY,
   motorZ,
+  horizX,
+  horizY,
+  horizZ,
   handleCenteringStageXChange,
   handleCenteringStageYChange,
   handleCenteringStageZChange,
@@ -65,33 +71,49 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [jogStep, setJogStep] = useState<{ X: number; Y: number; Z: number; }>({
     X: 0.1, Y: 0.1, Z: 0.1
   });
-  const [pos, setPos] = useState({ X: motorX, Y: motorY, Z: motorZ });
+  const [pos, setPos] = useState({ X: horizX, Y: horizY, Z: horizZ });
   const [targets, setTargets] = useState({ X: 10, Y: 20, Z: 30 });
 
   useEffect(() => {
-    setPos({ X: motorX, Y: motorY, Z: motorZ });
-  }, [motorX, motorY, motorZ]);
+    setPos({ X: horizX, Y: horizY, Z: horizZ });
+  }, [horizX, horizY, horizZ]);
+
+  // const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
+  // const next = pos[axis] + delta;
+  // setPos(prev => ({ ...prev, [axis]: next }));
+  // if (axis === 'X') handleStageXChange(next);
+  // if (axis === 'Y') handleStageYChange(next);
+  // };
+
+
+  const axisHandlers = {
+    X: handleStageXChange,
+    Y: handleStageYChange,
+    Z: handleStageZChange
+  }
 
   const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
-    setPos(prev => ({ ...prev, [axis]: prev[axis] + delta }));
-  };
+    const next = +(pos[axis] + delta).toFixed(3);
+    setPos(prev => ({ ...prev, [axis]: next }));
+    axisHandlers[axis](next);
+  }
 
   const moveAxis = (axis: 'X' | 'Y' | 'Z') => {
     const target = targets[axis];
     setPos(prev => ({ ...prev, [axis]: target }));
   };
 
-  useEffect(() => {
-    handleStageXChange(pos.X);
-  }, [pos.X]);
+  // useEffect(() => {
+  // handleStageXChange(pos.X);
+  // }, [pos.X]);
 
-  useEffect(() => {
-    handleStageYChange(pos.Y);
-  }, [pos.Y]);
+  // useEffect(() => {
+  // handleStageYChange(pos.Y);
+  // }, [pos.Y]);
 
-  useEffect(() => {
-    handleStageZChange(pos.Z);
-  }, [pos.Z]);
+  // useEffect(() => {
+  // handleStageZChange(pos.Z);
+  // }, [pos.Z]);
 
   // Original inline styles
   const outerStyle: CSSProperties = {
@@ -143,17 +165,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div style={outerStyle}>
       {/* <button
-        onClick={togglePanel}
-        style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
-        onMouseOver={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
-        }
-        onMouseOut={(e) =>
-          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
-        }
-      >
-        { panelOpen ? 'Hide Panel' : 'Show Panel'}
-      </button> */}
+ onClick={togglePanel}
+ style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
+ onMouseOver={(e) =>
+ ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
+ }
+ onMouseOut={(e) =>
+ ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
+ }
+ >
+ { panelOpen ? 'Hide Panel' : 'Show Panel'}
+ </button> */}
       {panelOpen && (
         <div style={panelContentStyle}> <span style={{ color: 'black' }}>Controls </span>
           <div style={{
@@ -172,7 +194,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               <div>Position</div><div>Jog</div><div>Set</div>
             </div>
 
-            {(['X','Y','Z'] as const).map(axis => {
+            {(['X', 'Y', 'Z'] as const).map(axis => {
               const current = pos[axis]
               const js = jogStep[axis];
 
@@ -190,35 +212,35 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       type="number"
                       value={current.toFixed(2)}
                       readOnly
-                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem'}}
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem' }}
                     /> mm
                   </div>
 
                   {/* Jog */}
                   <div style={{ display: 'flex', alignItems: 'center' }}>
                     <button
-                    className='w-8 h-8 bg-white'
-                    style={{
-                    clipPath: 'polygon(0% 50%, 100% 0, 100% 100%)'
-                    }}
-                    onMouseEnter={() => onAxisHover(axis, -1)}
-                    onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, -js)}> - </button>
+                      className='w-8 h-8 bg-white'
+                      style={{
+                        clipPath: 'polygon(0% 50%, 100% 0, 100% 100%)'
+                      }}
+                      onMouseEnter={() => onAxisHover(axis, -1)}
+                      onMouseLeave={onAxisUnhover}
+                      onClick={() => jogAxis(axis, -js)}> - </button>
                     <input
                       type="number"
                       step={0.01}
                       value={js}
                       onChange={e =>
-                        setJogStep(j => ({ ...j, [axis]: parseFloat(e.target.value)}))
+                        setJogStep(j => ({ ...j, [axis]: parseFloat(e.target.value) }))
                       }
                       style={{ textAlign: 'center', width: '3rem', margin: '0 0.25rem', backgroundColor: 'white', border: '1px solid black' }}
                     /> mm
                     <button style={{
-                    width: '2rem', height: '2rem', clipPath: 'polygon(0 0, 100% 50%, 0 100%', backgroundColor: 'white'
+                      width: '2rem', height: '2rem', clipPath: 'polygon(0 0, 100% 50%, 0 100%', backgroundColor: 'white'
                     }}
-                    onMouseEnter={() => onAxisHover(axis, 1)}
-                    onMouseLeave={onAxisUnhover}
-                    onClick={() => jogAxis(axis, +js)}> + </button>
+                      onMouseEnter={() => onAxisHover(axis, 1)}
+                      onMouseLeave={onAxisUnhover}
+                      onClick={() => jogAxis(axis, +js)}> + </button>
                   </div>
 
                   {/* Set */}
@@ -229,10 +251,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       onChange={e =>
                         setTargets(p => ({ ...p, [axis]: parseFloat(e.target.value) }))
                       }
-                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor:'white', border: '1px solid black' }}
+                      style={{ textAlign: 'center', width: '3rem', marginRight: '0.5rem', backgroundColor: 'white', border: '1px solid black' }}
                     /> mm
                     <button style={{
-                    backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
+                      backgroundColor: 'white', paddingLeft: '5px', paddingRight: '5px'
                     }} onClick={() => moveAxis(axis)}>move</button>
                   </div>
                 </div>
@@ -262,8 +284,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             labelStyle={labelStyle}
             sliderStyle={sliderStyle}
             controlLayout={controlLayout}
-            // handleSampleMeshChange={handleSampleMeshChange}
-            />
+          // handleSampleMeshChange={handleSampleMeshChange}
+          />
 
           <div style={sectionStyle}>
             <h3>Visibility</h3>
@@ -282,22 +304,22 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           </div>
 
           {/* {controlLayout.common?.camera && (
-            <div style={sectionStyle}>
-              <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
-              <div style={{ marginBottom: '1rem' }}>
-                <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
-                <input
-                  type="range"
-                  min={-20}
-                  max={10}
-                  step={0.1}
-                  value={cameraX}
-                  onChange={(e) => setCameraX(Number(e.target.value))}
-                  style={sliderStyle}
-                />
-              </div>
-            </div>
-          )} */}
+ <div style={sectionStyle}>
+ <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
+ <div style={{ marginBottom: '1rem' }}>
+ <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
+ <input
+ type="range"
+ min={-20}
+ max={10}
+ step={0.1}
+ value={cameraX}
+ onChange={(e) => setCameraX(Number(e.target.value))}
+ style={sliderStyle}
+ />
+ </div>
+ </div>
+ )} */}
         </div>
       )}
     </div>
