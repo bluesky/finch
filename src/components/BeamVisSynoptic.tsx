@@ -7,13 +7,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
+import type { Device } from '@/types/deviceControllerTypes';
 
-const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges }) => {
+interface SynopticViewProps {
+  nodes: Node[];
+  edges: Edge[];
+  devices: Device[];
+}
+
+const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, devices }) => {
   // fast lookup by id
   const nodeMap = useMemo(
     () => new Map<string, Node>(nodes.map(n => [n.id, n])),
     [nodes]
   );
+
+  const deviceMap = useMemo(
+      () => new Map<string, Device>(devices.map(d => [d.name, d])),
+      [devices]
+  )
 
   // straight-line generator
   const straightGen = useMemo(
@@ -63,6 +75,7 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
         const isTopRow = n.y === TOP_Y;
         // place label above for top row, below otherwise
         const labelY = isTopRow ? -30 : 35;
+        const device = deviceMap.get(n.label);
 
         return (
           <Popover key={n.id}>
@@ -100,17 +113,13 @@ const SynopticView: React.FC<{ nodes: Node[]; edges: Edge[] }> = ({ nodes, edges
             <PopoverContent className='!bg-white bg-opacity-100 w-64'>
               <div className='p-2'>
                 <strong>{n.label}</strong>
-                <table className='mt-2 text-xs w-full'>
-                  <tbody>
-                    <tr><td className='font-semibold pr-2'>PV</td><td>{n.id}</td></tr>
-                    <tr><td className='font-semibold pr-2'>Value</td><td>N/A</td></tr>
-                    <tr><td className='font-semibold pr-2'>Connected</td><td>N/A</td></tr>
-                    <tr><td className='font-semibold pr-2'>Locked</td><td>N/A</td></tr>
-                    <tr><td className='font-semibold pr-2'>Timestamp</td><td>N/A</td></tr>
-                    <tr><td className='font-semibold pr-2'>Read Access</td><td>N/A</td></tr>
-                    <tr><td className='font-semibold pr-2'>Write Access</td><td>N/A</td></tr>
-                  </tbody>
-                </table>
+                {device ? (
+                  <pre className="text-xs">
+                    {JSON.stringify(device, null, 2)}
+                  </pre>
+                ) : (
+                  <p>No device information available</p>
+                )}
                 <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }}>
                   3D View
                 </Button>

@@ -43,6 +43,11 @@ const BeamlineContainer: FC = () => {
 
   const { devices, handleSetValueRequest } = useOphydSocket('ws://192.168.10.155:8002/ophydSocket', pvList);
 
+  const deviceArray = useMemo(
+    () => Object.values(devices || {}),
+    [devices]
+  );
+
   // EPICS PV subscriptions (use full .VAL field names)
   // const motorX = usePV('IOC:m1.VAL');
   // const motorY = usePV('IOC:m2.VAL');

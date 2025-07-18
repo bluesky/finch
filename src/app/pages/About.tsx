@@ -13,7 +13,7 @@ const App: React.FC = () => (
           <h1>BL5.3.1</h1>
         </header>
         <Legend/>
-        <SynopticView nodes={nodes} edges={edges} />
+        <SynopticView nodes={nodes} edges={edges} devices={devices} />
       </div>
       <div className='beamvis-panel'>
           <div className='beamvis-container'>
