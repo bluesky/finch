@@ -12,20 +12,20 @@ import type { Device } from '@/types/deviceControllerTypes';
 interface SynopticViewProps {
   nodes: Node[];
   edges: Edge[];
-  devices: Device[];
+  // devices: Device[];
 }
 
-const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, devices }) => {
+const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
   // fast lookup by id
   const nodeMap = useMemo(
     () => new Map<string, Node>(nodes.map(n => [n.id, n])),
     [nodes]
   );
 
-  const deviceMap = useMemo(
-      () => new Map<string, Device>(devices.map(d => [d.name, d])),
-      [devices]
-  )
+  // const deviceMap = useMemo(
+  //     () => new Map<string, Device>(devices.map(d => [d.name, d])),
+  //     [devices]
+  // )
 
   // straight-line generator
   const straightGen = useMemo(
@@ -75,7 +75,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, devices }) =>
         const isTopRow = n.y === TOP_Y;
         // place label above for top row, below otherwise
         const labelY = isTopRow ? -30 : 35;
-        const device = deviceMap.get(n.label);
+        // const device = deviceMap.get(n.label);
 
         return (
           <Popover key={n.id}>
@@ -99,6 +99,16 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, devices }) =>
                   strokeWidth={1}
                   className='synoptic-node'
                 />
+                {n.icon && (
+                  <image
+                    className="synoptic-node-icon"
+                    href={`/src/components/BeamVis/assets/${n.icon}`}
+                    x={-15}
+                    y={-15}
+                    width={30}
+                    height={30}
+                    />
+                )}
                 <text
                   y={labelY}
                   textAnchor="middle"
@@ -113,13 +123,13 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, devices }) =>
             <PopoverContent className='!bg-white bg-opacity-100 w-64'>
               <div className='p-2'>
                 <strong>{n.label}</strong>
-                {device ? (
+                {/* {device ? (
                   <pre className="text-xs">
                     {JSON.stringify(device, null, 2)}
                   </pre>
                 ) : (
                   <p>No device information available</p>
-                )}
+                )} */}
                 <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }}>
                   3D View
                 </Button>

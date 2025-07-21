@@ -4,6 +4,7 @@ import SynopticView from 'src/components/BeamVisSynoptic';
 import BeamlineContainer from '@/components/BeamVis/components/BeamlineContainer';
 import { nodes, edges } from 'src/components/BeamVis/Synoptic_Config';
 import {Legend} from 'src/components/BeamVis/Legend'
+import useOphydSocket from 'src/hooks/useOphydSocket';
 
 const App: React.FC = () => (
   <>
@@ -13,7 +14,7 @@ const App: React.FC = () => (
           <h1>BL5.3.1</h1>
         </header>
         <Legend/>
-        <SynopticView nodes={nodes} edges={edges} devices={devices} />
+        <SynopticView nodes={nodes} edges={edges}/>
       </div>
       <div className='beamvis-panel'>
           <div className='beamvis-container'>

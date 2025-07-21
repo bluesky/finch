@@ -102,6 +102,9 @@
 .synoptic-node {
     transition: filter 0.25s ease;
 }
+.synoptic-node-icon {
+    pointer-events: none;
+}
 .synoptic-node:hover {
     filter: brightness(1.5);
 }
