@@ -37,7 +37,7 @@ export const statusColor = {
 // use the same data shape as before
 export const nodes: Node[] = [
   // top row
-  { id: 'source',          label: 'Source',          x:  50, y: TOP_Y, status: 'ok' },
+  { id: 'source',          label: 'Source',          x:  50, y: TOP_Y, status: 'ok', icon: 'source.svg' },
   { id: 'toroidal-mirror', label: 'M101 Toroidal Mirror', x: 350, y: TOP_Y, status: 'ok', icon: 'toroidal-mirror.svg' },
   { id: 'slit1',           label: 'Slit1',            x: 650, y: TOP_Y, status: 'ok', icon: 'slit.svg' },
 

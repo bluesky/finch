@@ -87,7 +87,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                 style={{ cursor: 'pointer' }}
               >
 
-                <rect
+                {/* <rect
                   x={-20}
                   y={-20}
                   width={40}
@@ -98,15 +98,15 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                   stroke="#000"
                   strokeWidth={1}
                   className='synoptic-node'
-                />
+                /> */}
                 {n.icon && (
                   <image
                     className="synoptic-node-icon"
                     href={`/src/components/BeamVis/assets/${n.icon}`}
-                    x={-15}
-                    y={-15}
-                    width={30}
-                    height={30}
+                    x={-20}
+                    y={-20}
+                    width={40}
+                    height={40}
                     />
                 )}
                 <text
