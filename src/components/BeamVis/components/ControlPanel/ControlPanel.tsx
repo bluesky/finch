@@ -287,7 +287,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           // handleSampleMeshChange={handleSampleMeshChange}
           />
 
-          <div style={sectionStyle}>
+          {/* <div style={sectionStyle}>
             <h3>Visibility</h3>
             {configs.map((cfg) => (
               <div key={cfg.id}>
@@ -301,7 +301,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                 </label>
               </div>
             ))}
-          </div>
+          </div> */}
 
           {/* {controlLayout.common?.camera && (
  <div style={sectionStyle}>

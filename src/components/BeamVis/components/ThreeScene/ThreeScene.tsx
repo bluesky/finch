@@ -148,34 +148,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.background = new THREE.Color('#c6c6c6');
     sceneRef.current = scene;
 
-    // Custom axes dashed lines
-    const L = 3;
-    const axesMat = {
-    resolution: size,
-    dashed: true,
-    dashScale: 1,
-    dashSize: 0.25,
-    gapSize: 0.1,
-    linewidth: 3,
-  };
 
-  function makeAxis( dir: THREE.Vector3, hexColor: number, axis: 'X' | 'Y' | 'Z' = 'X') {
-    const mat = new LineMaterial({...axesMat, color: hexColor });
-    const dirSign = Math.sign(dir.x + dir.y + dir.z) as 1 | -1;
-    mat.userData = { axis, dirSign };
-    const pts = [ new THREE.Vector3(0,0,0), dir.clone().multiplyScalar(L) ];
-    const geom = new LineGeometry().setFromPoints(pts);
-    const line = new Line2(geom, mat);
-    line.computeLineDistances();
-    scene.add(line);
-  }
-
-  makeAxis(new THREE.Vector3(1,0,0), 0xff0000, 'X'); // Red X-axis
-  makeAxis(new THREE.Vector3(-1,0,0), 0xff0000, 'X'); // Red -X-axis
-  makeAxis(new THREE.Vector3(0,1,0), 0x00cd00, 'Y'); // Green Y-axis
-  makeAxis(new THREE.Vector3(0,-1,0), 0x00cd00, 'Y'); // Green -Y-axis
-  makeAxis(new THREE.Vector3(0,0,1), 0x0000ff, 'Z'); // Blue Z-axis
-  makeAxis(new THREE.Vector3(0,0,-1), 0x0000ff, 'Z'); // Blue -Z-axis
 
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
@@ -244,7 +217,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     xRayRenderTargetRef.current = xRayRenderTarget;
 
     // Lights
-    const ambientLight = new THREE.AmbientLight('#ffffff', 0.5);
+    const ambientLight = new THREE.AmbientLight('#ffffff', 1.5);
     scene.add(ambientLight);
     const dirLight = new THREE.DirectionalLight('#ffffff', 0.5);
     dirLight.position.set(-5, 12, 12);
@@ -256,13 +229,18 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.add(dirLight);
 
     // Ground Plane
-    // const planeGeom = new THREE.PlaneGeometry(20, 20);
-    // const planeMat = new THREE.MeshPhongMaterial({ color: '#c4c4c4' });
-    // const plane = new THREE.Mesh(planeGeom, planeMat);
-    // plane.rotation.x = -Math.PI / 2;
-    // plane.position.y = -0.5;
-    // plane.receiveShadow = true;
-    // scene.add(plane);
+    const planeGeom = new THREE.PlaneGeometry(20, 20);
+    const planeMat = new THREE.MeshPhongMaterial({ color: '#ffffff' });
+    const plane = new THREE.Mesh(planeGeom, planeMat);
+    plane.rotation.x = -Math.PI / 2;
+    plane.position.y = -1.0;
+    plane.receiveShadow = true;
+    scene.add(plane);
+
+    // Ground plane grid helper
+    const grid = new THREE.GridHelper(20, 20, '#888888', '#444444');
+    grid.position.y = -1.0;
+    scene.add(grid);
 
     // Photon InstancedMesh for Photon Stream (global pool)
     const sphereGeom = new THREE.SphereGeometry(0.05, 8, 8);
@@ -334,17 +312,17 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
         scene.traverse(obj => {
           if (!(obj instanceof Line2 && obj.material instanceof LineMaterial)) return;
           const mat = obj.material as LineMaterial & {
-        dashOffset?: number;
-        userData: { axis: string; dirSign: 1 | -1 };
+            dashOffset?: number;
+            userData: { axis: string; dirSign: 1 | -1 };
           };
           const { axis, dirSign } = mat.userData;
 
           // only the exact half‐axis you hovered
           if (axis === hoverAxis && dirSign === hoverSide) {
-        const baseSpeed = 0.75;
-        // always add a positive offset
-        mat.dashOffset = (mat.dashOffset ?? 0) + delta * baseSpeed * -1;
-        mat.needsUpdate = true;
+            const baseSpeed = 0.75;
+            // always add a positive offset
+            mat.dashOffset = (mat.dashOffset ?? 0) + delta * baseSpeed * -1;
+            mat.needsUpdate = true;
           }
         });
       }
@@ -389,8 +367,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
           shutterMesh.material.opacity = isOpen ? 0.5 : 1;
           shutterMesh.material.color.set(isOpen ? '#17A34B' : '#DA2828');
           shutterMesh.material.needsUpdate = true;
+        }
       }
-    }
       const { xRayMaterial } = sharedResources;
       xRayMaterial.uniforms.shutterOpen.value = isOpen ? 1.0 : 0.0;
 
@@ -464,7 +442,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       //controlsRef.current?.dispose();
     };
   }, []
-); // initialization runs only once
+  ); // initialization runs only once
 
   /********************************************************
    * 2) Rebuild Scene Objects on sceneConfig Changes
@@ -509,6 +487,42 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       }
     });
     objectMapRef.current = createdObjects;
+
+    // Custom axes dashed lines
+
+    const stage = objectMapRef.current['horizontalStage'];
+    if (stage) {
+
+      const L = 3;
+      const axesMat = {
+        // resolution: size,
+        dashed: true,
+        dashScale: 1,
+        dashSize: 0.25,
+        gapSize: 0.1,
+        linewidth: 3,
+      };
+      function makeAxis(dir: THREE.Vector3, hexColor: number, axis: 'X' | 'Y' | 'Z' = 'X') {
+        const mat = new LineMaterial({ ...axesMat, color: hexColor });
+        const dirSign = Math.sign(dir.x + dir.y + dir.z) as 1 | -1;
+        mat.userData = { axis, dirSign };
+        const pts = [new THREE.Vector3(0, 0, 0), dir.clone().multiplyScalar(L)];
+        const geom = new LineGeometry().setFromPoints(pts);
+        const line = new Line2(geom, mat);
+        line.computeLineDistances();
+        return line;
+      }
+      stage.add(
+        makeAxis(new THREE.Vector3(1, 0, 0), 0xff0000, 'X'), // Red X-axis
+        makeAxis(new THREE.Vector3(-1, 0, 0), 0xff0000, 'X'), // Red -X-axis
+        makeAxis(new THREE.Vector3(0, 1, 0), 0x00cd00, 'Y'), // Green Y-axis
+        makeAxis(new THREE.Vector3(0, -1, 0), 0x00cd00, 'Y'), // Green -Y-axis
+        makeAxis(new THREE.Vector3(0, 0, 1), 0x0000ff, 'Z'), // Blue Z-axis
+        makeAxis(new THREE.Vector3(0, 0, -1), 0x0000ff, 'Z') // Blue -Z-axis
+      );
+    }
+
+
   }, [sceneConfig, sharedResources]);
 
   return (
