@@ -1,4 +1,6 @@
+import { cn } from "@/lib/utils";
 import { CSSProperties, useState, useEffect, useRef } from "react";
+import styles from "./styles.json"; // adjust path to your styles.json
 
 type InputNumberProps = {
     label?: string;
@@ -93,13 +95,15 @@ export default function InputNumber({
 
     return (
         <label className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between`}>
-            {label}
+            
             <input
                 ref={inputRef}
                 disabled={isDisabled}
                 type="text"
                 value={inputValue}
-                className={`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`}
+                className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,
+                // Base styles from JSON
+                styles.styles.default.button,)}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onBlur={formatValue}
