@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { CSSProperties, useState, useEffect, useRef } from "react";
-import styles from "./styles.json"; // adjust path to your styles.json
+import styles from "./styles.json";
 
 type InputNumberProps = {
     label?: string;
@@ -103,7 +103,7 @@ export default function InputNumber({
                 value={inputValue}
                 className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,
                 // Base styles from JSON
-                styles.styles.default.button,)}
+                styles.styles.default.input_num,)}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onBlur={formatValue}

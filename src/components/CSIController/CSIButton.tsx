@@ -1,6 +1,6 @@
 import { CSSProperties, useState } from "react";
-import { cn } from "@/lib/utils"; // adjust path as needed
-import styles from "./styles.json"; // adjust path to your styles.json
+import { cn } from "@/lib/utils"; 
+import styles from "./styles.json"; 
 
 type CSIButtonProps = {
     label?: string;

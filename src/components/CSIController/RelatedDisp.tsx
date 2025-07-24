@@ -6,7 +6,7 @@ import CSIView from "./CSIView";
 import { replaceArgs } from "./utils/ArgsFill";
 import { pxToEm } from "./utils/units";
 import { cn } from "@/lib/utils";
-import styles from "./styles.json"; // adjust path to your styles.json
+import styles from "./styles.json";
 
 type RelatedDispProps = {
   label?: string;
@@ -153,7 +153,7 @@ function RelatedDisp({
               className={cn(`bg-blue-500 text-white hover:bg-blue-600
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center`, styles.styles.default.button,)}
+                flex flex-col justify-center`, styles.styles.default.related_disp,)}
             >
               {label ? (
                 <span>
