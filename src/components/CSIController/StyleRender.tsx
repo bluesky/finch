@@ -1,6 +1,8 @@
+import { cn } from '@/lib/utils';
 import { Entry } from './types/UIEntry';
 import { replaceArgs } from './utils/ArgsFill';
 import { pxToEm } from './utils/units';
+import styles from "./styles.json"; 
 
 export type DeviceRenderProps = {
   UIEntry: Entry;
@@ -42,7 +44,7 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps)
 
     const alignmentClass = UIEntry.align ? alignmentClasses[UIEntry.align as keyof typeof alignmentClasses] : null;
 
-    return <div {...commonProps} className={alignmentClass || undefined} />;
+    return <div {...commonProps} className={cn(alignmentClass || undefined, styles.styles.default.text)} />;
   }
 
   const visibilityConditions: Record<string, boolean> = {
@@ -54,7 +56,7 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps)
   // vis is defined and either val === 0 or val !== 0 thru visibilityConditions
 
   if (vis && visibilityConditions[vis]) {
-    return <div {...commonProps} />;
+    return <div {...commonProps} className={cn(styles.styles.default.text)} />;
   }
 
   return null; // fallback condition

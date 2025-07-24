@@ -5,15 +5,18 @@
                 "bg-red-500"
             ],
             "related_disp": [
-                "bg-blue-500"
+                "bg-red-500"
             ],
             "input_num": [
-                "bg-white"
+                "bg-red-500"
             ],
             "input_enum": [
-                "bg-white"
+                "bg-red-500"
             ],
             "text_update": [
+                "text-red-500"
+            ],
+            "text": [
                 "text-red-500"
             ]
         }
