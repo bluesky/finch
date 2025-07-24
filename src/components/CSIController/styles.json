@@ -1,0 +1,14 @@
+{
+    "styles": {
+        "default": {
+            "button": [
+                "bg-red",
+                "p-4"
+            ],
+            "input": [
+                "bg-blue",
+                "p-4"
+            ]
+        }
+    }
+}
