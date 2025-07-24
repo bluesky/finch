@@ -5,6 +5,8 @@ import { Entry } from "./types/UIEntry";
 import CSIView from "./CSIView";
 import { replaceArgs } from "./utils/ArgsFill";
 import { pxToEm } from "./utils/units";
+import { cn } from "@/lib/utils";
+import styles from "./styles.json"; // adjust path to your styles.json
 
 type RelatedDispProps = {
   label?: string;
@@ -114,12 +116,12 @@ function RelatedDisp({
       {fileArray?.length === 1 ? (
         <button
           onClick={() => handleCreateTab(0)}
-          className={`
+          className={cn(`
                 bg-blue-500 text-white hover:bg-blue-600
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 flex flex-col justify-center
-            `}
+            `, styles.styles.default.button,)}
           style={style}
         >
           {label ? (
@@ -148,10 +150,10 @@ function RelatedDisp({
         >
           <div className={`flex flex-col w-full`} onClick={handleInputClick}>
             <div
-              className="bg-blue-500 text-white hover:bg-blue-600
+              className={cn(`bg-blue-500 text-white hover:bg-blue-600
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center"
+                flex flex-col justify-center`, styles.styles.default.button,)}
             >
               {label ? (
                 <span>
