@@ -4,9 +4,17 @@
             "button": [
                 "bg-red-500"
             ],
-            "input": [
-                "bg-blue",
-                "p-4"
+            "related_disp": [
+                "bg-blue-500"
+            ],
+            "input_num": [
+                "bg-white"
+            ],
+            "input_enum": [
+                "bg-white"
+            ],
+            "text_update": [
+                "text-red-500"
             ]
         }
     }
