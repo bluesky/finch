@@ -1,4 +1,6 @@
 import { CSSProperties, useState } from "react";
+import { cn } from "@/lib/utils"; // adjust path as needed
+import styles from "./styles.json"; // adjust path to your styles.json
 
 type CSIButtonProps = {
     label?: string;
@@ -18,7 +20,6 @@ export default function CSIButton({
     const [isPressed, setIsPressed] = useState(false);
 
     const handleClick = () => {
-
         if (!isDisabled) {
             setIsPressed(true);
             setTimeout(() => setIsPressed(false), 200);
@@ -26,7 +27,6 @@ export default function CSIButton({
             if (val !== undefined) {
                 onSubmit(val);
             }
-
         }
     };
 
@@ -34,13 +34,20 @@ export default function CSIButton({
         <button
             disabled={isDisabled}
             onClick={handleClick}
-            className={`
-                ${isDisabled ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-500 text-white hover:bg-blue-600'}
-                ${isPressed ? 'transform scale-95' : ''}
-                rounded border border-slate-300 transition-colors duration-100
-                focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center 
-            `}
+            className={cn(
+
+                // Conditional styles
+                isDisabled
+                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                    : 'text-white hover:brightness-90',
+                isPressed && 'transform scale-95',
+                // Additional styles
+                'rounded border border-slate-300 transition-colors duration-100',
+                'focus:outline-none focus:ring-2 focus:ring-blue-300',
+                'flex flex-col justify-center',
+                // Base styles from JSON
+                styles.styles.default.button,
+            )}
             style={style}
         >
             <span className="text-[0.85em]">{label}</span>

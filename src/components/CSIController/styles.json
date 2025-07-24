@@ -2,8 +2,7 @@
     "styles": {
         "default": {
             "button": [
-                "bg-red",
-                "p-4"
+                "bg-red-500"
             ],
             "input": [
                 "bg-blue",
