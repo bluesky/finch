@@ -6,6 +6,7 @@ import ScalableContainer from "./ScalableContainer";
 import { useTabManagement } from "../Tabs/context/TabsContext";
 import { useMock } from "./MockContext"; 
 import styles from "./styles.json"; 
+import { useVariant } from "./VariantContext";
 
 export type CSIViewProps = {
   className?: string;
@@ -23,7 +24,8 @@ export default function CSIView({
   ...args
 }: CSIViewProps) {
   const { mock } = useMock();
-  const [currentScale, setCurrentScale] = useState(scale);
+  const { variant } = useVariant();
+  const [ currentScale, setCurrentScale] = useState(scale);
   const { addTab } = useTabManagement();
 
   // Update local scale when prop changes
@@ -77,7 +79,7 @@ export default function CSIView({
 
   return (
     <ScalableContainer 
-      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.variants.default.display)}
+      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.variants[variant as keyof typeof styles.variants].display)}
       initialScale={currentScale}
       minScale={0.3}
       maxScale={3.0}

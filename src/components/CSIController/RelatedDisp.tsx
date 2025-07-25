@@ -7,6 +7,7 @@ import { replaceArgs } from "./utils/ArgsFill";
 import { pxToEm } from "./utils/units";
 import { cn } from "@/lib/utils";
 import styles from "./styles.json";
+import { useVariant } from "./VariantContext";
 
 type RelatedDispProps = {
   label?: string;
@@ -26,7 +27,7 @@ function RelatedDisp({
     sourceArgs: Record<string, any>
   ): Record<string, any> {
     const result = { ...targetArgs };
-
+    
     for (const [key, value] of Object.entries(result)) {
       if (typeof value === "string") {
         result[key] = replaceArgs(value, sourceArgs);
@@ -35,6 +36,8 @@ function RelatedDisp({
 
     return result;
   }
+  const { variant } = useVariant();
+
   const { addTab } = useTabManagement();
   const handleCreateTab = (index: number) => {
     const fileNameRaw: string = fileArray![index].file.split(".")[0];
@@ -111,6 +114,7 @@ function RelatedDisp({
     setDropdownVisible(!dropdownVisible);
   };
 
+
   return (
     <>
       {fileArray?.length === 1 ? (
@@ -121,7 +125,7 @@ function RelatedDisp({
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 flex flex-col justify-center
-            `, styles.styles.default.button,)}
+            `, styles.variants[variant as keyof typeof styles.variants].button,)}
           style={style}
         >
           {label ? (
@@ -153,7 +157,7 @@ function RelatedDisp({
               className={cn(`bg-blue-500 text-white hover:bg-blue-600
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center`, styles.styles.default.related_disp,)}
+                flex flex-col justify-center`, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
             >
               {label ? (
                 <span>
@@ -188,7 +192,7 @@ function RelatedDisp({
                       className={`p-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap`}
                     >
                       <p className='text-[0.85em]'>{item.label}</p>
-                      
+
                     </li>
                   ))}
                 </ul>

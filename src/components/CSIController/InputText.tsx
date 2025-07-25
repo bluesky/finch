@@ -1,6 +1,7 @@
 import { CSSProperties, useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils"; 
 import styles from "./styles.json"; 
+import { useVariant } from "./VariantContext";
 
 type InputTextProps = {
     label?: string;
@@ -17,6 +18,7 @@ export default function InputText({
     style,
     val = ''
 }: InputTextProps) {
+    const { variant } = useVariant();
     const stringVal = String(val);
     const [inputValue, setInputValue] = useState<string>(stringVal);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +50,7 @@ export default function InputText({
                 disabled={isDisabled}
                 type="text"
                 value={inputValue}
-                className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,styles.styles.default.input_text, )}
+                className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,styles.variants[variant as keyof typeof styles.variants].input_text, )}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onFocus={handleFocus}

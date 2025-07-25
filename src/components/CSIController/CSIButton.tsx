@@ -1,6 +1,7 @@
 import { CSSProperties, useState } from "react";
-import { cn } from "@/lib/utils"; 
-import styles from "./styles.json"; 
+import { cn } from "@/lib/utils";
+import styles from "./styles.json";
+import { useVariant } from "./VariantContext";
 
 type CSIButtonProps = {
     label?: string;
@@ -17,6 +18,7 @@ export default function CSIButton({
     style,
     val
 }: CSIButtonProps) {
+    const { variant } = useVariant();
     const [isPressed, setIsPressed] = useState(false);
 
     const handleClick = () => {
@@ -46,7 +48,7 @@ export default function CSIButton({
                 'focus:outline-none focus:ring-2 focus:ring-blue-300',
                 'flex flex-col justify-center',
                 // Base styles from JSON
-                styles.variants.default.button,
+                styles.variants[variant as keyof typeof styles.variants].button,
             )}
             style={style}
         >

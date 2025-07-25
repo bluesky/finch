@@ -3,6 +3,7 @@ import { tailwindIcons } from '@/assets/icons';
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from '@/lib/utils';
 import styles from "./styles.json";
+import { useVariant } from './VariantContext';
 
 type InputEnumProps = {
     label?: string;
@@ -21,6 +22,8 @@ export default function InputEnum({
     val,
     enums = ['blank1', 'blank2']
 }: InputEnumProps) {
+    const { variant } = useVariant();
+    
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const containerRef = useRef<null | HTMLDivElement>(null);
 
@@ -58,7 +61,7 @@ export default function InputEnum({
     };
 
     return (
-        <div ref={containerRef} className={cn(`${isDisabled ? 'text-slate-400' : 'text-black'} w-1/2 border bg-white border-slate-300 flex w-full max-w-64`, styles.styles.default.input_enum)} style={style}>
+        <div ref={containerRef} className={cn(`${isDisabled ? 'text-slate-400' : 'text-black'} w-1/2 border bg-white border-slate-300 flex w-full max-w-64`, styles.variants[variant as keyof typeof styles.variants].input_enum)} style={style}>
             <div className={` flex flex-col w-full`} onClick={handleInputClick}>
                 <div className="flex w-full justify-between">
                     <div className="flex-grow">

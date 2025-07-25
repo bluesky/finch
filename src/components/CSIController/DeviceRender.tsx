@@ -9,6 +9,7 @@ import RelatedDisp from './RelatedDisp';
 import { pxToEm } from './utils/units';
 import { cn } from '@/lib/utils';
 import styles from "./styles.json"
+import { useVariant } from './VariantContext';
 
 export type DeviceRenderProps = {
     PV: Device;
@@ -19,6 +20,7 @@ export type DeviceRenderProps = {
 
 function DeviceRender({ PV, UIEntry, onSubmit, ...args }: DeviceRenderProps) {
     if (!PV) return;
+    const { variant } = useVariant();
     const pv = PV.name
     const handleSubmitWithPV = (newValue: string | number | boolean) => {
         onSubmit(pv, newValue);
@@ -47,19 +49,19 @@ function DeviceRender({ PV, UIEntry, onSubmit, ...args }: DeviceRenderProps) {
                 if (typeof PV.value === 'number') {
                     // if update value is for an enum
                     if (PV.enum_strs) {
-                        return <div style={positionStyle} className={cn("text-blue-900", styles.styles.default.text_update)}>{PV.enum_strs[PV.value]}</div>
+                        return <div style={positionStyle} className={cn("text-blue-900", styles.variants[variant as keyof typeof styles.variants].text_update)}>{PV.enum_strs[PV.value]}</div>
                     }
                     // if update value is just a number
                     if (PV.precision === null) {
-                        return <div style={positionStyle} className={cn("text-blue-900", styles.styles.default.text_update)}>{PV.value}</div>
+                        return <div style={positionStyle} className={cn("text-blue-900", styles.variants[variant as keyof typeof styles.variants].text_update)}>{PV.value}</div>
                     }
                     else{
-                        return <div style={positionStyle} className={cn("text-blue-900", styles.styles.default.text_update)}>{PV.value.toFixed(PV.precision)}</div>
+                        return <div style={positionStyle} className={cn("text-blue-900", styles.variants[variant as keyof typeof styles.variants].text_update)}>{PV.value.toFixed(PV.precision)}</div>
                     }
                 }
                 // if update value is a string
                 else {
-                    return <div style={positionStyle} className={cn("text-blue-900 truncate", styles.styles.default.text_update)}>{PV.value}</div>
+                    return <div style={positionStyle} className={cn("text-blue-900 truncate", styles.variants[variant as keyof typeof styles.variants].text_update)}>{PV.value}</div>
                 }
 
             case "menu":
