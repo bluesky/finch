@@ -2,31 +2,31 @@
     "variants": {
         "default": {
             "button": [
-                "bg-red-500"
+                "bg-blue-500"
             ],
             "related_disp": [
-                "bg-red-500"
+                "bg-blue-500"
             ],
             "input_num": [
-                "bg-red-500"
+                "bg-white"
             ],
             "input_enum": [
-                "bg-red-500"
+                "bg-white"
             ],
             "input_text": [
-                "bg-red-500"
+                "bg-white"
             ],
             "text_update": [
-                "text-red-500"
+                "text-blue-900"
             ],
             "text": [
-                "text-red-500"
+                "text-black"
             ],
             "rectangle": [
-                "border-red-500"
+                "border-gray-300"
             ],
             "display": [
-                "bg-red-500"
+                "bg-slate-100"
             ]
         },
         "legacy": {
