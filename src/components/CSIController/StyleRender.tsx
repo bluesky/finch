@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Entry } from './types/UIEntry';
 import { replaceArgs } from './utils/ArgsFill';
 import { pxToEm } from './utils/units';
-import styles from "./styles.json"; 
+import styles from "./styles.json";
 
 export type DeviceRenderProps = {
   UIEntry: Entry;
@@ -33,7 +33,7 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps)
   if (!dynamic) {
     if (UIEntry.var_type === 'rectangle') {
       const { children, ...propsWithoutChildren } = commonProps;
-      return <div {...propsWithoutChildren} className="border-2 border-gray-300" />;
+      return <div {...propsWithoutChildren} className={cn("border-2 border-gray-300", styles.styles.default.rectangle,)} />;
     }
 
     const alignmentClasses = {

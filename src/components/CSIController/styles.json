@@ -21,6 +21,9 @@
             ],
             "text": [
                 "text-red-500"
+            ],
+            "rectangle": [
+                "border-red-500"
             ]
 
         }
