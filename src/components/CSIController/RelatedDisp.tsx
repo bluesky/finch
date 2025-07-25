@@ -125,7 +125,7 @@ function RelatedDisp({
                 rounded border border-slate-300 transition-colors duration-100
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 flex flex-col justify-center
-            `, styles.variants[variant as keyof typeof styles.variants].button,)}
+            `, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
           style={style}
         >
           {label ? (
