@@ -148,7 +148,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.background = new THREE.Color('#c6c6c6');
     sceneRef.current = scene;
 
-
+    const MM_TO_UNITS = 0.7;
+    scene.scale.set(MM_TO_UNITS, MM_TO_UNITS, MM_TO_UNITS);
 
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
@@ -195,12 +196,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
-    // if (renderer) {
-    //   const controls = new OrbitControls(mainCamera, renderer.domElement);
-    //   controls.enableDamping = true;
-    //   controls.dampingFactor = 0.05;
-    //   controlsRef.current = controls;
-    // }
+    if (renderer) {
+      const controls = new OrbitControls(mainCamera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controlsRef.current = controls;
+    }
 
     // Postprocessing Composer
     const composer = new EffectComposer(renderer);
@@ -229,7 +230,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.add(dirLight);
 
     // Ground Plane
-    const planeGeom = new THREE.PlaneGeometry(20, 20);
+    const planeGeom = new THREE.PlaneGeometry(100, 100);
     const planeMat = new THREE.MeshPhongMaterial({ color: '#ffffff' });
     const plane = new THREE.Mesh(planeGeom, planeMat);
     plane.rotation.x = -Math.PI / 2;
@@ -238,7 +239,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     scene.add(plane);
 
     // Ground plane grid helper
-    const grid = new THREE.GridHelper(20, 20, '#888888', '#444444');
+    const grid = new THREE.GridHelper(100, 100, '#888888', '#444444');
     grid.position.y = -1.0;
     scene.add(grid);
 

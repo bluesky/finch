@@ -78,14 +78,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     setPos({ X: horizX, Y: horizY, Z: horizZ });
   }, [horizX, horizY, horizZ]);
 
-  // const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
-  // const next = pos[axis] + delta;
-  // setPos(prev => ({ ...prev, [axis]: next }));
-  // if (axis === 'X') handleStageXChange(next);
-  // if (axis === 'Y') handleStageYChange(next);
-  // };
-
-
   const axisHandlers = {
     X: handleStageXChange,
     Y: handleStageYChange,
@@ -93,7 +85,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   }
 
   const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
-    const next = +(pos[axis] + delta).toFixed(3);
+    const next = +(pos[axis] + delta * 0.20).toFixed(3);
     setPos(prev => ({ ...prev, [axis]: next }));
     axisHandlers[axis](next);
   }
@@ -102,18 +94,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     const target = targets[axis];
     setPos(prev => ({ ...prev, [axis]: target }));
   };
-
-  // useEffect(() => {
-  // handleStageXChange(pos.X);
-  // }, [pos.X]);
-
-  // useEffect(() => {
-  // handleStageYChange(pos.Y);
-  // }, [pos.Y]);
-
-  // useEffect(() => {
-  // handleStageZChange(pos.Z);
-  // }, [pos.Z]);
 
   // Original inline styles
   const outerStyle: CSSProperties = {
@@ -165,17 +145,17 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div style={outerStyle}>
       {/* <button
- onClick={togglePanel}
- style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
- onMouseOver={(e) =>
- ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
- }
- onMouseOut={(e) =>
- ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
- }
- >
- { panelOpen ? 'Hide Panel' : 'Show Panel'}
- </button> */}
+        onClick={togglePanel}
+        style={{ ...buttonStyle, alignSelf: 'flex-end', backgroundColor: '#dc3545' }}
+        onMouseOver={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#c82333')
+        }
+        onMouseOut={(e) =>
+          ((e.currentTarget as HTMLButtonElement).style.backgroundColor = '#dc3545')
+        }
+      >
+        {panelOpen ? 'Hide Panel' : 'Show Panel'}
+      </button> */}
       {panelOpen && (
         <div style={panelContentStyle}> <span style={{ color: 'black' }}>Controls </span>
           <div style={{
@@ -194,7 +174,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               <div>Position</div><div>Jog</div><div>Set</div>
             </div>
 
-            {(['X', 'Y', 'Z'] as const).map(axis => {
+            {(['X', 'Y'] as const).map(axis => {
               const current = pos[axis]
               const js = jogStep[axis];
 
@@ -210,7 +190,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     {axis}:&nbsp;
                     <input
                       type="number"
-                      value={current.toFixed(2)}
+                      value={(current / 0.2).toFixed(2)}
                       readOnly
                       style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem' }}
                     /> mm
