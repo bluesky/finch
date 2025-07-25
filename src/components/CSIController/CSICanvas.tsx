@@ -128,7 +128,7 @@ function CSICanvas({
 
         ...style,
       }}
-      className={cn("relative", styles.styles.default.display,)}
+      className="relative"
     >
       {renderDevices()}
     </div>

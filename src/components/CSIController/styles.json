@@ -2,28 +2,28 @@
     "styles": {
         "default": {
             "button": [
-                "bg-red-500"
+
             ],
             "related_disp": [
-                "bg-red-500"
+
             ],
             "input_num": [
-                "bg-red-500"
+
             ],
             "input_enum": [
-                "bg-red-500"
+
             ],
             "input_text": [
-                "bg-red-500"
+
             ],
             "text_update": [
-                "text-red-500"
+                
             ],
             "text": [
-                "text-red-500"
+                
             ],
             "rectangle": [
-                "border-red-500"
+                
             ],
             "display": [
                 "bg-red-500"

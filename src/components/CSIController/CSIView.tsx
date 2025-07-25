@@ -5,6 +5,7 @@ import { useUIData } from "./utils/useUIData";
 import ScalableContainer from "./ScalableContainer";
 import { useTabManagement } from "../Tabs/context/TabsContext";
 import { useMock } from "./MockContext"; 
+import styles from "./styles.json"; 
 
 export type CSIViewProps = {
   className?: string;
@@ -76,7 +77,7 @@ export default function CSIView({
 
   return (
     <ScalableContainer 
-      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className)}
+      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.styles.default.display)}
       initialScale={currentScale}
       minScale={0.3}
       maxScale={3.0}
