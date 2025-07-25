@@ -103,7 +103,7 @@ export default function InputNumber({
                 value={inputValue}
                 className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,
                 // Base styles from JSON
-                styles.styles.default.input_num,)}
+                styles.variants.default.input_num,)}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onBlur={formatValue}

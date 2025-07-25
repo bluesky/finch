@@ -77,7 +77,7 @@ export default function CSIView({
 
   return (
     <ScalableContainer 
-      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.styles.default.display)}
+      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.variants.default.display)}
       initialScale={currentScale}
       minScale={0.3}
       maxScale={3.0}

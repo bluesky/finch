@@ -46,7 +46,7 @@ export default function CSIButton({
                 'focus:outline-none focus:ring-2 focus:ring-blue-300',
                 'flex flex-col justify-center',
                 // Base styles from JSON
-                styles.styles.default.button,
+                styles.variants.default.button,
             )}
             style={style}
         >
