@@ -1,4 +1,6 @@
 import { CSSProperties, useState, useEffect, useRef } from "react";
+import { cn } from "@/lib/utils"; 
+import styles from "./styles.json"; 
 
 type InputTextProps = {
     label?: string;
@@ -46,7 +48,7 @@ export default function InputText({
                 disabled={isDisabled}
                 type="text"
                 value={inputValue}
-                className={`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`}
+                className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,styles.styles.default.input_text, )}
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onFocus={handleFocus}
