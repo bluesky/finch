@@ -24,8 +24,10 @@
             ],
             "rectangle": [
                 "border-red-500"
+            ],
+            "display": [
+                "bg-red-500"
             ]
-
         }
     }
 }

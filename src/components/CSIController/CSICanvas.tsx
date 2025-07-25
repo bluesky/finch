@@ -6,6 +6,8 @@ import DeviceRender from "./DeviceRender";
 import { replaceArgs } from "./utils/ArgsFill";
 import { CompositeDeviceRenderer } from "./Comp";
 import { pxToEm } from "./utils/units";
+import { cn } from "@/lib/utils"; 
+import styles from "./styles.json"; 
 
 export type UICanvasProps = {
   devices: Devices;
@@ -126,7 +128,7 @@ function CSICanvas({
 
         ...style,
       }}
-      className="relative"
+      className={cn("relative", styles.styles.default.display,)}
     >
       {renderDevices()}
     </div>
