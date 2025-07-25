@@ -28,6 +28,35 @@
             "display": [
                 "bg-red-500"
             ]
+        },
+        "legacy": {
+            "button": [
+
+            ],
+            "related_disp": [
+
+            ],
+            "input_num": [
+
+            ],
+            "input_enum": [
+
+            ],
+            "input_text": [
+
+            ],
+            "text_update": [
+                
+            ],
+            "text": [
+                
+            ],
+            "rectangle": [
+                
+            ],
+            "display": [
+                "bg-red-500"
+            ]
         }
     }
 }
