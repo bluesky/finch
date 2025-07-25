@@ -2,13 +2,15 @@ import { useState, useEffect, useId } from "react";
 import PresentationLayer from "./PresentationLayer";
 import CSIControllerTabs from "./CSIControllerTabs";
 import { MockProvider } from "./MockContext";
+import { VariantProvider } from "./VariantContext";
 
 export type CSIControllerProps = {
   className?: string;
   fileName?: string;
   P?: string;
   R?: string;
-  mock?: boolean; 
+  mock?: boolean;
+  variant?: string;
 };
 
 // if tab data is in localstorage, load that instead
@@ -43,7 +45,8 @@ export default function CSIController({
   fileName,
   P,
   R,
-  mock = false, 
+  mock = false,
+  variant = "default"
 }: CSIControllerProps) {
   const instanceId = useId();
   const [configuredProps, setConfiguredProps] = useState<{
@@ -112,15 +115,17 @@ export default function CSIController({
 
   // Once we have all props, render the actual controller
   return (
-    <MockProvider mock={mock}>
-      <CSIControllerTabs
-        className={className}
-        fileName={finalFileName}
-        oldFileName={fileName} // Pass the original fileName as oldFileName
-        P={finalP}
-        R={finalR}
-        instanceId={instanceId}
-      />
-    </MockProvider>
+    <VariantProvider variant={variant}>
+      <MockProvider mock={mock}>
+        <CSIControllerTabs
+          className={className}
+          fileName={finalFileName}
+          oldFileName={fileName} // Pass the original fileName as oldFileName
+          P={finalP}
+          R={finalR}
+          instanceId={instanceId}
+        />
+      </MockProvider>
+    </VariantProvider>
   );
 }
