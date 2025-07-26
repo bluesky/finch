@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { line, curveLinear, curveStepAfter } from 'd3-shape';
 import { Node, Edge, Point, statusColor, TOP_Y } from 'src/components/BeamVis/Synoptic_Config';
 import {
@@ -8,6 +8,13 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import type { Device } from '@/types/deviceControllerTypes';
+import useOphydSocket from '@/hooks/useOphydSocket';
+
+const WS_URL = 'ws://192.168.10.155:8002/ophydSocket';
+const PV_LIST = [
+  'bl531_xps2:sample_x_mm.RBV',
+  'bl531_xps2:sample_y_mm.RBV',
+];
 
 interface SynopticViewProps {
   nodes: Node[];
@@ -21,6 +28,9 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
     () => new Map<string, Node>(nodes.map(n => [n.id, n])),
     [nodes]
   );
+
+  const { devices } = useOphydSocket(WS_URL, PV_LIST);
+  const [activePV, setActivePV] = useState<string | null>(null);
 
   // const deviceMap = useMemo(
   //     () => new Map<string, Device>(devices.map(d => [d.name, d])),
@@ -41,8 +51,8 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
 
   return (
     <svg
-    viewBox="0 0 720 400"
-    style={{ background: 'white' }}>
+      viewBox="0 0 720 400"
+      style={{ background: 'white' }}>
       {/* edges */}
       {edges.map((e, idx) => {
         const a = nodeMap.get(e.from);
@@ -76,6 +86,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
         // place label above for top row, below otherwise
         const labelY = isTopRow ? -30 : 35;
         // const device = deviceMap.get(n.label);
+        const isSample = n.id === 'sample-mount';
 
         return (
           <Popover key={n.id}>
@@ -107,7 +118,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                     y={-20}
                     width={40}
                     height={40}
-                    />
+                  />
                 )}
                 <text
                   y={labelY}
@@ -120,7 +131,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                 </text>
               </g>
             </PopoverTrigger>
-            <PopoverContent className='!bg-white bg-opacity-100 w-64'>
+            <PopoverContent className='!bg-white bg-opacity-100 w-90 max-h-screen'>
               <div className='p-2'>
                 <strong>{n.label}</strong>
                 {/* {device ? (
@@ -130,9 +141,32 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                 ) : (
                   <p>No device information available</p>
                 )} */}
-                <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }}>
+                {/* <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }}>
                   3D View
-                </Button>
+                </Button> */}
+
+                {n.id === 'sample-mount' ? (
+                  <>
+                    <div style={{ display: 'flex', gap: '0.5rem', margin: '0.5rem 0' }}>
+                      <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }} size="sm" onClick={() => setActivePV('bl531_xps2:sample_x_mm.RBV')}>
+                        Sample X
+                      </Button>
+                      <Button style={{ color: 'white', backgroundColor: '#095b87', margin: '10px', padding: '10px' }} size="sm" onClick={() => setActivePV('bl531_xps2:sample_y_mm.RBV')}>
+                        Sample Y
+                      </Button>
+                    </div>
+
+                    {activePV && devices[activePV] && (
+                      <div style={{ maxHeight: 300, overflowY: 'auto', background: 'white', padding: '4px' }}>
+                        <pre style={{ fontSize: 10, color: 'black' }}>
+                          {JSON.stringify(devices[activePV], null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-xs italic text-gray-500">No PV metadata</p>
+                )}
               </div>
             </PopoverContent>
           </Popover>

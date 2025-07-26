@@ -85,7 +85,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   }
 
   const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
-    const next = +(pos[axis] + delta * 0.20).toFixed(3);
+    const next = +(pos[axis] + delta).toFixed(3);
     setPos(prev => ({ ...prev, [axis]: next }));
     axisHandlers[axis](next);
   }
@@ -93,6 +93,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const moveAxis = (axis: 'X' | 'Y' | 'Z') => {
     const target = targets[axis];
     setPos(prev => ({ ...prev, [axis]: target }));
+    axisHandlers[axis](target);
   };
 
   // Original inline styles
@@ -190,7 +191,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     {axis}:&nbsp;
                     <input
                       type="number"
-                      value={(current / 0.2).toFixed(2)}
+                      value={(current).toFixed(3)}
                       readOnly
                       style={{ textAlign: 'center', width: '3rem', marginRight: '0.25rem' }}
                     /> mm

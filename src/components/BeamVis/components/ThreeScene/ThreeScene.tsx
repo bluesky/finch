@@ -16,12 +16,14 @@ import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 
+
 /** Types for photon streaming */
 interface Photon {
   position: THREE.Vector3;
   velocity: THREE.Vector3;
   active: boolean;
 }
+
 
 export type HoveredAxis = { axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null;
 interface ThreeSceneProps {
@@ -30,6 +32,7 @@ interface ThreeSceneProps {
   // cameraX: number;
   highlightedAxis: HoveredAxis;
 }
+
 
 export interface SharedResources {
   xRayMaterial: THREE.ShaderMaterial;
@@ -41,6 +44,7 @@ export interface SharedResources {
   };
   geometries?: object;
 }
+
 
 const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*, cameraX */ }) => {
   /********************************************************
@@ -54,6 +58,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
   const composerRef = useRef<EffectComposer | null>(null);
   const xRayRenderTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
   const objectMapRef = useRef<Record<string, THREE.Object3D>>({});
+
 
   /********************************************************
    * Photon-related Refs
@@ -69,9 +74,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
   );
   const lastPhotonEmitRef = useRef<number>(0);
 
+
   /********************************************************
    * Shared / Memoized Resources for Factories
    ********************************************************/
+
+
 
 
   const sharedResources = useMemo(() => {
@@ -115,6 +123,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     };
   }, []);
 
+
   /********************************************************
    * Use a ref to always have the latest sceneConfig
    ********************************************************/
@@ -123,9 +132,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     sceneConfigRef.current = sceneConfig;
   }, [sceneConfig]);
 
+
   const controlsRef = useRef<OrbitControls | null>(null);
   const hoveredRef = useRef<HoveredAxis>(highlightedAxis);
   useEffect(() => { hoveredRef.current = highlightedAxis; }, [highlightedAxis]);
+
 
   /********************************************************
    * 1) Initialization (runs only once)
@@ -143,13 +154,16 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     const viewSize = 1.5;
     const size = new THREE.Vector2(w, h);
 
+
     // Scene
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#c6c6c6');
     sceneRef.current = scene;
 
-    const MM_TO_UNITS = 0.7;
-    scene.scale.set(MM_TO_UNITS, MM_TO_UNITS, MM_TO_UNITS);
+
+    // const MM_TO_UNITS = 0.5;
+    // scene.scale.set(MM_TO_UNITS, MM_TO_UNITS, MM_TO_UNITS);
+
 
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
@@ -165,6 +179,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     // mainCamera.layers.enable(1);
     mainCameraRef.current = mainCamera;
 
+
     // (Optional) If you want to update cameraX externally, add an effect below.
     // useEffect(() => {
     //   if (mainCameraRef.current) {
@@ -172,6 +187,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     //     mainCameraRef.current.updateProjectionMatrix();
     //   }
     // }, [cameraX]);
+
 
     // X-Ray Orthographic Camera
     const xRayCamViewSize = 0.5;
@@ -188,6 +204,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     xRayCamera.layers.set(1);
     xRayCameraRef.current = xRayCamera;
 
+
     // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.setSize(w, h);
@@ -196,12 +213,14 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     rendererRef.current = renderer;
 
-    if (renderer) {
-      const controls = new OrbitControls(mainCamera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.05;
-      controlsRef.current = controls;
-    }
+
+    // if (renderer) {
+    //   const controls = new OrbitControls(mainCamera, renderer.domElement);
+    //   controls.enableDamping = true;
+    //   controls.dampingFactor = 0.05;
+    //   controlsRef.current = controls;
+    // }
+
 
     // Postprocessing Composer
     const composer = new EffectComposer(renderer);
@@ -213,9 +232,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     composer.addPass(bloomPass);
     composerRef.current = composer;
 
+
     // X-Ray Render Target
     const xRayRenderTarget = new THREE.WebGLRenderTarget(256, 256);
     xRayRenderTargetRef.current = xRayRenderTarget;
+
 
     // Lights
     const ambientLight = new THREE.AmbientLight('#ffffff', 1.5);
@@ -229,8 +250,20 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     dirLight.shadow.camera.far = 50;
     scene.add(dirLight);
 
+
+    const d = 30;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.camera.near = 0.1;
+    dirLight.shadow.camera.far = 100;
+    dirLight.shadow.bias = -0.001
+    dirLight.shadow.camera.updateProjectionMatrix();
+
+
     // Ground Plane
-    const planeGeom = new THREE.PlaneGeometry(100, 100);
+    const planeGeom = new THREE.PlaneGeometry(1000, 1000);
     const planeMat = new THREE.MeshPhongMaterial({ color: '#ffffff' });
     const plane = new THREE.Mesh(planeGeom, planeMat);
     plane.rotation.x = -Math.PI / 2;
@@ -238,10 +271,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     plane.receiveShadow = true;
     scene.add(plane);
 
+
     // Ground plane grid helper
     const grid = new THREE.GridHelper(100, 100, '#888888', '#444444');
     grid.position.y = -1.0;
     scene.add(grid);
+
 
     // Photon InstancedMesh for Photon Stream (global pool)
     const sphereGeom = new THREE.SphereGeometry(0.05, 8, 8);
@@ -259,6 +294,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     scene.add(instancedMesh);
     photonPoolRef.current = instancedMesh;
+
 
     // Resize handling
     const handleResize = () => {
@@ -282,8 +318,10 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     };
     window.addEventListener('resize', handleResize);
 
+
     // Update xRay shader uniform
     sharedResources.xRayMaterial.uniforms.xRayTexture.value = xRayRenderTarget.texture;
+
 
     // Animation loop (store animationId for cleanup)
     let animationId: number;
@@ -291,11 +329,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     const animate = () => {
       //controlsRef.current?.update();
 
+
       animationId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       // Use latest sceneConfig from the ref
       const currentConfig = sceneConfigRef.current;
       const beamCfg = currentConfig.find((c) => c.type === 'beam');
+
 
       // 5) Update Beam Stop (shutter) pivot and color
       const stopCfg = currentConfig.find((c) => c.type === 'beamStop');
@@ -305,6 +345,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       const beamCyl = beamObj?.getObjectByName('beam-cylinder') as THREE.Mesh;
       const detectorObj = scene.getObjectByName('detector');
       const beamMaterial = sharedResources.materials.beam;
+
 
       // animate dashed axis lines
       const h = hoveredRef.current;
@@ -318,6 +359,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
           };
           const { axis, dirSign } = mat.userData;
 
+
           // only the exact half‐axis you hovered
           if (axis === hoverAxis && dirSign === hoverSide) {
             const baseSpeed = 0.75;
@@ -329,6 +371,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       }
 
 
+
+
       if (beamCfg?.beamMono) {
         const targetColor = beamColorMap[beamCfg.beamMono];
         if (beamMaterial.color.getStyle() !== targetColor) {
@@ -337,9 +381,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
         }
       }
 
+
       let stopX = -2;
       let detectorX = 4;
       const beamStartX = -6;
+
 
       if (detectorObj && beamStopPivot) {
         const vec1 = new THREE.Vector3();
@@ -352,12 +398,14 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       // else if (!detectorObj) {console.warn('Detector object not found in scene.');}
       // else if (!beamStopPivot) {console.warn('Beam Stop pivot not found in scene.');}
 
+
       if (beamCyl) {
         const targetX = isOpen ? detectorX : stopX;
         const beamLength = targetX - beamStartX;
         beamCyl.scale.x = beamLength / 8;
         beamCyl.position.x = beamStartX + beamLength / 2;
       }
+
 
       if (beamStopPivot) {
         // Smoothly animate pivot rotation (optional)
@@ -373,13 +421,16 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       const { xRayMaterial } = sharedResources;
       xRayMaterial.uniforms.shutterOpen.value = isOpen ? 1.0 : 0.0;
 
+
       // 1) Offscreen render for xRay
       renderer.setRenderTarget(xRayRenderTarget);
       renderer.render(scene, xRayCamera);
       renderer.setRenderTarget(null);
 
+
       // 2) Render bloom pass
       composer.render();
+
 
       // 3) Photon stream updates:
       if (beamCfg?.beamModes?.includes('photonStream') && beamCfg.visible) {
@@ -404,6 +455,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
         }
       }
 
+
       // 4) Update active photons
       if (photonPoolRef.current) {
         const photons = photonsRef.current;
@@ -415,6 +467,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
             // Use beamStop config to determine bounds
             const stopCfg = currentConfig.find((c) => c.type === 'beamStop');
             const open = stopCfg?.shutterOpen || false;
+
 
             if ((!open && photon.position.x >= -2) || (open && photon.position.x >= 4)) {
               photon.active = false;
@@ -430,8 +483,29 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       }
 
 
+      const mount = objectMapRef.current['horizontalStage'];
+      const cam = mainCameraRef.current;
+
+
+      if (mount && cam) {
+        const OFFSET = new THREE.Vector3(-10, 7, 12);
+        cam.position.copy(mount.position.clone().add(OFFSET));
+        cam.lookAt(mount.position);
+      }
+
+
+      if (mount) {
+        const cfg = sceneConfigRef.current.find(c => c.id === 'horizontalStage');
+        if (cfg) {
+          const [tx, ty, tz] = cfg.transform.position;
+          mount.position.lerp(new THREE.Vector3(tx, ty, tz), 0.1);
+        }
+      }
+
+
     };
     animate();
+
 
     return () => {
       //scene.remove(axesHelper, gridHelper)
@@ -445,12 +519,14 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
   }, []
   ); // initialization runs only once
 
+
   /********************************************************
    * 2) Rebuild Scene Objects on sceneConfig Changes
    ********************************************************/
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
+
 
     // Remove old objects from our objectMap (but keep lights, ground, photon mesh, etc.)
     Object.keys(objectMapRef.current).forEach((id) => {
@@ -460,6 +536,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       }
     });
     objectMapRef.current = {};
+
 
     // Create new objects using createObjectFromConfig
     const createdObjects: Record<string, THREE.Object3D> = {};
@@ -477,6 +554,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       }
     });
 
+
     // Parenting: attach children if a parentId exists
     sceneConfig.forEach((cfg) => {
       const obj = createdObjects[cfg.id];
@@ -489,10 +567,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     });
     objectMapRef.current = createdObjects;
 
+
     // Custom axes dashed lines
+
 
     const stage = objectMapRef.current['horizontalStage'];
     if (stage) {
+
 
       const L = 3;
       const axesMat = {
@@ -523,14 +604,39 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       );
     }
 
-
   }, [sceneConfig, sharedResources]);
 
+
   return (
-    <div style={{ width: '100%', height: '100%' }} ref={containerRef}>
+    <div style={{ position: 'relative', width: '100%', height: '100%' }} ref={containerRef}>
       <canvas id="three-canvas" style={{ width: '100%', height: '100%' }} />
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '10px',
+          right: '10px',
+          textAlign: 'center',
+          pointerEvents: 'none'
+        }}
+      >
+        <div
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: '8px solid transparent',
+            borderRight: '8px solid transparent',
+            borderBottom: '12px solid orangered',
+            transform: 'rotate(-165deg)',
+            margin: '0 auto'
+          }}
+        />
+        <div style={{ fontSize: '10px', color: 'black', marginTop: '4px' }}>
+          Beam Direction
+        </div>
+      </div>
     </div>
   );
 };
+
 
 export default ThreeScene;
