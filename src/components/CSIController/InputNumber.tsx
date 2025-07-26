@@ -21,7 +21,7 @@ export default function InputNumber({
     val
 }: InputNumberProps) {
     const { variant } = useVariant();
-    
+
     const [inputValue, setInputValue] = useState<string>('');
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -104,9 +104,13 @@ export default function InputNumber({
                 disabled={isDisabled}
                 type="text"
                 value={inputValue}
-                className={cn(`${isDisabled ? 'hover:cursor-not-allowed' : ''} w-1/2 border border-slate-300 pl-1`,
-                // Base styles from JSON
-                styles.variants[variant as keyof typeof styles.variants].input_num,)}
+                className={
+                    cn(`
+                        ${isDisabled ? 'hover:cursor-not-allowed' : ''} 
+                        w-1/2 border border-slate-300 pl-1`, 
+                        styles.variants[variant as keyof typeof styles.variants].input_num,
+                    )
+                }
                 onChange={handleChange}
                 onKeyDown={handleKeyPress}
                 onBlur={formatValue}

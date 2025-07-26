@@ -31,31 +31,71 @@
         },
         "legacy": {
             "button": [
-                "bg-blue-500"
+                "text-black",
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-b",
+                "border-r",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-t-[#C3F2FF]",
+                "border-l-[#C3F2FF]"
             ],
             "related_disp": [
-                "bg-blue-500"
+                "text-black",
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-b",
+                "border-r",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-t-[#C3F2FF]",
+                "border-l-[#C3F2FF]"
             ],
             "input_num": [
-                "bg-blue-500"
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-b-[#C3F2FF]",
+                "border-r-[#C3F2FF]"
             ],
             "input_enum": [
-                "bg-blue-500"
+                
+                "bg-[#B0C3CA]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#DDE6E9]",
+                "border-[0.15em]",
+                "border-b-[#5F696D]",
+                "border-r-[#5F696D]"
+                
             ],
             "input_text": [
-                "bg-blue-500"
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-b-[#C3F2FF]",
+                "border-r-[#C3F2FF]"
             ],
             "text_update": [
-                "text-blue-500"
+                "text-[#0A00B8]"
             ],
             "text": [
-                "text-blue-500"
+                "text-black"
             ],
             "rectangle": [
-                "border-blue-500"
+                "border-black",
+                "border-[1px]"
             ],
             "display": [
-                "bg-blue-500"
+                "bg-[#BBBBBB]"
             ]
         }
     }
