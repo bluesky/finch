@@ -1,280 +1,155 @@
-/**
-* @file BeamlineContainer.tsx
-* @description Connects to EPICS PVs via PVWS to drive the 3D scene and controls.
-*/
+// BeamlineContainer.tsx
 
-
-import { useState, useEffect, useMemo, ChangeEvent, CSSProperties, FC, useContext } from 'react';
+import { useState, useEffect, useMemo, ChangeEvent, CSSProperties, FC } from 'react';
 import ThreeScene from './ThreeScene/ThreeScene';
 import ControlPanel from './ControlPanel/ControlPanel';
 import { ComponentConfig } from '../types/ComponentConfig';
 import { beamlineDefinitions, BeamlineDefinition } from '../beam_configs';
-import { usePV, useEpics } from '../EPICS/EpicsContext';
 import useOphydSocket from 'src/hooks/useOphydSocket';
 
-
 const BeamlineContainer: FC = () => {
-
-  // hover state for axes
-  const [hovered, setHovered] = useState<{ axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null>(null)
-  // Available beamlines
+  // --- STATE SETUP ---
+  const [hovered, setHovered] = useState<{ axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null>(null);
   const availableBeamlines = useMemo(() => Object.keys(beamlineDefinitions), []);
-  const defaultKey = availableBeamlines[2] || availableBeamlines[0] || '';
-  // start selectedBeamline with a real key
+  const defaultKey = availableBeamlines.length > 0 ? (availableBeamlines[2] || availableBeamlines[0]) : '';
   const [selectedBeamline, setSelectedBeamline] = useState(defaultKey);
-
-  // seed the definition & configs from that key
-  const initialDef = beamlineDefinitions[defaultKey];
-  const [beamlineDefinition, setBeamlineDefinition] = useState<BeamlineDefinition>(initialDef);
-  const [configs, setConfigs] = useState<ComponentConfig[]>(initialDef.sceneConfig);
-
-
-
-  // UI state
   const [panelOpen, setPanelOpen] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playAngle, setPlayAngle] = useState(0);
-  const [cameraX, setCameraX] = useState(-10);
 
-
-  const pvList = useMemo(
-    () => [
-      'IOC:m1.VAL', // centeringStageX
-      'IOC:m2.VAL', // centeringStageY
-      'IOC:m3.VAL', // centeringStageZ
-      'bl531_xps2:sample_x_mm', // horizontalStageX
-      'bl531_xps2:sample_y_mm', // horizontalStageY
-      'bl531_xps2:sample_x_mm.RBV', // read back value
-      'bl531_xps2:sample_y_mm.RBV', // read back value
-      'IOC:m6.VAL', // horizontalStageZ
-      'IOC:m7.VAL' // rotationStage
-    ], []);
-
+  // --- OPHYD SOCKET & DATA ---
+  const pvList = useMemo(() => [
+    'IOC:m1.VAL', 'IOC:m2.VAL', 'IOC:m3.VAL',
+    'bl531_xps2:sample_x_mm', 'bl531_xps2:sample_y_mm',
+    'bl531_xps2:sample_x_mm.RBV', 'bl531_xps2:sample_y_mm.RBV',
+    'IOC:m6.VAL', 'IOC:m7.VAL'
+  ], []);
 
   const { devices, handleSetValueRequest } = useOphydSocket('ws://192.168.10.155:8002/ophydSocket', pvList);
+  const isReady = useMemo(() => Object.keys(devices).length > 0, [devices]);
 
+  const beamlineDefinition = beamlineDefinitions[selectedBeamline];
 
-  const deviceArray = useMemo(
-    () => Object.values(devices || {}),
-    [devices]
-  );
+  const configs: ComponentConfig[] = useMemo(() => {
+    if (!beamlineDefinition) return [];
 
+    // Start with the static configuration for the selected beamline.
+    let currentConfigs = beamlineDefinition.sceneConfig;
 
-  // EPICS PV subscriptions (use full .VAL field names)
-  // const motorX = usePV('IOC:m1.VAL');
-  // const motorY = usePV('IOC:m2.VAL');
-  // const motorZ = usePV('IOC:m3.VAL');
-  // const horizX = usePV('IOC:m4.VAL');
-  // const horizY = usePV('IOC:m5.VAL');
-  // const horizZ = usePV('IOC:m6.VAL');
-  // const rotationStage = usePV('IOC:m7.VAL');
+    // If the live device data is ready, inject its values into our config.
+    if (isReady) {
+      currentConfigs = currentConfigs.map(cfg => {
+        switch (cfg.id) {
+          case 'centeringStage':
+            return {
+              ...cfg,
+              transform: {
+                ...cfg.transform,
+                position: [
+                  Number(devices['IOC:m1.VAL']?.value ?? cfg.transform.position[0]),
+                  Number(devices['IOC:m2.VAL']?.value ?? cfg.transform.position[1]),
+                  Number(devices['IOC:m3.VAL']?.value ?? cfg.transform.position[2])
+                ]
+              }
+            };
+          case 'horizontalStage':
+            return {
+              ...cfg,
+              transform: {
+                ...cfg.transform,
+                position: [
+                  Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? cfg.transform.position[0]),
+                  Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? cfg.transform.position[1]),
+                  Number(devices['IOC:m6.VAL']?.value ?? cfg.transform.position[2])
+                ]
+              }
+            };
+          case 'rotationStage':
+            const angleNum = Number(devices['IOC:m7.VAL']?.value ?? 0);
+            return {
+              ...cfg,
+              transform: {
+                ...cfg.transform,
+                rotation: [0, (Math.PI * angleNum) / 180, 0]
+              }
+            };
+          default:
+            return cfg;
+        }
+      });
+    }
 
+    return currentConfigs;
+  }, [selectedBeamline, beamlineDefinition, devices, isReady]);
 
-  const motorX = devices['IOC:m1.VAL']?.value ?? 0;
-  const motorY = devices['IOC:m2.VAL']?.value ?? 0;
-  const motorZ = devices['IOC:m3.VAL']?.value ?? 0;
-  const horizX = devices['bl531_xps2:sample_x_mm.RBV']?.value ?? 0;
-  const horizY = devices['bl531_xps2:sample_y_mm.RBV']?.value ?? 0;
-  const horizZ = devices['IOC:m6.VAL']?.value ?? 0;
-  const rotationStage = devices['IOC:m7.VAL']?.value ?? 0;
+  const playAngle = Number(devices['IOC:m7.VAL']?.value ?? 0);
 
+  // --- EVENT HANDLERS ---
 
-
-
-  const publish = handleSetValueRequest;
-
-
-
-
-  // Load beamline definition on selection
-  useEffect(() => {
-    if (!selectedBeamline) return;
-    const def = beamlineDefinitions[selectedBeamline];
-    setBeamlineDefinition(def);
-    setConfigs(def.sceneConfig);
-    setPlayAngle(0);
-    setCameraX(-10);
-  }, [selectedBeamline]);
-
-
-  // Reflect live PV values into 3D scene
-  useEffect(() => {
-    setConfigs(prev =>
-      prev.map(cfg =>
-        cfg.id === 'centeringStage'
-          ? {
-            ...cfg, transform: {
-              ...cfg.transform, position: [
-                Number(devices['IOC:m1.VAL']?.value),
-                Number(devices['IOC:m2.VAL']?.value),
-                Number(devices['IOC:m3.VAL']?.value)]
-            }
-          }
-          : cfg
-      )
-    );
-  }, [motorX, motorY, motorZ]);
-
-
-  useEffect(() => {
-    setConfigs(prev =>
-      prev.map(cfg =>
-        cfg.id === 'horizontalStage'
-          ? {
-            ...cfg, transform: {
-              ...cfg.transform, position: [
-                Number(devices['bl531_xps2:sample_x_mm.RBV']?.value),
-                Number(devices['bl531_xps2:sample_y_mm.RBV']?.value),
-                Number(devices['IOC:m6.VAL']?.value)
-              ]
-            }
-          }
-          : cfg
-      )
-    );
-  }, [horizX, horizY, horizZ]);
-
-
-  useEffect(() => {
-    const angleNum = Number(rotationStage)
-    setPlayAngle(angleNum);
-    setConfigs(prev =>
-      prev.map(cfg =>
-        cfg.id === 'rotationStage'
-          ? { ...cfg, transform: { ...cfg.transform, rotation: [0, (Math.PI * angleNum) / 180, 0] } }
-          : cfg
-      )
-    );
-  }, [rotationStage]);
-
-
-  // Sample mesh handler
-  const handleSampleMeshChange = (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => {
-    setConfigs(prev =>
-      prev.map(cfg =>
-        cfg.type === 'sample'
-          ? { ...cfg, meshType, meshUrl: meshType === 'fbx' ? 'beam_vis/assets/bananas.fbx' : meshType === 'obj' ? 'beam_vis/assets/al-1795-0875.obj' : undefined }
-          : cfg
-      )
-    );
+  const handleBeamlineChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setSelectedBeamline(e.target.value);
   };
 
-
-  // Control panel toggles
-  const togglePanel = () => setPanelOpen(p => !p);
-  const handlePlayPause = () => setIsPlaying(p => !p);
-  // const handleManualAngleChange = (val: number) => {
-  // setPlayAngle(val);
-  // setConfigs(prev =>
-  // prev.map(cfg =>
-  // cfg.id === 'rotationStage'
-  // ? { ...cfg, transform: { ...cfg.transform, rotation: [0, (Math.PI * val) / 180, 0] } }
-  // : cfg
-  // )
-  // );
-  // };
+  const handleManualAngleChange = (val: number) => handleSetValueRequest('IOC:m7.VAL', val);
+  const handleStageXChange = (val: number) => handleSetValueRequest('bl531_xps2:sample_x_mm', val);
+  const handleStageYChange = (val: number) => handleSetValueRequest('bl531_xps2:sample_y_mm', val);
 
 
-  // Publish PV writes
-  const handleCenteringStageXChange = (val: number) => publish('IOC:m1.VAL', val);
-  const handleCenteringStageYChange = (val: number) => publish('IOC:m2.VAL', val);
-  const handleCenteringStageZChange = (val: number) => publish('IOC:m3.VAL', val);
-  // const handleStageXChange = (val: number) => publish('IOC:m4.VAL', val);
-  // const handleStageYChange = (val: number) => publish('IOC:m5.VAL', val);
-  // const handleStageZChange = (val: number) => publish('IOC:m6.VAL', val);
-  const handleManualAngleChange = (val: number) => publish('IOC:m7.VAL', val);
-
-
-  // Horizontal stage (local only)
-  const handleStageXChange = (val: number) => {
-    handleSetValueRequest('bl531_xps2:sample_x_mm', val);
-    //  setConfigs(prev =>
-    //    prev.map(cfg =>
-    //      cfg.id === 'horizontalStage'
-    //        ? { ...cfg, transform: { ...cfg.transform, position: [val, cfg.transform.position[1], cfg.transform.position[2]] } }
-    //        : cfg
-    //    )
-    //  );
-  };
-  const handleStageYChange = (val: number) => {
-    handleSetValueRequest('bl531_xps2:sample_y_mm', val);
-    //  setConfigs(prev =>
-    //    prev.map(cfg =>
-    //      cfg.id === 'horizontalStage'
-    //        ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], val, cfg.transform.position[2]] } }
-    //        : cfg
-    //    )
-    //  );
-  };
-  const handleStageZChange = (val: number) => {
-    setConfigs(prev =>
-      prev.map(cfg =>
-        cfg.id === 'horizontalStage'
-          ? { ...cfg, transform: { ...cfg.transform, position: [cfg.transform.position[0], cfg.transform.position[1], val] } }
-          : cfg
-      )
-    );
-  };
-
-
-  // Visibility toggle
-  const handleToggleVisibility = (id: string) => setConfigs(prev => prev.map(cfg => (cfg.id === id ? { ...cfg, visible: !cfg.visible } : cfg)));
-
-
-  // Beamline selector
-  const handleBeamlineChange = (e: ChangeEvent<HTMLSelectElement>) => setSelectedBeamline(e.target.value);
-
-
-  const rightPanelStyle: CSSProperties = { width: '100%', borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' };
-
-
-  if (!beamlineDefinition) return <div>Loading beamline...</div>;
-
+  // --- RENDER LOGIC ---
+  if (!beamlineDefinition) return <div>Loading beamline definition...</div>;
 
   return (
     <div>
-      <div>
-        <ThreeScene key={selectedBeamline} sceneConfig={configs} highlightedAxis={hovered} />
-      </div>
-      <div style={rightPanelStyle}>
-        <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>
-        <select value={selectedBeamline} onChange={handleBeamlineChange} style={{ margin: '8px', marginBottom: '8px' }}>
-          {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
-        </select>
-        <ControlPanel
-          onAxisHover={(axis, dirSign) => setHovered({ axis, dirSign })}
-          onAxisUnhover={() => setHovered(null)}
-          key={selectedBeamline}
-          panelOpen={panelOpen}
-          togglePanel={togglePanel}
-          configs={configs}
-          setConfigs={setConfigs}
-          isPlaying={isPlaying}
-          handlePlayPause={handlePlayPause}
-          playAngle={playAngle}
-          handleManualAngleChange={handleManualAngleChange}
-          cameraX={cameraX}
-          setCameraX={setCameraX}
-          motorX={Number(motorX)}
-          motorY={Number(motorY)}
-          motorZ={Number(motorZ)}
-          horizX={Number(horizX)}
-          horizY={Number(horizY)}
-          horizZ={Number(horizZ)}
-          handleCenteringStageXChange={handleCenteringStageXChange}
-          handleCenteringStageYChange={handleCenteringStageYChange}
-          handleCenteringStageZChange={handleCenteringStageZChange}
-          handleStageXChange={handleStageXChange}
-          handleStageYChange={handleStageYChange}
-          handleStageZChange={handleStageZChange}
-          handleToggleVisibility={handleToggleVisibility}
-          controlLayout={beamlineDefinition.controlLayout}
-        // handleSampleMeshChange={handleSampleMeshChange}
-        />
-      </div>
+      {!isReady ? (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h2>Connecting to Beamline Controls...</h2>
+        </div>
+      ) : (
+        <>
+          <div>
+            <ThreeScene key={selectedBeamline} sceneConfig={configs} highlightedAxis={hovered} />
+          </div>
+          <div style={{ width: '100%', borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' }}>
+            <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>
+            <select value={selectedBeamline} onChange={handleBeamlineChange} style={{ margin: '8px' }}>
+              {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
+            </select>
+            <ControlPanel
+              onAxisHover={(axis, dirSign) => setHovered({ axis, dirSign })}
+              onAxisUnhover={() => setHovered(null)}
+              key={selectedBeamline} // Using key here is still good practice
+              panelOpen={panelOpen}
+              togglePanel={() => setPanelOpen(p => !p)}
+              configs={configs}
+              setConfigs={() => {}} // setConfigs is no longer needed by ControlPanel
+              isPlaying={isPlaying}
+              handlePlayPause={() => setIsPlaying(p => !p)}
+              playAngle={playAngle}
+              handleManualAngleChange={handleManualAngleChange}
+              // Pass the live values directly to the control panel
+              motorX={Number(devices['IOC:m1.VAL']?.value ?? 0)}
+              motorY={Number(devices['IOC:m2.VAL']?.value ?? 0)}
+              motorZ={Number(devices['IOC:m3.VAL']?.value ?? 0)}
+              horizX={Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? 0)}
+              horizY={Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? 0)}
+              horizZ={Number(devices['IOC:m6.VAL']?.value ?? 0)}
+              // Pass down the handlers
+              handleStageXChange={handleStageXChange}
+              handleStageYChange={handleStageYChange}
+              // You would add other handlers here as needed
+              handleCenteringStageXChange={(val) => handleSetValueRequest('IOC:m1.VAL', val)}
+              handleCenteringStageYChange={(val) => handleSetValueRequest('IOC:m2.VAL', val)}
+              handleCenteringStageZChange={(val) => handleSetValueRequest('IOC:m3.VAL', val)}
+              handleStageZChange={(val) => handleSetValueRequest('IOC:m6.VAL', val)}
+              handleToggleVisibility={() => {}} // You may need to implement this differently now
+              controlLayout={beamlineDefinition.controlLayout}
+              cameraX={0} /* dummy prop */
+              setCameraX={() => {}} /* dummy prop */
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 };
-
 
 export default BeamlineContainer;

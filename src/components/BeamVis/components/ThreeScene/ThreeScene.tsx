@@ -79,9 +79,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
    * Shared / Memoized Resources for Factories
    ********************************************************/
 
-
-
-
   const sharedResources = useMemo(() => {
     const xRayMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -277,25 +274,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     grid.position.y = -1.0;
     scene.add(grid);
 
-
-    // Photon InstancedMesh for Photon Stream (global pool)
-    const sphereGeom = new THREE.SphereGeometry(0.05, 8, 8);
-    const photonMat = new THREE.MeshStandardMaterial({
-      color: '#BF83FC',
-      transparent: true,
-      opacity: 0.8,
-      emissive: '#BF83FC',
-      // Adjust emissiveIntensity as needed
-      emissiveIntensity: 1,
-      depthWrite: true,
-      blending: THREE.AdditiveBlending,
-    });
-    const instancedMesh = new THREE.InstancedMesh(sphereGeom, photonMat, maxPhotons);
-    instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    scene.add(instancedMesh);
-    photonPoolRef.current = instancedMesh;
-
-
     // Resize handling
     const handleResize = () => {
       if (!containerRef.current) return;
@@ -321,212 +299,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
 
     // Update xRay shader uniform
     sharedResources.xRayMaterial.uniforms.xRayTexture.value = xRayRenderTarget.texture;
-
-
-    // Animation loop (store animationId for cleanup)
-    let animationId: number;
-    const clock = new THREE.Clock();
-    const animate = () => {
-      //controlsRef.current?.update();
-
-
-      animationId = requestAnimationFrame(animate);
-      const delta = clock.getDelta();
-      // Use latest sceneConfig from the ref
-      const currentConfig = sceneConfigRef.current;
-      const beamCfg = currentConfig.find((c) => c.type === 'beam');
-
-
-      // 5) Update Beam Stop (shutter) pivot and color
-      const stopCfg = currentConfig.find((c) => c.type === 'beamStop');
-      const isOpen = stopCfg?.shutterOpen || false;
-      const beamStopPivot = stopCfg ? objectMapRef.current[stopCfg.id] : undefined;
-      const beamObj = beamCfg ? objectMapRef.current[beamCfg.id] as THREE.Group : undefined;
-      const beamCyl = beamObj?.getObjectByName('beam-cylinder') as THREE.Mesh;
-      const detectorObj = scene.getObjectByName('detector');
-      const beamMaterial = sharedResources.materials.beam;
-
-
-      // animate dashed axis lines
-      const h = hoveredRef.current;
-      if (h) {
-        const { axis: hoverAxis, dirSign: hoverSide } = h;
-        scene.traverse(obj => {
-          if (!(obj instanceof Line2 && obj.material instanceof LineMaterial)) return;
-          const mat = obj.material as LineMaterial & {
-            dashOffset?: number;
-            userData: { axis: string; dirSign: 1 | -1 };
-          };
-          const { axis, dirSign } = mat.userData;
-
-
-          // only the exact half‐axis you hovered
-          if (axis === hoverAxis && dirSign === hoverSide) {
-            const baseSpeed = 0.75;
-            // always add a positive offset
-            mat.dashOffset = (mat.dashOffset ?? 0) + delta * baseSpeed * -1;
-            mat.needsUpdate = true;
-          }
-        });
-      }
-
-
-
-
-      if (beamCfg?.beamMono) {
-        const targetColor = beamColorMap[beamCfg.beamMono];
-        if (beamMaterial.color.getStyle() !== targetColor) {
-          beamMaterial.color.set(targetColor);
-          beamMaterial.needsUpdate = true;
-        }
-      }
-
-
-      let stopX = -2;
-      let detectorX = 4;
-      const beamStartX = -6;
-
-
-      if (detectorObj && beamStopPivot) {
-        const vec1 = new THREE.Vector3();
-        const vec2 = new THREE.Vector3();
-        detectorObj.getWorldPosition(vec1);
-        beamStopPivot.getWorldPosition(vec2);
-        detectorX = vec1.x;
-        stopX = vec2.x;
-      }
-      // else if (!detectorObj) {console.warn('Detector object not found in scene.');}
-      // else if (!beamStopPivot) {console.warn('Beam Stop pivot not found in scene.');}
-
-
-      if (beamCyl) {
-        const targetX = isOpen ? detectorX : stopX;
-        const beamLength = targetX - beamStartX;
-        beamCyl.scale.x = beamLength / 8;
-        beamCyl.position.x = beamStartX + beamLength / 2;
-      }
-
-
-      if (beamStopPivot) {
-        // Smoothly animate pivot rotation (optional)
-        beamStopPivot.rotation.y = isOpen ? -Math.PI / 2 : 0;
-        // Update material on the child shutter mesh:
-        const shutterMesh = beamStopPivot.getObjectByName('beamStop-shutter') as THREE.Mesh | undefined;
-        if (shutterMesh && shutterMesh.material instanceof THREE.MeshPhongMaterial) {
-          shutterMesh.material.opacity = isOpen ? 0.5 : 1;
-          shutterMesh.material.color.set(isOpen ? '#17A34B' : '#DA2828');
-          shutterMesh.material.needsUpdate = true;
-        }
-      }
-      const { xRayMaterial } = sharedResources;
-      xRayMaterial.uniforms.shutterOpen.value = isOpen ? 1.0 : 0.0;
-
-
-      // 1) Offscreen render for xRay
-      renderer.setRenderTarget(xRayRenderTarget);
-      renderer.render(scene, xRayCamera);
-      renderer.setRenderTarget(null);
-
-
-      // 2) Render bloom pass
-      composer.render();
-
-
-      // 3) Photon stream updates:
-      if (beamCfg?.beamModes?.includes('photonStream') && beamCfg.visible) {
-        const now = performance.now();
-        // Emission interval depends on beam power (dynamic)
-        const emissionInterval = Math.max(50, 200 - (beamCfg.beamPower || 25) * 3);
-        if (now - lastPhotonEmitRef.current > emissionInterval) {
-          lastPhotonEmitRef.current = now;
-          const photons = photonsRef.current;
-          const idx = photons.findIndex((p) => !p.active);
-          if (idx !== -1) {
-            photons[idx].active = true;
-            photons[idx].position.set(-4, 0, 0);
-            const baseSpeed = 0.05;
-            const powerVal = beamCfg.beamPower || 25;
-            // Speed increases slightly with beam power
-            photons[idx].velocity.set(1, 0, 0).multiplyScalar(baseSpeed + powerVal * 0.001);
-            const mtx = new THREE.Matrix4().setPosition(photons[idx].position);
-            photonPoolRef.current?.setMatrixAt(idx, mtx);
-            photonPoolRef.current!.instanceMatrix.needsUpdate = true;
-          }
-        }
-      }
-
-
-      // 4) Update active photons
-      if (photonPoolRef.current) {
-        const photons = photonsRef.current;
-        const mat4 = new THREE.Matrix4();
-        let maxActiveIndex = -1;
-        photons.forEach((photon, i) => {
-          if (photon.active) {
-            photon.position.add(photon.velocity.clone().multiplyScalar(delta * 60));
-            // Use beamStop config to determine bounds
-            const stopCfg = currentConfig.find((c) => c.type === 'beamStop');
-            const open = stopCfg?.shutterOpen || false;
-
-
-            if ((!open && photon.position.x >= -2) || (open && photon.position.x >= 4)) {
-              photon.active = false;
-              return;
-            }
-            mat4.setPosition(photon.position);
-            photonPoolRef.current?.setMatrixAt(i, mat4);
-            if (i > maxActiveIndex) maxActiveIndex = i;
-          }
-        });
-        photonPoolRef.current.count = maxActiveIndex + 1;
-        photonPoolRef.current.instanceMatrix.needsUpdate = true;
-      }
-
-
-      const mount = objectMapRef.current['horizontalStage'];
-      const cam = mainCameraRef.current;
-
-
-      if (mount && cam) {
-        const OFFSET = new THREE.Vector3(-10, 7, 12);
-        cam.position.copy(mount.position.clone().add(OFFSET));
-        cam.lookAt(mount.position);
-      }
-
-
-      if (mount) {
-        const cfg = sceneConfigRef.current.find(c => c.id === 'horizontalStage');
-        if (cfg) {
-          const [tx, ty, tz] = cfg.transform.position;
-          mount.position.lerp(new THREE.Vector3(tx, ty, tz), 0.1);
-        }
-      }
-
-
-    };
-    animate();
-
-
-    return () => {
-      //scene.remove(axesHelper, gridHelper)
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationId);
-      renderer.dispose();
-      xRayRenderTarget.dispose();
-      scene.clear();
-      //controlsRef.current?.dispose();
-    };
-  }, []
-  ); // initialization runs only once
-
-
-  /********************************************************
-   * 2) Rebuild Scene Objects on sceneConfig Changes
-   ********************************************************/
-  useEffect(() => {
-    const scene = sceneRef.current;
-    if (!scene) return;
-
 
     // Remove old objects from our objectMap (but keep lights, ground, photon mesh, etc.)
     Object.keys(objectMapRef.current).forEach((id) => {
@@ -604,7 +376,93 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
       );
     }
 
-  }, [sceneConfig, sharedResources]);
+
+    // Animation loop (store animationId for cleanup)
+    let animationId: number;
+    const clock = new THREE.Clock();
+    const animate = () => {
+      //controlsRef.current?.update();
+
+
+      animationId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      // Use latest sceneConfig from the ref
+      const currentConfig = sceneConfigRef.current;
+      const beamCfg = currentConfig.find((c) => c.type === 'beam');
+
+      // animate dashed axis lines
+      const h = hoveredRef.current;
+      if (h) {
+        const { axis: hoverAxis, dirSign: hoverSide } = h;
+        scene.traverse(obj => {
+          if (!(obj instanceof Line2 && obj.material instanceof LineMaterial)) return;
+          const mat = obj.material as LineMaterial & {
+            dashOffset?: number;
+            userData: { axis: string; dirSign: 1 | -1 };
+          };
+          const { axis, dirSign } = mat.userData;
+
+
+          // only the exact half‐axis you hovered
+          if (axis === hoverAxis && dirSign === hoverSide) {
+            const baseSpeed = 0.75;
+            // always add a positive offset
+            mat.dashOffset = (mat.dashOffset ?? 0) + delta * baseSpeed * -1;
+            mat.needsUpdate = true;
+          }
+        });
+      }
+
+
+      // 1) Offscreen render for xRay
+      renderer.setRenderTarget(xRayRenderTarget);
+      renderer.render(scene, xRayCamera);
+      renderer.setRenderTarget(null);
+
+
+      // 2) Render bloom pass
+      composer.render();
+
+      const mount = objectMapRef.current['horizontalStage'];
+      const cam = mainCameraRef.current;
+
+
+      if (mount && cam) {
+        const OFFSET = new THREE.Vector3(-10, 7, 12);
+        cam.position.copy(mount.position.clone().add(OFFSET));
+        cam.lookAt(mount.position);
+      }
+
+
+      if (mount) {
+        const cfg = sceneConfigRef.current.find(c => c.id === 'horizontalStage');
+        if (cfg) {
+          const [tx, ty, tz] = cfg.transform.position;
+          mount.position.lerp(new THREE.Vector3(tx, ty, tz), 0.1);
+        }
+      }
+
+
+    };
+    animate();
+
+
+    return () => {
+      //scene.remove(axesHelper, gridHelper)
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationId);
+      renderer.dispose();
+      xRayRenderTarget.dispose();
+      scene.clear();
+      //controlsRef.current?.dispose();
+    };
+  }, []
+  ); // initialization runs only once
+
+
+  /********************************************************
+   * 2) Rebuild Scene Objects on sceneConfig Changes
+   ********************************************************/
 
 
   return (
