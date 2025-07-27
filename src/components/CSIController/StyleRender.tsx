@@ -6,7 +6,7 @@ import styles from "./styles.json";
 import { useVariant } from "./VariantContext";
 import Text from './Text';
 
-export type DeviceRenderProps = {
+export type StyleRenderProps = {
   UIEntry: Entry;
   val?: string | number | boolean;
   vis?: string;
@@ -14,7 +14,7 @@ export type DeviceRenderProps = {
   [key: string]: any;
 };
 
-function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps) {
+function StyleRender({ UIEntry, val, vis, dynamic, ...args }: StyleRenderProps) {
   const { variant } = useVariant();
   const name = replaceArgs(UIEntry.name, args);
   const { x, y } = UIEntry.location;
