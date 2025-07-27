@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import type { Device } from '@/types/deviceControllerTypes';
 import useOphydSocket from '@/hooks/useOphydSocket';
 
 const WS_URL = 'ws://192.168.10.155:8002/ophydSocket';
@@ -98,7 +97,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                 style={{ cursor: 'pointer' }}
               >
 
-                {/* <rect
+                <rect
                   x={-20}
                   y={-20}
                   width={40}
@@ -109,15 +108,15 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                   stroke="#000"
                   strokeWidth={1}
                   className='synoptic-node'
-                /> */}
+                />
                 {n.icon && (
                   <image
                     className="synoptic-node-icon"
                     href={`/src/components/BeamVis/assets/${n.icon}`}
-                    x={-20}
-                    y={-20}
-                    width={40}
-                    height={40}
+                    x={-15}
+                    y={-15}
+                    width={30}
+                    height={30}
                   />
                 )}
                 <text

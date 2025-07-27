@@ -15,7 +15,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
-
+import { ArrowUp } from 'lucide-react';
 
 /** Types for photon streaming */
 interface Photon {
@@ -517,24 +517,21 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       <div
         style={{
           position: 'absolute',
-          bottom: '10px',
-          right: '10px',
+          bottom: '5px',
+          right: '5px',
           textAlign: 'center',
           pointerEvents: 'none'
         }}
       >
-        <div
+        <ArrowUp
           style={{
-            width: 0,
-            height: 0,
-            borderLeft: '8px solid transparent',
-            borderRight: '8px solid transparent',
-            borderBottom: '12px solid orangered',
-            transform: 'rotate(-165deg)',
-            margin: '0 auto'
+            width: '24px',
+            height: '24px',
+            transform: 'rotate(-60deg)',
+            color: 'orangered'
           }}
-        />
-        <div style={{ fontSize: '10px', color: 'black', marginTop: '4px' }}>
+          />
+        <div style={{ fontSize: '10px', color: 'black'}}>
           Beam Direction
         </div>
       </div>

@@ -73,7 +73,7 @@ const BeamlineContainer: FC = () => {
               transform: {
                 ...cfg.transform,
                 position: [
-                  Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? cfg.transform.position[0]),
+                  -Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? cfg.transform.position[0]),
                   Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? cfg.transform.position[1]),
                   Number(devices['IOC:m6.VAL']?.value ?? cfg.transform.position[2])
                 ]
@@ -96,22 +96,6 @@ const BeamlineContainer: FC = () => {
 
     return currentConfigs;
   }, [selectedBeamline, beamlineDefinition, devices, isReady]);
-
-  const beginGhostEffect = (objectId: string, currentPosition: number[]) => {
-    setMotionState({
-      isMoving: true,
-      objectId: objectId,
-      startPosition: new THREE.Vector3().fromArray(currentPosition),
-    });
-  };
-
-  const endGhostEffect = () => {
-    setMotionState({
-      isMoving: false,
-      objectId: null,
-      startPosition: null
-    });
-  };
 
   useEffect(() => {
     // Only run the debounce logic if a move has been initiated.

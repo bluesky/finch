@@ -6,8 +6,6 @@ export const Legend: React.FC = () => {
   const items: [keyof typeof statusColor, string][] = [
     ['ok',      'Component Status OK'],
     ['moving',  'Component actively moving'],
-    ['finished',    'Component finished moving'],
-    ['limit',   'Hardware/software limit reached'],
     ['disconnected', 'Component disconnected'],
   ];
 

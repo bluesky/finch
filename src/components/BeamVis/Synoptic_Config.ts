@@ -28,9 +28,7 @@ export interface Edge {
 // map statuses to fill colors
 export const statusColor = {
   ok:           '#005B88',
-  moving:       '#F9C80E',
-  finished:     '#A1C181',
-  limit:        '#F86624',
+  moving:       '#0dbf00',
   disconnected: '#EF476F',
 };
 
