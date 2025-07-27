@@ -4,6 +4,7 @@ import { replaceArgs } from './utils/ArgsFill';
 import { pxToEm } from './utils/units';
 import styles from "./styles.json";
 import { useVariant } from "./VariantContext";
+import Text from './Text'; // Import your Text component
 
 export type DeviceRenderProps = {
   UIEntry: Entry;
@@ -27,40 +28,69 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: DeviceRenderProps)
       top: pxToEm(y),
       width: pxToEm(width),
       height: pxToEm(height)
-    },
-    children: name // automatically gets put inside div
-  };
-
-  if (!dynamic) {
-    if (UIEntry.var_type === 'rectangle') {
-      const { children, ...propsWithoutChildren } = commonProps;
-      return <div {...propsWithoutChildren} className={cn("border-2 border-gray-300", styles.variants[variant as keyof typeof styles.variants].rectangle,)} />;
     }
-
-    const alignmentClasses = {
-      "horiz. right": "text-right",
-      "horiz. centered": "text-center",
-      "horiz. left": "text-left"
-    } as const;
-
-    const alignmentClass = UIEntry.align ? alignmentClasses[UIEntry.align as keyof typeof alignmentClasses] : null;
-
-    return <div {...commonProps} className={cn(alignmentClass || undefined, styles.variants[variant as keyof typeof styles.variants].text)} />;
-  }
-
-  const visibilityConditions: Record<string, boolean> = {
-    "if zero": val === 0,
-    "if not zero": val !== 0,
   };
 
-  // visibilityConditions[vis] takes in vis, which is either "if zero" or "if not zero", so this line asks if
-  // vis is defined and either val === 0 or val !== 0 thru visibilityConditions
+  switch (UIEntry.var_type) {
+    case 'rectangle': {
+      return (
+        <div
+          {...commonProps}
+          className={cn("border-2 border-gray-300", styles.variants[variant as keyof typeof styles.variants].rectangle)}
+        />
+      );
+    }
+    case 'text': {
+      if (!dynamic) {
+        const alignmentClasses = {
+          "horiz. right": "text-right",
+          "horiz. centered": "text-center",
+          "horiz. left": "text-left"
+        } as const;
 
-  if (vis && visibilityConditions[vis]) {
-    return <div {...commonProps} className={cn(styles.variants[variant as keyof typeof styles.variants].text)} />;
+        const alignmentClass = UIEntry.align ? alignmentClasses[UIEntry.align as keyof typeof alignmentClasses] : null;
+
+        return (
+          <Text
+            dynamic
+            {...commonProps}
+            className={cn(alignmentClass || undefined, styles.variants[variant as keyof typeof styles.variants].text)}
+          >
+            {name}
+          </Text>
+        );
+      }
+      else {
+        const visibilityConditions: Record<string, boolean> = {
+          "if zero": val === 0,
+          "if not zero": val !== 0,
+        };
+
+        // visibilityConditions[vis] takes in vis, which is either "if zero" or "if not zero", so this line asks if
+        // vis is defined and either val === 0 or val !== 0 thru visibilityConditions
+
+        if (vis && visibilityConditions[vis]) {
+          return (
+            <Text
+            dynamic
+              {...commonProps}
+              className={cn(styles.variants[variant as keyof typeof styles.variants].text)}
+            >
+              {name}
+            </Text>
+          );
+        }
+
+        return null; // fallback condition
+      }
+
+    }
+    default:
+      return null;
   }
 
-  return null; // fallback condition
+
+
 }
 
 export default StyleRender;
