@@ -13,7 +13,6 @@ interface MotionState {
   startPosition: THREE.Vector3 | null;
 }
 
-
 const App: React.FC = () => {
 
 

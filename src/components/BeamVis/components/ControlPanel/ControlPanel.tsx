@@ -1,5 +1,5 @@
 // components/ControlPanel / ControlPanel.tsx
-import React, { CSSProperties, useState, useEffect } from 'react';
+import React, { CSSProperties, useState } from 'react';
 import ControlModules from './ControlModules';
 import { ComponentConfig } from '../../types/ComponentConfig';
 
@@ -71,12 +71,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   const [jogStep, setJogStep] = useState<{ X: number; Y: number; Z: number; }>({
     X: 0.1, Y: 0.1, Z: 0.1
   });
-  const [pos, setPos] = useState({ X: horizX, Y: horizY, Z: horizZ });
   const [targets, setTargets] = useState({ X: 0, Y: 0, Z: 0 });
-
-  useEffect(() => {
-    setPos({ X: horizX, Y: horizY, Z: horizZ });
-  }, [horizX, horizY, horizZ]);
 
   const axisHandlers = {
     X: handleStageXChange,
@@ -84,19 +79,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     Z: handleStageZChange
   }
 
+
   const jogAxis = (axis: 'X' | 'Y' | 'Z', delta: number) => {
-    const next = +(pos[axis] + delta).toFixed(3);
-    setPos(prev => ({ ...prev, [axis]: next }));
+    const currentPosition = { X: horizX, Y: horizY, Z: horizZ }[axis];
+    const next = +(currentPosition + delta).toFixed(3);
     axisHandlers[axis](next);
-  }
+  };
 
   const moveAxis = (axis: 'X' | 'Y' | 'Z') => {
     const target = targets[axis];
-    setPos(prev => ({ ...prev, [axis]: target }));
     axisHandlers[axis](target);
   };
 
-  // Original inline styles
+  // inline styles
   const outerStyle: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -176,7 +171,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             </div>
 
             {(['X', 'Y'] as const).map(axis => {
-              const current = pos[axis]
+              const current = { X: horizX, Y: horizY, Z: horizZ }[axis];
               const js = jogStep[axis];
 
               return (
