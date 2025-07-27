@@ -3,7 +3,7 @@ import { Device } from "@/types/deviceControllerTypes";
 import { Entry } from './types/UIEntry';
 import InputNumber from './InputNumber';
 import InputEnum from './InputEnum';
-import ADLButton from './Button';
+import Button from './Button';
 import InputText from './InputText';
 import RelatedDisp from './RelatedDisp';
 import { pxToEm } from './utils/units';
@@ -67,7 +67,7 @@ function DeviceRender({ PV, UIEntry, onSubmit, ...args }: DeviceRenderProps) {
             case "menu":
                 return <InputEnum val={PV.value} enums={PV.enum_strs} onSubmit={handleSubmitWithPV} style={positionStyle} />
             case "button":
-                return <ADLButton label={UIEntry.label} val={parseInt(UIEntry.press_msg!)} onSubmit={handleSubmitWithPV} style={positionStyle} />
+                return <Button label={UIEntry.label} val={parseInt(UIEntry.press_msg!)} onSubmit={handleSubmitWithPV} style={positionStyle} />
             case "related display":
                 return <RelatedDisp fileArray={UIEntry.display} label={UIEntry.label} style={positionStyle} {...args} />
             default:
