@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import styles from "./styles.json";
 import { useVariant } from "./VariantContext";
 
-type CSIButtonProps = {
+type ButtonProps = {
     label?: string;
     onSubmit?: (value: number) => void;
     isDisabled?: boolean;
@@ -11,13 +11,13 @@ type CSIButtonProps = {
     val?: number;
 };
 
-export default function CSIButton({
+export default function Button({
     label = '',
     onSubmit = (input) => { console.log('submit ' + input) },
     isDisabled = false,
     style,
     val
-}: CSIButtonProps) {
+}: ButtonProps) {
     const { variant } = useVariant();
     const [isPressed, setIsPressed] = useState(false);
 
