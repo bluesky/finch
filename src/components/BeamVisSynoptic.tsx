@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import useOphydSocket from '@/hooks/useOphydSocket';
+import * as THREE from 'three';
 
 const WS_URL = 'ws://192.168.10.155:8002/ophydSocket';
 const PV_LIST = [
@@ -19,9 +20,17 @@ interface SynopticViewProps {
   nodes: Node[];
   edges: Edge[];
   // devices: Device[];
+  motionState: MotionState;
 }
 
-const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
+interface MotionState {
+  isMoving: boolean;
+  objectId: string | null;
+  startPosition: THREE.Vector3 | null;
+}
+
+
+const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, motionState }) => {
   // fast lookup by id
   const nodeMap = useMemo(
     () => new Map<string, Node>(nodes.map(n => [n.id, n])),
@@ -86,6 +95,8 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
         const labelY = isTopRow ? -30 : 35;
         // const device = deviceMap.get(n.label);
         const isSample = n.id === 'sample-mount';
+        const isMoving = motionState.isMoving && motionState.objectId === n.id;
+        const currentStatusColor = isMoving ? statusColor['moving'] : statusColor[n.status];
 
         return (
           <Popover key={n.id}>
@@ -104,10 +115,11 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges }) => {
                   height={40}
                   rx={6}
                   ry={6}
-                  fill={statusColor[n.status]}
+                  fill={currentStatusColor}
                   stroke="#000"
                   strokeWidth={1}
                   className='synoptic-node'
+                  style={{ transition: 'fill 0.3s ease'}}
                 />
                 {n.icon && (
                   <image

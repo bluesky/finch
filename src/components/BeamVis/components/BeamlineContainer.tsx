@@ -5,16 +5,21 @@ import ThreeScene from './ThreeScene/ThreeScene';
 import ControlPanel from './ControlPanel/ControlPanel';
 import { ComponentConfig } from '../types/ComponentConfig';
 import { beamlineDefinitions, BeamlineDefinition } from '../beam_configs';
-import useOphydSocket from 'src/hooks/useOphydSocket';
 import * as THREE from 'three';
 
-interface MotionState {
-  isMoving: boolean;
-  objectId: string | null;
-  startPosition: THREE.Vector3 | null;
+interface BeamlineContainerProps {
+  devices: any,
+  handleSetValueRequest: (pv: string, value: number) => void;
+  motionState: any;
+  initiateMove: (objectId: string, startPosition: THREE.Vector3) => void;
 }
 
-const BeamlineContainer: FC = () => {
+const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
+  devices,
+  handleSetValueRequest,
+  motionState,
+  initiateMove
+}) => {
   // --- STATE SETUP ---
   const [hovered, setHovered] = useState<{ axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null>(null);
   const availableBeamlines = useMemo(() => Object.keys(beamlineDefinitions), []);
@@ -23,24 +28,6 @@ const BeamlineContainer: FC = () => {
   const [panelOpen, setPanelOpen] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const [motionState, setMotionState] = useState<MotionState>({
-    isMoving: false,
-    objectId: null,
-    startPosition: null
-  });
-
-  const moveEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-
-  // --- OPHYD SOCKET & DATA ---
-  const pvList = useMemo(() => [
-    'IOC:m1.VAL', 'IOC:m2.VAL', 'IOC:m3.VAL',
-    'bl531_xps2:sample_x_mm', 'bl531_xps2:sample_y_mm',
-    'bl531_xps2:sample_x_mm.RBV', 'bl531_xps2:sample_y_mm.RBV',
-    'IOC:m6.VAL', 'IOC:m7.VAL'
-  ], []);
-
-  const { devices, handleSetValueRequest } = useOphydSocket('ws://192.168.10.155:8002/ophydSocket', pvList);
   const isReady = useMemo(() => Object.keys(devices).length > 0, [devices]);
 
   const beamlineDefinition = beamlineDefinitions[selectedBeamline];
@@ -97,47 +84,6 @@ const BeamlineContainer: FC = () => {
     return currentConfigs;
   }, [selectedBeamline, beamlineDefinition, devices, isReady]);
 
-  useEffect(() => {
-    // Only run the debounce logic if a move has been initiated.
-    if (!motionState.isMoving) {
-      return;
-    }
-
-    // A new 'devices' object has arrived. This means a PV value changed.
-    // We reset the "end of move" timer.
-    if (moveEndTimeoutRef.current) {
-      clearTimeout(moveEndTimeoutRef.current);
-    }
-
-    // If we don't receive another 'devices' update within 250ms,
-    // we'll assume the movement has stopped.
-    moveEndTimeoutRef.current = setTimeout(() => {
-      setMotionState({ isMoving: false, objectId: null, startPosition: null });
-    }, 250); // 250ms is a good value
-
-    // Cleanup on unmount
-    return () => {
-      if (moveEndTimeoutRef.current) {
-        clearTimeout(moveEndTimeoutRef.current);
-      }
-    };
-  }, [devices, motionState.isMoving]); // The key change: watch 'devices'
-
-
-  // 3. UPDATE THE HANDLERS TO START THE GHOSTING
-  // This function will be called by any jog/move button.
-  const initiateMove = (objectId: string) => {
-    const currentConfig = configs.find(c => c.id === objectId);
-    if (currentConfig) {
-      // Set the state to begin the ghosting effect
-      setMotionState({
-        isMoving: true,
-        objectId: objectId,
-        startPosition: new THREE.Vector3().fromArray(currentConfig.transform.position),
-      });
-    }
-  };// Watch all position PVs
-
   const playAngle = Number(devices['IOC:m7.VAL']?.value ?? 0);
 
   // --- EVENT HANDLERS ---
@@ -148,14 +94,24 @@ const BeamlineContainer: FC = () => {
 
   const handleManualAngleChange = (val: number) => handleSetValueRequest('IOC:m7.VAL', val);
   const handleStageXChange = (val: number) => {
-    initiateMove('horizontalStage');
+    const currentConfig = configs.find(c => c.id === 'horizontalStage');
+    if (currentConfig) {
+      const startPos = new THREE.Vector3().fromArray(currentConfig.transform.position);
+      const idToAnnounce = currentConfig.synopticId || currentConfig.id;
+      initiateMove(idToAnnounce, startPos);
+    }
     handleSetValueRequest('bl531_xps2:sample_x_mm', val);
   };
+
   const handleStageYChange = (val: number) => {
-    initiateMove('horizontalStage');
+    const currentConfig = configs.find(c => c.id === 'horizontalStage');
+    if (currentConfig) {
+      const startPos = new THREE.Vector3().fromArray(currentConfig.transform.position);
+      const idToAnnounce = currentConfig.synopticId || currentConfig.id;
+      initiateMove(idToAnnounce, startPos);
+    }
     handleSetValueRequest('bl531_xps2:sample_y_mm', val);
   };
-
 
   // --- RENDER LOGIC ---
   if (!beamlineDefinition) return <div>Loading beamline definition...</div>;
@@ -184,34 +140,31 @@ const BeamlineContainer: FC = () => {
             <ControlPanel
               onAxisHover={(axis, dirSign) => setHovered({ axis, dirSign })}
               onAxisUnhover={() => setHovered(null)}
-              key={selectedBeamline} // Using key here is still good practice
+              key={selectedBeamline}
               panelOpen={panelOpen}
               togglePanel={() => setPanelOpen(p => !p)}
               configs={configs}
-              setConfigs={() => {}} // setConfigs is no longer needed by ControlPanel
+              setConfigs={() => {}}
               isPlaying={isPlaying}
               handlePlayPause={() => setIsPlaying(p => !p)}
               playAngle={playAngle}
               handleManualAngleChange={handleManualAngleChange}
-              // Pass the live values directly to the control panel
               motorX={Number(devices['IOC:m1.VAL']?.value ?? 0)}
               motorY={Number(devices['IOC:m2.VAL']?.value ?? 0)}
               motorZ={Number(devices['IOC:m3.VAL']?.value ?? 0)}
               horizX={Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? 0)}
               horizY={Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? 0)}
               horizZ={Number(devices['IOC:m6.VAL']?.value ?? 0)}
-              // Pass down the handlers
               handleStageXChange={handleStageXChange}
               handleStageYChange={handleStageYChange}
-              // You would add other handlers here as needed
               handleCenteringStageXChange={(val) => handleSetValueRequest('IOC:m1.VAL', val)}
               handleCenteringStageYChange={(val) => handleSetValueRequest('IOC:m2.VAL', val)}
               handleCenteringStageZChange={(val) => handleSetValueRequest('IOC:m3.VAL', val)}
               handleStageZChange={(val) => handleSetValueRequest('IOC:m6.VAL', val)}
-              handleToggleVisibility={() => {}} // You may need to implement this differently now
+              handleToggleVisibility={() => {}}
               controlLayout={beamlineDefinition.controlLayout}
-              cameraX={0} /* dummy prop */
-              setCameraX={() => {}} /* dummy prop */
+              cameraX={0}
+              setCameraX={() => {}}
             />
           </div>
         </>

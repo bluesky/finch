@@ -262,7 +262,7 @@ export const bl531Definition: BeamlineDefinition = {
       type: 'stage',
       stageType: 'xyz',
       transform: { position: [0, 0, 0], rotation: [0, 0, 0] },
-      // parentId: 'floor',
+      synopticId: 'sample-mount',
       visible: true,
       geometry: { width: 2, depth: 1, height: 0.3}
     },

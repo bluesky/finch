@@ -72,7 +72,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
     X: 0.1, Y: 0.1, Z: 0.1
   });
   const [pos, setPos] = useState({ X: horizX, Y: horizY, Z: horizZ });
-  const [targets, setTargets] = useState({ X: 10, Y: 20, Z: 30 });
+  const [targets, setTargets] = useState({ X: 0, Y: 0, Z: 0 });
 
   useEffect(() => {
     setPos({ X: horizX, Y: horizY, Z: horizZ });

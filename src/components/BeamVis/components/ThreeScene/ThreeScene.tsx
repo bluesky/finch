@@ -477,24 +477,33 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
 
     // A move has STARTED
     if (motionState.isMoving && motionState.objectId && motionState.startPosition && !ghostObjectRef.current) {
-      const realObject = objectMapRef.current[motionState.objectId];
-      if (realObject) {
+      // Find the config for the object that's moving by matching its synopticId (or its regular id as a fallback).
+      const configForGhost = sceneConfigRef.current.find(
+        cfg => (cfg.synopticId || cfg.id) === motionState.objectId
+      );
 
-        let meshToClone: THREE.Mesh | null = null;
-        realObject.traverse((child) => {
-          if (child instanceof THREE.Mesh && !meshToClone) {
-            meshToClone = child;
+      // If we found a matching config, we can get its REAL 3D id.
+      if (configForGhost) {
+        const realObjectId = configForGhost.id;
+        const realObject = objectMapRef.current[realObjectId];
+
+        if (realObject) {
+          let meshToClone: THREE.Mesh | null = null;
+          realObject.traverse((child) => {
+            if (child instanceof THREE.Mesh && !meshToClone) {
+              meshToClone = child;
+            }
+          });
+
+          if (meshToClone) {
+            const ghost = meshToClone.clone();
+            ghost.material = sharedResources.materials.ghostMaterial;
+            ghost.position.copy(motionState.startPosition);
+            ghost.rotation.copy(realObject.rotation);
+            ghost.scale.copy(realObject.scale);
+            scene.add(ghost);
+            ghostObjectRef.current = ghost;
           }
-        });
-
-        if (meshToClone) {
-          const ghost = meshToClone.clone();
-          ghost.material = sharedResources.materials.ghostMaterial;
-          ghost.position.copy(motionState.startPosition);
-          ghost.rotation.copy(realObject.rotation);
-          ghost.scale.copy(realObject.scale);
-          scene.add(ghost);
-          ghostObjectRef.current = ghost;
         }
       }
     }
