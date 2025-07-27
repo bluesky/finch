@@ -264,7 +264,8 @@ export const bl531Definition: BeamlineDefinition = {
       transform: { position: [0, 0, 0], rotation: [0, 0, 0] },
       synopticId: 'sample-mount',
       visible: true,
-      geometry: { width: 2, depth: 1, height: 0.3}
+      geometry: { width: 2, depth: 1, height: 0.3},
+      inversions: { x: -1 }
     },
   ],
   controlLayout: {

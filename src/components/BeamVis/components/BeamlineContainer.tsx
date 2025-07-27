@@ -51,14 +51,19 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
               }
             };
           case 'horizontalStage':
+            const invertX = cfg.inversions?.x ?? 1;
+            const invertY = cfg.inversions?.y ?? 1;
+            const invertZ = cfg.inversions?.z ?? 1;
+
             return {
               ...cfg,
               transform: {
                 ...cfg.transform,
+                // Apply the inversion factor to the position data
                 position: [
-                  -Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? cfg.transform.position[0]),
-                  Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? cfg.transform.position[1]),
-                  Number(devices['IOC:m6.VAL']?.value ?? cfg.transform.position[2])
+                  invertX * Number(devices['bl531_xps2:sample_x_mm.RBV']?.value ?? cfg.transform.position[0]),
+                  invertY * Number(devices['bl531_xps2:sample_y_mm.RBV']?.value ?? cfg.transform.position[1]),
+                  invertZ * Number(devices['IOC:m6.VAL']?.value ?? cfg.transform.position[2])
                 ]
               }
             };
@@ -111,7 +116,7 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
 
   const handleAxisHover = (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => {
     const stageConfig = configs.find(c => c.id === 'horizontalStage');
-    const inversionFactor = stageConfig?.inversions?.[axis as keyof typeof stageConfig.inversions] ?? 1;
+    const inversionFactor = stageConfig?.inversions?.[axis.toLowerCase() as keyof typeof stageConfig.inversions] ?? 1;
     const finalDirSign = (dirSign * inversionFactor) as 1 | -1;
     setHovered({ axis, dirSign: finalDirSign });
   };
@@ -133,10 +138,10 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
         <>
           <div>
             <ThreeScene
-            key={selectedBeamline}
-            sceneConfig={configs}
-            highlightedAxis={hovered}
-            motionState={motionState}
+              key={selectedBeamline}
+              sceneConfig={configs}
+              highlightedAxis={hovered}
+              motionState={motionState}
             />
           </div>
           <div style={{ width: '100%', borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' }}>
@@ -151,7 +156,7 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
               panelOpen={panelOpen}
               togglePanel={() => setPanelOpen(p => !p)}
               configs={configs}
-              setConfigs={() => {}}
+              setConfigs={() => { }}
               isPlaying={isPlaying}
               handlePlayPause={() => setIsPlaying(p => !p)}
               playAngle={playAngle}
@@ -168,10 +173,10 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
               handleCenteringStageYChange={(val) => handleSetValueRequest('IOC:m2.VAL', val)}
               handleCenteringStageZChange={(val) => handleSetValueRequest('IOC:m3.VAL', val)}
               handleStageZChange={(val) => handleSetValueRequest('IOC:m6.VAL', val)}
-              handleToggleVisibility={() => {}}
+              handleToggleVisibility={() => { }}
               controlLayout={beamlineDefinition.controlLayout}
               cameraX={0}
-              setCameraX={() => {}}
+              setCameraX={() => { }}
             />
           </div>
         </>

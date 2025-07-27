@@ -204,7 +204,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                       style={{
                         clipPath: 'polygon(0% 50%, 100% 0, 100% 100%)'
                       }}
-                      onMouseEnter={() => onAxisHover(axis, 1)}
+                      onMouseEnter={() => onAxisHover(axis, -1)}
                       onMouseLeave={onAxisUnhover}
                       onClick={() => jogAxis(axis, -js)}> - </button>
                     <input
@@ -219,7 +219,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
                     <button style={{
                       width: '2rem', height: '2rem', clipPath: 'polygon(0 0, 100% 50%, 0 100%', backgroundColor: 'white'
                     }}
-                      onMouseEnter={() => onAxisHover(axis, -1)}
+                      onMouseEnter={() => onAxisHover(axis, 1)}
                       onMouseLeave={onAxisUnhover}
                       onClick={() => jogAxis(axis, +js)}> + </button>
                   </div>
