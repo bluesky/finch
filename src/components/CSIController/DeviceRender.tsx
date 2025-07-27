@@ -3,7 +3,7 @@ import { Device } from "@/types/deviceControllerTypes";
 import { Entry } from './types/UIEntry';
 import InputNumber from './InputNumber';
 import InputEnum from './InputEnum';
-import ADLButton from './CSIButton';
+import ADLButton from './Button';
 import InputText from './InputText';
 import RelatedDisp from './RelatedDisp';
 import { pxToEm } from './utils/units';
