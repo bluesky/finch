@@ -10,7 +10,6 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { createObjectFromConfig } from './factories';
 import { ComponentConfig } from '../../types/ComponentConfig';
-import { beamColorMap } from '../../types/ComponentConfig';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
@@ -23,7 +22,6 @@ interface Photon {
   velocity: THREE.Vector3;
   active: boolean;
 }
-
 
 export type HoveredAxis = { axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null;
 interface ThreeSceneProps {
@@ -456,7 +454,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     };
     animate();
 
-
     return () => {
       //scene.remove(axesHelper, gridHelper)
       window.removeEventListener('resize', handleResize);
@@ -514,12 +511,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     }
   }, [motionState, sharedResources.materials.ghostMaterial]);
 
-
-  /********************************************************
-   * 2) Rebuild Scene Objects on sceneConfig Changes
-   ********************************************************/
-
-
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }} ref={containerRef}>
       <canvas id="three-canvas" style={{ width: '100%', height: '100%' }} />
@@ -539,14 +530,13 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
             transform: 'rotate(-60deg)',
             color: 'orangered'
           }}
-          />
-        <div style={{ fontSize: '10px', color: 'black'}}>
+        />
+        <div style={{ fontSize: '10px', color: 'black' }}>
           Beam Direction
         </div>
       </div>
     </div>
   );
 };
-
 
 export default ThreeScene;

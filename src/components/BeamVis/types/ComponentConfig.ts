@@ -15,6 +15,11 @@ export interface BaseConfig {
   visible?: boolean;
   transform: Transform;
   synopticId?: string;
+  inversions?: {
+    x?: -1 | 1;
+    y?: -1 | 1;
+    z?: -1 | 1;
+  };
 }
 
 /** Stage sub-types (e.g., tilt, cylindrical, stacked translations) */

@@ -27,17 +27,13 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
   const [selectedBeamline, setSelectedBeamline] = useState(defaultKey);
   const [panelOpen, setPanelOpen] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
-
   const isReady = useMemo(() => Object.keys(devices).length > 0, [devices]);
-
   const beamlineDefinition = beamlineDefinitions[selectedBeamline];
 
   const configs: ComponentConfig[] = useMemo(() => {
     if (!beamlineDefinition) return [];
-
     // Start with the static configuration for the selected beamline.
     let currentConfigs = beamlineDefinition.sceneConfig;
-
     // If the live device data is ready, inject its values into our config.
     if (isReady) {
       currentConfigs = currentConfigs.map(cfg => {
@@ -113,6 +109,17 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
     handleSetValueRequest('bl531_xps2:sample_y_mm', val);
   };
 
+  const handleAxisHover = (axis: 'X' | 'Y' | 'Z', dirSign: 1 | -1) => {
+    const stageConfig = configs.find(c => c.id === 'horizontalStage');
+    const inversionFactor = stageConfig?.inversions?.[axis as keyof typeof stageConfig.inversions] ?? 1;
+    const finalDirSign = (dirSign * inversionFactor) as 1 | -1;
+    setHovered({ axis, dirSign: finalDirSign });
+  };
+
+  const handleAxisUnhover = () => {
+    setHovered(null);
+  };
+
   // --- RENDER LOGIC ---
   if (!beamlineDefinition) return <div>Loading beamline definition...</div>;
 
@@ -138,8 +145,8 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
               {availableBeamlines.map(bl => <option key={bl} value={bl}>{bl}</option>)}
             </select>
             <ControlPanel
-              onAxisHover={(axis, dirSign) => setHovered({ axis, dirSign })}
-              onAxisUnhover={() => setHovered(null)}
+              onAxisHover={handleAxisHover}
+              onAxisUnhover={handleAxisUnhover}
               key={selectedBeamline}
               panelOpen={panelOpen}
               togglePanel={() => setPanelOpen(p => !p)}
