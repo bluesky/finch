@@ -1,11 +1,18 @@
 // BeamlineContainer.tsx
 
-import { useState, useEffect, useMemo, ChangeEvent, CSSProperties, FC } from 'react';
+import { useState, useRef, useEffect, useMemo, ChangeEvent, CSSProperties, FC } from 'react';
 import ThreeScene from './ThreeScene/ThreeScene';
 import ControlPanel from './ControlPanel/ControlPanel';
 import { ComponentConfig } from '../types/ComponentConfig';
 import { beamlineDefinitions, BeamlineDefinition } from '../beam_configs';
 import useOphydSocket from 'src/hooks/useOphydSocket';
+import * as THREE from 'three';
+
+interface MotionState {
+  isMoving: boolean;
+  objectId: string | null;
+  startPosition: THREE.Vector3 | null;
+}
 
 const BeamlineContainer: FC = () => {
   // --- STATE SETUP ---
@@ -15,6 +22,15 @@ const BeamlineContainer: FC = () => {
   const [selectedBeamline, setSelectedBeamline] = useState(defaultKey);
   const [panelOpen, setPanelOpen] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
+
+  const [motionState, setMotionState] = useState<MotionState>({
+    isMoving: false,
+    objectId: null,
+    startPosition: null
+  });
+
+  const moveEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
 
   // --- OPHYD SOCKET & DATA ---
   const pvList = useMemo(() => [
@@ -81,6 +97,63 @@ const BeamlineContainer: FC = () => {
     return currentConfigs;
   }, [selectedBeamline, beamlineDefinition, devices, isReady]);
 
+  const beginGhostEffect = (objectId: string, currentPosition: number[]) => {
+    setMotionState({
+      isMoving: true,
+      objectId: objectId,
+      startPosition: new THREE.Vector3().fromArray(currentPosition),
+    });
+  };
+
+  const endGhostEffect = () => {
+    setMotionState({
+      isMoving: false,
+      objectId: null,
+      startPosition: null
+    });
+  };
+
+  useEffect(() => {
+    // Only run the debounce logic if a move has been initiated.
+    if (!motionState.isMoving) {
+      return;
+    }
+
+    // A new 'devices' object has arrived. This means a PV value changed.
+    // We reset the "end of move" timer.
+    if (moveEndTimeoutRef.current) {
+      clearTimeout(moveEndTimeoutRef.current);
+    }
+
+    // If we don't receive another 'devices' update within 250ms,
+    // we'll assume the movement has stopped.
+    moveEndTimeoutRef.current = setTimeout(() => {
+      setMotionState({ isMoving: false, objectId: null, startPosition: null });
+    }, 250); // 250ms is a good value
+
+    // Cleanup on unmount
+    return () => {
+      if (moveEndTimeoutRef.current) {
+        clearTimeout(moveEndTimeoutRef.current);
+      }
+    };
+  }, [devices, motionState.isMoving]); // The key change: watch 'devices'
+
+
+  // 3. UPDATE THE HANDLERS TO START THE GHOSTING
+  // This function will be called by any jog/move button.
+  const initiateMove = (objectId: string) => {
+    const currentConfig = configs.find(c => c.id === objectId);
+    if (currentConfig) {
+      // Set the state to begin the ghosting effect
+      setMotionState({
+        isMoving: true,
+        objectId: objectId,
+        startPosition: new THREE.Vector3().fromArray(currentConfig.transform.position),
+      });
+    }
+  };// Watch all position PVs
+
   const playAngle = Number(devices['IOC:m7.VAL']?.value ?? 0);
 
   // --- EVENT HANDLERS ---
@@ -90,8 +163,14 @@ const BeamlineContainer: FC = () => {
   };
 
   const handleManualAngleChange = (val: number) => handleSetValueRequest('IOC:m7.VAL', val);
-  const handleStageXChange = (val: number) => handleSetValueRequest('bl531_xps2:sample_x_mm', val);
-  const handleStageYChange = (val: number) => handleSetValueRequest('bl531_xps2:sample_y_mm', val);
+  const handleStageXChange = (val: number) => {
+    initiateMove('horizontalStage');
+    handleSetValueRequest('bl531_xps2:sample_x_mm', val);
+  };
+  const handleStageYChange = (val: number) => {
+    initiateMove('horizontalStage');
+    handleSetValueRequest('bl531_xps2:sample_y_mm', val);
+  };
 
 
   // --- RENDER LOGIC ---
@@ -106,7 +185,12 @@ const BeamlineContainer: FC = () => {
       ) : (
         <>
           <div>
-            <ThreeScene key={selectedBeamline} sceneConfig={configs} highlightedAxis={hovered} />
+            <ThreeScene
+            key={selectedBeamline}
+            sceneConfig={configs}
+            highlightedAxis={hovered}
+            motionState={motionState}
+            />
           </div>
           <div style={{ width: '100%', borderLeft: '1px solid #ccc', height: '100%', overflowY: 'auto' }}>
             <h2 style={{ margin: 0, padding: '8px' }}>Beamline: {beamlineDefinition.name}</h2>

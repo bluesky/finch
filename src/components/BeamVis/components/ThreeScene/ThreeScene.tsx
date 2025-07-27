@@ -31,6 +31,11 @@ interface ThreeSceneProps {
   // Optionally, if you want to control camera x externally:
   // cameraX: number;
   highlightedAxis: HoveredAxis;
+  motionState: {
+    isMoving: boolean;
+    objectId: string | null;
+    startPosition: THREE.Vector3 | null;
+  };
 }
 
 
@@ -46,7 +51,7 @@ export interface SharedResources {
 }
 
 
-const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*, cameraX */ }) => {
+const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, motionState /*, cameraX */ }) => {
   /********************************************************
    * Refs for Scene, Cameras, Renderer, etc.
    ********************************************************/
@@ -58,6 +63,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
   const composerRef = useRef<EffectComposer | null>(null);
   const xRayRenderTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
   const objectMapRef = useRef<Record<string, THREE.Object3D>>({});
+  const ghostObjectRef = useRef<THREE.Object3D | null>(null);
 
 
   /********************************************************
@@ -113,6 +119,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
         beam: new THREE.MeshStandardMaterial({ color: '#BF83FC' }),
         sampleCube: new THREE.MeshPhongMaterial({ color: '#8c564b' }),
         // Additional materials can be added here.
+        ghostMaterial: new THREE.MeshLambertMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          wireframe: true,
+        }),
       },
       geometries: {
         // Shared geometries if needed.
@@ -383,7 +394,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     const animate = () => {
       //controlsRef.current?.update();
 
-
       animationId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       // Use latest sceneConfig from the ref
@@ -458,6 +468,42 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis /*
     };
   }, []
   ); // initialization runs only once
+
+
+  // Ghosting effect
+  useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    // A move has STARTED
+    if (motionState.isMoving && motionState.objectId && motionState.startPosition && !ghostObjectRef.current) {
+      const realObject = objectMapRef.current[motionState.objectId];
+      if (realObject) {
+
+        let meshToClone: THREE.Mesh | null = null;
+        realObject.traverse((child) => {
+          if (child instanceof THREE.Mesh && !meshToClone) {
+            meshToClone = child;
+          }
+        });
+
+        if (meshToClone) {
+          const ghost = meshToClone.clone();
+          ghost.material = sharedResources.materials.ghostMaterial;
+          ghost.position.copy(motionState.startPosition);
+          ghost.rotation.copy(realObject.rotation);
+          ghost.scale.copy(realObject.scale);
+          scene.add(ghost);
+          ghostObjectRef.current = ghost;
+        }
+      }
+    }
+    // A move has ENDED
+    else if (!motionState.isMoving && ghostObjectRef.current) {
+      scene.remove(ghostObjectRef.current);
+      ghostObjectRef.current = null;
+    }
+  }, [motionState, sharedResources.materials.ghostMaterial]);
 
 
   /********************************************************
