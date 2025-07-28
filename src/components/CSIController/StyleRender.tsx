@@ -40,24 +40,10 @@ function StyleRender({ device, devices, args }: StyleRenderProps) {
 
   switch (device.var_type) {
     case 'rectangle': {
-      return (
-        <Rectangle
-          {...commonProps}
-        />
-      );
+      return <Rectangle {...commonProps} />
     }
     case 'text': {
-      return (
-        <Text
-          {...commonProps}
-          dynamic={dynamic}
-          vis={vis}
-          val={val}
-          align={device.align}
-        >
-          {name}
-        </Text>
-      );
+      return <Text {...commonProps} dynamic={dynamic} vis={vis} val={val} align={device.align}> {name} </Text>
     }
     default:
       return null;

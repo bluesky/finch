@@ -71,7 +71,7 @@ function DeviceRender({ PV, UIEntry, onSubmit, ...args }: DeviceRenderProps) {
             case "related display":
                 return <RelatedDisp fileArray={UIEntry.display} label={UIEntry.label} style={positionStyle} {...args} />
             default:
-                return <p></p>;
+                return <></>;
         }
 
     }
