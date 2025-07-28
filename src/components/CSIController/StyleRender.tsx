@@ -1,9 +1,6 @@
-import { cn } from '@/lib/utils';
 import { Entry } from './types/UIEntry';
 import { replaceArgs } from './utils/ArgsFill';
 import { pxToEm } from './utils/units';
-import styles from "./styles.json";
-import { useVariant } from "./VariantContext";
 import Text from './Text';
 import Rectangle from './Rectangle';
 
@@ -16,7 +13,6 @@ export type StyleRenderProps = {
 };
 
 function StyleRender({ UIEntry, val, vis, dynamic, ...args }: StyleRenderProps) {
-  const { variant } = useVariant();
   const name = replaceArgs(UIEntry.name, args);
   const { x, y } = UIEntry.location;
   const { width, height } = UIEntry.size;
