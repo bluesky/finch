@@ -23,26 +23,13 @@ function renderStyleComponent(
   devices: Devices,
   args: { [key: string]: any }
 ): React.ReactElement {
-  if (device.dynamic_attribute) {
-    // turn pv into "13SIM1:cam1:pv"
-    const pv = replaceArgs(device.dynamic_attribute.chan, args);
-
-    return (
-      <React.Fragment key={index}>
-        <StyleRender
-          UIEntry={device}
-          dynamic={true}
-          val={devices[pv]?.value}
-          vis={device.dynamic_attribute.vis}
-          {...args}
-        />
-      </React.Fragment>
-    );
-  }
-
   return (
     <React.Fragment key={index}>
-      <StyleRender UIEntry={device} dynamic={false} {...args} />
+      <StyleRender
+        device={device}
+        devices={devices}
+        args={args}
+      />
     </React.Fragment>
   );
 }
