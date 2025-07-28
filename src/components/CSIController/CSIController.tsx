@@ -1,8 +1,8 @@
 import { useState, useEffect, useId } from "react";
 import PresentationLayer from "./PresentationLayer";
 import CSIControllerTabs from "./CSIControllerTabs";
-import { MockProvider } from "./MockContext";
-import { VariantProvider } from "./VariantContext";
+import { MockProvider } from "./context/MockContext";
+import { VariantProvider } from "./context/VariantContext";
 
 export type CSIControllerProps = {
   className?: string;

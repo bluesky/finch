@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { CSSProperties, useState, useEffect, useRef } from "react";
-import styles from "./styles.json";
-import { useVariant } from "./VariantContext";
+import styles from "../styles.json";
+import { useVariant } from "../context/VariantContext";
 
 type InputNumberProps = {
     label?: string;

@@ -1,7 +1,7 @@
 import { CSSProperties, useState } from "react";
 import { cn } from "@/lib/utils";
-import styles from "./styles.json";
-import { useVariant } from "./VariantContext";
+import styles from "../styles.json";
+import { useVariant } from "../context/VariantContext";
 
 type ButtonProps = {
     label?: string;

@@ -1,13 +1,13 @@
 import { CSSProperties } from 'react'
 import { Device } from "@/types/deviceControllerTypes";
 import { Entry } from './types/UIEntry';
-import InputNumber from './InputNumber';
-import InputEnum from './InputEnum';
-import Button from './Button';
-import InputText from './InputText';
-import RelatedDisp from './RelatedDisp';
+import InputNumber from './widgets/InputNumber';
+import InputEnum from './widgets/InputEnum';
+import Button from './widgets/Button';
+import InputText from './widgets/InputText';
+import RelatedDisp from './widgets/RelatedDisp';
 import { pxToEm } from './utils/units';
-import { TextUpdate } from './TextUpdate';
+import { TextUpdate } from './widgets/TextUpdate';
 
 export type DeviceRenderProps = {
     PV: Device;

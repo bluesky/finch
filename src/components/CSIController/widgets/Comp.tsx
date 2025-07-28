@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Entry } from "./types/UIEntry";
-import CSICanvas from "./CSICanvas";
-import { useUIData } from "./utils/useUIData";
-import { pxToEm } from "./utils/units";
-import { useMock } from "./MockContext"; 
+import { Entry } from "../types/UIEntry";
+import CSICanvas from "../CSICanvas";
+import { useUIData } from "../utils/useUIData";
+import { pxToEm } from "../utils/units";
+import { useMock } from "../context/MockContext"; 
 
 export function CompositeDeviceRenderer({ device, index, args }: {
     device: Entry; 

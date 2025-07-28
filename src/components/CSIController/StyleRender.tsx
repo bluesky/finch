@@ -2,8 +2,8 @@ import { Entry } from './types/UIEntry';
 import { Devices } from "@/types/deviceControllerTypes";
 import { replaceArgs } from './utils/ArgsFill';
 import { pxToEm } from './utils/units';
-import Text from './Text';
-import Rectangle from './Rectangle';
+import Text from './widgets/Text';
+import Rectangle from './widgets/Rectangle';
 
 export type StyleRenderProps = {
   device: Entry;

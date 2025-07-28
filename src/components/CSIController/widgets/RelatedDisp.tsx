@@ -1,13 +1,13 @@
 import { Browsers } from "@phosphor-icons/react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
-import { useTabManagement } from "../Tabs/context/TabsContext";
-import { Entry } from "./types/UIEntry";
-import CSIView from "./CSIView";
-import { replaceArgs } from "./utils/ArgsFill";
-import { pxToEm } from "./utils/units";
+import { useTabManagement } from "../../Tabs/context/TabsContext";
+import { Entry } from "../types/UIEntry";
+import CSIView from "../CSIView";
+import { replaceArgs } from "../utils/ArgsFill";
+import { pxToEm } from "../utils/units";
 import { cn } from "@/lib/utils";
-import styles from "./styles.json";
-import { useVariant } from "./VariantContext";
+import styles from "../styles.json";
+import { useVariant } from "../context/VariantContext";
 
 type RelatedDispProps = {
   label?: string;

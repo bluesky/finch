@@ -4,9 +4,9 @@ import CSICanvas from "./CSICanvas";
 import { useUIData } from "./utils/useUIData";
 import ScalableContainer from "./ScalableContainer";
 import { useTabManagement } from "../Tabs/context/TabsContext";
-import { useMock } from "./MockContext"; 
+import { useMock } from "./context/MockContext"; 
 import styles from "./styles.json"; 
-import { useVariant } from "./VariantContext";
+import { useVariant } from "./context/VariantContext";
 
 export type CSIViewProps = {
   className?: string;

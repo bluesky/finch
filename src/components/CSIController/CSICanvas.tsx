@@ -4,7 +4,7 @@ import { Entry } from "./types/UIEntry";
 import StyleRender from "./StyleRender";
 import DeviceRender from "./DeviceRender";
 import { replaceArgs } from "./utils/ArgsFill";
-import { CompositeDeviceRenderer } from "./Comp";
+import { CompositeDeviceRenderer } from "./widgets/Comp";
 import { pxToEm } from "./utils/units";
 import { cn } from "@/lib/utils"; 
 import styles from "./styles.json"; 
