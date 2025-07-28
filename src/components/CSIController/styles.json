@@ -2,19 +2,23 @@
     "variants": {
         "default": {
             "button": [
-                "bg-[#00B5E2]"
+                "bg-[#00B5E2] shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
             ],
             "related_disp": [
-                "bg-[#00B5E2]"
+                "bg-[#00B5E2] shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
             ],
             "input_num": [
                 "bg-[#C0F0FF] rounded-[0.15em] shadow-[inset_0.15em_0.15em_0.25em_rgba(0,0,0,0.3)] pl-[0.3em] font-light"
             ],
             "input_enum": [
-                "bg-white"
+                "bg-white",
+                "text-center",
+                "border-[#B1B3B3] border-[1px] rounded-[0.15em]",
+                "shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
             ],
             "input_text": [
-                "bg-white"
+                "bg-white",
+                "rounded-[0.15em] shadow-[inset_0.15em_0.15em_0.25em_rgba(0,0,0,0.3)] pl-[0.3em]"
             ],
             "text_update": [
                 "text-[#006BA6]"
