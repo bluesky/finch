@@ -15,7 +15,6 @@ interface MotionState {
 
 const App: React.FC = () => {
 
-
   const pvList = useMemo(() => [
     'IOC:m1.VAL', 'IOC:m2.VAL', 'IOC:m3.VAL',
     'bl531_xps2:sample_x_mm', 'bl531_xps2:sample_y_mm',
@@ -23,8 +22,6 @@ const App: React.FC = () => {
     'IOC:m6.VAL', 'IOC:m7.VAL'
   ], []);
   const { devices, handleSetValueRequest } = useOphydSocket('ws://192.168.10.155:8002/ophydSocket', pvList);
-
-  // 2. LIFT THE MOTION STATE AND DEBOUNCE LOGIC UP TO THE PARENT
   const [motionState, setMotionState] = useState<MotionState>({
     isMoving: false, objectId: null, startPosition: null,
   });
@@ -39,8 +36,7 @@ const App: React.FC = () => {
     return () => { if (moveEndTimeoutRef.current) clearTimeout(moveEndTimeoutRef.current); };
   }, [devices, motionState.isMoving]);
 
-  // The initiateMove function now needs the 'configs' from BeamlineContainer,
-  // so we'll pass this function down and call it with the current configs there.
+
   const initiateMove = (objectId: string, startPosition: THREE.Vector3) => {
     setMotionState({
       isMoving: true,
@@ -48,7 +44,6 @@ const App: React.FC = () => {
       startPosition: startPosition,
     });
   };
-
 
   return (
     <>

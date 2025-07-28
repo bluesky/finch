@@ -56,28 +56,10 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const mainCameraRef = useRef<THREE.OrthographicCamera | null>(null);
-  const xRayCameraRef = useRef<THREE.OrthographicCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const composerRef = useRef<EffectComposer | null>(null);
-  const xRayRenderTargetRef = useRef<THREE.WebGLRenderTarget | null>(null);
   const objectMapRef = useRef<Record<string, THREE.Object3D>>({});
   const ghostObjectRef = useRef<THREE.Object3D | null>(null);
-
-
-  /********************************************************
-   * Photon-related Refs
-   ********************************************************/
-  const photonPoolRef = useRef<THREE.InstancedMesh | null>(null);
-  const maxPhotons = 500;
-  const photonsRef = useRef<Photon[]>(
-    Array.from({ length: maxPhotons }, () => ({
-      position: new THREE.Vector3(-4, 0, 0),
-      velocity: new THREE.Vector3(1, 0, 0).multiplyScalar(0.05),
-      active: false,
-    }))
-  );
-  const lastPhotonEmitRef = useRef<number>(0);
-
 
   /********************************************************
    * Shared / Memoized Resources for Factories
@@ -138,8 +120,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     sceneConfigRef.current = sceneConfig;
   }, [sceneConfig]);
 
-
-  const controlsRef = useRef<OrbitControls | null>(null);
   const hoveredRef = useRef<HoveredAxis>(highlightedAxis);
   useEffect(() => { hoveredRef.current = highlightedAxis; }, [highlightedAxis]);
 
@@ -166,11 +146,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     scene.background = new THREE.Color('#c6c6c6');
     sceneRef.current = scene;
 
-
-    // const MM_TO_UNITS = 0.5;
-    // scene.scale.set(MM_TO_UNITS, MM_TO_UNITS, MM_TO_UNITS);
-
-
     // Main Orthographic Camera
     const mainCamera = new THREE.OrthographicCamera(
       -viewSize * aspect,
@@ -184,32 +159,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     mainCamera.lookAt(0, 0, 0);
     // mainCamera.layers.enable(1);
     mainCameraRef.current = mainCamera;
-
-
-    // (Optional) If you want to update cameraX externally, add an effect below.
-    // useEffect(() => {
-    //   if (mainCameraRef.current) {
-    //     mainCameraRef.current.position.x = cameraX;
-    //     mainCameraRef.current.updateProjectionMatrix();
-    //   }
-    // }, [cameraX]);
-
-
-    // X-Ray Orthographic Camera
-    const xRayCamViewSize = 0.5;
-    const xRayCamera = new THREE.OrthographicCamera(
-      -xRayCamViewSize * aspect,
-      xRayCamViewSize * aspect,
-      xRayCamViewSize,
-      -xRayCamViewSize,
-      0.1,
-      100
-    );
-    xRayCamera.position.set(-1, 0, 0);
-    xRayCamera.lookAt(4, 0, 0);
-    xRayCamera.layers.set(1);
-    xRayCameraRef.current = xRayCamera;
-
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
@@ -238,12 +187,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     composer.addPass(bloomPass);
     composerRef.current = composer;
 
-
-    // X-Ray Render Target
-    const xRayRenderTarget = new THREE.WebGLRenderTarget(256, 256);
-    xRayRenderTargetRef.current = xRayRenderTarget;
-
-
     // Lights
     const ambientLight = new THREE.AmbientLight('#ffffff', 1.5);
     scene.add(ambientLight);
@@ -255,8 +198,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     dirLight.shadow.camera.near = 0.5;
     dirLight.shadow.camera.far = 50;
     scene.add(dirLight);
-
-
+    // Configure shadow camera for directional light
     const d = 30;
     dirLight.shadow.camera.left = -d;
     dirLight.shadow.camera.right = d;
@@ -267,7 +209,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     dirLight.shadow.bias = -0.001
     dirLight.shadow.camera.updateProjectionMatrix();
 
-
     // Ground Plane
     const planeGeom = new THREE.PlaneGeometry(1000, 1000);
     const planeMat = new THREE.MeshPhongMaterial({ color: '#ffffff' });
@@ -276,7 +217,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     plane.position.y = -1.0;
     plane.receiveShadow = true;
     scene.add(plane);
-
 
     // Ground plane grid helper
     const grid = new THREE.GridHelper(100, 100, '#888888', '#444444');
@@ -294,20 +234,10 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       mainCamera.top = viewSize;
       mainCamera.bottom = -viewSize;
       mainCamera.updateProjectionMatrix();
-      xRayCamera.left = -xRayCamViewSize * newAspect;
-      xRayCamera.right = xRayCamViewSize * newAspect;
-      xRayCamera.top = xRayCamViewSize;
-      xRayCamera.bottom = -xRayCamViewSize;
-      xRayCamera.updateProjectionMatrix();
       renderer.setSize(newW, newH);
-      xRayRenderTarget.setSize(256, 256);
       composer.setSize(newW, newH);
     };
     window.addEventListener('resize', handleResize);
-
-
-    // Update xRay shader uniform
-    sharedResources.xRayMaterial.uniforms.xRayTexture.value = xRayRenderTarget.texture;
 
     // Remove old objects from our objectMap (but keep lights, ground, photon mesh, etc.)
     Object.keys(objectMapRef.current).forEach((id) => {
@@ -317,7 +247,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       }
     });
     objectMapRef.current = {};
-
 
     // Create new objects using createObjectFromConfig
     const createdObjects: Record<string, THREE.Object3D> = {};
@@ -349,16 +278,12 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     objectMapRef.current = createdObjects;
 
 
-    // Custom axes dashed lines
-
-
+    // Custom axes dashed lines creation
     const stage = objectMapRef.current['horizontalStage'];
     if (stage) {
 
-
       const L = 3;
       const axesMat = {
-        // resolution: size,
         dashed: true,
         dashScale: 1,
         dashSize: 0.25,
@@ -396,8 +321,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       const delta = clock.getDelta();
       // Use latest sceneConfig from the ref
       const currentConfig = sceneConfigRef.current;
-      const beamCfg = currentConfig.find((c) => c.type === 'beam');
-
       // animate dashed axis lines
       const h = hoveredRef.current;
       if (h) {
@@ -410,8 +333,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
           };
           const { axis, dirSign } = mat.userData;
 
-
-          // only the exact half‐axis you hovered
+          // only the exact half‐axis hovered
           if (axis === hoverAxis && dirSign === hoverSide) {
             const baseSpeed = 0.75;
             // always add a positive offset
@@ -420,13 +342,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
           }
         });
       }
-
-
-      // 1) Offscreen render for xRay
-      renderer.setRenderTarget(xRayRenderTarget);
-      renderer.render(scene, xRayCamera);
-      renderer.setRenderTarget(null);
-
 
       // 2) Render bloom pass
       composer.render();
@@ -459,13 +374,11 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
       renderer.dispose();
-      xRayRenderTarget.dispose();
       scene.clear();
       //controlsRef.current?.dispose();
     };
   }, []
   ); // initialization runs only once
-
 
   // Ghosting effect
   useEffect(() => {

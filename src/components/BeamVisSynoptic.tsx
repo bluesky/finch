@@ -16,14 +16,14 @@ const PV_LIST = [
   'bl531_xps2:sample_y_mm.RBV',
 ];
 
-interface SynopticViewProps {
+export interface SynopticViewProps {
   nodes: Node[];
   edges: Edge[];
   // devices: Device[];
   motionState: MotionState;
 }
 
-interface MotionState {
+export interface MotionState {
   isMoving: boolean;
   objectId: string | null;
   startPosition: THREE.Vector3 | null;

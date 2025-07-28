@@ -156,7 +156,7 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
               panelOpen={panelOpen}
               togglePanel={() => setPanelOpen(p => !p)}
               configs={configs}
-              setConfigs={() => { }}
+              setConfigs={() => {}}
               isPlaying={isPlaying}
               handlePlayPause={() => setIsPlaying(p => !p)}
               playAngle={playAngle}
