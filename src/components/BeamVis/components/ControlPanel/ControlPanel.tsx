@@ -237,7 +237,6 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
               );
             })}
           </div>
-          {/* ── END GRID ── */}
 
           <ControlModules
             configs={configs}
@@ -260,42 +259,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
             labelStyle={labelStyle}
             sliderStyle={sliderStyle}
             controlLayout={controlLayout}
-          // handleSampleMeshChange={handleSampleMeshChange}
           />
-
-          {/* <div style={sectionStyle}>
-            <h3>Visibility</h3>
-            {configs.map((cfg) => (
-              <div key={cfg.id}>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={cfg.visible !== false}
-                    onChange={() => handleToggleVisibility(cfg.id)}
-                  />
-                  {cfg.type.toUpperCase()} ({cfg.id})
-                </label>
-              </div>
-            ))}
-          </div> */}
-
-          {/* {controlLayout.common?.camera && (
- <div style={sectionStyle}>
- <h3 style={{ marginBottom: '0.5rem', color: '#555555' }}>Camera X Position</h3>
- <div style={{ marginBottom: '1rem' }}>
- <div style={labelStyle}>X: {cameraX.toFixed(2)}</div>
- <input
- type="range"
- min={-20}
- max={10}
- step={0.1}
- value={cameraX}
- onChange={(e) => setCameraX(Number(e.target.value))}
- style={sliderStyle}
- />
- </div>
- </div>
- )} */}
         </div>
       )}
     </div>
