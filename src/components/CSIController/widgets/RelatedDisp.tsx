@@ -125,7 +125,7 @@ function RelatedDisp({
   const fileArrayLength = fileArray?.length;
   const buttonStyles = cn(`
     bg-blue-500 text-white hover:brightness-90
-    rounded border border-slate-300 transition-colors duration-100
+    rounded transition-colors duration-100
     focus:outline-none focus:ring-2 focus:ring-blue-300
     flex flex-col justify-center
   `, styles.variants[variant as keyof typeof styles.variants].related_disp);
@@ -150,7 +150,7 @@ function RelatedDisp({
     <div
       ref={containerRef}
       className={
-        "w-1/2 border bg-white border-slate-300 flex w-full max-w-64"
+        "w-1/2 flex w-full max-w-64"
       }
       style={style}
     >
@@ -169,7 +169,7 @@ function RelatedDisp({
         <span className="relative w-full">
           {dropdownVisible && (
             <ul
-              className="z-10 absolute top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto"
+              className="z-10 absolute top-0 rounded mt-1 max-h-40 overflow-auto"
               style={{
                 width: dropdownWidth ? pxToEm(dropdownWidth) : "auto",
                 minWidth: "100%",

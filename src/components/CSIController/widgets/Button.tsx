@@ -44,7 +44,7 @@ export default function Button({
                     : 'text-white hover:brightness-90',
                 isPressed && 'transform scale-95',
                 // Additional styles
-                'rounded border border-slate-300 transition-colors duration-100',
+                'rounded transition-colors duration-100',
                 'focus:outline-none focus:ring-2 focus:ring-blue-300',
                 'flex flex-col justify-center',
                 // Base styles from JSON
