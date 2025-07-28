@@ -169,7 +169,7 @@ function RelatedDisp({
         <span className="relative w-full">
           {dropdownVisible && (
             <ul
-              className="z-10 absolute top-0 rounded mt-1 max-h-40 overflow-auto"
+              className="z-50 absolute top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto"
               style={{
                 width: dropdownWidth ? pxToEm(dropdownWidth) : "auto",
                 minWidth: "100%",

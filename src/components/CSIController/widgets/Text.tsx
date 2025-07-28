@@ -48,7 +48,7 @@ const Text: React.FC<TextProps> = ({
 
     return (
         <div
-            className={cn("relative z-50", alignmentClass, styles.variants[variant as keyof typeof styles.variants].text)}
+            className={cn("relative z-40", alignmentClass, styles.variants[variant as keyof typeof styles.variants].text)}
             style={style}
             {...props}
         >
