@@ -122,19 +122,19 @@ function RelatedDisp({
     setDropdownVisible(!dropdownVisible);
   };
 
-
   const fileArrayLength = fileArray?.length;
+  const buttonStyles = cn(`
+    bg-blue-500 text-white hover:bg-blue-600
+    rounded border border-slate-300 transition-colors duration-100
+    focus:outline-none focus:ring-2 focus:ring-blue-300
+    flex flex-col justify-center
+  `, styles.variants[variant as keyof typeof styles.variants].related_disp);
 
   if (fileArrayLength === 1) {
     return (
       <button
         onClick={() => handleCreateTab(0)}
-        className={cn(`
-            bg-blue-500 text-white hover:bg-blue-600
-            rounded border border-slate-300 transition-colors duration-100
-            focus:outline-none focus:ring-2 focus:ring-blue-300
-            flex flex-col justify-center
-        `, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
+        className={buttonStyles}
         style={style}
       >
         <span>
@@ -156,10 +156,7 @@ function RelatedDisp({
     >
       <div className={`flex flex-col w-full`} onClick={handleInputClick}>
         <div
-          className={cn(`bg-blue-500 text-white hover:bg-blue-600
-            rounded border border-slate-300 transition-colors duration-100
-            focus:outline-none focus:ring-2 focus:ring-blue-300
-            flex flex-col justify-center`, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
+          className={buttonStyles}
         >
           <span>
             <div className="flex items-center justify-center">
