@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"; // adjust import path as needed
-import { useVariant } from './VariantContext';
-import styles from "./styles.json"
+import { useVariant } from '../context/VariantContext';
+import styles from "../styles.json"
 
 interface TextUpdateProps {
     val: string | number | boolean;

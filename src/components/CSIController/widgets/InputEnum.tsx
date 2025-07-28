@@ -2,8 +2,8 @@ import { useState, useRef, useEffect, CSSProperties } from 'react';
 import { tailwindIcons } from '@/assets/icons';
 import { CaretDown, CaretUp } from "@phosphor-icons/react";
 import { cn } from '@/lib/utils';
-import styles from "./styles.json";
-import { useVariant } from './VariantContext';
+import styles from "../styles.json";
+import { useVariant } from '../context/VariantContext';
 
 type InputEnumProps = {
     label?: string;
