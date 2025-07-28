@@ -5,6 +5,7 @@ import { pxToEm } from './utils/units';
 import styles from "./styles.json";
 import { useVariant } from "./VariantContext";
 import Text from './Text';
+import Rectangle from './Rectangle';
 
 export type StyleRenderProps = {
   UIEntry: Entry;
@@ -34,9 +35,8 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: StyleRenderProps) 
   switch (UIEntry.var_type) {
     case 'rectangle': {
       return (
-        <div
+        <Rectangle
           {...commonProps}
-          className={cn("border-2 border-gray-300", styles.variants[variant as keyof typeof styles.variants].rectangle)}
         />
       );
     }
@@ -44,7 +44,6 @@ function StyleRender({ UIEntry, val, vis, dynamic, ...args }: StyleRenderProps) 
       return (
         <Text
           {...commonProps}
-          className={cn(styles.variants[variant as keyof typeof styles.variants].text)}
           dynamic={dynamic}
           vis={vis}
           val={val}
