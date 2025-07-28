@@ -107,7 +107,7 @@ export default function InputNumber({
                 className={
                     cn(`
                         ${isDisabled ? 'hover:cursor-not-allowed' : ''} 
-                        w-1/2 border border-slate-300 pl-1`, 
+                        w-1/2 pl-1`, 
                         styles.variants[variant as keyof typeof styles.variants].input_num,
                     )
                 }
