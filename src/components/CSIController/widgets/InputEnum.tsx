@@ -74,7 +74,7 @@ export default function InputEnum({
                 </div>
                 <span className="relative w-full">
                     {dropdownVisible && (
-                        <ul className="z-10 absolute w-full top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto">
+                        <ul className="z-50 absolute w-full top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto">
                             {enums ? enums
                                 .map((item, index) => (
                                     <li
