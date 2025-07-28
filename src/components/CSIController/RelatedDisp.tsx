@@ -22,12 +22,15 @@ function RelatedDisp({
   style,
   ...args
 }: RelatedDispProps) {
+
+  // helper function for converting $(P) into 13SIM1, so it takes the original (target) args, which 
+  // have $(P) and $(R), and replaced those with the source args (13SIM1 and cam1)
   function substituteVariables(
     targetArgs: Record<string, any>,
     sourceArgs: Record<string, any>
   ): Record<string, any> {
     const result = { ...targetArgs };
-    
+
     for (const [key, value] of Object.entries(result)) {
       if (typeof value === "string") {
         result[key] = replaceArgs(value, sourceArgs);
@@ -36,14 +39,19 @@ function RelatedDisp({
 
     return result;
   }
+  // variant of the component using the variant context (for styles)
   const { variant } = useVariant();
 
   const { addTab } = useTabManagement();
   const handleCreateTab = (index: number) => {
     const fileNameRaw: string = fileArray![index].file.split(".")[0];
     const fileType: string = fileArray![index].file.split(".")[1];
+
+    // clean version of the filename, which just means if the file type was opi, make it bob instead (since we don't support OPI files atm)
+    // P.S. The reason we would even have an OPI file show up is because they're in bob that were converted from ADL
+    // P.S.S. OPI file is a boy file
     const fileNameClean = fileType.toLowerCase() === "opi" ? `${fileNameRaw}.bob` : fileArray![index].file;
-    const fileTypeClean: string = fileType.toLowerCase() === "opi" ? 'bob' : fileType
+
     const scale = 0.85
     const tabContent = (
       <CSIView
@@ -84,7 +92,7 @@ function RelatedDisp({
     };
   }, []);
 
-  // Calculate the width needed for the longest option
+  // Calculate the width (of the dropdown) needed for the longest option
   useEffect(() => {
     if (fileArray && fileArray.length > 1) {
       const tempDiv = document.createElement("div");
@@ -115,93 +123,75 @@ function RelatedDisp({
   };
 
 
-  return (
-    <>
-      {fileArray?.length === 1 ? (
-        <button
-          onClick={() => handleCreateTab(0)}
-          className={cn(`
-                bg-blue-500 text-white hover:bg-blue-600
-                rounded border border-slate-300 transition-colors duration-100
-                focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center
-            `, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
-          style={style}
-        >
-          {label ? (
-            <span>
-              <div className="flex items-center justify-center">
-                {label}
+  const fileArrayLength = fileArray?.length;
 
-              </div>
-            </span>
-          ) : (
-            <span>
-              <div className="flex items-center justify-center">
-                <Browsers size="1.45em" />
-
-              </div>
-            </span>
-          )}
-        </button>
-      ) : (
-        <div
-          ref={containerRef}
-          className={
-            "w-1/2 border bg-white border-slate-300 flex w-full max-w-64"
-          }
-          style={style}
-        >
-          <div className={`flex flex-col w-full`} onClick={handleInputClick}>
-            <div
-              className={cn(`bg-blue-500 text-white hover:bg-blue-600
-                rounded border border-slate-300 transition-colors duration-100
-                focus:outline-none focus:ring-2 focus:ring-blue-300
-                flex flex-col justify-center`, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
-            >
-              {label ? (
-                <span>
-                  <div className="flex items-center">
-                    <Browsers size="1.45em" />
-                    <div className="text-[0.85em]">{label}</div>
-
-                  </div>
-                </span>
-              ) : (
-                <span>
-                  <div className="flex items-center justify-center">
-                    <Browsers size="1.45em" />
-
-                  </div>
-                </span>
-              )}
-            </div>
-            <span className="relative w-full">
-              {dropdownVisible && (
-                <ul
-                  className="z-10 absolute top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto"
-                  style={{
-                    width: dropdownWidth ? pxToEm(dropdownWidth) : "auto",
-                    minWidth: "100%",
-                  }}
-                >
-                  {fileArray!.map((item, index) => (
-                    <li
-                      key={index}
-                      onClick={() => handleCreateTab(index)}
-                      className={`p-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap`}
-                    >
-                      <p className='text-[0.85em]'>{item.label}</p>
-
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </span>
+  if (fileArrayLength === 1) {
+    return (
+      <button
+        onClick={() => handleCreateTab(0)}
+        className={cn(`
+            bg-blue-500 text-white hover:bg-blue-600
+            rounded border border-slate-300 transition-colors duration-100
+            focus:outline-none focus:ring-2 focus:ring-blue-300
+            flex flex-col justify-center
+        `, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
+        style={style}
+      >
+        <span>
+          <div className="flex items-center justify-center">
+            {label ? <>{label}</> : <Browsers size="1.45em" />}
           </div>
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className={
+        "w-1/2 border bg-white border-slate-300 flex w-full max-w-64"
+      }
+      style={style}
+    >
+      <div className={`flex flex-col w-full`} onClick={handleInputClick}>
+        <div
+          className={cn(`bg-blue-500 text-white hover:bg-blue-600
+            rounded border border-slate-300 transition-colors duration-100
+            focus:outline-none focus:ring-2 focus:ring-blue-300
+            flex flex-col justify-center`, styles.variants[variant as keyof typeof styles.variants].related_disp,)}
+        >
+          <span>
+            <div className="flex items-center justify-center">
+              <Browsers size="1.45em" />
+              {label && <div className="text-[0.85em]">{label}</div>}
+            </div>
+          </span>
+
         </div>
-      )}
-    </>
+        <span className="relative w-full">
+          {dropdownVisible && (
+            <ul
+              className="z-10 absolute top-0 bg-white border border-gray-300 rounded mt-1 max-h-40 overflow-auto"
+              style={{
+                width: dropdownWidth ? pxToEm(dropdownWidth) : "auto",
+                minWidth: "100%",
+              }}
+            >
+              {fileArray!.map((item, index) => (
+                <li
+                  key={index}
+                  onClick={() => handleCreateTab(index)}
+                  className={`p-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap`}
+                >
+                  <p className='text-[0.85em]'>{item.label}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </span>
+      </div>
+    </div>
   );
 }
 
