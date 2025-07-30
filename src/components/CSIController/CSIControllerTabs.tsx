@@ -82,11 +82,6 @@ export default function CSIControllerContent({
     }, [activeTab, saveActiveTabToStorage]);
 
     const removeTab = (tabId: string) => {
-        const tabToRemove = tabs.find((tab) => tab.id === tabId);
-
-        if (tabToRemove && tabToRemove.fileName === fileName) {
-            return;
-        }
 
         const currentTabIndex = tabs.findIndex((tab) => tab.id === tabId);
         const newTabs = tabs.filter((tab) => tab.id !== tabId);
@@ -101,6 +96,11 @@ export default function CSIControllerContent({
         } else if (newTabs.length === 0) {
             setActiveTab("");
         }
+
+        // Dispatch the event after state updates
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('csi-tabs-updated'));
+        }, 0);
     };
 
     const addTabWithContent = (
