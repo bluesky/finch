@@ -38,10 +38,7 @@ export const Tab: React.FC<TabProps> = ({
                 e.stopPropagation();
                 removeTab(value);
               }}
-              className={`ml-2  transition-colors duration-200 text-4xl  ${
-                mainTab ? "text-gray-500" : "text-white hover:text-red-500"
-              }`}
-            >
+              className="ml-2 transition-colors duration-200 text-4xl text-white hover:text-red-500">
               <XCircle size={24} />
             </button>
           </div>
