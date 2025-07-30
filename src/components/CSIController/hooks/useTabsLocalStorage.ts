@@ -28,42 +28,53 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
       const storedTabs = localStorage.getItem(STORAGE_KEY);
       if (storedTabs) {
         const parsedTabs: TabData[] = JSON.parse(storedTabs);
-        
+
         // Check if main tab exists
         const mainTab = parsedTabs.find((tab) => tab.isMainTab);
-        
+
         // If oldFileName is provided and different from stored main tab filename, clear storage
         if (oldFileName && mainTab && mainTab.fileName !== oldFileName) {
           clearTabStorage();
           return [createDefaultTab()];
         }
-        
+
         // If no oldFileName provided but we have a fileName prop, check against that
         if (!oldFileName && mainTab && mainTab.fileName !== fileName) {
           clearTabStorage();
           return [createDefaultTab()];
         }
-        
+
+        // Check if main tab exists with current filename
         // Check if main tab exists with current filename
         const hasMainTab = parsedTabs.some((tab) => tab.isMainTab && tab.fileName === fileName);
         if (!hasMainTab) {
-          // Update the main tab's filename if it exists but has wrong filename
-          const updatedTabs = parsedTabs.map(tab => 
-            tab.isMainTab ? { ...tab, fileName, label: fileName } : tab
-          );
-          return updatedTabs.some(tab => tab.isMainTab) ? updatedTabs : [createDefaultTab(), ...parsedTabs];
+          // Check if there are any main tabs at all
+          const anyMainTab = parsedTabs.some((tab) => tab.isMainTab);
+
+          if (anyMainTab) {
+            // Update the main tab's filename if it exists but has wrong filename
+            const updatedTabs = parsedTabs.map(tab =>
+              tab.isMainTab ? { ...tab, fileName, label: fileName } : tab
+            );
+            return updatedTabs;
+          }
+
+          // If no main tab exists at all, that's fine - just return the existing tabs
+          // Only create a default tab if there are no tabs at all
+          if (parsedTabs.length === 0) {
+            return [createDefaultTab()];
+          }
+
+          return parsedTabs.map(tab => ({
+            ...tab,
+            scale: tab.scale || 0.85
+          }));
         }
-        
-        // Ensure all tabs have a scale property (for backward compatibility)
-        return parsedTabs.map(tab => ({
-          ...tab,
-          scale: tab.scale || 0.85 // Add default scale if missing
-        }));
       }
     } catch (error) {
       console.error("Error loading tabs from localStorage:", error);
     }
-    
+
     return [createDefaultTab()];
   };
 
