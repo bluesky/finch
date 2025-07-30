@@ -9,6 +9,7 @@ import CSIView from "./CSIView";
 
 export type CSIControllerContentProps = {
     className?: string;
+    hasFileProp: boolean;
     fileName: string;
     oldFileName?: string;
     P: string;
@@ -18,6 +19,7 @@ export type CSIControllerContentProps = {
 
 export default function CSIControllerContent({
     className,
+    hasFileProp,
     fileName,
     oldFileName,
     P,
@@ -82,7 +84,11 @@ export default function CSIControllerContent({
     }, [activeTab, saveActiveTabToStorage]);
 
     const removeTab = (tabId: string) => {
-
+        const tabToRemove = tabs.find((tab) => tab.id === tabId);
+        
+        if (hasFileProp && tabToRemove && tabToRemove.fileName === fileName) {
+            return;
+        }
         const currentTabIndex = tabs.findIndex((tab) => tab.id === tabId);
         const newTabs = tabs.filter((tab) => tab.id !== tabId);
         setTabs(newTabs);
@@ -163,14 +169,13 @@ export default function CSIControllerContent({
         activeTab,
         setActiveTab,
     };
-
     return (
         <TabManagementProvider value={tabManagementValue}>
             <TabsGroup value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
                     {tabs.map((tab) => (
                         <div key={tab.id} className="flex items-center">
-                            <Tab value={tab.id} removeTab={removeTab} mainTab={tab.isMainTab}>
+                            <Tab value={tab.id} removeTab={removeTab} mainTab={tab.isMainTab} hasFileProp={hasFileProp}>
                                 {tab.label}
                             </Tab>
                         </div>

@@ -22,6 +22,7 @@ export interface TabProps {
   removeTab: (tabId: string) => void
   mainTab?: boolean;
   className?: string;
+  hasFileProp: boolean;
 }
 
 export interface TabsPanelProps {

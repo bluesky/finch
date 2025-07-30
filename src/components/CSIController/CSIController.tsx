@@ -12,6 +12,7 @@ export type CSIControllerProps = {
   mock?: boolean;
   variant?: string;
 };
+ 
 
 // if tab data is in localstorage, load that instead
 const getConfigFromLocalStorage = (instanceId: string) => {
@@ -53,6 +54,8 @@ export default function CSIController({
   variant = "default"
 }: CSIControllerProps) {
   const instanceId = useId();
+  const hasFileProp = Boolean(fileName); 
+ 
   const [configuredProps, setConfiguredProps] = useState<{
     fileName: string;
     P: string;
@@ -63,6 +66,7 @@ export default function CSIController({
 
   // Check localStorage for existing csi-tabs configuration
   useEffect(() => {
+    
     const checkLocalStorage = () => {
       const existingConfig = getConfigFromLocalStorage(instanceId);
 
@@ -90,6 +94,7 @@ export default function CSIController({
         // No props provided, use localStorage
         setConfiguredProps(existingConfig);
       } else if (!existingConfig) {
+        
         // No valid config found, clear configuredProps
         setConfiguredProps(null);
       }
@@ -148,6 +153,7 @@ export default function CSIController({
       <MockProvider mock={mock}>
         <CSIControllerTabs
           className={className}
+          hasFileProp={hasFileProp}
           fileName={finalFileName}
           oldFileName={fileName} // Pass the original fileName as oldFileName
           P={finalP}
