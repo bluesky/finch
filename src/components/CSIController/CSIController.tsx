@@ -32,6 +32,10 @@ const getConfigFromLocalStorage = (instanceId: string) => {
           };
         }
       }
+      // If tabs array exists but is empty, return null to show presentation layer
+      else if (Array.isArray(tabs) && tabs.length === 0) {
+        return null;
+      }
     }
     return null;
   } catch (error) {
@@ -53,14 +57,13 @@ export default function CSIController({
     fileName: string;
     P: string;
     R: string;
-
   } | null>(null);
 
   const [hasCheckedLocalStorage, setHasCheckedLocalStorage] = useState(false);
 
   // Check localStorage for existing csi-tabs configuration
   useEffect(() => {
-    if (!hasCheckedLocalStorage) {
+    const checkLocalStorage = () => {
       const existingConfig = getConfigFromLocalStorage(instanceId);
 
       // If props are provided and they differ from localStorage, clear localStorage
@@ -86,10 +89,36 @@ export default function CSIController({
       } else if (existingConfig && !fileName && !P && !R) {
         // No props provided, use localStorage
         setConfiguredProps(existingConfig);
+      } else if (!existingConfig) {
+        // No valid config found, clear configuredProps
+        setConfiguredProps(null);
       }
+    };
 
+    if (!hasCheckedLocalStorage) {
+      checkLocalStorage();
       setHasCheckedLocalStorage(true);
     }
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === `csi-tabs-${instanceId}`) {
+        checkLocalStorage();
+      }
+    };
+
+    // Listen for custom events (for same-tab updates)
+    const handleCustomStorageChange = () => {
+      checkLocalStorage();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('csi-tabs-updated', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('csi-tabs-updated', handleCustomStorageChange);
+    };
   }, [hasCheckedLocalStorage, instanceId, fileName, P, R]);
 
   // Use configured props if available, otherwise use the passed props
