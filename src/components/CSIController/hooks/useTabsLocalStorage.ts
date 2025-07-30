@@ -46,6 +46,7 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
 
         // Check if main tab exists with current filename
         // Check if main tab exists with current filename
+        // Check if main tab exists with current filename
         const hasMainTab = parsedTabs.some((tab) => tab.isMainTab && tab.fileName === fileName);
         if (!hasMainTab) {
           // Check if there are any main tabs at all
@@ -70,6 +71,14 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
             scale: tab.scale || 0.85
           }));
         }
+
+        // If we reach here, we have a valid main tab with correct filename
+        // Ensure all tabs have a scale property (for backward compatibility)
+        return parsedTabs.map(tab => ({
+          ...tab,
+          scale: tab.scale || 0.85 // Add default scale if missing
+        }));
+
       }
     } catch (error) {
       console.error("Error loading tabs from localStorage:", error);
