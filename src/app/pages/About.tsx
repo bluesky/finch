@@ -4,6 +4,12 @@ import Paper from "@/components/Paper";
 import PlotlyScatter from "@/components/PlotlyScatter";
 import SignalMonitorPlot from "@/components/SignalMonitorPlot";
 import Plot, { PlotParams } from 'react-plotly.js';
+import ADLView from "@/components/ADLController/ADLView";
+import { cameraDeviceData } from "@/components/Camera/utils/cameraDeviceData";
+import CameraContainer from "@/components/Camera/CameraContainer";
+import ADLController from "@/components/ADLController/ADLController";
+import Beamstop from "@/features/Beamstop";
+
 
 
 export default function About() {
@@ -17,16 +23,12 @@ export default function About() {
         marker: { color: 'red' },
     }];
 
+    
     return (
-     
-            <Paper title="About">
-                
-                <p className="text-lg text-center mt-4">A testing page for new components</p>
-                {/* <PlotlyScatter data={data} className="h-4/5 w-4/5 m-auto" xAxisRange={[0, 100]}/> */}
-                <SignalMonitorPlot className="h-2/5 w-4/5 m-auto" numVisiblePoints={100} pollingIntervalMilliseconds={500} tickTextIntervalSeconds={20}/>
-                <SignalMonitorPlot className="h-2/5 w-4/5 m-auto" numVisiblePoints={50} pollingIntervalMilliseconds={2000} tickTextIntervalSeconds={2}/>
 
-            </Paper>
-
+        <>
+        <Beamstop stackVertical={false} enableBestOption={true} beamstopXTitle="Beamstop - X" beamstopYTitle="Beamstop - Y" beamstopCurrentName="bl201-beamstop:current" beamstopXName="bl531_xps2:beamstop_x_mm" beamstopYName="bl531_xps2:beamstop_y_mm" />  
+        </>
+        
     )
 }

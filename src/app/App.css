@@ -8,5 +8,4 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Remove default spinner styling for Firefox */
 input[type="number"] {
   -moz-appearance: textfield; /* Remove spinner in Firefox */
-  background-color: transparent; /* Ensure no black background */
 }
