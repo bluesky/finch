@@ -380,7 +380,6 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
   }, []
   ); // initialization runs only once
 
-
   // Ghosting effect
   useEffect(() => {
     const scene = sceneRef.current;
