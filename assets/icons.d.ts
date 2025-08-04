@@ -61,10 +61,17 @@ declare const phosphorIcons: {
 declare const deviceIcons: {
     linearStage: import("react/jsx-runtime").JSX.Element;
     stepperMotor: import("react/jsx-runtime").JSX.Element;
+    beamstopX: import("react/jsx-runtime").JSX.Element;
+    beamstopY: import("react/jsx-runtime").JSX.Element;
+    sampleHolderX: import("react/jsx-runtime").JSX.Element;
+    sampleHolderY: import("react/jsx-runtime").JSX.Element;
 };
 declare const controllerIcons: {
     leftArrowMinus: import("react/jsx-runtime").JSX.Element;
     rightArrowPlus: import("react/jsx-runtime").JSX.Element;
 };
-export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons };
+declare const beamlineIcons: {
+    mono: import("react/jsx-runtime").JSX.Element;
+};
+export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons, beamlineIcons };
 //# sourceMappingURL=icons.d.ts.map

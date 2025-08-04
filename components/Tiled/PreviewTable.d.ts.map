@@ -1,1 +1,0 @@
-{"version":3,"file":"PreviewTable.d.ts","sourceRoot":"","sources":["../../../src/components/Tiled/PreviewTable.tsx"],"names":[],"mappings":"AACA,OAAO,EAAE,eAAe,EAAE,cAAc,EAAiB,MAAM,SAAS,CAAC;AAKzE,KAAK,iBAAiB,GAAG;IACrB,SAAS,EAAE,eAAe,CAAC,cAAc,CAAC,CAAC;IAC3C,GAAG,CAAC,EAAE,MAAM,CAAA;CACf,CAAC;AAEF,MAAM,CAAC,OAAO,UAAU,YAAY,CAAC,EAAE,SAAS,EAAE,GAAG,EAAE,EAAE,iBAAiB,2CA6GzE"}

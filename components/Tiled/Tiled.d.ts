@@ -1,14 +1,6 @@
-export type TiledProps = {
-    onSelectCallback?: Function;
-    size?: 'small' | 'medium' | 'large';
-    closeOnSelect?: boolean;
-    isPopup?: boolean;
-    enableStartupScreen?: boolean;
-    tiledBaseUrl?: string;
-    backgroundClassName?: string;
-    singleColumnMode?: boolean;
-    contentClassName?: string;
-    isFullWidth?: boolean;
-};
-export default function Tiled({ onSelectCallback, size, closeOnSelect, isPopup, enableStartupScreen, tiledBaseUrl, backgroundClassName, contentClassName, singleColumnMode, isFullWidth, ...props }: TiledProps): import("react/jsx-runtime").JSX.Element | undefined;
+import { TiledProps } from '@blueskyproject/tiled';
+import { default as React } from '../../../node_modules/react';
+declare const TiledWrapper: React.FC<TiledProps>;
+export type { TiledProps } from '@blueskyproject/tiled';
+export default TiledWrapper;
 //# sourceMappingURL=Tiled.d.ts.map

@@ -34,6 +34,8 @@ export { default as Paper } from './components/Paper';
 export type { PaperProps } from './components/Paper';
 export { default as Bento } from './components/Bento';
 export type { BentoProps } from './components/Bento';
+export { default as TableDeviceController } from './components/TableDeviceController';
+export type { TableDeviceControllerProps } from './components/TableDeviceController';
 export { default as useOphydSocket } from './hooks/useOphydSocket';
 export type { RouteItem } from './types/navigationRouterTypes';
 export type { Device, Devices } from './types/deviceControllerTypes';
