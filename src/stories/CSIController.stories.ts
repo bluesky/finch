@@ -18,7 +18,8 @@ export const Default: Story = {
     args: {
         fileName: "ADBase.adl", 
         P: "13SIM1", 
-        R: "cam1"
+        R: "cam1",
+        mock: true,
 
     }
 }
