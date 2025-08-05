@@ -55,7 +55,7 @@ export default function CSIControllerContent({
         loadActiveTabFromStorage(tabs)
     );
 
-    // Generate content for tabs - this needs to be a separate effect that runs when tabs change
+    // Generate content for tabs, this needs to be a separate effect that runs when tabs change
     useEffect(() => {
         setTabs(prevTabs =>
             prevTabs.map(tab => ({
@@ -85,14 +85,16 @@ export default function CSIControllerContent({
 
     const removeTab = (tabId: string) => {
         const tabToRemove = tabs.find((tab) => tab.id === tabId);
-        
-        if (hasFileProp && tabToRemove && tabToRemove.fileName === fileName) {
+
+        // if there is a file prop in the component and the tab to remove is the main file, do nothing
+        if (hasFileProp && tabToRemove && tabToRemove.isMainTab) {
             return;
         }
         const currentTabIndex = tabs.findIndex((tab) => tab.id === tabId);
         const newTabs = tabs.filter((tab) => tab.id !== tabId);
         setTabs(newTabs);
 
+        // logic for switching active tab if the current tab being closed is the active one
         if (activeTab === tabId && newTabs.length > 0) {
             if (currentTabIndex < newTabs.length) {
                 setActiveTab(newTabs[currentTabIndex].id);
@@ -109,7 +111,7 @@ export default function CSIControllerContent({
         }, 0);
     };
 
-    const addTabWithContent = (
+    const addTab = (
         label: string,
         content: React.ReactNode,
         fileName: string,
@@ -120,6 +122,7 @@ export default function CSIControllerContent({
         const fileType: string = fileName.split(".")[1];
         const fileNameClean = fileType.toLowerCase() === "opi" ? `${fileNameNoType}.bob` : fileName;
 
+        // when opening a related display, this const checks if the tab to be opened already exists
         const existingTab = tabs.find((tab) => {
             if (tab.fileName !== fileNameClean) return false;
 
@@ -163,7 +166,7 @@ export default function CSIControllerContent({
     };
 
     const tabManagementValue = {
-        addTab: addTabWithContent,
+        addTab,
         removeTab,
         tabs,
         activeTab,
