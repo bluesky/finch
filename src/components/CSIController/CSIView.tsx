@@ -44,6 +44,7 @@ export default function CSIView({
     onScaleChange?.(newScale); // Notify parent of scale change
   }, [onScaleChange]);
 
+  // for related displays, drilled via CSICanvas -> DeviceRenderer - > RelatedDisp
   const addTabWithScale = useCallback((
     label: string,
     content: React.ReactNode,
