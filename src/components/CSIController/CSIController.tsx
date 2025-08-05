@@ -1,4 +1,4 @@
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useMemo } from "react";
 import PresentationLayer from "./PresentationLayer";
 import CSIControllerTabs from "./CSIControllerTabs";
 import { MockProvider } from "./context/MockContext";
@@ -12,7 +12,7 @@ export type CSIControllerProps = {
   mock?: boolean;
   variant?: string;
 };
- 
+
 
 // if tab data is in localstorage, load that instead
 const getConfigFromLocalStorage = (instanceId: string) => {
@@ -22,7 +22,7 @@ const getConfigFromLocalStorage = (instanceId: string) => {
     if (csiTabsData) {
       const tabs = JSON.parse(csiTabsData);
       if (Array.isArray(tabs) && tabs.length > 0) {
-        // Find the main tab or use the first tab
+        // Find the main tab or use the first tab (main tab is the tab with the main file (e.g. ADBase))
         const mainTab = tabs.find(tab => tab.isMainTab) || tabs[0];
 
         if (mainTab && mainTab.fileName && mainTab.args && mainTab.args.P && mainTab.args.R) {
@@ -53,9 +53,13 @@ export default function CSIController({
   mock = false,
   variant = "default"
 }: CSIControllerProps) {
-  const instanceId = useId();
-  const hasFileProp = Boolean(fileName); 
- 
+  const instanceId = useMemo(() => {
+    // Create a stable ID based on the component's unique props
+    const propsString = JSON.stringify({ fileName, P, R, className });
+    return `csi-${btoa(propsString).replace(/[^a-zA-Z0-9]/g, '')}`; // base64 encode and clean
+  }, [fileName, P, R, className]);
+  const hasFileProp = Boolean(fileName);
+
   const [configuredProps, setConfiguredProps] = useState<{
     fileName: string;
     P: string;
@@ -66,7 +70,7 @@ export default function CSIController({
 
   // Check localStorage for existing csi-tabs configuration
   useEffect(() => {
-    
+
     const checkLocalStorage = () => {
       const existingConfig = getConfigFromLocalStorage(instanceId);
 
@@ -94,7 +98,7 @@ export default function CSIController({
         // No props provided, use localStorage
         setConfiguredProps(existingConfig);
       } else if (!existingConfig) {
-        
+
         // No valid config found, clear configuredProps
         setConfiguredProps(null);
       }
