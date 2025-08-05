@@ -4,6 +4,36 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
   const STORAGE_KEY = `csi-tabs-${instanceId}`;
   const ACTIVE_TAB_KEY = `csi-active-tab-${instanceId}`;
 
+  // Helper function to clean up all empty localStorage entries
+  const cleanupEmptyLocalStorage = () => {
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key) {
+          const value = localStorage.getItem(key);
+          
+          // Check if value is empty string, null, or undefined
+          if (value === '' || value === null || value === 'null' || value === 'undefined') {
+            localStorage.removeItem(key);
+            continue;
+          }
+          
+          // Try to parse JSON and check if it's an empty array
+          try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed) && parsed.length === 0) {
+              localStorage.removeItem(key);
+            }
+          } catch (e) {
+            // Not JSON, skip JSON checks
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error cleaning up localStorage:", error);
+    }
+  };
+
   const createDefaultTab = (): TabData => ({
     id: "tab1",
     label: fileName,
@@ -44,8 +74,6 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
           return [createDefaultTab()];
         }
 
-        // Check if main tab exists with current filename
-        // Check if main tab exists with current filename
         // Check if main tab exists with current filename
         const hasMainTab = parsedTabs.some((tab) => tab.isMainTab && tab.fileName === fileName);
         if (!hasMainTab) {
@@ -97,7 +125,11 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
         isMainTab: tab.isMainTab,
         scale: tab.scale || 0.85, // Include scale in saved data
       }));
+      
       localStorage.setItem(STORAGE_KEY, JSON.stringify(storedTabs));
+      
+      // Clean up all empty localStorage entries after saving
+      cleanupEmptyLocalStorage();
     } catch (error) {
       console.error("Error saving tabs to localStorage:", error);
     }
@@ -118,6 +150,9 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
   const saveActiveTabToStorage = (activeTabId: string) => {
     try {
       localStorage.setItem(ACTIVE_TAB_KEY, activeTabId);
+      
+      // Clean up all empty localStorage entries after saving
+      cleanupEmptyLocalStorage();
     } catch (error) {
       console.error("Error saving active tab to localStorage:", error);
     }
@@ -129,5 +164,6 @@ export function useTabLS(fileName: string, P: string, R: string, instanceId: str
     loadActiveTabFromStorage,
     saveActiveTabToStorage,
     clearTabStorage,
+    cleanupEmptyLocalStorage, // Export this in case you want to call it manually
   };
 }
