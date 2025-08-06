@@ -1,8 +1,8 @@
 import { TabData } from "@/components/Tabs/types/tabs";
 
 export function useTabLS(fileName: string, P: string, R: string, instanceId: string, oldFileName?: string) {
-  const STORAGE_KEY = `csi-tabs-${instanceId}`;
-  const ACTIVE_TAB_KEY = `csi-active-tab-${instanceId}`;
+  const STORAGE_KEY = `edm-tabs-${instanceId}`;
+  const ACTIVE_TAB_KEY = `edm-active-tab-${instanceId}`;
 
   // Helper function to clean up all empty localStorage entries
   const cleanupEmptyLocalStorage = () => {

@@ -1,10 +1,10 @@
 import { useState, useEffect, useId, useMemo } from "react";
 import PresentationLayer from "./PresentationLayer";
-import CSIControllerTabs from "./CSIControllerTabs";
+import ReactEDMTabs from "./ReactEDMTabs";
 import { MockProvider } from "./context/MockContext";
 import { VariantProvider } from "./context/VariantContext";
 
-export type CSIControllerProps = {
+export type ReactEDMProps = {
   className?: string;
   fileName?: string;
   P?: string;
@@ -17,10 +17,10 @@ export type CSIControllerProps = {
 // if tab data is in localstorage, load that instead
 const getConfigFromLocalStorage = (instanceId: string) => {
   try {
-    const storageKey = `csi-tabs-${instanceId}`;
-    const csiTabsData = localStorage.getItem(storageKey);
-    if (csiTabsData) {
-      const tabs = JSON.parse(csiTabsData);
+    const storageKey = `edm-tabs-${instanceId}`;
+    const edmTabsData = localStorage.getItem(storageKey);
+    if (edmTabsData) {
+      const tabs = JSON.parse(edmTabsData);
       if (Array.isArray(tabs) && tabs.length > 0) {
         // Find the main tab or use the first tab (main tab is the tab with the main file (e.g. ADBase))
         const mainTab = tabs.find(tab => tab.isMainTab) || tabs[0];
@@ -40,23 +40,23 @@ const getConfigFromLocalStorage = (instanceId: string) => {
     }
     return null;
   } catch (error) {
-    console.error('Error parsing csi-tabs from localStorage:', error);
+    console.error('Error parsing edm-tabs from localStorage:', error);
     return null;
   }
 };
 
-export default function CSIController({
+export default function ReactEDM({
   className,
   fileName,
   P,
   R,
   mock = false,
   variant = "default"
-}: CSIControllerProps) {
+}: ReactEDMProps) {
   const instanceId = useMemo(() => {
     // Create a stable ID based on the component's unique props
     const propsString = JSON.stringify({ fileName, P, R, className });
-    return `csi-${btoa(propsString).replace(/[^a-zA-Z0-9]/g, '')}`; // base64 encode and clean
+    return `edm-${btoa(propsString).replace(/[^a-zA-Z0-9]/g, '')}`; // base64 encode and clean
   }, [fileName, P, R, className]);
   const hasFileProp = Boolean(fileName);
 
@@ -68,7 +68,7 @@ export default function CSIController({
 
   const [hasCheckedLocalStorage, setHasCheckedLocalStorage] = useState(false);
 
-  // Check localStorage for existing csi-tabs configuration
+  // Check localStorage for existing edm-tabs configuration
   useEffect(() => {
 
     const checkLocalStorage = () => {
@@ -81,8 +81,8 @@ export default function CSIController({
           existingConfig.R !== R) {
           // Clear localStorage when props differ
           try {
-            const storageKey = `csi-tabs-${instanceId}`;
-            const activeTabKey = `csi-active-tab-${instanceId}`;
+            const storageKey = `edm-tabs-${instanceId}`;
+            const activeTabKey = `edm-active-tab-${instanceId}`;
             localStorage.removeItem(storageKey);
             localStorage.removeItem(activeTabKey);
           } catch (error) {
@@ -111,7 +111,7 @@ export default function CSIController({
 
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === `csi-tabs-${instanceId}`) {
+      if (e.key === `edm-tabs-${instanceId}`) {
         checkLocalStorage();
       }
     };
@@ -122,11 +122,11 @@ export default function CSIController({
     };
 
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('csi-tabs-updated', handleCustomStorageChange);
+    window.addEventListener('edm-tabs-updated', handleCustomStorageChange);
 
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('csi-tabs-updated', handleCustomStorageChange);
+      window.removeEventListener('edm-tabs-updated', handleCustomStorageChange);
     };
   }, [hasCheckedLocalStorage, instanceId, fileName, P, R]);
 
@@ -155,7 +155,7 @@ export default function CSIController({
   return (
     <VariantProvider variant={variant}>
       <MockProvider mock={mock}>
-        <CSIControllerTabs
+        <ReactEDMTabs
           className={className}
           hasFileProp={hasFileProp}
           fileName={finalFileName}

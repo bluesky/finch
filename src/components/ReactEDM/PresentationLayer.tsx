@@ -25,7 +25,7 @@ const PresentationLayer = ({ onSubmit }: PresentationLayerProps) => {
 
   return (
     <div className="p-6 max-w-md mx-auto bg-white rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4">Configure CSI Controller</h2>
+      <h2 className="text-xl font-semibold mb-4">Configure ReactEDM</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="fileName" className="block text-sm font-medium text-gray-700 mb-1">
@@ -80,7 +80,7 @@ const PresentationLayer = ({ onSubmit }: PresentationLayerProps) => {
           type="submit"
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
         >
-          Open CSI Controller
+          Open ReactEDM
         </button>
       </form>
     </div>

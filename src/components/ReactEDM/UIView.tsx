@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import CSICanvas from "./CSICanvas";
+import UICanvas from "./UICanvas";
 import { useUIData } from "./utils/useUIData";
 import ScalableContainer from "./ScalableContainer";
 import { useTabManagement } from "../Tabs/context/TabsContext";
-import { useMock } from "./context/MockContext"; 
-import styles from "./styles.json"; 
+import { useMock } from "./context/MockContext";
+import styles from "./styles.json";
 import { useVariant } from "./context/VariantContext";
 
-export type CSIViewProps = {
+export type UIViewProps = {
   className?: string;
   fileName: string;
   scale?: number; // Add scale prop
@@ -16,16 +16,16 @@ export type CSIViewProps = {
   [key: string]: any;
 };
 
-export default function CSIView({
+export default function UIView({
   className,
   fileName,
   scale = 0.85, // Default scale
   onScaleChange,
   ...args
-}: CSIViewProps) {
+}: UIViewProps) {
   const { mock } = useMock();
   const { variant } = useVariant();
-  const [ currentScale, setCurrentScale] = useState(scale);
+  const [currentScale, setCurrentScale] = useState(scale);
   const { addTab } = useTabManagement();
 
   // Update local scale when prop changes
@@ -36,27 +36,38 @@ export default function CSIView({
   const { UIData, loading, error, devices, onSubmitSettings } = useUIData({
     fileName,
     args,
-    mock
+    mock,
   });
 
-  const handleScaleChange = useCallback((newScale: number) => {
-    setCurrentScale(newScale);
-    onScaleChange?.(newScale); // Notify parent of scale change
-  }, [onScaleChange]);
+  const handleScaleChange = useCallback(
+    (newScale: number) => {
+      setCurrentScale(newScale);
+      onScaleChange?.(newScale); // Notify parent of scale change
+    },
+    [onScaleChange]
+  );
 
-  // for related displays, drilled via CSICanvas -> DeviceRenderer - > RelatedDisp
-  const addTabWithScale = useCallback((
-    label: string,
-    content: React.ReactNode,
-    fileName: string,
-    args: Record<string, any>
-  ) => {
-    addTab(label, content, fileName, args, currentScale);
-  }, [addTab, currentScale]);
+  // for related displays, drilled via UICanvas -> DeviceRenderer - > RelatedDisp
+  const addTabWithScale = useCallback(
+    (
+      label: string,
+      content: React.ReactNode,
+      fileName: string,
+      args: Record<string, any>
+    ) => {
+      addTab(label, content, fileName, args, currentScale);
+    },
+    [addTab, currentScale]
+  );
 
   if (loading) {
     return (
-      <div className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className)}>
+      <div
+        className={cn(
+          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
+          className
+        )}
+      >
         <div className="text-blue-500">Loading {fileName}...</div>
       </div>
     );
@@ -64,7 +75,12 @@ export default function CSIView({
 
   if (error) {
     return (
-      <div className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className)}>
+      <div
+        className={cn(
+          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
+          className
+        )}
+      >
         <div className="text-red-500">{error}</div>
       </div>
     );
@@ -72,15 +88,24 @@ export default function CSIView({
 
   if (!UIData) {
     return (
-      <div className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className)}>
+      <div
+        className={cn(
+          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
+          className
+        )}
+      >
         <div className="text-white">No data available</div>
       </div>
     );
   }
 
   return (
-    <ScalableContainer 
-      className={cn("inline-block rounded-xl bg-slate-100 p-4 mt-4", className, styles.variants[variant as keyof typeof styles.variants].display)}
+    <ScalableContainer
+      className={cn(
+        "inline-block rounded-xl bg-slate-100 p-4 mt-4",
+        className,
+        styles.variants[variant as keyof typeof styles.variants].display
+      )}
       initialScale={currentScale}
       minScale={0.3}
       maxScale={3.0}
@@ -88,7 +113,7 @@ export default function CSIView({
       sensitivity={200}
       onScaleChange={handleScaleChange}
     >
-      <CSICanvas
+      <UICanvas
         UIData={UIData}
         devices={devices}
         onSubmit={onSubmitSettings}

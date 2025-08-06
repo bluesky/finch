@@ -67,7 +67,7 @@ function renderCompComponent(
   );
 }
 
-function CSICanvas({
+function UICanvas({
   UIData,
   devices,
   onSubmit = () => { },
@@ -75,7 +75,7 @@ function CSICanvas({
   ...args
 }: UICanvasProps) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-
+  console.log(JSON.stringify(UIData))
   // get display dimensions
   useEffect(() => {
     const displayDevice = UIData.find(
@@ -120,4 +120,4 @@ function CSICanvas({
   );
 }
 
-export default CSICanvas;
+export default UICanvas;
