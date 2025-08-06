@@ -6,7 +6,7 @@ ReactEDM, or React Extensible Dispaly Manager, is a react component for displayi
 **Entry**: The entry data structure, as defined in [Entry Data Structure](?path=/docs/general-components-reactedm-developer-notes-entry-data-structure--docs)  
 **Widget**: An individual component, such as text, or a button   
 **EPICS**: Experimental Physics and Industrial Control System  
-**PV**: Process variable; a value recieved from an IOC via EPICS
+**PV**: Process variable; a value received from an IOC via EPICS
 
 ## How this works
 
@@ -55,4 +55,4 @@ switch (fileType.toLowerCase()) {
     break;
 }
 ```
-Optionally, you may need to change the github repo from which your fiels are being fetched, refer to [How do I change the github repo where UI files are fetched?](#how-do-i-change-the-github-repo-where-ui-files-are-fetched)
+Optionally, you may need to change the github repo from which your files are being fetched, refer to [How do I change the github repo where UI files are fetched?](#how-do-i-change-the-github-repo-where-ui-files-are-fetched)

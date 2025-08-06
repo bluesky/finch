@@ -92,13 +92,13 @@ Conversion is done through parser files, currently there is only `BobParser` and
 Used in widgets that have a label, like a button. 
 
 ### press_msg
-Used in buttons, its the value sent to epics, like 1 or 0. 
+Used in buttons, it's the value sent to epics, like 1 or 0. 
 
 ### children
-Used in composites/groups, its the widgets inside a composite. 
+Used in composites/groups, it's the widgets inside a composite. 
 
 ### format
-Used in entry widgets, determines if its a string format or a number format. 
+Used in entry widgets, determines if it's a string format or a number format. 
 
 ### dynamic_attribute
 Used in text widget. Sometimes, text widgets only show based off of a condition. For example, when aquiring from an area detector, there is text that shows when the acquisition is done or not.
