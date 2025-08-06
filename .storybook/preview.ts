@@ -21,14 +21,17 @@ const preview: Preview = {
         order: [
           "About",
           "Documentation",
-          "Bluesky Components", [
+          "Bluesky Components", 
+          "Layout Components",
+          "General Components", [
             'ReactEDM', [
               '*',
-              'Developer Notes'
+              'Developer Notes', [
+                'Home',
+                'Components'
+              ]
             ]
           ],
-          "Layout Components",
-          "General Components",
         ],
       },
     },

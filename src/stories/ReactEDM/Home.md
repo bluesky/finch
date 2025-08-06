@@ -1,0 +1,2 @@
+# ReactEDM
+ReactEDM, or React Extensible Dispaly Manager, is a react component for displaying control screens in the browser. Currently, it supports the bob file format from [CSS Phoebus](https://controlssoftware.sns.ornl.gov/css_phoebus/) and ADL files from [MEDM](https://epics.anl.gov/extensions/medm/index.php). 
