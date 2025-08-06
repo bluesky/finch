@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import CSIController from '@/components/CSIController/CSIController';
+import CSIController from '@/components/ReactEDM/ReactEDM';
 
 const meta = {
     title: 'General Components/ReactEDM',

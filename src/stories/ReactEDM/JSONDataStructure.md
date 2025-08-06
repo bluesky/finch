@@ -1,4 +1,4 @@
-ReactEDM uses a common data structure to render the react components, making it simple to support new file formats in the future. The actual interface defining the data structure is in `src/components/ReactEDM/types/UIEntry` (seen below). It takes in var_type, location, size and name everytime, along with several optional parameters to account for the needs of different widgets. As new widgets are supported, this data structure can be adjusted to allow for new parameters
+ReactEDM uses a common data structure to render the react components, making it simple to support new file formats in the future. The actual interface defining the data structure is in `ReactEDM/types/UIEntry` (seen below). It takes in var_type, location, size and name everytime, along with several optional parameters to account for the needs of different widgets. As new widgets are supported, this data structure can be adjusted to allow for new parameters
 
 ```javascript
 export interface Entry {
@@ -29,8 +29,22 @@ export interface Entry {
   }[]
   align?: string
 };
+
 ```
 
+Currently, the var_types that are supported are:
+- entry
+- update
+- text
+- rectangle
+- display
+- menu
+- button
+- related display
+- composite
+
+
+## Example of conversion
 Here is what a button looks like before and after conversion:
 
 Original ADL widget:
