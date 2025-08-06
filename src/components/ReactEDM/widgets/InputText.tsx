@@ -21,13 +21,17 @@ export default function InputText({
     const { variant } = useVariant();
     const stringVal = String(val);
     const [inputValue, setInputValue] = useState<string>(stringVal);
+    const [originalValue, setOriginalValue] = useState<string>(''); // Track original value
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        setInputValue(String(val));
+        const newValue = String(val);
+        setInputValue(newValue);
+        setOriginalValue(newValue); // Update original value when val changes
     }, [val]);
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        setOriginalValue(inputValue); // Store the value when focus starts
         e.target.select();
     };
 
@@ -38,6 +42,14 @@ export default function InputText({
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             onSubmit(inputValue);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            // Restore original value
+            setInputValue(originalValue);
+            // Delay the blur to allow state update to complete
+            setTimeout(() => {
+                inputRef.current?.blur();
+            }, 0);
         }
     };
 
