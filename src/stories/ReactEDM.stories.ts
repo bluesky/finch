@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import CSIController from '@/components/CSIController/CSIController';
 
 const meta = {
-    title: 'General Components/CSIController',
+    title: 'Bluesky Components/ReactEDM',
     component: CSIController,
     tags: ['autodocs'],
     parameters: {
