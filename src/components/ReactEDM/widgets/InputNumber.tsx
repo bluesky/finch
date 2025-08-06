@@ -23,31 +23,34 @@ export default function InputNumber({
     const { variant } = useVariant();
 
     const [inputValue, setInputValue] = useState<string>('');
+    const [originalValue, setOriginalValue] = useState<string>(''); // Track original value
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (typeof val === 'number') {
-            if (precision === null) {
-                setInputValue(Math.round(val).toString());
-            } else {
-                setInputValue(val.toFixed(precision));
-            }
+            const formattedValue = precision === null
+                ? Math.round(val).toString()
+                : val.toFixed(precision);
+            setInputValue(formattedValue);
+            setOriginalValue(formattedValue); // Update original value when val changes
         } else {
             setInputValue('');
+            setOriginalValue('');
         }
     }, [val, precision]);
 
     if (typeof val !== 'number') {
-        return null; 
+        return null;
     }
 
     const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        setOriginalValue(inputValue); // Store the value when focus starts
         e.target.select();
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
-        
+
         if (precision === null) {
             // Only allow integers (whole numbers)
             if (/^$|^[0-9]*$/.test(newValue)) {
@@ -66,7 +69,7 @@ export default function InputNumber({
             setInputValue('');
             return;
         }
-        
+
         const num = parseFloat(inputValue);
         if (!isNaN(num)) {
             if (precision === null) {
@@ -93,12 +96,20 @@ export default function InputNumber({
                     onSubmit(parseFloat(num.toFixed(precision)));
                 }
             }
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            // Restore original value
+            setInputValue(originalValue);
+            // Delay the blur to allow state update to complete
+            setTimeout(() => {
+                inputRef.current?.blur();
+            }, 0);
         }
     };
 
     return (
         <label className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between`}>
-            
+
             <input
                 ref={inputRef}
                 disabled={isDisabled}
@@ -107,7 +118,7 @@ export default function InputNumber({
                 className={
                     cn(`
                         ${isDisabled ? 'hover:cursor-not-allowed' : ''} 
-                        w-1/2 pl-1`, 
+                        w-1/2 pl-1`,
                         styles.variants[variant as keyof typeof styles.variants].input_num,
                     )
                 }

@@ -75,7 +75,6 @@ function UICanvas({
   ...args
 }: UICanvasProps) {
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  console.log(JSON.stringify(UIData))
   // get display dimensions
   useEffect(() => {
     const displayDevice = UIData.find(
