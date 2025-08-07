@@ -32,7 +32,23 @@ A device widget is, you guessed it, a widget that is dependent on a PV. (Like a 
 
 ### How would I go about supporting a new widget?
 
-First, you need to make your widget in the widgets folder. This component should receive only the specific data it needs to function, not raw EPICS objects. It should not perform any data processing or extraction. For example, when creating a button widget, don't pass the entire EPICS button object as a prop. Instead, extract the necessary attributes from that object beforehand and pass only those specific values to the component.
+First, you need to make your widget in the widgets folder. This component should receive only the specific data it needs to function, not raw Device objects. It should not perform any data processing or extraction. For example, when creating a button widget, don't pass the entire Device object as a prop. Instead, extract the necessary attributes from that object beforehand and pass only those specific values to the component.
+
+#### Example of what **NOT** to do:
+
+```javascript
+const { devices } = useOphydSocket(deviceNames);
+const PV = devices[pv]
+<MyWidget device={PV}/>
+```
+
+#### Example of what to do:
+
+```javascript
+const { devices } = useOphydSocket(deviceNames);
+const PV = devices[pv]
+<MyWidget val={PV.value} enum_strs={PV.enum_strs} precision={PV.precision}/>
+```
 
 Next, determine if your new widget is a [style widget or a device widget](#difference-between-a-style-widget-and-a-device-widget). Style widgets go in `ReactEDM/StyleRender` & device widgets go in `ReactEDM/DeviceRender`. To add a new widget, create a case for it in the appropriate switch statement and return your component. If your widget is a style widget, unfortunately you'll have to additionally add a case in `ReactEDM/UICanvas` so that it properly goes to StyleRender for your var_type.
 
