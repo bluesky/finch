@@ -4,7 +4,12 @@ import Paper from "@/components/Paper";
 import PlotlyScatter from "@/components/PlotlyScatter";
 import SignalMonitorPlot from "@/components/SignalMonitorPlot";
 import Plot, { PlotParams } from 'react-plotly.js';
-import ReactEDM from "@/components/ReactEDM/ReactEDM";
+import ADLView from "@/components/ADLController/ADLView";
+import { cameraDeviceData } from "@/components/Camera/utils/cameraDeviceData";
+import CameraContainer from "@/components/Camera/CameraContainer";
+import ADLController from "@/components/ADLController/ADLController";
+import Beamstop from "@/features/Beamstop";
+
 
 
 export default function About() {
@@ -19,8 +24,10 @@ export default function About() {
     }];
 
     return (
-     
-           <ReactEDM/>
 
+        <>
+        <Beamstop stackVertical={false} enableBestOption={true} beamstopXTitle="Beamstop - X" beamstopYTitle="Beamstop - Y" beamstopCurrentName="bl201-beamstop:current" beamstopXName="bl531_xps2:beamstop_x_mm" beamstopYName="bl531_xps2:beamstop_y_mm" />  
+        </>
+        
     )
 }

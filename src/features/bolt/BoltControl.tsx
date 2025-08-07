@@ -30,7 +30,7 @@ export default function BoltControl() {
                 />
             </div>
             <Paper title="Camera" size="grow">
-                <CameraContainer prefix="13SIM1" enableControlPanel={true} enableSettings={true} canvasSize="medium" customSetup={true}/>
+                <CameraContainer prefix="Basler5472" enableControlPanel={true} enableSettings={true} canvasSize="medium" customSetup={true}/>
             </Paper>
         </Bento>
 

@@ -36,14 +36,7 @@ export default function CameraContainer(
         enableControlPanel=true, 
         enableSettings=true, 
         canvasSize='medium',
-        sizePVs={
-            startX_pv: "13SIM1:cam1:MinX",
-            startY_pv: "13SIM1:cam1:MinY",
-            sizeX_pv: "13SIM1:cam1:SizeX",
-            sizeY_pv: "13SIM1:cam1:SizeY",
-            colorMode_pv: "13SIM1:cam1:ColorMode",
-            dataType_pv: "13SIM1:cam1:DataType"
-        },  
+        sizePVs,  
     }: CameraContainerProps) 
     {
 
