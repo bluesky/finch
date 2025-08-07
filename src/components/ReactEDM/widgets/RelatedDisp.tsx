@@ -8,6 +8,7 @@ import { pxToEm } from "../utils/units";
 import { cn } from "@/lib/utils";
 import styles from "../styles.json";
 import { useVariant } from "../context/VariantContext";
+import { useMock } from "../context/MockContext";
 
 type RelatedDispProps = {
   label?: string;
@@ -22,6 +23,8 @@ function RelatedDisp({
   style,
   ...args
 }: RelatedDispProps) {
+  const { mock } = useMock();
+
   // helper function for converting $(P) into 13SIM1, so it takes the original (target) args, which
   // have $(P) and $(R), and replaced those with the source args (13SIM1 and cam1)
   function substituteVariables(
@@ -43,6 +46,8 @@ function RelatedDisp({
 
   const { addTab } = useTabManagement();
   const handleCreateTab = (index: number) => {
+    if (mock) return; // Prevent action when mock is true
+
     const fileNameRaw: string = fileArray![index].file.split(".")[0];
     const fileType: string = fileArray![index].file.split(".")[1];
 
@@ -139,8 +144,12 @@ function RelatedDisp({
     return (
       <button
         onClick={() => handleCreateTab(0)}
-        className={buttonStyles}
+        className={cn(
+          buttonStyles,
+          mock && "opacity-50 cursor-not-allowed hover:brightness-100"
+        )}
         style={style}
+        disabled={mock}
       >
         <span>
           <div className="flex items-center justify-center">
@@ -179,7 +188,12 @@ function RelatedDisp({
                 <li
                   key={index}
                   onClick={() => handleCreateTab(index)}
-                  className={`p-2 cursor-pointer hover:bg-gray-200 whitespace-nowrap`}
+                  className={cn(
+                    `p-2 whitespace-nowrap`,
+                    mock 
+                      ? "cursor-not-allowed opacity-50 text-gray-400" 
+                      : "cursor-pointer hover:bg-gray-200"
+                  )}
                 >
                   <p className="text-[0.85em]">{item.label}</p>
                 </li>
