@@ -14,7 +14,7 @@ export default function ReactEDM({
   variant = "default"
 }: ReactEDMProps) {
   return (
-    <div className="bg-[rgb(12,74,110)]">
+    <div className="bg-[rgb(12,74,110)] p-4">
          <ReactEDMs fileName={fileName} P={P} R={R} variant={variant} mock/>
     </div>
   );

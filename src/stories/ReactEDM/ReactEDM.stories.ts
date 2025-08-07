@@ -8,6 +8,18 @@ const meta = {
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',
+        docs: {
+            description: {
+                component: `
+## [Demo Video](https://youtu.be/AW2KDAqg9xQ)
+
+## File Formats
+
+- **.adl files**: ADL (ASCII Display List) from MEDM
+- **.bob files**: From CSS Phoebus
+                `
+            }
+        }
     }
 } satisfies Meta<typeof ReactEDM>;
 
@@ -20,7 +32,6 @@ export const Default: Story = {
         P: "13SIM1", 
         R: "cam1",
         variant: "default"
-
     }
 }
 
@@ -30,7 +41,6 @@ export const Slate: Story = {
         P: "13SIM1", 
         R: "cam1",
         variant: "slate"
-
     }
 }
 
@@ -40,7 +50,6 @@ export const Paper: Story = {
         P: "13SIM1", 
         R: "cam1",
         variant: "paper"
-
     }
 }
 
@@ -50,7 +59,6 @@ export const Legacy: Story = {
         P: "13SIM1", 
         R: "cam1",
         variant: "legacy"
-
     }
 }
 
@@ -60,7 +68,5 @@ export const Bob: Story = {
         P: "13SIM1", 
         R: "cam1",
         variant: "default"
-
     }
 }
-
