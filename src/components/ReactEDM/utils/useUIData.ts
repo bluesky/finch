@@ -52,8 +52,8 @@ export function useUIData({
       const fileType: string = fileName.split(".")[1];
       
       try {
-        
-        const UIContent = await fetchFile(fileName, "als-computing", `AD_${fileType.toUpperCase()}_files`);
+
+        const UIContent = await fetchFile(fileName, "als-computing", `ReactEDM_${fileType.toUpperCase()}_files`);
 
         if (!UIContent) {
           setError(`${fileName} not found`);
