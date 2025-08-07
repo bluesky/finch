@@ -101,8 +101,8 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         if (Array.isArray(popupItem.kwargs[kwarg])) {
             return (
             <span className="flex" key={kwarg}>
-                <p className="w-4/12">{kwarg}</p>
-                <div className= "w-8/12 flex flex-wrap justify-start">
+                <p className="w-1/2">{kwarg}</p>
+                <div className= "w-1/2 flex flex-wrap justify-start">
                     {popupItem.kwargs[kwarg].map((item) => <p key={item} className={`${isDeleteModeVisible ? deleteBg : 'bg-sky-100'} mr-2 px-1 mb-2 rounded-sm`}>{item}</p>)}
                 </div>
             </span>
@@ -110,15 +110,15 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         } else if (typeof popupItem.kwargs[kwarg] === 'string') {
             return (
                 <span className="flex" key={kwarg}>
-                    <p className="w-4/12">{kwarg}</p>
-                    <p className="w-8/12">{popupItem.kwargs[kwarg]}</p>
+                    <p className="w-1/2">{kwarg}</p>
+                    <p className="w-1/2">{popupItem.kwargs[kwarg]}</p>
                 </span>
             )
         } else {
             return (
                 <span className="flex" key={kwarg}>
-                    <p className="w-4/12">{kwarg}</p>
-                    <p className="w-8/12">{JSON.stringify(popupItem.kwargs[kwarg])}</p>
+                    <p className="w-1/2">{kwarg}</p>
+                    <p className="w-1/2">{JSON.stringify(popupItem.kwargs[kwarg])}</p>
                 </span>
             )
         }

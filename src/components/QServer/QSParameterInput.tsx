@@ -137,7 +137,6 @@ export default function QSParameterInput( {
 
 
     // ----to do, create a boolean input for parameters like 'snake'
-
     if (Array.isArray(parameter.value)) {
         return <MultiSelectInput 
                     isItemInArray={isItemInArray} 
@@ -181,6 +180,7 @@ export default function QSParameterInput( {
                 required={parameter.required} 
                 description={parameter.description} 
                 resetInputsTrigger={resetInputsTrigger}
+                type={parameter.annotation?.type ? parameter.annotation.type : 'text'}
             />
         }
     }

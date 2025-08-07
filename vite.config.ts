@@ -1,59 +1,71 @@
-import path from "path"
-import { resolve } from 'node:path'
+import path from "path";
+import { resolve } from "node:path";
 
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
-import tsConfigPaths from 'vite-tsconfig-paths'
-import * as packageJson from './package.json'
+import react from "@vitejs/plugin-react";
+import { defineConfig, loadEnv } from "vite";
+import dts from "vite-plugin-dts";
+import tsConfigPaths from "vite-tsconfig-paths";
+import * as packageJson from "./package.json";
+
 // https://vitejs.dev/config/
-export default defineConfig(() => ({
-  define: {
-    'import.meta.env': process.env
-  },
-  plugins: [
-    react(),
-    tsConfigPaths(),
-    dts({
-      include: ['src/', 'src/vite-env.d.ts'],
-    }),
-  ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+
+  const qserverRest = env.VITE_QSERVER_REST?.trim() || 'http://localhost:60610';
+  const qserverWs = env.VITE_QSERVER_WS?.trim() || 'ws://localhost:8000/queue_server';
+  const cameraWs = env.VITE_CAMERA_WS?.trim() || 'ws://localhost:8000/pvcamera';
+
+  return {
+    define: {
+      'import.meta.env': {
+        VITE_QSERVER_REST: JSON.stringify(qserverRest),
+        VITE_QSERVER_WS: JSON.stringify(qserverWs),
+        VITE_CAMERA_WS: JSON.stringify(cameraWs),
+      },
     },
-  },
-  server: {
-    proxy: {
+    plugins: [
+      react(),
+      tsConfigPaths(),
+      dts({
+        include: ['src/', 'src/vite-env.d.ts'],
+      }),
+    ],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
+    server: {
+      proxy: {
         '/api/qserver': {
-            target: 'http://localhost:60610', 
-            changeOrigin: true, 
-            rewrite: (path) => path.replace(/^\/api\/qserver/, ''), // Remove "/api/qserver" from the path
+          target: qserverRest,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/qserver/, ''),
         },
         '/api/qserver/console': {
-        target: 'ws://localhost:8000/queue_server',
-        ws: true, 
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/qserver\/console/, ''), // Remove "/api/qserver/console" from the path
+          target: qserverWs,
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/qserver\/console/, ''),
+        },
+        '/api/camera': {
+          target: cameraWs,
+          ws: true,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/camera/, ''),
+        },
       },
-      '/api/camera': {
-        target: 'ws://localhost:8000/pvcamera',
-        ws: true, 
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/camera/, ''), // Remove "/api/camera" from the path
+    },
+    build: {
+      lib: {
+        entry: resolve('src', 'index.ts'),
+        name: 'Finch',
+        formats: ['es', 'umd'],
+        fileName: (format) => `finch.${format}.js`,
+      },
+      rollupOptions: {
+        external: [...Object.keys(packageJson.peerDependencies)],
       },
     },
-},
-  build: {
-    lib: {
-      //entry: resolve('src', 'components/index.ts'),
-      entry: resolve('src', 'index.ts'),
-      name: 'Finch',
-      formats: ['es', 'umd'],
-      fileName: (format) => `finch.${format}.js`,
-    },
-    rollupOptions: {
-      external: [...Object.keys(packageJson.peerDependencies)],
-    },
-  },
-}))
+  };
+});

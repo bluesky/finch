@@ -7,11 +7,12 @@ import {
     MetaUpdateResponse,
 } from 'src/types/ophydSocketTypes';
 
-export default function useOphydSocket(wsUrl: string, deviceNameList: string[]) {
+export default function useOphydSocket(deviceNameList: string[], wsUrl?: string) {
+    const address = window.location.hostname;
+    const apiPort:string = (import.meta.env.VITE_OPHYD_WS_PORT || `8000`);
+    const apiUrl:string = wsUrl ? wsUrl : `ws://${address}:${apiPort}/ophydSocket`;
     const [devices, setDevices] = useState<Devices>({});
     const wsRef = useRef<WebSocket | null>(null);
-    console.log('running hook')
-
     // Toggle device lock
     const toggleDeviceLock = useCallback((deviceName: string) => {
         setDevices((prevDevices) => ({
@@ -68,9 +69,9 @@ export default function useOphydSocket(wsUrl: string, deviceNameList: string[]) 
     // Initialize WebSocket connection
     useEffect(() => {
         console.log('initializing WebSocket connection');
-        const ws = new WebSocket(wsUrl);
+        const ws = new WebSocket(apiUrl);
         wsRef.current = ws;
-
+        if(ws)
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
             console.log('WebSocket connection opened');
