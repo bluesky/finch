@@ -1,0 +1,189 @@
+{
+    "variants": {
+        "default": {
+            "button": [
+                "bg-[#00B5E2] shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
+            ],
+            "related_disp": [
+                "bg-[#00B5E2] shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
+            ],
+            "input_num": [
+                "bg-[#C0F0FF] rounded-[0.15em] shadow-[inset_0.15em_0.15em_0.25em_rgba(0,0,0,0.3)] pl-[0.3em] font-light"
+            ],
+            "input_enum": [
+                "bg-white",
+                "text-center",
+                "border-[#B1B3B3] border-[0.07em] rounded-[0.15em]",
+                "shadow-[0.05em_0.05em_0.25em_rgba(0,0,0,0.3)]"
+            ],
+            "input_text": [
+                "bg-white",
+                "rounded-[0.15em] shadow-[inset_0.15em_0.15em_0.25em_rgba(0,0,0,0.3)] pl-[0.3em]"
+            ],
+            "text_update": [
+                "text-[#006BA6]"
+            ],
+            "text": [
+                "text-black"
+            ],
+            "rectangle": [
+                "border-[#B1B3B3] border-[0.07em]"
+            ],
+            "display": [
+                "bg-[#E9E9E9]"
+            ]
+        },
+        "legacy": {
+            "button": [
+                "text-black",
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-b",
+                "border-r",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-t-[#C3F2FF]",
+                "border-l-[#C3F2FF]"
+            ],
+            "related_disp": [
+                "text-black bg-[#73DFFF] border-[0.15em]",
+                "border-b border-r border-[#3F7B8C] border-[0.15em]", 
+                "border-t-[#C3F2FF] border-l-[#C3F2FF]"
+            ],
+            "input_num": [
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-b-[#C3F2FF]",
+                "border-r-[#C3F2FF]"
+            ],
+            "input_enum": [
+                
+                "bg-[#B0C3CA]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#DDE6E9]",
+                "border-[0.15em]",
+                "border-b-[#5F696D]",
+                "border-r-[#5F696D]"
+                
+            ],
+            "input_text": [
+                "bg-[#73DFFF]",
+                "border-[0.15em]",
+                "border-t",
+                "border-l",
+                "border-[#3F7B8C]",
+                "border-[0.15em]",
+                "border-b-[#C3F2FF]",
+                "border-r-[#C3F2FF]"
+            ],
+            "text_update": [
+                "text-[#0A00B8]"
+            ],
+            "text": [
+                "text-black"
+            ],
+            "rectangle": [
+                "border-black",
+                "border-[0.07em]"
+            ],
+            "display": [
+                "bg-[#BBBBBB]"
+            ]
+        },
+        "paper": {
+            "button": [
+                "text-white",
+                "bg-[#00B5E2]"
+            ],
+            "related_disp": [
+                "text-white",
+                "bg-[#00B5E2]"
+            ],
+            "input_num": [
+                "border-[#B1B3B3]",
+                "border-[0.07em]",
+                "rounded-[0.15em]"
+            ],
+            "input_enum": [
+                
+                "bg-white",
+                "text-center",
+                "border-[#B1B3B3] border-[0.07em] rounded-[0.15em]"
+                
+            ],
+            "input_text": [
+                "border-[#B1B3B3]",
+                "border-[0.07em]",
+                "rounded-[0.15em]"
+            ],
+            "text_update": [
+                "text-[#006BA6]"
+            ],
+            "text": [
+                "text-black"
+            ],
+            "rectangle": [
+                "border-[#B1B3B3]",
+                "border-[0.07em]",
+                "rounded-[0.15em]"
+
+            ],
+            "display": [
+                "bg-white"
+            ]
+        },
+        "slate": {
+            "button": [
+                "text-white",
+                "bg-[#006BA6]"
+            ],
+            "related_disp": [
+                "text-white",
+                "bg-[#006BA6]"
+            ],
+            "input_num": [
+                "bg-white",
+                "rounded-[0.15em]",
+                "border-b-[0.07em] border-black"
+
+            ],
+            "input_enum": [
+                
+                "bg-white",
+                "border-[0.07em]",
+                "border-black",
+                "rounded-[1em]",
+                "pl-[0.5em]"
+                
+            ],
+            "input_text": [
+                "bg-white",
+                "rounded-[0.15em]",
+                "border-b-[0.07em] border-black"
+                
+            ],
+            "text_update": [
+                "text-black"
+            ],
+            "text": [
+                "text-black"
+            ],
+            "rectangle": [
+                "border-black",
+                "border-[0.1em]",
+                "bg-[#E7F2FC]",
+                "rounded-[1em]",
+                "relative z-0"
+            ],
+            "display": [
+                "bg-[#F1F5F9]"
+            ]
+        }
+    }
+}

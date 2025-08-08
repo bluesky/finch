@@ -9,17 +9,19 @@ export const Tab: React.FC<TabProps> = ({
   removeTab,
   mainTab,
   className = "",
+  hasFileProp
 }) => {
   const { activeTab, setActiveTab } = useTabsContext();
   const isActive = activeTab === value;
   return (
     <>
-      <button
+      <div
         onClick={() => setActiveTab(value)}
         role="tab"
         aria-selected={isActive}
         aria-controls={`panel-${value}`}
         id={`tab-${value}`}
+        className="cursor-pointer"
       >
         <div
           className={`flex justify-center px-4 py-2 text-xl transition-colors duration-200 border-b-2 ${
@@ -38,14 +40,14 @@ export const Tab: React.FC<TabProps> = ({
                 removeTab(value);
               }}
               className={`ml-2  transition-colors duration-200 text-4xl  ${
-                mainTab ? "text-gray-500" : "text-white hover:text-red-500"
+                mainTab && hasFileProp ? "text-gray-500" : "text-white hover:text-red-500"
               }`}
             >
               <XCircle size={24} />
             </button>
           </div>
         </div>
-      </button>
+      </div>
     </>
   );
 };

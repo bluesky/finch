@@ -12,7 +12,7 @@ export const useTabsContext = () => {
 };
 
 interface TabManagementContextType {
-  addTab: (label: string, content: ReactNode, fileName?: string, args?: Record<string, any>) => void;
+  addTab: (label: string, content: ReactNode, fileName: string, args: Record<string, any>, scale: number) => void;
   removeTab: (tabId: string) => void;
   tabs: TabData[];
   activeTab: string;

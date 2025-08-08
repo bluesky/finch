@@ -32,3 +32,79 @@
     scrollbar-width: thin; /* Thin scrollbar */
     scrollbar-color: #cbd5e1 #f8fafc; /* Thumb color and track color */
 }
+
+.main-container {
+    display: grid;
+    height: 100vh;
+    grid-template-columns: 2fr 1fr;
+    background: white;
+    padding: 15px;
+    gap: 15px;
+
+}
+.main-header {
+    font-size: 30px;
+    color: #07304b;
+    padding: 10px;
+}
+
+.synoptic-panel {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    position: relative;
+    border: 1px solid black;
+}
+
+.synoptic-panel svg {
+
+}
+
+.synoptic-legend {
+    position: relative;
+    z-index: 10;
+    top: 16px; left: 16px;
+    background: white;
+    padding: 8px;
+    font-size: 16px;
+    width: 50%;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+
+}
+
+.beamvis-panel {
+    position: relative;
+}
+
+.beamvis-container {
+    position: absolute;
+    top:0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.synoptic-node {
+    transition: filter 0.25s ease;
+}
+.synoptic-node-icon {
+    pointer-events: none;
+}
+.synoptic-node:hover {
+    filter: brightness(1.5);
+}

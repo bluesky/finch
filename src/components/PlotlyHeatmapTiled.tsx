@@ -113,8 +113,14 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
   }, [sliderIndex]);
 
   return (
-    <div className={cn(`flex flex-col items-center gap-4 max-h-full max-w-full ${sizeClassMap[size]}`, className)}>
-      {error && <div className="text-red-600">{error}</div>}
+    <section className={cn(`flex flex-col items-center gap-4 max-h-full max-w-full p-2 rounded-md ${error ? "border-slate-400 border bg-slate-500" : "bg-white"}  ${sizeClassMap[size]}`, className)}>
+      {error && 
+        <div className="flex flex-col">
+          <h2 className="text-5xl font-medium text-center mt-24">Select image from Tiled to display as a heatmap</h2>
+          <p className="mt-12 text-sm text-center">Unable to display current url path: "{url}"</p>
+          <p className="text-sm text-center">{error}</p>
+        </div>
+      }
       <canvas ref={canvasRef} style={{ display: 'none' }} />
       {array && (
         <div className={`w-full ${shape?.length === 3 ? 'h-[calc(100%-4rem)]' : 'h-full'}`}>
@@ -141,6 +147,6 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
           <div className="text-center text-sm text-gray-600">Z-slice: {sliderIndex}</div>
         </div>
       )}
-    </div>
+    </section>
   );
 }
