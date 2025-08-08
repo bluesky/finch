@@ -11,6 +11,7 @@ type TextInputProps = {
     styles?: string;
     resetInputsTrigger?: boolean;
     copiedPlan?: CopiedPlan | null;
+    type?: string;
 };
 export default function TextInput( 
     {
@@ -21,7 +22,8 @@ export default function TextInput(
         required=false, 
         styles='', 
         resetInputsTrigger=false, 
-        copiedPlan=null
+        copiedPlan=null,
+        type='text'
     }:TextInputProps ) {
     const [inputValue, setInputValue] = useState(value);
 
@@ -30,12 +32,12 @@ export default function TextInput(
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
 
-        if (intTypeList.includes(label)) {
+        if (intTypeList.includes(label) || type==="int") {
             if (/^\d*$/.test(newValue)) {
                 setInputValue(newValue);
                 cb(newValue === '' ? '' : parseInt(newValue));
             }
-        } else if (floatTypeList.includes(label)) {
+        } else if (floatTypeList.includes(label) || type=="float") {
             if (/^\d*\.?\d*$/.test(newValue)) {
                 setInputValue(newValue);
                 cb(newValue === '' ? '' : parseFloat(newValue));

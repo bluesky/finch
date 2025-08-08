@@ -19,5 +19,5 @@ export const blankScatterData: PlotlyScatterData = {
         y: [],
         type: 'scatter',
         mode: 'lines+markers',
-        marker: { color: 'red', size: [] },
+        marker: { color: 'grey', size: [] },
 };

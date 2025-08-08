@@ -10,28 +10,32 @@ import { controllerIcons } from "@/assets/icons";
 
 export type DeviceControllerBoxProps = {
     device: Device;
+    deviceRBV?: Device;
     handleSetValueRequest: (deviceName: string, value: number) => void;
     handleLockClick: (deviceName: string) => void;
     svgIcon?: React.ReactNode;
     className?: string;
+    title?: string;
 }
 
-export default function DeviceControllerBox({ device, handleSetValueRequest, handleLockClick, svgIcon, className }: DeviceControllerBoxProps) {
+export default function DeviceControllerBox({ device, deviceRBV, handleSetValueRequest, handleLockClick, svgIcon, className, title}: DeviceControllerBoxProps) {
     if (!device) return;
     const backgroundColorClass = device.locked ? 'bg-slate-400' : 'bg-slate-100';
     const [ absoluteMoveValue, setAbsoluteMoveValue ] = useState<number | null>(null);
     const [ relativeMoveIncrement, setRelativeMoveIncrement ] = useState<number | null>(null);
     const [ isExpanded, setIsExpanded ] = useState(false);
 
-    const formattedCurrentValue = `${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units?.slice(0,3)}`;
+    const currentValue = (deviceRBV ? deviceRBV.value : device.value) as number;
+    const deviceName = deviceRBV ? deviceRBV.name : device.name;
+    const formattedCurrentValue = `${typeof currentValue === 'number' ? currentValue.toPrecision(4) : currentValue} ${device.units?.slice(0,3)}`;
     const handleIncrementClick = () => {
         if (relativeMoveIncrement !== null && typeof device.value === 'number') {
-            handleSetValueRequest(device.name, relativeMoveIncrement + device.value);
+            handleSetValueRequest(device.name, relativeMoveIncrement + currentValue);
         }
     };
     const handleDecrementClick = () => {
         if (relativeMoveIncrement !== null && typeof device.value === 'number') {
-            handleSetValueRequest(device.name, device.value - relativeMoveIncrement);
+            handleSetValueRequest(device.name, currentValue - relativeMoveIncrement);
         }
     };
 
@@ -61,7 +65,7 @@ export default function DeviceControllerBox({ device, handleSetValueRequest, han
                             />
                     }
                 </div>
-                <div className="aspect-square h-12 text-slate-600">
+                <div className="aspect-square h-20 text-slate-600">
                     {svgIcon && svgIcon}
                 </div>
                 <div 
@@ -73,14 +77,14 @@ export default function DeviceControllerBox({ device, handleSetValueRequest, han
             </div>
             {/* Row - Device Name */}
             <div className="flex justify-center items-center">
-                <p className="text-3xl text-slate-800 overflow-hidden overflow-ellipsis px-4">{device.name}</p>
+                <p className="text-3xl text-slate-800 overflow-hidden overflow-ellipsis px-4">{title ? title : device.name}</p>
             </div>
             {/* Row - Current Device Value */}
             <div className="flex justify-center items-center ">
-                <p className="text-5xl py-4 text-black">{formattedCurrentValue}</p>
+                <p className="text-5xl py-2 text-black">{formattedCurrentValue}</p>
             </div>
             {/* Row - Absolute move */}
-            <div className="flex justify-center items-center py-8 space-x-4">
+            <div className="flex justify-center items-center py-2 space-x-4">
                 <InputNumber 
                     label={device.units && device.units.slice(0,3)}
                     labelPosition='right' 
@@ -93,7 +97,8 @@ export default function DeviceControllerBox({ device, handleSetValueRequest, han
                 <Button 
                     text="set" 
                     cb={()=>absoluteMoveValue!==null && handleSetValueRequest(device.name, absoluteMoveValue)} 
-                    size="small"
+                    size="medium"
+                    styles="px-6"
                     disabled={device.locked}
                 />
 

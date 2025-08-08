@@ -19,20 +19,27 @@ const adSimDetector: DetectorSetting[] = [
         prefix: 'cam1',
         inputs: [
             {
-                suffix:"ImageMode",
+                suffix: "GainGreen_RBV",
+                label: "Gain Red",
+                type: 'float',
+                min: 0,
+                max: 100
+            },
+            {
+                suffix: "ImageMode",
                 label: "Capture Mode",
                 type: 'enum',
                 enums: ['Single', 'Multiple', 'Continuous']
             },
             {
-                suffix:"AcquireTime",
+                suffix: "AcquireTime",
                 label: "Exposure Time",
                 type: 'float',
                 min: 0.00001,
                 max: 10
             },
             {
-                suffix:"AcquirePeriod",
+                suffix: "AcquirePeriod",
                 label: "Acquire Period",
                 type: 'float',
                 min: 0.01,
@@ -55,7 +62,7 @@ const adSimDetector: DetectorSetting[] = [
                 suffix: "DataType",
                 label: "Data Type",
                 type: 'enum',
-                enums: ["Int8", "UInt8","Int16", "UInt16"]
+                enums: ["Int8", "UInt8", "Int16", "UInt16"]
             },
         ],
     },
@@ -68,7 +75,7 @@ const adSimDetector: DetectorSetting[] = [
                 suffix: "SimMode",
                 label: "Sim Mode",
                 type: 'enum',
-                enums: ["LinearRamp", "Peaks","Sine", "Offset&Noise"]
+                enums: ["LinearRamp", "Peaks", "Sine", "Offset&Noise"]
             },
             {
                 suffix: "GainRed",
@@ -154,21 +161,21 @@ const adSimDetector: DetectorSetting[] = [
     }
 ];
 
-const basler:DetectorSetting[] = [
+const basler: DetectorSetting[] = [
     {
         title: "Acquisition Settings",
         icon: null,
         prefix: 'cam1',
         inputs: [
             {
-                suffix:"AcquireTime",
+                suffix: "AcquireTime",
                 label: "Exposure Time",
                 type: 'float',
                 min: 0.00001,
                 max: 10
             },
             {
-                suffix:"AcquirePeriod",
+                suffix: "AcquirePeriod",
                 label: "Acquire Period",
                 type: 'float',
                 min: 0.01,
@@ -212,7 +219,7 @@ const basler:DetectorSetting[] = [
                 suffix: "DataType",
                 label: "Data Type",
                 type: 'enum',
-                enums: ["Int8", "UInt8","Int16", "UInt16"]
+                enums: ["Int8", "UInt8", "Int16", "UInt16"]
             },
         ],
     },
@@ -268,7 +275,7 @@ const basler:DetectorSetting[] = [
 
 
 // Add new camera IOCs to cameraDeviceData to be discoverable in the app
-const cameraDeviceData:{[key:string]: DetectorSetting[]} = {
+const cameraDeviceData: { [key: string]: DetectorSetting[] } = {
     ADSimDetector: adSimDetector,
     basler: basler
 }

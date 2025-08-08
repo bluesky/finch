@@ -24,6 +24,11 @@ const sampleData: PlotParams['data'] = [
   },
 ];
 
+const titleFont = {
+  size: 16,
+  color: '#7f7f7f'
+}
+
 export default function PlotlyScatter({
   data = sampleData,
   title,
@@ -53,18 +58,24 @@ export default function PlotlyScatter({
   }, []);
 
   return (
-    <div className={cn(`pb-4`, className)} ref={plotContainer}>
+    <div className={cn('pb-4 max-h-full', className)} ref={plotContainer}>
       <Plot
         data={data}
         layout={{
           title: title,
           xaxis: { 
-            title: xAxisTitle,
+            title: {
+              text: xAxisTitle,
+              font: titleFont
+            },
             range: xAxisRange ? xAxisRange : undefined,
             ...xAxisLayout,
           },
           yaxis: { 
-            title: yAxisTitle,
+            title: {
+              text: yAxisTitle,
+              font: titleFont
+            },
             range: yAxisRange ? yAxisRange : undefined, 
             ...yAxisLayout,
           },
@@ -72,10 +83,10 @@ export default function PlotlyScatter({
           width: dimensions.width,
           height: dimensions.height,
           margin: {
-            l: xAxisTitle ? 60 : 30,
+            l: yAxisTitle ? 60 : 50,
             r: 30,
             t: 30,
-            b: yAxisTitle ? 60 : 30,
+            b: xAxisTitle ? 70 : 30,
           },
         }}
         config={{ responsive: true }}

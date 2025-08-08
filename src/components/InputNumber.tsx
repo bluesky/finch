@@ -45,7 +45,7 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
                 value={value === null ? '' : value}
                 className={
                     cn(
-                        `w-full max-w-96 border pl-2 min-h-6 appearance-none bg-transparent
+                        `w-full max-w-96 border pl-2 min-h-6 appearance-none bg-white
                         ${isWarningVisible ? 'border-red-500' : 'border-slate-300'}
                         ${disabled && 'hover:cursor-not-allowed'}
                         `,
