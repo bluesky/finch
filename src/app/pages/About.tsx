@@ -36,6 +36,14 @@ const App: React.FC = () => {
     return () => { if (moveEndTimeoutRef.current) clearTimeout(moveEndTimeoutRef.current); };
   }, [devices, motionState.isMoving]);
 
+  const initiateMove = (objectId: string, startPosition: THREE.Vector3) => {
+    setMotionState({
+      isMoving: true,
+      objectId: objectId,
+      startPosition: startPosition,
+    });
+  };
+
   return (
     <>
       <div className='main-container'>
