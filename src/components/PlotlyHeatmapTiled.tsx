@@ -13,6 +13,7 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
   const [error, setError] = useState<string | null>(null);
   const [sliderIndex, setSliderIndex] = useState<number>(0);
   const [shape, setShape] = useState<number[] | null>(null);
+  const [ metadata, setMetadata ] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const sizeClassMap = {
@@ -21,11 +22,11 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
     large: 'w-[1000px] h-[1200px]',
 };
 
-  const fetchAndDecodePNG = async (zIndex: number, baseUrl: string) => {
+  const fetchAndDecodePNG = async (zIndex: number | null, baseUrl: string) => {
     try {
       setError(null);
 
-      const sliceUrl = `${baseUrl}?format=image/png&slice=${zIndex},::1,::1`;
+      const sliceUrl = `${baseUrl}?format=image/png&slice=${zIndex === null ? "::1,::1" : zIndex + ',::1,::1'}`;
 
       const response = await fetch(sliceUrl);
       if (!response.ok) throw new Error('Failed to fetch PNG image');
@@ -76,6 +77,9 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Failed to load PNG slice: ${msg}`);
+      setArray(null);
+      setSliderIndex(0); // Reset slider index on error
+      setShape(null); // Reset shape on error
     }
   };
 
@@ -86,14 +90,21 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
         const json = await resp.json();
         const shape = json.data?.attributes?.structure?.shape;
         const fullUrl = json.data?.links?.full;
+        setMetadata(json.data);
 
         if (!shape || !fullUrl) throw new Error('Invalid metadata response');
 
         setShape(shape);
-        fetchAndDecodePNG(0, fullUrl); // load first image
+        if (shape.length === 2) {
+          //2d image
+          fetchAndDecodePNG(null, fullUrl); // load first image
+        } else {
+          fetchAndDecodePNG(0, fullUrl); // load first z-slice
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setError(`Failed to load metadata: ${msg}`);
+        setArray(null);
       }
     };
 
@@ -123,16 +134,19 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
       }
       <canvas ref={canvasRef} style={{ display: 'none' }} />
       {array && (
-        <div className={`w-full ${shape?.length === 3 ? 'h-[calc(100%-4rem)]' : 'h-full'}`}>
-          <PlotlyHeatmap
-            array={array}
-            lockPlotHeightToParent={true}
-            lockPlotWidthHeightToInputArray={true}
-            colorScale='Viridis'
-            showTicks={false}
-            showScale={true}
-            />
-        </div>
+        <>
+          <h3 className="h-8 text-sky-900 text-ellipsis">{metadata?.id}</h3>
+          <div className={`w-full ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}>
+            <PlotlyHeatmap
+              array={array}
+              lockPlotHeightToParent={true}
+              lockPlotWidthHeightToInputArray={false}
+              colorScale='Viridis'
+              showTicks={false}
+              showScale={true}
+              />
+          </div>
+        </>
       )}
       {shape?.length === 3 && (
         <div className="w-full px-8 h-12">
@@ -144,7 +158,7 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
             onChange={(e) => setSliderIndex(Number(e.target.value))}
             className="w-full"
           />
-          <div className="text-center text-sm text-gray-600">Z-slice: {sliderIndex}</div>
+          <div className="text-center text-sm text-gray-600">Z-slice: {sliderIndex} of {shape[0] - 1}</div>
         </div>
       )}
     </section>

@@ -1,16 +1,26 @@
 import { Meta } from "@storybook/blocks";
 import FinchBannerLarge from "./assets/finchBannerLarge.png";
-import FinchArchitecture from "./assets/finchArchitecture.png";
-import FinchCompatibility from "./assets/finchCompatibility.png";
-import FinchConstruction from "./assets/finchConstruction.png";
-import FinchCommunication from "./assets/finchCommunication.png";
+import FinchArchitecture from "./assets/FinchArchitecture.png";
+import FinchCompatibility from "./assets/FinchCompatibility.png";
+import FinchConstruction from "./assets/FinchConstruction.png";
+import FinchCommunication from "./assets/FinchCommunication.png";
+import github from "./assets/github.svg";
+import blueskyLogo from "./assets/blueskyLogo.png"
 
 
 
 <Meta title="About" />
 <div className="mainContainer">
+  <aside className="cornerAbsolute">
+    <a href="https://github.com/bluesky/finch" target="_blank" rel="noopener noreferrer" className="cornerImage">
+      <img src={github} alt="github logo"  />
+    </a>
+    <a href="https://blueskyproject.io/" target="_blank" rel="noopener noreferrer" className="cornerImage blueskyCloudSize">
+      <img src={blueskyLogo} alt="bluesky cloud logo"  />
+    </a>
+  </aside>
   <img src={FinchConstruction} alt="bird logo" className="banner" />
-  <p>Finch UI is a set of web components for beamline controls, analysis, and data acquisition. It relies on Bluesky for backend services that integrate with your beamline. Our primary goal is to make it easier to provide Bluesky functionality to end users through convenient web browser interfaces.</p>
+  <p>[Finch UI](https://github.com/bluesky/finch) is a set of web components for beamline controls, analysis, and data acquisition. It relies on [Bluesky](https://blueskyproject.io/) for backend services that integrate with your beamline. Our primary goal is to make it easier to provide Bluesky functionality to end users through convenient web browser interfaces.</p>
   
   <section className=""> 
     <h2 className="">Bluesky Integration</h2>
@@ -46,6 +56,35 @@ import FinchCommunication from "./assets/finchCommunication.png";
     display: flex;
     gap: 2rem;
     flex-direction: column;
+    position: relative;
+  }
+
+  .cornerAbsolute {
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-left: 2rem;
+    padding-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+
+  .cornerImage {
+    aspect-ratio: auto;
+    width: 2rem;
+  }
+
+  .cornerImage:hover {
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
+  .blueskyCloudSize {
+    width: 2.5rem;
   }
 
   section {

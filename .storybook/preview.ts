@@ -21,9 +21,7 @@ const preview: Preview = {
         order: [
           "About",
           "Documentation",
-          "Bluesky Components", 
-          "Layout Components",
-          "General Components", [
+          "Bluesky Components",  [
             'ReactEDM', [
               '*',
               'Developer Notes', [
@@ -32,6 +30,8 @@ const preview: Preview = {
               ]
             ]
           ],
+          "Layout Components",
+          "General Components",
         ],
       },
     },

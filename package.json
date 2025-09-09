@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static"
+    "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
+    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build"
   },
   "files": [
     "dist"
@@ -28,6 +29,7 @@
   "main": "./dist/finch.umd.js",
   "module": "./dist/finch.es.js",
   "dependencies": {
+    "@blueskyproject/tiled": "^0.0.14",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
@@ -53,7 +55,6 @@
     "@eslint/js": "^9.17.0",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
-    "@storybook/addon-onboarding": "^8.4.7",
     "@storybook/blocks": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import Tiled from '../components/Tiled/Tiled';
+import TiledWrapper from '../components/Tiled/Tiled';
+import '@blueskyproject/tiled/style.css'; // Import the Tiled styles
 
 // const mockTiledResponse = {
 //     "data": [
@@ -262,43 +263,14 @@ import Tiled from '../components/Tiled/Tiled';
 
 const meta = {
     title: 'Bluesky Components/Tiled',
-    component: Tiled,
+    component: TiledWrapper,
     parameters: {
       layout: 'centered',
-    //   msw: {
-    //     handlers: [
-    //       http.get('http://127.0.0.1:8000/api/v1/search/', () => {
-    //         return HttpResponse.json(mockTiledResponse, { status: 200 });
-    //       }),
-    //       http.get('http://127.0.0.1:8000/api/v1/search/sampleFolder', () => {
-    //         return HttpResponse.json(mockTiledResponseFolder, { status: 200 });
-    //       }),
-    //       http.get(
-    //         'http://127.0.0.1:8000/api/v1/array/full/sampleFolder/image',
-    //         async () => {
-    //           try {
-    //             const imageRes = await fetch('/images/als_logo_wheel.png'); // same-origin relative path
-    //             const arrayBuffer = await imageRes.arrayBuffer();
-          
-    //             return new HttpResponse(arrayBuffer, {
-    //               status: 200,
-    //               headers: {
-    //                 'Content-Type': 'image/png',
-    //               },
-    //             });
-    //           } catch (err) {
-    //             console.error('Failed to fetch image:', err);
-    //             return new HttpResponse('Image fetch failed', { status: 500 });
-    //           }
-    //         }
-    //       ),
-    //     ],
-    //   }
     },
     tags: ['autodocs'],
     argTypes: {
     }
-} satisfies Meta<typeof Tiled>;
+} satisfies Meta<typeof TiledWrapper>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -306,9 +278,19 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Primary: Story = {
   args: {
+    reverseSort: false,
     enableStartupScreen: false,
     size: 'medium',
-    tiledBaseUrl: 'https://tiled-demo.blueskyproject.io/api/v1'
+    tiledBaseUrl: 'https://tiled-demo.blueskyproject.io/api/v1',
+    onSelectCallback: (links) => console.log('Selected Tiled link:', links.self),
+    isButtonMode: false,
+    isPopup: false,
+    singleColumnMode: false,
+    isFullWidth: false,
+    buttonModeText: undefined,
+    apiKey: undefined,
+    bearerToken: undefined,
+    closeOnSelect: false,
   },
 };
 
@@ -322,6 +304,15 @@ export const CustomUrl: Story = {
     args: {
       enableStartupScreen: true,
       size: 'medium',
+    },
+  };
+
+  export const ButtonMode: Story = {
+    args: {
+      isButtonMode: true,
+      size: 'medium',
+      tiledBaseUrl: 'https://tiled-demo.blueskyproject.io/api/v1',
+      reverseSort: false,
     },
   };
 
