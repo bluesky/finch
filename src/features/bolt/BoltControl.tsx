@@ -14,17 +14,17 @@ export default function BoltControl() {
     return (
         <Bento>
             <div className="flex flex-col gap-8 flex-shrink-0 h-full justify-start">
-                <DeviceControllerBox 
-                    device={devices['IOC:m1']} 
-                    handleSetValueRequest={handleSetValueRequest} 
-                    handleLockClick={toggleDeviceLock} 
+                <DeviceControllerBox
+                    device={devices['IOC:m1']}
+                    handleSetValueRequest={handleSetValueRequest}
+                    handleLockClick={toggleDeviceLock}
                     svgIcon={deviceIcons.stepperMotor}
                     className="shadow-xl"
                 />
-                <DeviceControllerBox 
-                    device={devices['IOC:m2']} 
-                    handleSetValueRequest={handleSetValueRequest} 
-                    handleLockClick={toggleDeviceLock} 
+                <DeviceControllerBox
+                    device={devices['IOC:m2']}
+                    handleSetValueRequest={handleSetValueRequest}
+                    handleLockClick={toggleDeviceLock}
                     svgIcon={deviceIcons.stepperMotor}
                     className="shadow-xl"
                 />

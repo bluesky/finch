@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static"
+    "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
+    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build"
   },
   "files": [
     "dist"
@@ -28,16 +29,21 @@
   "main": "./dist/finch.umd.js",
   "module": "./dist/finch.es.js",
   "dependencies": {
+    "@blueskyproject/tiled": "^0.0.14",
     "@phosphor-icons/react": "^2.1.7",
+    "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-slot": "^1.2.3",
     "@storybook/addons": "^7.6.17",
     "@storybook/theming": "^8.6.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.487.0",
     "react-router-dom": "^6.30.0",
-    "tailwind-merge": "^3.2.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7",
+    "three": "^0.178.0"
   },
   "peerDependencies": {
     "react": ">16.8.x",
@@ -49,15 +55,16 @@
     "@eslint/js": "^9.17.0",
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
-    "@storybook/addon-onboarding": "^8.4.7",
     "@storybook/blocks": "^8.4.7",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
+    "@types/d3-shape": "^3.1.7",
     "@types/node": "^22.14.0",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
     "@types/react-plotly.js": "^2.6.3",
+    "@types/three": "^0.178.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.9",

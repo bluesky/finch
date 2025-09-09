@@ -68,6 +68,16 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
 
     // Initialize WebSocket connection
     useEffect(() => {
+        // Don't connect if no devices to subscribe to
+        if (deviceNameList.length === 0) {
+            // Close existing connection if devices list becomes empty
+            if (wsRef.current) {
+                wsRef.current.close();
+                wsRef.current = null;
+            }
+            return;
+        }
+
         console.log('initializing WebSocket connection');
         const ws = new WebSocket(apiUrl);
         wsRef.current = ws;

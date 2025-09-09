@@ -22,6 +22,10 @@ export interface TabProps {
   removeTab: (tabId: string) => void
   mainTab?: boolean;
   className?: string;
+<<<<<<< HEAD
+  hasFileProp: boolean;
+=======
+>>>>>>> main
 }
 
 export interface TabsPanelProps {
@@ -37,4 +41,8 @@ export interface TabData {
   fileName?: string;
   args?: Record<string, any>;
   isMainTab?: boolean;
+<<<<<<< HEAD
+  scale: number;
+=======
+>>>>>>> main
 }
