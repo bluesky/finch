@@ -81,7 +81,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         console.log('initializing WebSocket connection');
         const ws = new WebSocket(apiUrl);
         wsRef.current = ws;
-
+        if(ws)
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
             console.log('WebSocket connection opened');
