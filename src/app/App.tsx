@@ -1,7 +1,6 @@
 import './App.css';
 import About from './pages/About';
 import ContainerQServer from '@/components/QServer/ContainerQServer';
-import Tiled from '../components/Tiled/Tiled';
 import HubAppLayout from '@/components/HubAppLayout';
 import BoltControl from '@/features/bolt/BoltControl';
 import Paper from '@/components/Paper';
@@ -9,6 +8,7 @@ import BL531Control from './pages/BL531Control';
 import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
 import CameraPage from './pages/Camera';
 import { deviceIcons } from "@/assets/icons";
+import '@blueskyproject/tiled/style.css';
 
 
 import { RouteItem } from '@/types/navigationRouterTypes';
