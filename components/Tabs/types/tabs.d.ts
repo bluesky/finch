@@ -18,6 +18,7 @@ export interface TabProps {
     removeTab: (tabId: string) => void;
     mainTab?: boolean;
     className?: string;
+    hasFileProp: boolean;
 }
 export interface TabsPanelProps {
     value: string;
@@ -31,5 +32,6 @@ export interface TabData {
     fileName?: string;
     args?: Record<string, any>;
     isMainTab?: boolean;
+    scale: number;
 }
 //# sourceMappingURL=tabs.d.ts.map

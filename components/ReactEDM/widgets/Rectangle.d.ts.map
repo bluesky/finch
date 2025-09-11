@@ -1,0 +1,1 @@
+{"version":3,"file":"Rectangle.d.ts","sourceRoot":"","sources":["../../../../src/components/ReactEDM/widgets/Rectangle.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAA;AAKzB,MAAM,WAAW,cAAc;IAC7B,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,CAAC,GAAG,EAAE,MAAM,GAAG,GAAG,CAAC;CACpB;AAED,QAAA,MAAM,SAAS,EAAE,KAAK,CAAC,EAAE,CAAC,cAAc,CAWvC,CAAA;AAED,eAAe,SAAS,CAAA"}

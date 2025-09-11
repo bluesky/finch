@@ -8,7 +8,7 @@ declare const meta: {
     parameters: {
         layout: string;
     };
-    decorators: ((Story: import('@storybook/csf').PartialStoryFn<import('@storybook/react').ReactRenderer, {
+    decorators: ((Story: import('@storybook/core/csf').PartialStoryFn<import('@storybook/react').ReactRenderer, {
         routes: RouteItem[];
         headerTitle?: string | undefined;
         headerTitleClassName?: string | undefined;

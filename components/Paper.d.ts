@@ -5,5 +5,5 @@ export type PaperProps = {
     className?: string;
     children?: React.ReactNode;
 };
-export default function Paper({ size, rounded, title, className, children }: PaperProps): import("react/jsx-runtime").JSX.Element;
+export default function Paper({ size, rounded, title, className, children }: PaperProps): void;
 //# sourceMappingURL=Paper.d.ts.map

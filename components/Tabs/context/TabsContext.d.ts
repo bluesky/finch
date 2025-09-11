@@ -3,7 +3,7 @@ import { TabData, TabsContextType } from '../types/tabs';
 export declare const TabsContext: import('../../../../node_modules/react').Context<TabsContextType | undefined>;
 export declare const useTabsContext: () => TabsContextType;
 interface TabManagementContextType {
-    addTab: (label: string, content: ReactNode, fileName?: string, args?: Record<string, any>) => void;
+    addTab: (label: string, content: ReactNode, fileName: string, args: Record<string, any>, scale: number) => void;
     removeTab: (tabId: string) => void;
     tabs: TabData[];
     activeTab: string;

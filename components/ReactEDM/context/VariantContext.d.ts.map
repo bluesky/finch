@@ -1,0 +1,1 @@
+{"version":3,"file":"VariantContext.d.ts","sourceRoot":"","sources":["../../../../src/components/ReactEDM/context/VariantContext.tsx"],"names":[],"mappings":"AACA,OAAc,EAA6B,SAAS,EAAE,MAAM,OAAO,CAAC;AAEpE,UAAU,kBAAkB;IAC1B,OAAO,EAAE,MAAM,CAAC;CACjB;AAID,eAAO,MAAM,eAAe,0BAGzB;IACD,QAAQ,EAAE,SAAS,CAAC;IACpB,OAAO,EAAE,MAAM,CAAC;CACjB,4CAMA,CAAC;AAEF,eAAO,MAAM,UAAU,0BAMtB,CAAC"}

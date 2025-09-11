@@ -1,0 +1,1 @@
+{"version":3,"file":"MockContext.d.ts","sourceRoot":"","sources":["../../../../src/components/ReactEDM/context/MockContext.tsx"],"names":[],"mappings":"AACA,OAAc,EAA6B,SAAS,EAAE,MAAM,OAAO,CAAC;AAEpE,UAAU,eAAe;IACvB,IAAI,EAAE,OAAO,CAAC;CACf;AAID,eAAO,MAAM,YAAY,uBAGtB;IACD,QAAQ,EAAE,SAAS,CAAC;IACpB,IAAI,EAAE,OAAO,CAAC;CACf,4CAMA,CAAC;AAEF,eAAO,MAAM,OAAO,uBAMnB,CAAC"}

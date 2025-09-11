@@ -1,0 +1,1 @@
+window.location.pathname.startsWith("/finch");const o={parameters:{controls:{matchers:{color:/(background|color)$/i,date:/Date$/i}},options:{storySort:{order:["About","Documentation","Bluesky Components",["ReactEDM",["*","Developer Notes",["Home","Components"]]],"Layout Components","General Components"]}}},loaders:[]};export{o as default};
