@@ -37,7 +37,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, motionState }
     [nodes]
   );
 
-  const { devices } = useOphydSocket(WS_URL, PV_LIST);
+  const { devices } = useOphydSocket(PV_LIST, WS_URL);
   const [activePV, setActivePV] = useState<string | null>(null);
 
   // const deviceMap = useMemo(

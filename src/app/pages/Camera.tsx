@@ -1,5 +1,5 @@
 import CameraContainer from "@/components/Camera/CameraContainer";
-import ADLController from "@/components/ADLController/ADLController";
+import ReactEDM from "@/components/ReactEDM/ReactEDM";
 export default function Camera() {
     return (
         <div className="flex flex-wrap items-start justify-center gap-16">
@@ -8,7 +8,7 @@ export default function Camera() {
                 <CameraContainer prefix="Basler5472" enableControlPanel={true} enableSettings={false} canvasSize="medium"/>
             </div>
             <div className="w-fit">
-                <ADLController P="Basler5472" R="cam1" fileName="ADBase.adl" />
+                <ReactEDM P="Basler5472" R="cam1" fileName="ADBase.adl" />
             </div>
         </div>
     )
