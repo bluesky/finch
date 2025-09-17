@@ -7,6 +7,11 @@ declare const meta: {
     tags: string[];
     parameters: {
         layout: string;
+        docs: {
+            description: {
+                component: string;
+            };
+        };
     };
     decorators: ((Story: import('@storybook/core/csf').PartialStoryFn<import('@storybook/react').ReactRenderer, {
         routes: RouteItem[];
@@ -18,6 +23,18 @@ declare const meta: {
         sidebarClassName?: string | undefined;
         sidebarActiveLinkClassName?: string | undefined;
         sidebarInactiveLinkClassName?: string | undefined;
+        className?: string | undefined;
+    }>, { args }: import('@storybook/core/csf').StoryContext<import('@storybook/react').ReactRenderer, {
+        routes: RouteItem[];
+        headerTitle?: string | undefined;
+        headerTitleClassName?: string | undefined;
+        headerLogoUrl?: string | undefined;
+        mainContentClassName?: string | undefined;
+        headerClassName?: string | undefined;
+        sidebarClassName?: string | undefined;
+        sidebarActiveLinkClassName?: string | undefined;
+        sidebarInactiveLinkClassName?: string | undefined;
+        className?: string | undefined;
     }>) => import("react/jsx-runtime").JSX.Element)[];
 };
 export default meta;

@@ -1,4 +1,2 @@
-import { default as React } from '../../../node_modules/react';
-declare const App: React.FC;
-export default App;
+export default function About(): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=About.d.ts.map
