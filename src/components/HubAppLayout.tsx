@@ -15,6 +15,7 @@ export type HubAppLayoutProps = {
     sidebarClassName?: string;
     sidebarActiveLinkClassName?: string;
     sidebarInactiveLinkClassName?: string;
+    className?: string;
     }
 export default function HubAppLayout ( {
     routes,
@@ -25,11 +26,12 @@ export default function HubAppLayout ( {
     headerTitleClassName,
     sidebarClassName,
     sidebarActiveLinkClassName,
-    sidebarInactiveLinkClassName
+    sidebarInactiveLinkClassName,
+    className
   }: HubAppLayoutProps) {
 
 return (
-    <div className="grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen">
+    <div className={cn("grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen", className)}>
         <HubSidebar 
             routes={routes}
             className={sidebarClassName} 

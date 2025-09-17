@@ -1,34 +1,12 @@
-import { useNavigate } from "react-router";
-
-import Paper from "@/components/Paper";
-import PlotlyScatter from "@/components/PlotlyScatter";
-import SignalMonitorPlot from "@/components/SignalMonitorPlot";
-import Plot, { PlotParams } from 'react-plotly.js';
-import ADLView from "@/components/ADLController/ADLView";
-import { cameraDeviceData } from "@/components/Camera/utils/cameraDeviceData";
-import CameraContainer from "@/components/Camera/CameraContainer";
-import ADLController from "@/components/ADLController/ADLController";
-import Beamstop from "@/features/Beamstop";
-
-
-
 export default function About() {
-
-    const navigate = useNavigate();
-    const data: PlotParams["data"] = [{
-        x: [1, 2, 3],
-        y: [2, 6, 3],
-        type: 'scatter',
-        mode: 'lines+markers',
-        marker: { color: 'red' },
-    }];
-
-    
-    return (
-
-        <>
-        <Beamstop stackVertical={false} enableBestOption={true} beamstopXTitle="Beamstop - X" beamstopYTitle="Beamstop - Y" beamstopCurrentName="bl201-beamstop:current" beamstopXName="bl531_xps2:beamstop_x_mm" beamstopYName="bl531_xps2:beamstop_y_mm" />  
-        </>
-        
-    )
+  return (
+    <div className="p-4 text-slate-100">
+      <h1 className="text-2xl font-bold mb-4">About Finch</h1>
+      <p className="mb-2">
+        Finch is an open-source library of Bluesky enabled React components designed to facilitate the development of scientific web applications.
+      </p>
+      <p>Github <a className="text-blue-400 underline hover:cursor-pointer" href="https://github.com/bluesky/finch">here</a></p>
+      <p>Interactive Storybook Documentation <a className="text-blue-400 underline hover:cursor-pointer" href="https://blueskyproject.io/finch">here</a></p>
+    </div>
+  );
 }

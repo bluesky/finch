@@ -8,7 +8,7 @@ export type HubHeaderProps = {
     className?: string;
     titleClassName?: string;
 }
-export default function HubHeader({title="ALS COMPUTING HUB", logoUrl=alsLogo, className, titleClassName}: HubHeaderProps) {
+export default function HubHeader({title="BEAMLINE APP", logoUrl="https://img.icons8.com/?size=100&id=11743&format=png&color=000000", className, titleClassName}: HubHeaderProps) {
     return (
     <header className={cn("bg-white h-16 flex justify-between items-center", className)}>
         <div className="flex items-center space-x-6 ml-6">
