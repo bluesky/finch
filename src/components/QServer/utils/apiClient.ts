@@ -35,8 +35,19 @@ const getQServerKey = () => {
 
 
 const getHttpServerUrl = () => {
-
-   const httpUrl = 'api/qserver';
+    const currentWebsiteIP = window.location.hostname;
+    const currentWebsitePort = window.location.port;
+    const port = ":60610";
+    var httpUrl;
+    if (import.meta.env.VITE_QSERVER_API_URL) {
+        httpUrl = import.meta.env.VITE_QSERVER_API_URL
+    } else {
+        if (import.meta.env.VITE_PROXY_WS === 'false') {
+            httpUrl = "ws://" + currentWebsiteIP + port; //default when ran locally
+        } else {
+            httpUrl=`ws://${currentWebsiteIP}:${currentWebsitePort}/api/qserver/console` //reverse proxy, does not work with React live dev server
+        }
+    }
     return httpUrl;
 };
 
@@ -45,12 +56,12 @@ const getQSConsoleUrl = () => {
         //having an env variable would be for developers running React on a separate workstation from fastAPI
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    const pathname = "/queue_server";
-    const port = ":8000";
+    const pathname = "/api/v1/qs-console-socket";
+    const port = ":8001";
     var wsUrl;
 
-    if (import.meta.env.VITE_QS_CONSOLE_URL) {
-        wsUrl = import.meta.env.VITE_QS_CONSOLE_URL;
+    if (import.meta.env.VITE_QS_WS) {
+        wsUrl = import.meta.env.VITE_QS_WS;
     } else {
         if (import.meta.env.VITE_PROXY_WS === 'false') {
             wsUrl = "ws://" + currentWebsiteIP + port + pathname; //default when ran locally
