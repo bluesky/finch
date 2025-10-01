@@ -12,7 +12,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
     const path = 'pv-socket'
-    const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_OPHYD_WS ? `${import.meta.env.VITE_OPHYD_WS}/${path}` : `ws://${address}:${apiPort}/api/v1/${path}`);
+    const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_PV_WS ? `${import.meta.env.VITE_PV_WS}` : `ws://${address}:${apiPort}/api/v1/${path}`);
     const [devices, setDevices] = useState<Devices>({});
     const wsRef = useRef<WebSocket | null>(null);
     // Toggle device lock
