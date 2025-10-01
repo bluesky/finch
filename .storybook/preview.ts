@@ -20,7 +20,10 @@ const preview: Preview = {
       storySort: {
         order: [
           "About",
-          "Documentation",
+          "Documentation", [
+            "Installation",
+            "BackendSetup",
+          ],
           "Bluesky Components",  [
             'ReactEDM', [
               '*',

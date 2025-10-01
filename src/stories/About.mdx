@@ -11,7 +11,7 @@ import blueskyLogo from "./assets/blueskyLogo.png"
 
 <Meta title="About" />
 <div className="mainContainer">
-  <aside className="cornerAbsolute">
+  <aside className="cornerAbsolute hideOnMobile">
     <a href="https://github.com/bluesky/finch" target="_blank" rel="noopener noreferrer" className="cornerImage">
       <img src={github} alt="github logo"  />
     </a>
@@ -38,8 +38,13 @@ import blueskyLogo from "./assets/blueskyLogo.png"
 
 <style>
 {`
+  img {
+    max-width: 80%;
+  }
+
   .banner {
-    max-width: 650px;
+    width: 650px;
+    max-width: 80%;
     margin: auto;
     margin-top: 1rem;
     margin-bottom: 1rem;
@@ -91,6 +96,22 @@ import blueskyLogo from "./assets/blueskyLogo.png"
     margin-top: 2rem;
     margin-bottom: 2rem;
   }
+
+
+  @media only screen and (max-width: 600px) {
+  .banner {
+    margin-top: 0;
+    max-width:100%;
+  }
+
+  .hideOnMobile {
+    display: none;
+  }
+}
+
+
+
+
 `}
 </style>
 
