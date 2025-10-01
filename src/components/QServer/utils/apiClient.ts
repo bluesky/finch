@@ -26,10 +26,9 @@ import {
     PostItemRemoveResponse} from '../types/apiTypes';
 
 const getQServerKey = () => {
-    //todo: fix this so it works for vite
     var key;
     const defaultKey = 'test';
-    key = import.meta.env.VITE_QSERVER_KEY || defaultKey;
+    key = import.meta.env.VITE_QSERVER_API_KEY || defaultKey;
     return key;
 }
 
@@ -60,8 +59,8 @@ const getQSConsoleUrl = () => {
     const port = ":8001";
     var wsUrl;
 
-    if (import.meta.env.VITE_QS_WS) {
-        wsUrl = import.meta.env.VITE_QS_WS;
+    if (import.meta.env.VITE_QSERVER_WS) {
+        wsUrl = import.meta.env.VITE_QSERVER_WS;
     } else {
         if (import.meta.env.VITE_PROXY_WS === 'false') {
             wsUrl = "ws://" + currentWebsiteIP + port + pathname; //default when ran locally
