@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
 
   const qserverRest = env.VITE_QSERVER_REST?.trim() || 'http://localhost:60610';
   const qserverWs = env.VITE_QSERVER_WS?.trim() || 'ws://localhost:8001/api/v1/qs-console-socket';
-  const cameraWs = env.VITE_CAMERA_WS?.trim() || 'ws://localhost:8000/pvcamera';
+  const cameraWs = env.VITE_CAMERA_WS?.trim() || 'ws://localhost:8001/api/v1/camera-socket';
 
   return {
     define: {

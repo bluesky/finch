@@ -5,12 +5,11 @@ export const getDefaultCameraUrl = () => {
 
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    const pathname = "/pvcamera";
     var wsUrl;
 
     try {
-        if (import.meta.env.REACT_APP_CAMERA_URL) {
-            wsUrl = import.meta.env.REACT_APP_CAMERA_URL; //custom
+        if (import.meta.env.VITE_CAMERA_WS) {
+            wsUrl = import.meta.env.VITE_CAMERA_WS; //custom
         } else {
             wsUrl=`ws://${currentWebsiteIP}:${currentWebsitePort}/api/camera` //default reverse proxy
         }
