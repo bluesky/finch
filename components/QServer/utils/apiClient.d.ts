@@ -1,5 +1,5 @@
 import { AddQueueItemBody, GetQueueResponse, GetHistoryResponse, GetStatusResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, PostItemAddResponse, ExecuteQueueItemBody, PostItemExecuteResponse, PostEnvironmentOpenResponse, GetQueueItemResponse, RemoveQueueItemBody, PostItemRemoveResponse } from '../types/apiTypes';
-declare const getQSConsoleUrl: () => string;
+declare const getQSConsoleUrl: () => any;
 declare const getQueue: (cb: (data: GetQueueResponse) => void, mock?: boolean) => Promise<void>;
 declare const getQueueHistory: (cb: (data: GetHistoryResponse) => void, mock?: boolean) => Promise<void>;
 declare const getStatus: (cb: (data: GetStatusResponse) => void, mock?: boolean) => Promise<void>;
