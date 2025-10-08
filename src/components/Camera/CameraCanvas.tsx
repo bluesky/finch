@@ -8,13 +8,15 @@ export type CameraCanvasProps = {
     sizePVs?: {[key:string]: string};
     canvasSize?: CanvasSizes;
     prefix?: string;
+    wsUrl?:string;
 }
 export default function CameraCanvas(
     {
         imageArrayPV='', 
         sizePVs={}, 
         canvasSize='medium',
-        prefix=''
+        prefix='',
+        wsUrl
     }: CameraCanvasProps) 
     {
         //console.log('render canvas')
@@ -119,10 +121,8 @@ export default function CameraCanvas(
     
 
         try {
-            var wsUrl = getDefaultCameraUrl();
-            //ws.current = new WebSocket('ws://localhost:8000/pvws/pv');
-            //ws.current = new WebSocket('ws://localhost/api/camera');
-            ws.current = new WebSocket(wsUrl);
+            var url = wsUrl ? wsUrl : getDefaultCameraUrl();
+            ws.current = new WebSocket(url);
         } catch (error) {
             console.log({error});
             return;

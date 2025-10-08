@@ -25,7 +25,9 @@ export type CameraContainerProps = {
         sizeY_pv: string;
         colorMode_pv: string;
         dataType_pv: string;
-    }
+    },
+    cameraImageWsUrl?:string,
+    cameraControlWsUrl?:string
 }
 export default function CameraContainer(
     {
@@ -36,23 +38,11 @@ export default function CameraContainer(
         enableControlPanel=true, 
         enableSettings=true, 
         canvasSize='medium',
-        sizePVs,  
+        sizePVs,
+        cameraImageWsUrl,
+        cameraControlWsUrl  
     }: CameraContainerProps) 
     {
-
-    // const {
-    //     cameraControlPV,
-    //     cameraSettingsPVs,
-    //     onSubmitControl,
-    //     onSubmitSettings,
-    //     startAcquire,
-    //     stopAcquire 
-    // } = useCamera({prefix, settings, enableControlPanel, enableSettings});
-
-
-    // refactor here, use ophyd socket instead of the previous custom hook that used PV Web Socket
-        console.log({settings})
-
 
     const sanitizeInputPrefix = (prefix:string) => {
         var santizedPrefix = '';
@@ -97,9 +87,6 @@ export default function CameraContainer(
     };
 
 
-
-
-
     if (customSetup) {
         return (
             <div className="w-full">
@@ -110,16 +97,12 @@ export default function CameraContainer(
         var deviceNames = useMemo(()=>createDeviceNameArray(settings, prefix), []);
     
     
-        //we need a ws just for the control PV, since a user may only want that one
-        //we need another ws just for the settings PVs, in case the user wants those options.
-        //or can we just combine them into one?
-    
         const {
             handleSetValueRequest,
             devices,
             toggleExpand,
             toggleDeviceLock
-        } = useOphydSocket(deviceNames);
+        } = useOphydSocket(deviceNames, cameraControlWsUrl);
     
         const startAcquire = useCallback( () => {
             handleSetValueRequest(`${prefix}:cam1:Acquire`, 1);
@@ -130,14 +113,13 @@ export default function CameraContainer(
         }, [])
     
         const onSubmitSettings = useCallback(handleSetValueRequest, []);
-        console.log({devices})
     
         const cameraControlPV = devices[`${prefix}:cam1:Acquire`];
 
         return (
             <div className="w-full h-full flex flex-wrap space-x-4 items-start justify-center">
                 <div className="flex flex-col flex-shrink-0 items-center">
-                    <CameraCanvas imageArrayPV={imageArrayPV} canvasSize={canvasSize} sizePVs={sizePVs} prefix={prefix}/>
+                    <CameraCanvas imageArrayPV={imageArrayPV} canvasSize={canvasSize} sizePVs={sizePVs} prefix={prefix} wsUrl={cameraImageWsUrl}/>
                     { enableControlPanel ? <CameraControlPanel cameraControlPV={cameraControlPV} startAcquire={startAcquire} stopAcquire={stopAcquire}/> : ''}
                 </div>
                 <div className='overflow-x-auto overflow-y-auto'>

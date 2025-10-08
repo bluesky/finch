@@ -29,19 +29,6 @@ export default function CameraControlPanel({ cameraControlPV, startAcquire, stop
         "nanos": 563411000
     }
     
-    // const JSONDisplay = () => {
-    //     return (
-    //         <div>
-    //             <p className="text-xl underline">Mapped values</p>
-    //             <ul>
-    //                 {Object.keys(cameraControlPV).map((key) => <li key={key}>{key}: {cameraControlPV[key]}</li>)}
-    //             </ul>
-    //             <p className="text-xl underline"> Converted JSON</p>
-    //             <pre className="text-sm">{JSON.stringify(cameraControlPV, null, 2)}</pre>
-    //         </div>
-    //     )
-    // }
-    console.log({cameraControlPV})
 
     if (!cameraControlPV) return;
 
