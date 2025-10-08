@@ -33,7 +33,7 @@ const getQServerKey = () => {
 }
 
 
-const getHttpServerUrl = () => {
+const getQueueServerApiUrl = () => {
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
     const port = ":60610";
@@ -42,9 +42,9 @@ const getHttpServerUrl = () => {
         httpUrl = import.meta.env.VITE_QSERVER_API_URL
     } else {
         if (import.meta.env.VITE_PROXY_WS === 'false') {
-            httpUrl = "ws://" + currentWebsiteIP + port; //default when ran locally
+            httpUrl = "http://" + currentWebsiteIP + port; //default when ran locally
         } else {
-            httpUrl=`ws://${currentWebsiteIP}:${currentWebsitePort}/api/qserver/console` //reverse proxy, does not work with React live dev server
+            httpUrl=`http://${currentWebsiteIP}:${currentWebsitePort}/api/qserver` //reverse proxy, does not work with React live dev server
         }
     }
     return httpUrl;
@@ -72,7 +72,7 @@ const getQSConsoleUrl = () => {
     return wsUrl;
 };
 
-const httpServerUrl = getHttpServerUrl();
+const queueServerApiUrl = getQueueServerApiUrl();
 const qServerKey = getQServerKey();
 
 
@@ -83,7 +83,7 @@ const getQueue = async (cb:(data:GetQueueResponse)=>void, mock=false) => {
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/queue/get', 
+        const response = await axios.get(queueServerApiUrl + '/api/queue/get', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -100,7 +100,7 @@ const getQueueHistory = async (cb:(data:GetHistoryResponse)=>void, mock=false) =
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/history/get', 
+        const response = await axios.get(queueServerApiUrl + '/api/history/get', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -118,7 +118,7 @@ const getStatus = async (cb:(data:GetStatusResponse)=>void, mock = false) => {
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/status', 
+        const response = await axios.get(queueServerApiUrl + '/api/status', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -135,7 +135,7 @@ const getPlansAllowed = async (cb:(data:GetPlansAllowedResponse)=>void, mock = f
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/plans/allowed',
+        const response = await axios.get(queueServerApiUrl + '/api/plans/allowed',
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -152,7 +152,7 @@ const getDevicesAllowed = async (cb:(data:GetDevicesAllowedResponse)=>void, mock
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/devices/allowed',
+        const response = await axios.get(queueServerApiUrl + '/api/devices/allowed',
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -166,7 +166,7 @@ const getDevicesAllowed = async (cb:(data:GetDevicesAllowedResponse)=>void, mock
 const startRE = async () => {
     //returns true if no errors encountered
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/start', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/start', 
             {},
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
@@ -189,7 +189,7 @@ const postQueueItem = async (body:AddQueueItemBody, cb:(data:PostItemAddResponse
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/add', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/add', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -209,7 +209,7 @@ const executeItem = async (body:ExecuteQueueItemBody, cb:(data:PostItemExecuteRe
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/execute', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/execute', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -229,7 +229,7 @@ const getQueueItem = async (uid='', cb:(data:GetQueueItemResponse)=>void, mock=f
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/queue/item/get', {
+        const response = await axios.get(queueServerApiUrl + '/api/queue/item/get', {
             params: {uid: uid},
             headers : {
                 'uid' : uid,
@@ -249,7 +249,7 @@ const deleteQueueItem = async (body:RemoveQueueItemBody, cb:(data:PostItemRemove
         return; 
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/remove', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/remove', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -269,7 +269,7 @@ const openWorkerEnvironment = async (cb:(data:PostEnvironmentOpenResponse)=>void
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/environment/open',
+        const response = await axios.post(queueServerApiUrl + '/api/environment/open',
         {}, 
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
