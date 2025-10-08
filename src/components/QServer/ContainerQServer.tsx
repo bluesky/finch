@@ -11,19 +11,20 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, getQueueItem, openWorkerEnvironment } from "./utils/apiClient";
+import { getStatus, openWorkerEnvironment, setQueueServerApiUrl } from "./utils/apiClient";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
-import { CopiedPlan, ParameterInput, PopupItem } from "./types/types";
+import { CopiedPlan, PopupItem } from "./types/types";
 import { GetStatusResponse } from "./types/apiTypes";
 
 import { cn } from '@/lib/utils';
 
 export type ContainerQServerProps = {
     className?: string;
+    url?: string;
 }
-export default function ContainerQServer({className}:ContainerQServerProps) {
+export default function ContainerQServer({className, url}:ContainerQServerProps) {
 
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
     const [ popupItem, setPopupItem ] = useState<PopupItem | null>(null);
@@ -31,6 +32,11 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
     const [ copiedPlan, setCopiedPlan ] = useState<CopiedPlan | null>(null);
     const [ isSidepanelExpanded, setIsSidepanelExpanded ] = useState(false);
     const [ minimizeAllWidgets, setMinimizeAllWidgets ] = useState(false);
+
+    if (url) {
+        console.log('setting the url')
+        setQueueServerApiUrl(url)
+    }
     
     const {
         currentQueue,
@@ -46,7 +52,6 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
         handleGlobalMetadataCheckboxChange
     } = useQueueServer();
 
-    //create a handleCurrentQitemClick and handleHisotryQItemClick
     const handleCurrentQItemClick = (item:PopupItem) => {
         setPopupItem(item);
         setIsItemDeleteButtonVisible(true);

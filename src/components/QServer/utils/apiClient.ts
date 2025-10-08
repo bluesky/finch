@@ -25,15 +25,15 @@ import {
     RemoveQueueItemBody,
     PostItemRemoveResponse} from '../types/apiTypes';
 
-const getQServerKey = () => {
+
+const initializeQueueServerKey = () => {
     var key;
     const defaultKey = 'test';
     key = import.meta.env.VITE_QSERVER_API_KEY || defaultKey;
     return key;
 }
 
-
-const getQueueServerApiUrl = () => {
+const initializeQueueServerApiUrl = () => {
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
     const port = ":60610";
@@ -72,9 +72,11 @@ const getQSConsoleUrl = () => {
     return wsUrl;
 };
 
-const queueServerApiUrl = getQueueServerApiUrl();
-const qServerKey = getQServerKey();
-
+var queueServerApiUrl = initializeQueueServerApiUrl();
+const setQueueServerApiUrl = (url:string) => {
+    queueServerApiUrl = url;
+}
+const qServerKey = initializeQueueServerKey();
 
 
 const getQueue = async (cb:(data:GetQueueResponse)=>void, mock=false) => {
@@ -110,7 +112,6 @@ const getQueueHistory = async (cb:(data:GetHistoryResponse)=>void, mock=false) =
         console.error('Error fetching history:', error);
     }
 };
-
 
 const getStatus = async (cb:(data:GetStatusResponse)=>void, mock = false) => {
     if (mock) {
@@ -290,4 +291,4 @@ const openWorkerEnvironment = async (cb:(data:PostEnvironmentOpenResponse)=>void
 
 
 
-export { getQueue, getStatus, getPlansAllowed, getDevicesAllowed, startRE, postQueueItem, getQueueItem, deleteQueueItem, getQueueHistory, executeItem, openWorkerEnvironment, getQSConsoleUrl };
+export {setQueueServerApiUrl, getQueue, getStatus, getPlansAllowed, getDevicesAllowed, startRE, postQueueItem, getQueueItem, deleteQueueItem, getQueueHistory, executeItem, openWorkerEnvironment, getQSConsoleUrl };
