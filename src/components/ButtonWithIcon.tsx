@@ -77,10 +77,10 @@ export default function ButtonWithIcon({
             disabled={disabled} 
             className={`
                 ${isSecondary ? `${secondaryBgColor} ${secondaryTextColor} border` : `${bgColor} ${textColor}`}
-                ${disabled ? '' : (isSecondary ? secondaryHoverBgColor : hoverBgColor)} 
+                ${disabled ? 'hover:cursor-not-allowed' : (isSecondary ? secondaryHoverBgColor : hoverBgColor)} 
                 ${textSizes[size]} 
                 ${paddingSizes[size]} 
-                rounded-lg hover:cursor-pointer font-medium w-fit
+                rounded-lg font-medium w-fit
                 ${styles}`} 
             onClick={e => handleClick(e)}
             {...props}>
