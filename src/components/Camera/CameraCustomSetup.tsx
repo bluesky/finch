@@ -53,7 +53,7 @@ export default function CameraCustomSetup({}:CameraCustomSetupProps) {
         )
     } else {
         return (
-            <div className="m-auto flex flex-col justify-center items-center w-full max-w-64  space-y-6 py-8">
+            <div className="m-auto flex flex-col justify-center items-center w-64 space-y-6 py-8 bg-white">
                 <h1 className="text-sky-950 text-xl font-semibold mb-8">Custom Camera Setup</h1>
                 <InputStringBoxRounded 
                     label='PV prefix' 
@@ -61,6 +61,7 @@ export default function CameraCustomSetup({}:CameraCustomSetupProps) {
                     value={prefix} 
                     cb={(val) => setPrefix(val)} 
                     width='w-full' 
+                    styles='bg-white'
                     showWarningGlobal={showWarningGlobal} 
                     description={'The EPICS prefix to be concatenated onto the pre-defined image and settings suffixes. Trailing colon ":" not required. \n\n Ex) For a prefix=13SIM1, a resultant PV could be 13SIM1:image1:ArrayData '}
                 />
@@ -71,6 +72,7 @@ export default function CameraCustomSetup({}:CameraCustomSetupProps) {
                     cb={(val) => setDetectorType(val)} 
                     enums={Object.keys(cameraDeviceData)} 
                     width='w-full' 
+                    styles='bg-white'
                     description={'A pre-defined list of setting suffixes for appending to the EPICS prefix. \n\n Ex) For ADSimDetector, [:cam1:AcquireTime, :cam1:AcquirePeriod ...]'}
                 />
                 <InputEnumBoxRounded 
@@ -80,6 +82,7 @@ export default function CameraCustomSetup({}:CameraCustomSetupProps) {
                     cb={(val) => setCanvasSize(val as CanvasSizes)} 
                     enums={Object.keys(sizeMap)}
                     width='w-full' 
+                    styles='bg-white'
                     description={'The size of the canvas for displaying the image stream in pixels. \n\nUse Automatic to set the camera to automatically match the pixel size from the image 1:1'}
                 />
                 <InputCheckbox 

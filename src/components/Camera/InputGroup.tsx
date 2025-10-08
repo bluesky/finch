@@ -24,7 +24,7 @@ export default function InputGroup({settingsGroup, prefix='13SIM1', cameraSettin
         <div className="mb-4">
             <span onClick={handleHeadingClick} className="flex items-end space-x-2 border-b border-b-slate-300 w-fit px-1 hover:cursor-pointer hover:text-slate-600">
                 <h3 className="text-xl">{settingsGroup.title}</h3>
-                <div>{isExpanded ?  tailwindIcons.chevronDown : tailwindIcons.chevronUp}</div>
+                <div>{isExpanded ?  tailwindIcons.chevronUp : tailwindIcons.chevronDown}</div>
             </span>
             <ul className={`${isExpanded ? 'block' : 'hidden'} flex flex-col space-y-4 pl-4 pt-2`}>
                 {settingsGroup.inputs.map((input) => 

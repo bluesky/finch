@@ -89,7 +89,7 @@ export default function CameraContainer(
 
     if (customSetup) {
         return (
-            <div className="w-full">
+            <div className="min-w-96 rounded-md bg-white">
                 <CameraCustomSetup />
             </div>
         )

@@ -39,7 +39,7 @@ export default function CameraControlPanel({ cameraControlPV, startAcquire, stop
 
     return (
         <section className="w-full flex flex-col">
-            <p className="text-center text-slate-600 text-sm py-1">Acquisition Status: {text}</p>
+            <p className="text-center text-black text-sm py-1">Acquisition Status: {text}</p>
             <div className={`flex justify-center space-x-8 group ${!cameraControlPV.connected && 'opacity-50'}`}>
                 <ButtonWithIcon cb={startAcquire} text="Acquire" disabled={!cameraControlPV.connected} icon={phosphorIcons.camera} />
                 <ButtonWithIcon cb={stopAcquire} text="Pause" disabled={!cameraControlPV.connected} icon={phosphorIcons.cameraSlash} isSecondary={true}/>

@@ -27,7 +27,7 @@ export default function InputFloat ({label='', onSubmit=(input)=>console.log('su
     };
 
     return (
-        <label className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between`}>
+        <label className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between text-lg`}>
             {label}
             <input
                 disabled={isDisabled}
