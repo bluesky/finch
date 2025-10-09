@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { phosphorIcons } from "@/assets/icons";
 import { getDefaultCameraUrl } from './utils/apiClient';
+import { SunDim, Sun } from '@phosphor-icons/react';
 
 export type CanvasSizes = 'small' | 'medium' | 'large' | 'automatic';
 export type CameraCanvasProps = {
@@ -24,6 +25,7 @@ export default function CameraCanvas(
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
     const [socketStatus, setSocketStatus] = useState('closed');
+    const [isImageLogScale, setIsImageLogScale] = useState(true);
     const ws = useRef<null | WebSocket>(null);
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
@@ -105,7 +107,16 @@ export default function CameraCanvas(
                 return defaultSizePVs;
             }
         }
-    }
+    };
+
+    const toggleLogScale = () => {
+        const newLogScale = !isImageLogScale;
+            // Send a message to the WebSocket server to toggle log normalization
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                const message = JSON.stringify({ toggleLogNormalization: newLogScale });
+                ws.current.send(message);
+            }
+    };
 
     const startWebSocket = () => {
         if (canvasRef.current === null) return;
@@ -141,6 +152,11 @@ export default function CameraCanvas(
         ws.current.onmessage = async function (event) {
             if (canvasRef.current === null) return;
             if (typeof event.data === "string") {
+                const message = JSON.parse(event.data);
+                if ('logNormalization' in message) {
+                    setIsImageLogScale(message['logNormalization']);
+                    return;
+                }
                 if (canvasSize === 'automatic') {
                     // Resize canvas when size is set to automatic and ws sends string msg of dim changes
                     const dimensions = JSON.parse(event.data);
@@ -231,6 +247,11 @@ export default function CameraCanvas(
             {/* Connect websocket icon - top right */}
             <div className="absolute z-10 top-2 right-2 w-6 aspect-square text-slate-500 hover:cursor-pointer hover:text-slate-400" onClick={socketStatus === 'closed' ? startWebSocket : closeWebSocket}>
                 {socketStatus === 'closed' ? phosphorIcons.eyeSlash : phosphorIcons.eye}
+            </div>
+
+            {/* Log Scale - top right below connect */}
+            <div className="absolute z-10 top-10 right-2 w-6 aspect-square text-slate-500 hover:cursor-pointer hover:text-slate-400" onClick={toggleLogScale}>
+                {isImageLogScale ? <SunDim size={24}/> : <Sun size={24}/>}
             </div>
 
             {/* Overlay when disconnected */}
