@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { phosphorIcons } from "@/assets/icons";
 import { getDefaultCameraUrl } from './utils/apiClient';
 import { SunDim, Sun } from '@phosphor-icons/react';
+import CameraCanvasFeatures from './CameraCanvasFeatures';
 
 export type CanvasSizes = 'small' | 'medium' | 'large' | 'automatic';
 export type CameraCanvasProps = {
@@ -244,15 +245,12 @@ export default function CameraCanvas(
             {/* FPS counter - top left */}
             <p className="absolute z-10 top-1 left-2">{fps} fps</p>
 
-            {/* Connect websocket icon - top right */}
-            <div className="absolute z-10 top-2 right-2 w-6 aspect-square text-slate-500 hover:cursor-pointer hover:text-slate-400" onClick={socketStatus === 'closed' ? startWebSocket : closeWebSocket}>
-                {socketStatus === 'closed' ? phosphorIcons.eyeSlash : phosphorIcons.eye}
-            </div>
-
-            {/* Log Scale - top right below connect */}
-            <div className="absolute z-10 top-10 right-2 w-6 aspect-square text-slate-500 hover:cursor-pointer hover:text-slate-400" onClick={toggleLogScale}>
-                {isImageLogScale ? <SunDim size={24}/> : <Sun size={24}/>}
-            </div>
+            <CameraCanvasFeatures 
+                socketStatus={socketStatus}
+                isImageLogScale={isImageLogScale}
+                onToggleConnection={socketStatus === 'closed' ? startWebSocket : closeWebSocket}
+                onToggleLogScale={toggleLogScale}
+            />
 
             {/* Overlay when disconnected */}
             <div className={`${socketStatus === 'closed' ? '' : 'hidden'} absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center group`}>
