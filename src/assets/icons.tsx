@@ -166,7 +166,7 @@ const deviceIcons = {
     <path d="M21 19.5L24 14.5L32.5 12M21 19.5L31 16.5M21 19.5V21.5L31 18.5M32.5 12L31 16.5M32.5 12V14L31 18.5M31 16.5V18.5" stroke="black"/>
     <line x1="45" y1="16.25" x2="33" y2="16.25" stroke="#868686" stroke-width="0.5"/>
     <line x1="43" y1="18.25" x2="34" y2="18.25" stroke="#868686" stroke-width="0.5"/>
-    <path d="M3.58396 27L0.999987 28.7226L3.6533 30.6533" stroke="#868686" stroke-width="0.5" stroke-linecap="round"/>
+    <path d="M3.58396 27L0.999987 28.7226L3.6533 30.6533" stroke="#868686" stroke-width="0.5" strokeLinecap="round"/>
     <path d="M23 22L18 28H5" stroke="#868686" stroke-width="0.5"/>
     <path d="M25.5 21L19 29H3" stroke="#868686" stroke-width="0.5"/>
     <path d="M11.4773 14.4034V8.77841H12.4318V14.4034H11.4773ZM9.14205 12.0682V11.1136H14.767V12.0682H9.14205Z" fill="black"/>
@@ -190,7 +190,7 @@ const deviceIcons = {
     <path d="M21 19.5L24 14.5L32.5 12M21 19.5L31 16.5M21 19.5V21.5L31 18.5M32.5 12L31 16.5M32.5 12V14L31 18.5M31 16.5V18.5" stroke="black"/>
     <line x1="45" y1="16.25" x2="33" y2="16.25" stroke="#868686" stroke-width="0.5"/>
     <line x1="43" y1="18.25" x2="34" y2="18.25" stroke="#868686" stroke-width="0.5"/>
-    <path d="M3.58402 27L1.00005 28.7226L3.65336 30.6533" stroke="#868686" stroke-width="0.5" stroke-linecap="round"/>
+    <path d="M3.58402 27L1.00005 28.7226L3.65336 30.6533" stroke="#868686" stroke-width="0.5" strokeLinecap="round"/>
     <path d="M23 22L18 28H5" stroke="#868686" stroke-width="0.5"/>
     <path d="M25.5 21L19 29H3" stroke="#868686" stroke-width="0.5"/>
     </g>
