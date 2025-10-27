@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export type Point = {
     x: number;
@@ -7,12 +7,68 @@ export type Point = {
 
 export type Stroke = Point[];
 
-export function useCameraDraw() {
+export function useCameraDraw(prefix?: string) {
     const [isDrawingMode, setIsDrawingMode] = useState(false);
     const [isDrawing, setIsDrawing] = useState(false);
     const [strokes, setStrokes] = useState<Stroke[]>([]);
     const [currentStroke, setCurrentStroke] = useState<Point[]>([]);
     const drawingAreaRef = useRef<HTMLDivElement>(null);
+
+    // localStorage helper functions
+    const getStorageKey = useCallback(() => {
+        console.log('prefix in getStorageKey:', prefix);
+        return prefix ? `camera-strokes-${prefix}` : null;
+    }, [prefix]);
+
+    const loadStrokesFromStorage = useCallback(() => {
+        const storageKey = getStorageKey();
+        if (!storageKey) return [];
+        
+        try {
+            const stored = localStorage.getItem(storageKey);
+            return stored ? JSON.parse(stored) : [];
+        } catch (error) {
+            console.warn('Failed to load strokes from localStorage:', error);
+            return [];
+        }
+    }, [getStorageKey]);
+
+    const saveStrokesToStorage = useCallback((strokesToSave: Stroke[]) => {
+        const storageKey = getStorageKey();
+        if (!storageKey) return;
+        
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(strokesToSave));
+        } catch (error) {
+            console.warn('Failed to save strokes to localStorage:', error);
+        }
+    }, [getStorageKey]);
+
+    const clearStrokesFromStorage = useCallback(() => {
+        const storageKey = getStorageKey();
+        if (!storageKey) return;
+        
+        try {
+            localStorage.removeItem(storageKey);
+        } catch (error) {
+            console.warn('Failed to clear strokes from localStorage:', error);
+        }
+    }, [getStorageKey]);
+
+    // Load strokes from localStorage on mount if prefix is provided
+    useEffect(() => {
+        if (prefix) {
+            const savedStrokes = loadStrokesFromStorage();
+            setStrokes(savedStrokes);
+        }
+    }, [prefix, loadStrokesFromStorage]);
+
+    // Save strokes to localStorage whenever strokes change (but only if prefix is provided)
+    useEffect(() => {
+        if (prefix && strokes.length >= 0) {
+            saveStrokesToStorage(strokes);
+        }
+    }, [strokes, prefix, saveStrokesToStorage]);
 
     const toggleDrawingMode = useCallback(() => {
         setIsDrawingMode(prev => {
@@ -25,6 +81,16 @@ export function useCameraDraw() {
             return !prev;
         });
     }, []);
+
+    const eraseAllStrokes = useCallback(() => {
+        setStrokes([]);
+        setCurrentStroke([]);
+        setIsDrawing(false);
+        // Clear from localStorage if prefix is provided
+        if (prefix) {
+            clearStrokesFromStorage();
+        }
+    }, [prefix, clearStrokesFromStorage]);
 
     const getMousePosition = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
         if (!drawingAreaRef.current) return null;
@@ -77,6 +143,7 @@ export function useCameraDraw() {
         currentStroke,
         drawingAreaRef,
         toggleDrawingMode,
+        eraseAllStrokes,
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,

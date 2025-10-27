@@ -39,6 +39,7 @@ export default function CameraCanvas(props: CameraCanvasProps) {
                 onToggleConnection={socketStatus === 'closed' ? startWebSocket : closeWebSocket}
                 onToggleLogScale={toggleLogScale}
                 canvasSize={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
+                prefix={props.prefix}
             />
 
             {/* Overlay when disconnected */}

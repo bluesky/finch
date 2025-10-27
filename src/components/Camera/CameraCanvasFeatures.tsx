@@ -9,6 +9,7 @@ export type CameraCanvasFeaturesProps = {
     onToggleConnection: () => void;
     onToggleLogScale: () => void;
     canvasSize?: number;
+    prefix?: string;
 };
 
 export default function CameraCanvasFeatures({
@@ -16,7 +17,8 @@ export default function CameraCanvasFeatures({
     isImageLogScale,
     onToggleConnection,
     onToggleLogScale,
-    canvasSize = 512
+    canvasSize = 512,
+    prefix
 }: CameraCanvasFeaturesProps) {
     const {
         isDrawingMode,
@@ -28,7 +30,7 @@ export default function CameraCanvasFeatures({
         handleMouseMove,
         handleMouseUp,
         createStrokePath
-    } = useCameraDraw();
+    } = useCameraDraw(prefix);
 
     const renderStroke = (stroke: any[], index: number) => {
         const pathData = createStrokePath(stroke);
