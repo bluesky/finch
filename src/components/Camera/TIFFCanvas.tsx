@@ -26,7 +26,7 @@ export default function TIFFCanvas(props: CameraCanvasProps) {
     const { canvasSize = 'medium' } = props;
 
     return (
-        <div className={`${canvasSize === 'small' ? 'max-w-[256px]' : ''} bg-slate-300 relative`}>
+        <div className={`${canvasSize === 'small' ? 'max-w-[256px]' : 'w-fit'} bg-slate-300 relative`}>
             {/* Canvas Element - background*/}
             <canvas id='canvas' className={`${socketStatus === 'closed' ? 'opacity-25' : ''} m-auto border`} ref={canvasRef} width={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512} height={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512} />
             
@@ -39,6 +39,7 @@ export default function TIFFCanvas(props: CameraCanvasProps) {
                 onToggleConnection={socketStatus === 'closed' ? startWebSocket : closeWebSocket}
                 onToggleLogScale={toggleLogScale}
                 canvasSize={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
+                prefix={props.prefix}
             />
 
             {/* Overlay when disconnected */}
