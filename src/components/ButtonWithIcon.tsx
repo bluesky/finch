@@ -1,3 +1,5 @@
+import {cn } from '@/lib/utils';
+
 export type ButtonWithIconProps = {
     /** callback function on click */
     cb?: () => void;
@@ -75,13 +77,12 @@ export default function ButtonWithIcon({
     return (
         <button 
             disabled={disabled} 
-            className={`
+            className={cn(`
                 ${isSecondary ? `${secondaryBgColor} ${secondaryTextColor} border` : `${bgColor} ${textColor}`}
                 ${disabled ? 'hover:cursor-not-allowed' : (isSecondary ? secondaryHoverBgColor : hoverBgColor)} 
                 ${textSizes[size]} 
                 ${paddingSizes[size]} 
-                rounded-lg font-medium w-fit
-                ${styles}`} 
+                rounded-lg font-medium w-fit`, styles)} 
             onClick={e => handleClick(e)}
             {...props}>
             <div className={`${spacingSizes[size]} flex justify-center`}>
