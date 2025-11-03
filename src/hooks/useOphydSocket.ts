@@ -9,11 +9,28 @@ import {
 
 export default function useOphydSocket(deviceNameList: string[], wsUrl?: string) {
     //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
+    console.log('hello')
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
     const path = 'pv-socket'
     const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_PV_WS ? `${import.meta.env.VITE_PV_WS}` : `ws://${address}:${apiPort}/api/v1/${path}`);
-    const [devices, setDevices] = useState<Devices>({});
+    const [devices, setDevices] = useState<Devices>(() => {
+        const initialDevices: Devices = {};
+        deviceNameList.forEach((deviceName) => {
+            initialDevices[deviceName] = {
+                name: deviceName,
+                value: '',
+                connected: false,
+                locked: false,
+                timestamp: 0,
+                expanded: false,
+                pv: deviceName,
+                read_access: false,
+                write_access: false,
+            };
+        });
+        return initialDevices;
+    });
     const wsRef = useRef<WebSocket | null>(null);
     // Toggle device lock
     const toggleDeviceLock = useCallback((deviceName: string) => {
@@ -48,9 +65,8 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         }));
     }, []);
 
-    // Initialize devices state
+    // Considering whether to remove this entirely, if so then we won't be able to auto reset on deviceNameList change
     useEffect(() => {
-        console.log('initializing devices state');
         const initialDevices: Devices = {};
         deviceNameList.forEach((deviceName) => {
             initialDevices[deviceName] = {
@@ -80,7 +96,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
             return;
         }
 
-        console.log('initializing WebSocket connection');
+        console.log('initializing WebSocket connection to', apiUrl);
         const ws = new WebSocket(apiUrl);
         wsRef.current = ws;
 
