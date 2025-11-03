@@ -37,6 +37,7 @@ export default function useHexapod(props: UseHexapodProps) {
     const deviceNameList = useMemo(() => generateHexapodPVList(prefix || ''), [prefix]);
     const hexapodPVs = useMemo(() => generateHexapodPVs(prefix || ''), [prefix]);
     const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList, wsUrl);
+    //console.log({devices})
     
     //single device object with all pvs
     const hexapod = useMemo(() => {
@@ -103,14 +104,17 @@ export default function useHexapod(props: UseHexapodProps) {
                     formValue = hexapodRBVs[key as keyof typeof hexapodRBVs].value as number;
                 }
             }
+            console.log(`Setting hexapod ${key} to value:`, formValue);
             handleSetValueRequest(hexapodSetpoints[key as keyof typeof hexapodSetpoints].name, formValue);
         })
 
         //now call the MoveType PV
         const moveTypeValue = isRelative ? 1 : 0;
+        console.log("Setting move type to:", moveTypeValue);
         handleSetValueRequest(hexapod.moveType.name, moveTypeValue);
 
         //now attempt to execute the move
+        console.log("Executing hexapod move");
         handleSetValueRequest(hexapod.executeAll.name, 1);
     }, [hexapodSetpoints, hexapodRBVs, hexapod, handleSetValueRequest]);
 

@@ -1,7 +1,7 @@
 import { HexapodRBVs } from "../types/hexapodTypes";
 
 //default prefix for Symetrie Hexapod
-const defaultPrefix = "Sym:Hex01";
+const defaultPrefix = "SYM:HEX01";
 
 //default suffixes for the Symetrie Hexapod
 const readTx = 's_uto_tx_RBV';
