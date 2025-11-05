@@ -69,21 +69,21 @@ export default function HexapodController({ hexapodRBVs, onStartClick, onStopCli
     };
 
     return (
-        <div className="flex flex-col items-center w-fit">
+        <div className="flex flex-col items-center w-fit min-w-96">
             <img src={hexapodAxisSketch} alt="Hexapod Axis Sketch" className="w-auto h-48"/>
             <div className="flex w-fit">
-                <div className="w-1/2 mx-4">
+                <div className="w-1/2 flex-shrink-0">
                     <h3 className="text-sky-900 font-medium text-center mb-2">Current Position</h3>
                     <ul>
                         {Object.keys(hexapodRBVs).map((axis) => (
                             <li key={axis} className="flex h-8">
                                 <p className="w-1/4">{axis.toUpperCase()}</p>
-                                <p className="w-3/4 text-sky-700">{hexapodRBVs[axis as keyof HexapodRBVs].connected ? formatCurrentValue(hexapodRBVs[axis as keyof HexapodRBVs]) : 'N/A'}</p>
+                                <p className="w-3/4 text-sky-700">{hexapodRBVs[axis as keyof HexapodRBVs].connected ? formatCurrentValue(hexapodRBVs[axis as keyof HexapodRBVs]) + ' ' + hexapodRBVs[axis as keyof HexapodRBVs].units : 'N/A'}</p>
                             </li>
                         ))}
                     </ul>
                 </div>
-                <div className={`${isLocked && "hover:cursor-not-allowed opacity-50"} w-1/2 mx-4`}>
+                <div className={`${isLocked ? "hover:cursor-not-allowed opacity-50" : ''} w-1/2 `}>
                     <span className={`${isLocked && "pointer-events-none"} flex items-center justify-center gap-1`}>
                         <SelectDropdown
                             listItems={['Relative Move', 'Absolute Move', 'Jog']}
@@ -92,7 +92,7 @@ export default function HexapodController({ hexapodRBVs, onStartClick, onStopCli
                         />
                         <Trash size={16} className="text-slate-500 hover:text-red-400 hover:cursor-pointer" onClick={handleClearForm} />
                     </span>
-                    <ul className={`${isLocked && "pointer-events-none"} border-l border-l-slate-400 pl-4`}>
+                    <ul className={`${isLocked ? "pointer-events-none" : ''} border-l border-l-slate-400 pl-4`}>
                         {Object.keys(movePositionForm).map((axis) => (
                             <li key={axis} className="flex h-8 items-center">
                                 <p className="w-1/4">{axis.toUpperCase()}</p>

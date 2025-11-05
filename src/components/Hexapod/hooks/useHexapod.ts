@@ -57,9 +57,7 @@ export default function useHexapod(props: UseHexapodProps = {}) {
     
     const deviceNameList = useMemo(() => generateHexapodPVList(prefix || ''), [prefix]);
     const hexapodPVs = useMemo(() => generateHexapodPVs(prefix || ''), [prefix]);
-    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList, wsUrl);
-    console.log({devices})
-    
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList, wsUrl);    
     //single device object with all pvs
     const hexapod = useMemo(() => {
         return {
@@ -117,7 +115,7 @@ export default function useHexapod(props: UseHexapodProps = {}) {
      * @param isRelative - If true, performs relative move; if false, performs absolute move
      */
     const handleStartClick = useCallback((movePositionForm: HexapodMovePositionForm, isRelative: boolean) => {
-        console.log("Hexapod Move Requested:", movePositionForm, isRelative);
+        console.log("Hexapod Move Requested (true=relative, false=absolute):", movePositionForm, isRelative);
         (Object.keys(hexapodSetpoints)).forEach((key) => {
             //must set all move points at once since more than one hexapod controller could exist (multiple browser instances)
             let formValue = movePositionForm[key as keyof HexapodMovePositionForm];
@@ -130,13 +128,13 @@ export default function useHexapod(props: UseHexapodProps = {}) {
                     formValue = hexapodRBVs[key as keyof typeof hexapodRBVs].value as number;
                 }
             }
-            console.log(`Setting hexapod ${key} to value:`, formValue);
+            //console.log(`Setting hexapod ${key} to value:`, formValue);
             handleSetValueRequest(hexapodSetpoints[key as keyof typeof hexapodSetpoints].name, formValue);
         })
 
         //now call the MoveType PV
         const moveTypeValue = isRelative ? 1 : 0;
-        console.log("Setting move type to:", moveTypeValue);
+        //console.log("Setting move type to:", moveTypeValue);
         handleSetValueRequest(hexapod.moveType.name, moveTypeValue);
 
         //now attempt to execute the move
