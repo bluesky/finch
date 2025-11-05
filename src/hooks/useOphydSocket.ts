@@ -7,9 +7,16 @@ import {
     MetaUpdateResponse,
 } from 'src/types/ophydSocketTypes';
 
+/**
+ * Custom hook for managing WebSocket connections to Ophyd devices.
+ * Provides real-time device state management and control functions.
+ * 
+ * @param deviceNameList - Array of EPICS PVs to subscribe to
+ * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
+ * @returns Object containing device states and control functions
+ */
 export default function useOphydSocket(deviceNameList: string[], wsUrl?: string) {
     //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
-    console.log('hello')
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
     const path = 'pv-socket'
@@ -32,7 +39,13 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         return initialDevices;
     });
     const wsRef = useRef<WebSocket | null>(null);
-    // Toggle device lock
+    const hasRenderedOnlyOnce = useRef(false);
+
+    /**
+     * Toggles the lock state of a device between locked and unlocked.
+     * When locked, the device UI will typically be disabled or read-only.
+     * @param deviceName - The name/identifier of the device to toggle
+     */
     const toggleDeviceLock = useCallback((deviceName: string) => {
         setDevices((prevDevices) => ({
             ...prevDevices,
@@ -43,7 +56,11 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         }));
     }, []);
 
-    //Callback function to send device updates thru websocket
+    /**
+     * Sends a device value update request through the WebSocket connection.
+     * @param deviceName - The name/identifier of the device to update
+     * @param value - The new value to set for the device (string, number, or boolean)
+     */
     const handleSetValueRequest = useCallback((deviceName: string, value: string | number | boolean) => {
         if (wsRef.current) {
             const setValueMessage = {
@@ -55,6 +72,11 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         }
     }, []);
 
+    /**
+     * Toggles the expanded state of a device in the UI.
+     * Used to show/hide additional device details or controls.
+     * @param deviceName - The name/identifier of the device to expand/collapse
+     */
     const toggleExpand = useCallback((deviceName: string) => {
         setDevices((prevDevices) => ({
             ...prevDevices,
@@ -65,23 +87,27 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         }));
     }, []);
 
-    // Considering whether to remove this entirely, if so then we won't be able to auto reset on deviceNameList change
     useEffect(() => {
-        const initialDevices: Devices = {};
-        deviceNameList.forEach((deviceName) => {
-            initialDevices[deviceName] = {
-                name: deviceName,
-                value: '',
-                connected: false,
-                locked: false,
-                timestamp: 0,
-                expanded: false,
-                pv: deviceName,
-                read_access: false,
-                write_access: false,
-            };
-        });
-        setDevices(initialDevices);
+        if (hasRenderedOnlyOnce.current) {
+            //after the initial render, if the deviceNameList changes, reset the entire devices state
+            const initialDevices: Devices = {};
+            deviceNameList.forEach((deviceName) => {
+                initialDevices[deviceName] = {
+                    name: deviceName,
+                    value: '',
+                    connected: false,
+                    locked: false,
+                    timestamp: 0,
+                    expanded: false,
+                    pv: deviceName,
+                    read_access: false,
+                    write_access: false,
+                };
+            });
+            setDevices(initialDevices);
+        } else {
+            hasRenderedOnlyOnce.current = true;
+        }
     }, [deviceNameList]);
 
     // Initialize WebSocket connection
