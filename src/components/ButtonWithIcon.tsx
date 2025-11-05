@@ -85,7 +85,7 @@ export default function ButtonWithIcon({
                 rounded-lg font-medium w-fit`, styles)} 
             onClick={e => handleClick(e)}
             {...props}>
-            <div className={`${spacingSizes[size]} flex justify-center`}>
+            <div className={`${spacingSizes[size]} flex justify-center items-center`}>
                 {iconPosition === 'left' ? Icon : ''}
                 <p>{text}</p>
                 {iconPosition === 'right' ? Icon : ''}
