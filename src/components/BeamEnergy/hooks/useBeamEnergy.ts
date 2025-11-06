@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import useOphydSocket from "@/hooks/useOphydSocket"
 
 import { computeEnergyFromMonoAngle } from "@/components/BeamEnergy/utils/computeEnergyFromMonoAngle";
+import { computeMonoAngleFromEnergy } from "@/components/BeamEnergy/utils/computeMonoAngleFromEnergy";
 
 type UseBeamEnergyProps = {
     pv?: string;
@@ -40,16 +41,20 @@ export default function useBeamEnergy(props: UseBeamEnergyProps = {}) {
         }
     }, [currentValueDegrees, thetaOffsetDeg]);
 
-    const handleAbsoluteMove = (targetDegrees: number) => {
-        console.log(`Absolute move request: ${targetDegrees} degrees`);
+    const handleAbsoluteMove = (targetEnergy: number) => {
+        const targetDegrees = computeMonoAngleFromEnergy(targetEnergy, thetaOffsetDeg);
+        console.log(`Absolute move request: ${targetDegrees} degrees from ${targetEnergy} eV`);
         handleSetValueRequest(pv, targetDegrees);
     };
 
-    const handleRelativeMove = (deltaDegrees: number) => {
-        console.log(`Relative move request: ${deltaDegrees} degrees`);
-        if (!isNaN(currentValueDegrees)) {
-            const targetDegrees = currentValueDegrees + deltaDegrees;
+    const handleRelativeMove = (deltaEnergy: number) => {
+        if (!isNaN(currentValueDegrees) && !isNaN(currentValueEV)) {
+            const targetEnergy = currentValueEV + deltaEnergy;
+            const targetDegrees = computeMonoAngleFromEnergy(targetEnergy, thetaOffsetDeg);
+            console.log(`Relative move request: ${targetDegrees} degrees from delta ${deltaEnergy} eV equals target ${targetEnergy} eV`);
             handleSetValueRequest(pv, targetDegrees);
+        } else {
+            console.log('Cannot perform relative move: current value is NaN');
         }
     };
 
