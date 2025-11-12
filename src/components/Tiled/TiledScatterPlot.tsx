@@ -7,7 +7,7 @@ import { TiledPlotlyTrace } from "./types/tiledPlotTypes";
 
 type TiledScatterPlotProps = {
     tiledTrace: TiledPlotlyTrace;
-    path: string;
+    path: string | null;
     partition?: number;
     tiledBaseUrl?: string;
     enablePolling?: boolean;
@@ -19,7 +19,7 @@ type TiledScatterPlotProps = {
 export default function TiledScatterPlot({ tiledTrace, path, partition=0, tiledBaseUrl, enablePolling, pollingIntervalMs=1000, className, plotClassName }: TiledScatterPlotProps) {
     const { data, isLoading, error } = useQuery({
         queryKey: ['tiled', 'table', path],
-        queryFn: () => getTableDataAsJson(path, partition, tiledBaseUrl),
+        queryFn: () => getTableDataAsJson(path ? path : '', partition, tiledBaseUrl),
         refetchInterval: enablePolling ? pollingIntervalMs : false,
     })
 
