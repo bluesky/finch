@@ -1,19 +1,22 @@
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import PlotlyScatter from "../PlotlyScatter";
 
 import { getTableDataAsJson } from "@blueskyproject/tiled";
+import { TiledPlotlyTrace } from "./types/tiledPlotTypes";
 
 type TiledScatterPlotProps = {
+    tiledTrace: TiledPlotlyTrace;
     path: string;
     partition?: number;
     tiledBaseUrl?: string;
     enablePolling?: boolean;
     pollingIntervalMs?: number;
+    className?: string;
+    plotClassName?: string;
 }
 
-const xName = "A";
-const yName = "B";
-export default function TiledScatterPlot({ path, partition=0, tiledBaseUrl, enablePolling, pollingIntervalMs=1000 }: TiledScatterPlotProps) {
+export default function TiledScatterPlot({ tiledTrace, path, partition=0, tiledBaseUrl, enablePolling, pollingIntervalMs=1000, className, plotClassName }: TiledScatterPlotProps) {
     const { data, isLoading, error } = useQuery({
         queryKey: ['tiled', 'table', path],
         queryFn: () => getTableDataAsJson(path, partition, tiledBaseUrl),
@@ -30,20 +33,22 @@ export default function TiledScatterPlot({ path, partition=0, tiledBaseUrl, enab
         return <div>Loading data...</div>;
     }
 
-    //verify if the xName and yName exist in data
+    //verify provided x and y exist in data
+    //TODO - do a string match for initial characters since some table values are saved with additional suffixes via tiledwriter
+    const xName = tiledTrace.x;
+    const yName = tiledTrace.y;
     if (!data || !data[xName] || !data[yName]) {
         return <div>Error: Missing data for scatter plot</div>;
     } else {
+        const traceData = JSON.parse(JSON.stringify(data));
         const plotData = [
-            {
-                x: data[xName],
-                y: data[yName],
-            }
+            traceData
         ];
+        plotData[0].x = traceData[xName];
+        plotData[0].y = traceData[yName];
             return (
-                <div className="w-full h-96 p-4 rounded-lg bg-white">
-                    Tiled Scatter Plot Component
-                    <PlotlyScatter data={plotData} xAxisTitle={xName} yAxisTitle={yName} />
+                <div className={cn("w-full h-96 p-4 rounded-lg bg-white", className)}>
+                    <PlotlyScatter data={plotData} xAxisTitle={xName} yAxisTitle={yName} className={plotClassName} />
                 </div>
             )
     }
