@@ -9,6 +9,7 @@ import {
     mockDeleteQueueItemResponse, 
     mockGetHistoryResponse, 
     mockAddItemSuccessResponse, 
+    mockGetRunsActiveResponse,
     mockExecuteItemResponse } from './qServerMockData';
 import {
     AddQueueItemBody, 
@@ -23,6 +24,7 @@ import {
     PostEnvironmentOpenResponse, 
     GetQueueItemResponse,
     RemoveQueueItemBody,
+    GetRunsActiveResponse,
     PostItemRemoveResponse} from '../types/apiTypes';
 
 
@@ -287,8 +289,131 @@ const openWorkerEnvironment = async (cb:(data:PostEnvironmentOpenResponse)=>void
     }
 };
 
+const getRunsActive = async (cb:(data:GetRunsActiveResponse)=>void, mock=false) => {
+    if (mock) {
+        cb(mockGetRunsActiveResponse);
+        return;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/runs/active', {
+            headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }
+        });
+        cb(response.data);
+    } catch (error) {
+        console.error('Error fetching active runs:', error);
+    }
+};
+
+// Promise-based versions of the API functions
+const getRunsActivePromise = async (mock = false): Promise<GetRunsActiveResponse> => {
+    if (mock) {
+        return mockGetRunsActiveResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/runs/active', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching active runs:', error);
+        throw error;
+    }
+};
+
+const executeItemPromise = async (body: ExecuteQueueItemBody, mock = false): Promise<PostItemExecuteResponse> => {
+    if (mock) {
+        return mockExecuteItemResponse;
+    }
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/execute', 
+            body,
+            {
+                headers: {
+                    'Authorization': 'ApiKey ' + qServerKey
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error executing plan', error);
+        throw error;
+    }
+};
+
+const getQueueHistoryPromise = async (mock = false): Promise<GetHistoryResponse> => {
+    if (mock) {
+        return mockGetHistoryResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/history/get', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        throw error;
+    }
+};
+
+const getStatusPromise = async (mock = false): Promise<GetStatusResponse> => {
+    if (mock) {
+        return mockGetStatusResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/status', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        throw error;
+    }
+};
+
+const getPlansAllowedPromise = async (mock = false): Promise<GetPlansAllowedResponse> => {
+    if (mock) {
+        return mockGetPlansAllowedResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/plans/allowed', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching plans allowed:', error);
+        throw error;
+    }
+};
 
 
-
-
-export {setQueueServerApiUrl, getQueue, getStatus, getPlansAllowed, getDevicesAllowed, startRE, postQueueItem, getQueueItem, deleteQueueItem, getQueueHistory, executeItem, openWorkerEnvironment, getQSConsoleUrl };
+export {
+    setQueueServerApiUrl, 
+    getQueue, 
+    getStatus, 
+    getPlansAllowed, 
+    getDevicesAllowed, 
+    startRE, 
+    postQueueItem, 
+    getQueueItem, 
+    deleteQueueItem, 
+    getQueueHistory, 
+    executeItem, 
+    openWorkerEnvironment, 
+    getQSConsoleUrl, 
+    getRunsActive,
+    getRunsActivePromise,
+    executeItemPromise,
+    getQueueHistoryPromise,
+    getStatusPromise,
+    getPlansAllowedPromise
+};
