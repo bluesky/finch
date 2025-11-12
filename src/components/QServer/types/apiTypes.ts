@@ -195,3 +195,16 @@ export interface RemoveQueueItemBody {
 export interface PostItemRemoveResponse extends PostItemAddResponse {
     qsize: number;
 };
+
+export interface RunsActiveListItem {
+    uid: string;
+    scan_id: number;
+    is_open: boolean;
+    exit_status: string | null;
+}
+export interface GetRunsActiveResponse {
+    success: boolean;
+    msg: string;
+    run_list: RunsActiveListItem[];
+    run_list_uid: string;
+}

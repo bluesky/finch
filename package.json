@@ -29,7 +29,7 @@
   "main": "./dist/finch.umd.js",
   "module": "./dist/finch.es.js",
   "dependencies": {
-    "@blueskyproject/tiled": "^0.0.14",
+    "@blueskyproject/tiled": "^0.0.21",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.14",
@@ -37,6 +37,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@storybook/addons": "^7.6.17",
     "@storybook/theming": "^8.6.14",
+    "@tanstack/react-query": "^5.90.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-shape": "^3.2.0",

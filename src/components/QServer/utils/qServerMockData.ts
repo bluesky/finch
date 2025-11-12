@@ -1,4 +1,18 @@
-import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetQueueItemResponse, GetQueueResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse } from "../types/apiTypes";
+import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetQueueItemResponse, GetQueueResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse } from "../types/apiTypes";
+
+export const mockGetRunsActiveResponse: GetRunsActiveResponse = {
+  "success": true,
+  "msg": "",
+  "run_list": [
+    {
+      "uid": "70a5979c-6ad5-43dc-a645-3f3dc18ce5aa",
+      "scan_id": 7,
+      "is_open": true,
+      "exit_status": null
+    }
+  ],
+  "run_list_uid": "0caaf71f-bed6-4347-b993-24e2c4050f39"
+}
 
 export const mockGetDevicesAllowedResponse: GetDevicesAllowedResponse = {
     "success": true,
