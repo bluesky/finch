@@ -6,6 +6,6 @@ type InputTextProps = {
     style?: CSSProperties;
     val?: string | number | boolean;
 };
-export default function InputText({ label, onSubmit, isDisabled, style, val }: InputTextProps): import("react/jsx-runtime").JSX.Element;
+export default function InputText({ label, onSubmit, isDisabled, style, val, }: InputTextProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputText.d.ts.map

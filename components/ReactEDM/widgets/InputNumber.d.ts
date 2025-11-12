@@ -7,6 +7,6 @@ type InputNumberProps = {
     style?: CSSProperties;
     val?: number | string | boolean;
 };
-export default function InputNumber({ label, onSubmit, isDisabled, precision, style, val }: InputNumberProps): import("react/jsx-runtime").JSX.Element | null;
+export default function InputNumber({ label, onSubmit, isDisabled, precision, style, val, }: InputNumberProps): import("react/jsx-runtime").JSX.Element | null;
 export {};
 //# sourceMappingURL=InputNumber.d.ts.map
