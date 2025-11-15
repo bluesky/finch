@@ -295,7 +295,7 @@ const getRunsActive = async (cb:(data:GetRunsActiveResponse)=>void, mock=false) 
         return;
     }
     try {
-        const response = await axios.get(queueServerApiUrl + '/api/runs/active', {
+        const response = await axios.get(queueServerApiUrl + '/api/re/runs/active', {
             headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }
@@ -312,7 +312,7 @@ const getRunsActivePromise = async (mock = false): Promise<GetRunsActiveResponse
         return mockGetRunsActiveResponse;
     }
     try {
-        const response = await axios.get(queueServerApiUrl + '/api/runs/active', {
+        const response = await axios.get(queueServerApiUrl + '/api/re/runs/active', {
             headers: {
                 'Authorization': 'ApiKey ' + qServerKey
             }
