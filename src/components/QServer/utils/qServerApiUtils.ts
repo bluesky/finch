@@ -6,6 +6,8 @@ import { getStatusPromise, getRunsActivePromise, getQueueHistoryPromise } from '
  * @returns Array of run UIDs if found, empty array if not found
  */
 export const getBlueskyRunList = async (itemId: string): Promise<string[]> => {
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
     try {
         console.log(`[getBlueskyRunList] Starting search for item ID: ${itemId}`);
         
@@ -27,13 +29,13 @@ export const getBlueskyRunList = async (itemId: string): Promise<string[]> => {
                 console.log(`[getBlueskyRunList] Found ${runUids.length} active run UIDs:`, runUids);
                 return runUids;
             } else {
-                console.log('[getBlueskyRunList] No active runs found despite item running');
+                console.log('[getBlueskyRunList] No active runs found despite item running, will check history...');
             }
         } else {
             console.log('[getBlueskyRunList] Item is not currently running, checking history...');
         }
         
-        // Step 3: If no active runs, check history for the most recent items
+        // Step 3: Check history for the most recent items
         console.log('[getBlueskyRunList] Step 3: Checking queue history...');
         const historyData = await getQueueHistoryPromise();
         console.log(`[getBlueskyRunList] History response - success: ${historyData.success}, items length: ${historyData.items?.length || 0}`);
@@ -55,6 +57,44 @@ export const getBlueskyRunList = async (itemId: string): Promise<string[]> => {
             console.log('[getBlueskyRunList] No matching item found in recent history');
         } else {
             console.log('[getBlueskyRunList] No history data available');
+        }
+        
+        // If we reach here and the item was running, wait and retry from step 2
+        if (statusData.running_item_uid === itemId) {
+            console.log('[getBlueskyRunList] Item still running but no runs found. Waiting 0.5s and retrying...');
+            await delay(500);
+            
+            // Retry Step 2: Check active runs again
+            console.log('[getBlueskyRunList] Retry Step 2: Checking active runs after delay...');
+            const retryActiveRunsData = await getRunsActivePromise();
+            console.log(`[getBlueskyRunList] Retry active runs response - success: ${retryActiveRunsData.success}, run_list length: ${retryActiveRunsData.run_list?.length || 0}`);
+            
+            if (retryActiveRunsData.success && retryActiveRunsData.run_list && retryActiveRunsData.run_list.length > 0) {
+                const runUids = retryActiveRunsData.run_list.map(run => run.uid);
+                console.log(`[getBlueskyRunList] Found ${runUids.length} active run UIDs after retry:`, runUids);
+                return runUids;
+            }
+            
+            // Retry Step 3: Check history again
+            console.log('[getBlueskyRunList] Retry Step 3: Checking queue history after delay...');
+            const retryHistoryData = await getQueueHistoryPromise();
+            console.log(`[getBlueskyRunList] Retry history response - success: ${retryHistoryData.success}, items length: ${retryHistoryData.items?.length || 0}`);
+            
+            if (retryHistoryData.success && retryHistoryData.items && retryHistoryData.items.length > 0) {
+                const retryRecentItems = retryHistoryData.items.slice(-2);
+                console.log(`[getBlueskyRunList] Retry: Checking last ${retryRecentItems.length} items in history`);
+                
+                for (let i = 0; i < retryRecentItems.length; i++) {
+                    const historyItem = retryRecentItems[i];
+                    console.log(`[getBlueskyRunList] Retry: Checking history item ${i + 1}: item_uid=${historyItem.item_uid}, has_result=${!!historyItem.result}, run_uids_count=${historyItem.result?.run_uids?.length || 0}`);
+                    
+                    if (historyItem.item_uid === itemId && historyItem.result?.run_uids) {
+                        console.log(`[getBlueskyRunList] Match found in history after retry! Run UIDs:`, historyItem.result.run_uids);
+                        return historyItem.result.run_uids;
+                    }
+                }
+                console.log('[getBlueskyRunList] No matching item found in recent history after retry');
+            }
         }
         
         // No matching runs found
