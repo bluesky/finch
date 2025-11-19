@@ -1,4 +1,3 @@
-//make a component that returns this iframe
 const ALSBeamStatus = () => {
     return (
         <div className="flex items-center justify-center bg-stone-400/50 p-4 px-8 w-fit m-auto rounded-sm shadow-lg">
