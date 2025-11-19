@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PlotlyHeatmap from './PlotlyHeatmap';
-import { logNormalizeArray, histEqualizeArray, histEqualizeUint8Array } from '@/utils/plotProcessors';
+// import { logNormalizeArray, histEqualizeArray } from '@/utils/plotProcessors';
 import { cn } from '@/lib/utils';
 type Props = {
   url: string; // Metadata URL from Tiled (e.g., /api/v1/metadata/my_image)
@@ -14,7 +14,6 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
   const [sliderIndex, setSliderIndex] = useState<number>(0);
   const [shape, setShape] = useState<number[] | null>(null);
   const [ metadata, setMetadata ] = useState<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const sizeClassMap = {
     small: 'w-[400px] h-[500px]',
@@ -22,64 +21,57 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
     large: 'w-[1000px] h-[1200px]',
 };
 
-  const fetchAndDecodePNG = async (zIndex: number | null, baseUrl: string) => {
+  const fetchAndDecodeBlock = async (frameIndex: number, blockUrl: string, shape: number[]) => {
     try {
       setError(null);
 
-      const sliceUrl = `${baseUrl}?format=image/png&slice=${zIndex === null ? "::1,::1" : zIndex + ',::1,::1'}`;
+      // Construct block URL - for 3D array [frames, height, width], we want block=frameIndex,0,0
+      // For 2D array [height, width], we want block=0,0
+      const blockParam = shape.length === 3 ? `${frameIndex},0,0` : '0,0';
+      const fullBlockUrl = `${blockUrl}?block=${blockParam}`;
 
-      const response = await fetch(sliceUrl);
-      if (!response.ok) throw new Error('Failed to fetch PNG image');
+      const response = await fetch(fullBlockUrl);
+      if (!response.ok) throw new Error(`Failed to fetch block data: ${response.status}`);
 
-      const blob = await response.blob();
-      const img = new Image();
-      const objectURL = URL.createObjectURL(blob);
+      const arrayBuffer = await response.arrayBuffer();
+      
+      // Parse binary data based on structure from metadata
+      // Assuming int32, little-endian based on your JSON structure
+      const dataView = new DataView(arrayBuffer);
+      const pixelCount = shape.length === 3 ? shape[1] * shape[2] : shape[0] * shape[1];
+      
+      // Read int32 values (4 bytes each) in little-endian format
+      const flatArray: number[] = [];
+      for (let i = 0; i < pixelCount; i++) {
+        const value = dataView.getInt32(i * 4, true); // true for little-endian
+        flatArray.push(value);
+      }
 
-      await new Promise<void>((resolve, reject) => {
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error('Failed to load image from blob'));
-        img.src = objectURL;
-      });
-
-      const canvas = canvasRef.current;
-      if (!canvas) throw new Error('Canvas element not available');
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Unable to get 2D context');
-
-      // Set canvas size to image size
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-
-      const { data, width, height } = ctx.getImageData(0, 0, img.width, img.height);
-
-      // Convert RGBA to grayscale intensity
+      // Convert flat array to 2D array
+      const height = shape.length === 3 ? shape[1] : shape[0];
+      const width = shape.length === 3 ? shape[2] : shape[1];
+      
       const array2D: number[][] = [];
       for (let y = 0; y < height; y++) {
         const row: number[] = [];
         for (let x = 0; x < width; x++) {
-          const idx = (y * width + x) * 4;
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-          // Simple luminance approximation
-          const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-          row.push(gray);
+          const idx = y * width + x;
+          row.push(flatArray[idx]);
         }
         array2D.push(row);
       }
 
-      setArray(array2D.reverse());
-      //setArray(logNormalizeArray(array2D.reverse()));
-      //setArray(histEqualizeUint8Array(array2D.reverse()))
+      setArray(array2D);
+      // Uncomment these for data processing:
+      // setArray(logNormalizeArray(array2D));
+      // setArray(histEqualizeArray(array2D));
 
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      setError(`Failed to load PNG slice: ${msg}`);
+      setError(`Failed to load block data: ${msg}`);
       setArray(null);
-      setSliderIndex(0); // Reset slider index on error
-      setShape(null); // Reset shape on error
+      setSliderIndex(0);
+      setShape(null);
     }
   };
 
@@ -97,9 +89,9 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
         setShape(shape);
         if (shape.length === 2) {
           //2d image
-          fetchAndDecodePNG(null, fullUrl); // load first image
+          fetchAndDecodeBlock(0, fullUrl, shape); // load single frame
         } else {
-          fetchAndDecodePNG(0, fullUrl); // load first z-slice
+          fetchAndDecodeBlock(0, fullUrl, shape); // load first z-slice
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
@@ -117,7 +109,7 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
         const metadataResp = await fetch(url);
         const metadataJson = await metadataResp.json();
         const fullUrl = metadataJson.data?.links?.full;
-        if (fullUrl) fetchAndDecodePNG(sliderIndex, fullUrl);
+        if (fullUrl) fetchAndDecodeBlock(sliderIndex, fullUrl, shape);
       };
       fetchSlice();
     }
@@ -132,7 +124,6 @@ export default function PlotlyHeatmapTiled({ url, className, size='medium' }: Pr
           <p className="text-sm text-center">{error}</p>
         </div>
       }
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
       {array && (
         <>
           <h3 className="h-8 text-sky-900 text-ellipsis">{metadata?.id}</h3>
