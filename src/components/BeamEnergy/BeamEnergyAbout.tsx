@@ -1,6 +1,6 @@
-import { Device } from "@/types/deviceControllerTypes"
+import { Device, OphydDevice } from "@/types/deviceControllerTypes"
 type BeamEnergyAboutProps = {
-    device: Device
+    device: Device | OphydDevice
 }
 export default function BeamEnergyAbout({device}: BeamEnergyAboutProps) {
     return (

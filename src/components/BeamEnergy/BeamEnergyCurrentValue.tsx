@@ -8,7 +8,7 @@ export default function BeamEnergyCurrentValue({ currentValueDegrees, currentVal
     return (
         <div className="w-full flex flex-col items-center mt-4">
             <p className="text-black text-3xl">{formattedEnergy} eV</p>
-            <p className="text-slate-500 font-light">{formattedDegrees}°</p>
+            {isNaN(currentValueDegrees!) ? null : <p className="text-slate-500 font-light">{formattedDegrees}°</p>}
         </div>
     )
 }
