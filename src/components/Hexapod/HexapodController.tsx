@@ -9,7 +9,7 @@ import SelectDropdown from '../SelectDropdown';
 
 import { ArrowFatRight, ArrowsClockwise, Pause, Trash } from '@phosphor-icons/react';
 
-type MoveMode = 'Relative Move' | 'Absolute Move' | 'Jog';
+type MoveMode = 'Absolute Move' | 'Jog';
 const defaultMovePositionForm: HexapodMovePositionForm = {
     tx: undefined,
     ty: undefined,
@@ -25,7 +25,7 @@ type HexapodControllerProps = {
     isLocked?: boolean;
 };
 export default function HexapodController({ hexapodRBVs, onStartClick, onStopClick, isLocked }: HexapodControllerProps) {
-    const [ moveMode, setMoveMode ] = useState<MoveMode>('Relative Move');
+    const [ moveMode, setMoveMode ] = useState<MoveMode>('Absolute Move');
     const [ movePositionForm, setMovePositionForm ] = useState<HexapodMovePositionForm>(defaultMovePositionForm);
 
     const handleFormChange = (axis: keyof HexapodMovePositionForm, input: string) => {
@@ -86,8 +86,8 @@ export default function HexapodController({ hexapodRBVs, onStartClick, onStopCli
                 <div className={`${isLocked ? "hover:cursor-not-allowed opacity-50" : ''} w-1/2 `}>
                     <span className={`${isLocked && "pointer-events-none"} flex items-center justify-center gap-1`}>
                         <SelectDropdown
-                            listItems={['Relative Move', 'Absolute Move', 'Jog']}
-                            initialSelectedItem='Relative Move'
+                            listItems={['Absolute Move', 'Jog']}
+                            initialSelectedItem='Absolute Move'
                             onValueChange={(item) => handleDropdownChange(item as MoveMode)}
                         />
                         <Trash size={16} className="text-slate-500 hover:text-red-400 hover:cursor-pointer" onClick={handleClearForm} />
