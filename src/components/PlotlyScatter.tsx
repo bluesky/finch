@@ -58,7 +58,7 @@ export default function PlotlyScatter({
   }, []);
 
   return (
-    <div className={cn('pb-4 max-h-full', className)} ref={plotContainer}>
+    <div className={cn('pb-4 max-h-full h-96', className)} ref={plotContainer}>
       <Plot
         data={data}
         layout={{
