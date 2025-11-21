@@ -51,38 +51,68 @@ export default function PlotlyHeatmap({
 }: PlotlyHeatmapProps) {
     const plotContainer = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); //applied to plot, not the container
-    const [logScaleValue, setLogScaleValue] = useState<number>(0); // 0 = no log scale, 1-10 = increasing log scale
-    const [debouncedLogScale, setDebouncedLogScale] = useState<number>(0);
+    const [scaleValue, setScaleValue] = useState<number>(0); // 0 = no scale, 1-10 = increasing scale intensity
+    const [debouncedScale, setDebouncedScale] = useState<number>(0);
+    const [scaleType, setScaleType] = useState<'log' | 'gamma'>('log'); // Current scale type
 
-    // Debounce the log scale value to prevent excessive re-renders
+    // Debounce the scale value to prevent excessive re-renders
     useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedLogScale(logScaleValue);
+            setDebouncedScale(scaleValue);
         }, 300); // 300ms debounce
 
         return () => clearTimeout(timer);
-    }, [logScaleValue]);
+    }, [scaleValue]);
 
-    // Apply log scaling to the data
+    // Apply scaling to the data based on current scale type
     const processedArray = useMemo(() => {
-        if (!enableLogScale || debouncedLogScale === 0) {
+        if (!enableLogScale || debouncedScale === 0) {
             return array;
         }
 
-        // Apply log transformation with a base that increases with slider value
-        const logBase = 1 + (debouncedLogScale / 10); // Base ranges from 1.1 to 2.0
-        
-        return array.map(row => 
-            row.map(value => {
-                // Add small epsilon to avoid log(0), then apply log transformation
-                const safeValue = Math.max(value, 0.001);
-                return Math.log(safeValue) / Math.log(logBase);
-            })
-        );
-    }, [array, debouncedLogScale, enableLogScale]);
+        if (scaleType === 'log') {
+            // Apply log transformation with a base that increases with slider value
+            const logBase = 1 + (debouncedScale / 10); // Base ranges from 1.1 to 2.0
+            
+            return array.map(row => 
+                row.map(value => {
+                    // Add small epsilon to avoid log(0), then apply log transformation
+                    const safeValue = Math.max(value, 0.001);
+                    return Math.log(safeValue) / Math.log(logBase);
+                })
+            );
+        } else {
+            // Apply gamma correction
+            const gamma = 0.1 + (debouncedScale / 10) * 2.9; // Gamma ranges from 0.1 to 3.0
+            
+            // Find max value efficiently without spread operator
+            let maxValue = 0;
+            for (const row of array) {
+                for (const value of row) {
+                    if (value > maxValue) {
+                        maxValue = value;
+                    }
+                }
+            }
+            
+            return array.map(row =>
+                row.map(value => {
+                    // Normalize to 0-1, apply gamma, then scale back
+                    const normalized = maxValue > 0 ? value / maxValue : 0;
+                    const gammaCorrected = Math.pow(normalized, gamma);
+                    return gammaCorrected * maxValue;
+                })
+            );
+        }
+    }, [array, debouncedScale, enableLogScale, scaleType]);
 
-    const handleLogScaleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setLogScaleValue(Number(event.target.value));
+    const handleScaleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setScaleValue(Number(event.target.value));
+    }, []);
+
+    const handleScaleTypeChange = useCallback((newType: 'log' | 'gamma') => {
+        setScaleType(newType);
+        setScaleValue(0); // Reset slider to off
     }, []);
 
     // Hook to update dimensions of plot dynamically
@@ -105,26 +135,45 @@ export default function PlotlyHeatmap({
     return (
         <>
             {enableLogScale && (
-                <div className="flex items-center justify-between p-2 bg-gray-100 rounded-t-md mb-1">
-                    <div className="text-xs font-medium text-gray-700">
-                        Log Scale
+                <div className="flex items-center justify-center gap-2 p-2 rounded-t-md mb-1">
+                    <div className="flex items-center gap-2 ">
+                        <button
+                            onClick={() => handleScaleTypeChange('log')}
+                            className={`px-2 py-1 text-xs font-medium  ${
+                                scaleType === 'log' 
+                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default' 
+                                    : 'text-slate-400 hover:text-sky-800'
+                            }`}
+                        >
+                            Log Scale
+                        </button>
+                        <button
+                            onClick={() => handleScaleTypeChange('gamma')}
+                            className={`px-2 py-1 text-xs font-medium ${
+                                scaleType === 'gamma' 
+                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default' 
+                                    : 'text-slate-400 hover:text-sky-800'
+                            }`}
+                        >
+                            Gamma Scale
+                        </button>
                     </div>
-                    <div className="flex items-center gap-3 flex-1 justify-center">
+                    <div className="flex items-center gap-3 justify-center ">
                         <span className="text-xs text-gray-600">Off</span>
                         <input
                             type="range"
                             min="0"
                             max="10"
                             step="0.5"
-                            value={logScaleValue}
-                            onChange={handleLogScaleChange}
-                            className="flex-1 max-w-48"
-                            title={`Log Scale: ${logScaleValue}`}
+                            value={scaleValue}
+                            onChange={handleScaleChange}
+                            className="flex-1 max-w-24"
+                            title={`${scaleType === 'log' ? 'Log' : 'Gamma'} Scale: ${scaleValue}`}
                         />
                         <span className="text-xs text-gray-600">Max</span>
                     </div>
-                    <div className="text-xs text-gray-600 min-w-8 text-right">
-                        {logScaleValue === 0 ? 'Off' : logScaleValue.toFixed(1)}
+                    <div className="text-xs text-gray-600 min-w-8">
+                        {scaleValue === 0 ? '' : `(${scaleValue.toFixed(1)})`}
                     </div>
                 </div>
             )}
