@@ -395,6 +395,23 @@ const getPlansAllowedPromise = async (mock = false): Promise<GetPlansAllowedResp
     }
 };
 
+const getQueuePromise = async (mock = false): Promise<GetQueueResponse> => {
+    if (mock) {
+        return mockGetQueueResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/queue/get', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching queue:', error);
+        throw error;
+    }
+};
+
 
 export {
     setQueueServerApiUrl, 
@@ -415,5 +432,6 @@ export {
     executeItemPromise,
     getQueueHistoryPromise,
     getStatusPromise,
-    getPlansAllowedPromise
+    getPlansAllowedPromise,
+    getQueuePromise
 };
