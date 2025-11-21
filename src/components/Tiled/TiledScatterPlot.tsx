@@ -21,35 +21,59 @@ export default function TiledScatterPlot({ tiledTrace, path, partition=0, tiledB
         queryKey: ['tiled', 'table', path],
         queryFn: () => getTableDataAsJson(path ? path : '', partition, tiledBaseUrl),
         refetchInterval: enablePolling ? pollingIntervalMs : false,
-    })
+    });
 
+    // Determine status text based on current state
+    const getStatusText = () => {        
+        if (!path) {
+            return 'No data path provided - waiting for data';
+        }
+        if (isLoading) {
+            return 'Loading data...';
+        }
+        
+        if (error) {
+            return `Error loading data: ${(error as Error).message}`;
+        }
+        
+        if (!data) {
+            return 'No data available';
+        }
+        
+        const xName = tiledTrace.x;
+        const yName = tiledTrace.y;
+        
+        if (!data[xName] || !data[yName]) {
+            return `Error: Missing data for scatter plot (${xName}, ${yName})`;
+        }
+        
+        const dataPoints = data[xName]?.length || 0;
+        return `Scatter plot data: ${dataPoints} points${enablePolling ? ' (Live)' : ''}`;
+    };
 
-
-    if (error) {
-        return <div>Error loading data: {(error as Error).message}</div>;
-    }
-
-    if (isLoading) {
-        return <div>Loading data...</div>;
-    }
-
-    //verify provided x and y exist in data
-    //TODO - do a string match for initial characters since some table values are saved with additional suffixes via tiledwriter
+    // Prepare plot data
+    let plotData: any[] = [];
     const xName = tiledTrace.x;
     const yName = tiledTrace.y;
-    if (!data || !data[xName] || !data[yName]) {
-        return <div>Error: Missing data for scatter plot</div>;
-    } else {
+    
+    if (data && data[xName] && data[yName]) {
         const traceData = JSON.parse(JSON.stringify(data));
-        const plotData = [
-            traceData
-        ];
+        plotData = [traceData];
         plotData[0].x = traceData[xName];
         plotData[0].y = traceData[yName];
-            return (
-                <div className={cn("w-full h-96 p-4 rounded-lg bg-white", className)}>
-                    <PlotlyScatter data={plotData} xAxisTitle={xName} yAxisTitle={yName} className={plotClassName} />
-                </div>
-            )
     }
+
+    return (
+        <div className={cn("w-full h-[30rem] p-4 rounded-lg bg-white", className)}>
+            <div className="text-sm text-gray-600 h-8">
+                {getStatusText()}
+            </div>
+            <PlotlyScatter 
+                data={plotData} 
+                xAxisTitle={xName} 
+                yAxisTitle={yName} 
+                className={plotClassName} 
+            />
+        </div>
+    );
 }

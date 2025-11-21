@@ -12,6 +12,7 @@ type TiledWriterScatterPlotProps = {
     pollingIntervalMs?: number;
     className?: string;
     plotClassName?: string;
+    showStatusText?: boolean;
 }
 
 export default function TiledWriterScatterPlot({ 
@@ -22,7 +23,8 @@ export default function TiledWriterScatterPlot({
     tiledBaseUrl, 
     pollingIntervalMs, 
     className, 
-    plotClassName 
+    plotClassName,
+    showStatusText = true
 }: TiledWriterScatterPlotProps) {
     // Use the custom hook for all Tiled path logic
     const { 
@@ -35,23 +37,36 @@ export default function TiledWriterScatterPlot({
         pollingIntervalMs 
     });
 
-    if (isLoading) {
-        return <div className={className}>Loading Tiled data for run {blueskyRunId}...</div>;
-    }
-
-    if (error) {
-        return <div className={className}>Error: {error}</div>;
-    }
-
-    if (!tiledPath) {
-        return <div className={className}>No data path found for run {blueskyRunId}</div>;
-    }
+    // Determine status text based on current state
+    const getStatusText = () => {
+        if (isLoading) {
+            return `Loading Tiled data for run ${blueskyRunId}...`;
+        }
+        
+        if (error) {
+            return `Error: ${error}`;
+        }
+        
+        if (!blueskyRunId) {
+            return 'No run ID provided - waiting for data';
+        }
+        
+        if (!tiledPath) {
+            return `No data path found for run ${blueskyRunId}`;
+        }
+        
+        return `Found Tiled path: ${tiledPath} ${enablePolling ? '(Live - polling enabled)' : '(Complete - polling disabled)'}`;
+    };
 
     console.log(`[TiledWriterScatterPlot] Rendering TiledScatterPlot with path: ${tiledPath}`);
     
     return (
         <div className={className}>
-            <div>Found Tiled path: {tiledPath} {enablePolling ? '(Live - polling enabled)' : '(Complete - polling disabled)'}</div>
+            {showStatusText && (
+                <p className="text-xs text-gray-600 mb-2">
+                    {getStatusText()}
+                </p>
+            )}
             <TiledScatterPlot 
                 path={tiledPath}
                 tiledTrace={tiledTrace}

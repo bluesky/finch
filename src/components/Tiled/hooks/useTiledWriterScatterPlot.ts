@@ -27,6 +27,7 @@ export const useTiledWriterScatterPlot = (
     const [error, setError] = useState<string | null>(null);
     const [enablePolling, setEnablePolling] = useState(!isRunFinished);
     const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+    const [retryInterval, setRetryInterval] = useState<NodeJS.Timeout | null>(null);
 
     // Function to start polling for completion
     const startCompletionPolling = (customPollingInterval?: number) => {
@@ -56,11 +57,24 @@ export const useTiledWriterScatterPlot = (
         }
     };
 
+    // Function to stop retry polling
+    const stopRetryPolling = () => {
+        if (retryInterval) {
+            clearInterval(retryInterval);
+            setRetryInterval(null);
+            console.log(`[useTiledWriterScatterPlot] Stopped retry polling`);
+        }
+    };
+
     // Function to handle successful path discovery
     const handleSuccessfulPath = async (finalPath: string, pathType: string) => {
         console.log(`[useTiledWriterScatterPlot] Success! Using ${pathType} path: ${finalPath}`);
         setTiledPath(finalPath);
         setIsLoading(false);
+        setError(null);
+        
+        // Stop retry polling since we found the path
+        stopRetryPolling();
         
         // Check run completion and start polling if needed
         const isComplete = await checkRunCompletion(blueskyRunId);
@@ -76,16 +90,13 @@ export const useTiledWriterScatterPlot = (
 
     // Find the Tiled path
     useEffect(() => {
-        const findTiledPath = async () => {
-            setIsLoading(true);
-            setError(null);
-            
+        const findTiledPath = async (): Promise<boolean> => {
             // Check if blueskyRunId is empty
             if (!blueskyRunId || blueskyRunId.trim() === '') {
                 console.log(`[useTiledWriterScatterPlot] Empty blueskyRunId, waiting for run ID`);
                 setError('Waiting for run ID');
                 setIsLoading(false);
-                return;
+                return false;
             }
             
             try {
@@ -97,9 +108,8 @@ export const useTiledWriterScatterPlot = (
                 
                 if (!initialSearchResults) {
                     console.log(`[useTiledWriterScatterPlot] No results found for blueskyRunId: ${blueskyRunId}`);
-                    setError(`No data found for run ID: ${blueskyRunId}`);
-                    setIsLoading(false);
-                    return;
+                    setError(`Searching for run data... (Run ID: ${blueskyRunId})`);
+                    return false;
                 }
                 
                 // Use the original blueskyRunId as the base path
@@ -116,7 +126,7 @@ export const useTiledWriterScatterPlot = (
                     if (streamsResults) {
                         const finalPath = `${streamsPath}/internal`;
                         await handleSuccessfulPath(finalPath, "streams");
-                        return;
+                        return true;
                     }
                 } catch (streamsError) {
                     console.log(`[useTiledWriterScatterPlot] Streams path not found, trying direct primary path`);
@@ -131,34 +141,67 @@ export const useTiledWriterScatterPlot = (
                     if (directResults) {
                         const finalPath = `${directPath}/internal`;
                         await handleSuccessfulPath(finalPath, "direct");
-                        return;
+                        return true;
                     }
                 } catch (directError) {
                     console.log(`[useTiledWriterScatterPlot] Direct primary path not found either`);
                 }
                 
-                // If neither path works
-                setError('Could not find primary data path for this run');
-                setIsLoading(false);
+                // If neither path works, but run exists, it might be that data isn't written yet
+                setError(`Waiting for scan data to be written... (Run ID: ${blueskyRunId})`);
+                return false;
                 
             } catch (error) {
                 console.error('[useTiledWriterScatterPlot] Error finding Tiled path:', error);
-                setError(`Error searching for data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                setError(`Searching for run data... (${error instanceof Error ? error.message : 'Unknown error'})`);
+                return false;
+            }
+        };
+
+        const startSearch = async () => {
+            setIsLoading(true);
+            setError(null);
+            
+            // Stop any existing retry polling
+            stopRetryPolling();
+            
+            // Only proceed if we have a valid blueskyRunId
+            if (!blueskyRunId || blueskyRunId.trim() === '') {
+                setError('Waiting for run ID');
+                setIsLoading(false);
+                return;
+            }
+
+            // Try to find the path immediately
+            const success = await findTiledPath();
+            
+            // If not successful and run is not finished, start retry polling
+            if (!success && !isRunFinished) {
+                console.log(`[useTiledWriterScatterPlot] Starting retry polling every 2 seconds for run: ${blueskyRunId}`);
+                
+                const intervalId = setInterval(async () => {
+                    console.log(`[useTiledWriterScatterPlot] Retrying path search for run: ${blueskyRunId}`);
+                    const retrySuccess = await findTiledPath();
+                    
+                    if (retrySuccess) {
+                        clearInterval(intervalId);
+                        setRetryInterval(null);
+                        console.log(`[useTiledWriterScatterPlot] Successfully found path on retry, stopping retry polling`);
+                    }
+                }, 2000);
+                
+                setRetryInterval(intervalId);
+            } else if (!success && isRunFinished) {
+                // Run is finished but we couldn't find the path
+                setError('Could not find primary data path for this run');
                 setIsLoading(false);
             }
         };
 
-        // Only proceed if we have a valid blueskyRunId
-        if (blueskyRunId && blueskyRunId.trim() !== '') {
-            findTiledPath();
-        } else {
-            // Handle empty string case
-            setError('Waiting for run ID');
-            setIsLoading(false);
-        }
+        startSearch();
     }, [blueskyRunId, isRunFinished]);
 
-    // Cleanup interval on unmount
+    // Cleanup intervals on unmount
     useEffect(() => {
         return () => {
             if (pollingInterval) {
@@ -166,8 +209,13 @@ export const useTiledWriterScatterPlot = (
                 setPollingInterval(null);
                 console.log(`[useTiledWriterScatterPlot] Cleaned up polling interval on unmount`);
             }
+            if (retryInterval) {
+                clearInterval(retryInterval);
+                setRetryInterval(null);
+                console.log(`[useTiledWriterScatterPlot] Cleaned up retry interval on unmount`);
+            }
         };
-    }, [pollingInterval]);
+    }, [pollingInterval, retryInterval]);
 
     return {
         tiledPath,
