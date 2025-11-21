@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getPlansAllowedPromise, executeItemPromise } from '../QServer/utils/apiClient';
-import { PostItemAddResponse } from '../QServer/types/apiTypes';
+import { getPlansAllowedPromise, executeItemPromise, getQueuePromise } from '../QServer/utils/apiClient';
+import { PostItemAddResponse, GetQueueResponse } from '../QServer/types/apiTypes';
 import Button from '../Button';
 
 type ExperimentExecutePlanButtonGenericProps = {
@@ -33,6 +33,26 @@ export default function ExperimentExecutePlanButtonGeneric({
     const [isPlanAvailable, setIsPlanAvailable] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isExecuting, setIsExecuting] = useState(false);
+    const [isQueueServerBusy, setIsQueueServerBusy] = useState(false);
+
+    // Polling interval setup - matching the QServer hook pattern
+    const pollingInterval = import.meta.env.VITE_QSERVER_POLLING_INTERVAL ? 
+        parseInt(import.meta.env.VITE_QSERVER_POLLING_INTERVAL) : 2000;
+
+    // Check for running plans in queue server
+    const checkQueueStatus = async () => {
+        try {
+            const queueData = await getQueuePromise();
+            if (queueData.success) {
+                // Check if there's a running item by examining if running_item has properties
+                const hasRunningItem = queueData.running_item && 
+                    Object.keys(queueData.running_item).length > 0;
+                setIsQueueServerBusy(hasRunningItem);
+            }
+        } catch (error) {
+            console.error('Error checking queue status:', error);
+        }
+    };
 
     useEffect(() => {
         const checkPlanAvailability = async () => {
@@ -60,10 +80,18 @@ export default function ExperimentExecutePlanButtonGeneric({
         };
 
         checkPlanAvailability();
-    }, [planName, onError]);
+        
+        // Start polling for queue status
+        checkQueueStatus();
+        const queueInterval = setInterval(checkQueueStatus, pollingInterval);
+
+        return () => {
+            clearInterval(queueInterval);
+        };
+    }, [planName, onError, pollingInterval]);
 
     const handleExecuteClick = async () => {
-        if (!isPlanAvailable || isExecuting) return;
+        if (!isPlanAvailable || isExecuting || isQueueServerBusy) return;
 
         setIsExecuting(true);
 
@@ -97,19 +125,27 @@ export default function ExperimentExecutePlanButtonGeneric({
         if (isLoading) return "Loading...";
         if (isExecuting) return "Executing...";
         if (!isPlanAvailable) return `${planName} Plan Unavailable`;
+        if (isQueueServerBusy) return `Execute ${planName} Plan`;
         return `Execute ${planName} Plan`;
     };
 
     const isButtonDisabled = () => {
-        return disabled || isLoading || isExecuting || !isPlanAvailable;
+        return disabled || isLoading || isExecuting || !isPlanAvailable || isQueueServerBusy;
     };
 
     return (
-        <Button
-            text={getButtonText()}
-            cb={handleExecuteClick}
-            disabled={isButtonDisabled()}
-            styles={className}
-        />
+        <div className="flex flex-col">
+            <Button
+                text={getButtonText()}
+                cb={handleExecuteClick}
+                disabled={isButtonDisabled()}
+                styles={`${className} ${isQueueServerBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
+            />
+            {isQueueServerBusy && (
+                <div className="text-sm text-red-600 mt-1 text-center">
+                    Queue server busy
+                </div>
+            )}
+        </div>
     );
 }
