@@ -7,7 +7,7 @@ type UseTiledWriterDetImageHeatmapOptions = {
 };
 
 export function useTiledWriterDetImageHeatmap(
-    blueskyRunId: string,
+    blueskyRunId: string | null,
     options: UseTiledWriterDetImageHeatmapOptions = {}
 ) {
     const {
@@ -76,6 +76,7 @@ export function useTiledWriterDetImageHeatmap(
         if (!blueskyRunId) {
             setError('No blueskyRunId provided');
             setIsLoading(false);
+            setTiledPath(null);
             return;
         }
 

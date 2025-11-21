@@ -1,8 +1,9 @@
+import { truncate } from "fs";
 import PlotlyHeatmapTiled from "../PlotlyHeatmapTiled";
 import { useTiledWriterDetImageHeatmap } from "./hooks/useTiledWriterDetImageHeatmap";
 
 type TiledWriterDetImageHeatmapProps = {
-    blueskyRunId: string;
+    blueskyRunId: string | null;
     isRunFinished?: boolean;
     tiledBaseUrl?: string;
     pollingIntervalMs?: number;
@@ -13,7 +14,7 @@ type TiledWriterDetImageHeatmapProps = {
 
 export default function TiledWriterDetImageHeatmap({ 
     blueskyRunId,
-    isRunFinished = false,
+    isRunFinished = true,
     tiledBaseUrl,
     pollingIntervalMs,
     className,
@@ -32,29 +33,39 @@ export default function TiledWriterDetImageHeatmap({
         tiledBaseUrl 
     });
 
-    if (isLoading) {
-        return <div className={className}>Loading detector image for run {blueskyRunId}...</div>;
-    }
-
-    if (error) {
-        return <div className={className}>Error: {error}</div>;
-    }
-
-    if (!tiledPath) {
-        return <div className={className}>No det_image found for run {blueskyRunId}</div>;
-    }
+    // Determine status text based on current state
+    const getStatusText = () => {
+        if (isLoading) {
+            return `Loading detector image for run ${blueskyRunId}...`;
+        }
+        
+        if (error) {
+            return `Error: ${error}`;
+        }
+        
+        if (!blueskyRunId) {
+            return 'No run ID provided - waiting for data';
+        }
+        
+        if (!tiledPath) {
+            return `No det_image found for run ${blueskyRunId}`;
+        }
+        
+        return `Det Image for run: ${blueskyRunId} ${enablePolling ? '(Live - polling enabled)' : '(Complete - polling disabled)'}`;
+    };
 
     console.log(`[TiledWriterDetImageHeatmap] Rendering PlotlyHeatmapTiled with path: ${tiledPath}`);
     
     return (
         <div className={className}>
-            <div className="text-sm text-gray-600 mb-2">
-                Det Image for run: {blueskyRunId} {enablePolling ? '(Live - polling enabled)' : '(Complete - polling disabled)'}
-            </div>
+            <p className="text-xs text-gray-600 mb-2">
+                {getStatusText()}
+            </p>
             <PlotlyHeatmapTiled 
                 url={tiledPath}
                 className={plotClassName}
                 size={size}
+                enablePolling={blueskyRunId && enablePolling ? true : false}
             />
         </div>
     );
