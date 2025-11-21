@@ -11,7 +11,7 @@ export type BeamEnergyOphydProps = {
     thetaOffsetDeg?: number
     wsUrl?: string
 }
-export default function BeamEnergyOphyd({deviceName="mono", title="Beam Energy", thetaOffsetDeg, wsUrl}:BeamEnergyOphydProps) {
+export default function BeamEnergyOphyd({deviceName="mono_energy", title="Beam Energy", thetaOffsetDeg, wsUrl}:BeamEnergyOphydProps) {
     const { 
         currentValueEV,
         handleAbsoluteMove,
