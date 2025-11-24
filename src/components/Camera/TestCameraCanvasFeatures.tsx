@@ -1,37 +1,34 @@
 import { useMemo } from 'react';
 import { phosphorIcons } from "@/assets/icons";
-import { SunDim, Sun, PaintBrush, Eraser } from '@phosphor-icons/react';
+import { SunDim, Sun, PaintBrush } from '@phosphor-icons/react';
 import { useCameraDraw } from './hooks/useCameraDraw';
 
-export type CameraCanvasFeaturesProps = {
+export type TestCameraCanvasFeaturesProps = {
     socketStatus: string;
     isImageLogScale: boolean;
     onToggleConnection: () => void;
     onToggleLogScale: () => void;
     canvasSize?: number;
-    prefix?: string;
 };
 
-export default function CameraCanvasFeatures({
+export default function TestCameraCanvasFeatures({
     socketStatus,
     isImageLogScale,
     onToggleConnection,
     onToggleLogScale,
-    canvasSize = 512,
-    prefix
-}: CameraCanvasFeaturesProps) {
+    canvasSize = 512
+}: TestCameraCanvasFeaturesProps) {
     const {
         isDrawingMode,
         strokes,
         currentStroke,
         drawingAreaRef,
         toggleDrawingMode,
-        eraseAllStrokes,
         handleMouseDown,
         handleMouseMove,
         handleMouseUp,
         createStrokePath
-    } = useCameraDraw(prefix);
+    } = useCameraDraw();
 
     const renderStroke = (stroke: any[], index: number) => {
         const pathData = createStrokePath(stroke);
@@ -74,20 +71,6 @@ export default function CameraCanvasFeatures({
 
     return (
         <>
-            {/* Erase All Button - shown at the top when drawing mode is active */}
-            {isDrawingMode && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30">
-                    <button
-                        onClick={eraseAllStrokes}
-                        className=" opacity-80 flex items-center gap-2 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded shadow-md transition-colors"
-                        title="Erase All Drawings"
-                    >
-                        <Eraser size={16} />
-                         Erase All
-                    </button>
-                </div>
-            )}
-
             {/* Manual Drawing Overlay */}
             {isDrawingMode && (
                 <div 

@@ -150,7 +150,6 @@ export function useTIFFCanvas({
     }, [wsUrl, canvasSize]);
 
     useEffect(() => {
-        console.log('running hook')
         if (!isInitialized.current) {
             isInitialized.current = true;
             if (socketStatus === 'closed') {

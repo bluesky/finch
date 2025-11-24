@@ -117,7 +117,7 @@ export default function CameraContainer(
         const cameraControlPV = devices[`${prefix}:cam1:Acquire`];
 
         return (
-            <div className="w-full h-full flex flex-wrap space-x-4 items-start justify-center">
+            <div className="w-fit h-fit flex flex-wrap space-x-4 items-start justify-center">
                 <div className="flex flex-col flex-shrink-0 items-center">
                     <CameraCanvas imageArrayPV={imageArrayPV} canvasSize={canvasSize} sizePVs={sizePVs} prefix={prefix} wsUrl={cameraImageWsUrl}/>
                     { enableControlPanel ? <CameraControlPanel cameraControlPV={cameraControlPV} startAcquire={startAcquire} stopAcquire={stopAcquire}/> : ''}
