@@ -16,7 +16,7 @@ import { getStatus, openWorkerEnvironment, setQueueServerApiUrl } from "./utils/
 import { useQueueServer } from "./hooks/useQueueServer";
 
 import { CopiedPlan, PopupItem } from "./types/types";
-import { GetStatusResponse } from "./types/apiTypes";
+import { GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
 
 import { cn } from '@/lib/utils';
 
@@ -57,6 +57,12 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
         setIsItemDeleteButtonVisible(true);
         setIsQItemPopupVisible(true);
     };
+
+    const handleRunEngineItemClick = (runningItem: RunningQueueItem) => {
+        setPopupItem(runningItem);
+        setIsItemDeleteButtonVisible(false);
+        setIsQItemPopupVisible(true);
+    }
 
     const handleHistoryQItemClick = (item:PopupItem) => {
         setPopupItem(item);
@@ -131,22 +137,13 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                     isSidepanelExpanded={isSidepanelExpanded}
                 >
                     <QSList type="short" queueData={currentQueue?.items || []} handleQItemClick={handleCurrentQItemClick}/>
-                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn}/>
+                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn} handleItemClick={handleRunEngineItemClick}/>
                     <QSList type="history" queueData={queueHistory?.items || []} handleQItemClick={handleHistoryQItemClick}/>
                 </SidePanel>
             </div>
 
             <div className="flex-grow  rounded-md">
                 <MainPanel minimizeAllWidgets={minimizeAllWidgets} expandPanel={handleSidepanelExpandClick}>
-                    <SettingsContainer 
-                        title="Settings" 
-                        icon={tailwindIcons.cog} 
-                        expandedHeight="h-1/2" 
-                        defaultHeight="h-1/4" 
-                        maxHeight="max-h-[30rem]" 
-                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
-                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
-                        updateGlobalMetadata={updateGlobalMetadata}/>
                     <QSAddItem 
                         title="Add Item" 
                         icon={tailwindIcons.plus} 
@@ -160,8 +157,17 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                         title="Console Output" 
                         icon={tailwindIcons.commandLine} 
                         expandedHeight="h-3/4" 
-                        defaultHeight="h-[22%]" 
+                        defaultHeight="h-1/2" 
                         processConsoleMessage={processConsoleMessage}/> 
+                    <SettingsContainer 
+                        title="Settings" 
+                        icon={tailwindIcons.cog} 
+                        expandedHeight="h-1/2" 
+                        defaultHeight="h-1/5" 
+                        maxHeight="max-h-[30rem]" 
+                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
+                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
+                        updateGlobalMetadata={updateGlobalMetadata}/>
                 </MainPanel>
             </div>
         </main>

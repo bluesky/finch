@@ -99,7 +99,7 @@ export function useQSAddItem({
     const initializeParameters = (plan = '', parameters?: {[key:string]: any}) => {
         var tempParameters: {[key: string]: ParameterInput} = {};
         const multiSelectParamList = ['detectors'];
-        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop', 'x_range'];
+        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
         
         for (var param of allowedPlans[plan].parameters) {
             let defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
