@@ -1,5 +1,39 @@
 import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetQueueItemResponse, GetQueueResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse } from "../types/apiTypes";
 
+export const mockGetApiStatusResponse: GetStatusResponse = {
+    "msg": "RE Manager v0.0.21",
+    "items_in_queue": 0,
+    "items_in_history": 355,
+    "running_item_uid": "d7e476a5-896f-461c-ab1d-6eb90b583fd8",
+    "manager_state": "paused",
+    "queue_stop_pending": false,
+    "queue_autostart_enabled": false,
+    "worker_environment_exists": true,
+    "worker_environment_state": "idle",
+    "worker_background_tasks": 0,
+    "re_state": "paused",
+    "ip_kernel_state": "disabled",
+    "ip_kernel_captured": true,
+    "pause_pending": false,
+    "run_list_uid": "619e9841-a7b2-41fe-921a-166e8ef1da23",
+    "plan_queue_uid": "295f9b08-dd09-4aad-a27f-334659f6195c",
+    "plan_history_uid": "1d296be4-6101-4eaf-bea9-a0e3d9e277c6",
+    "devices_existing_uid": "3b8e062b-5b50-443e-9864-81407b1aa46f",
+    "plans_existing_uid": "f35a19ad-60ff-4df1-a4c7-71630b024701",
+    "devices_allowed_uid": "a866d9ab-866d-448a-bd2d-86960e5c2462",
+    "plans_allowed_uid": "806337ff-2410-4703-8942-55c98985a332",
+    "plan_queue_mode": {
+        "loop": false,
+        "ignore_failures": false
+    },
+    "task_results_uid": "fc95b78a-ea0c-4df1-80d9-52ede346116d",
+    "lock_info_uid": "4ac38516-ad82-460c-8f94-fbb2c98381cf",
+    "lock": {
+        "environment": false,
+        "queue": false
+    }
+};
+
 export const mockGetRunsActiveResponse: GetRunsActiveResponse = {
   "success": true,
   "msg": "",

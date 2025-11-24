@@ -21,7 +21,7 @@ export interface GetStatusResponse {
     worker_background_tasks: number;
     re_state: string | null;
     ip_kernel_state: string | null;
-    ip_kernel_captured: string | null;
+    ip_kernel_captured: string | boolean | null;
     pause_pending: boolean;
     run_list_uid: string;
     plan_queue_uid: string;

@@ -59,7 +59,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
     };
 
     const handleRunEngineItemClick = (runningItem: RunningQueueItem) => {
-        setPopupItem(runningItem);
+        setPopupItem(runningItem );
         setIsItemDeleteButtonVisible(false);
         setIsQItemPopupVisible(true);
     }
@@ -126,6 +126,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                     popupItem={popupItem} 
                     isItemDeleteButtonVisible={isItemDeleteButtonVisible} 
                     handleCopyItemClick={handleCopyItemClick} 
+                    isItemRunning={popupItem === runningItem}
                 />
             )} 
             <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full`}>

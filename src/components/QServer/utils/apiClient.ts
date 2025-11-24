@@ -186,6 +186,66 @@ const startRE = async () => {
     }
 };
 
+const pauseRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/pause', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error pausing RE:', error);
+        return false;
+    }
+};
+
+const resumeRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/resume', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error resuming RE:', error);
+        return false;
+    }
+};
+
+const abortRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/abort', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error aborting RE:', error);
+        return false;
+    }
+};
+
 const postQueueItem = async (body:AddQueueItemBody, cb:(data:PostItemAddResponse)=>void, mock=false) => {
     if (mock) {
         cb(mockAddItemSuccessResponse);
@@ -420,6 +480,9 @@ export {
     getPlansAllowed, 
     getDevicesAllowed, 
     startRE, 
+    pauseRE,
+    resumeRE,
+    abortRE,
     postQueueItem, 
     getQueueItem, 
     deleteQueueItem, 

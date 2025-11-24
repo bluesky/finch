@@ -1,15 +1,18 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
+import { useQuery } from '@tanstack/react-query';
 
 import { PopupItem, HistoryResultRow } from "./types/types";
 
 import DeleteResultPopup from "./DeleteResultPopup";
 import ConfirmDeleteItemPopup from "./ConfirmDeleteItemPopup";
 import Button from "../Button";
+import ButtonWithIcon from "../ButtonWithIcon";
 import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
+import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
 import { Tooltip } from 'react-tooltip';
-import { deleteQueueItem } from "./utils/apiClient";
-import { PostItemRemoveResponse } from "./types/apiTypes";
+import { deleteQueueItem, getStatusPromise, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
+import { GetRunsActiveResponse, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
 
 import dayjs from "dayjs";
 
@@ -19,12 +22,34 @@ type QItemPopupProps = {
     handleQItemPopupClose: () => void;
     isItemDeleteButtonVisible?: boolean;
     handleCopyItemClick: (name: string, kwargs: { [key: string]: any }) => void;
+    isItemRunning?: boolean;
 }
-export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick=()=>{} }: QItemPopupProps) {
+export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick=()=>{}, isItemRunning }: QItemPopupProps) {
     const [isDeleteModeVisible, setIsDeleteModeVisibile] = useState(false);
     const [areResultsVisible, setAreResultsVisible] = useState(false);
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
     const [isTracebackCopied, setIsTracebackCopied] = useState(false);
+    const [runsActiveResponse, setRunsActiveResponse] = useState<GetRunsActiveResponse| null>(null);
+    const [apiStatusResponse, setApiStatusResponse] = useState<GetStatusResponse | null>(null);
+
+    // QServer-specific TanStack Query for polling API status when item is running
+    const { data: statusData, isLoading: statusLoading, error: statusError } = useQuery({
+        queryKey: ['qserver', 'status', 'popup', popupItem.item_uid],
+        queryFn: () => getStatusPromise(),
+        enabled: !!isItemRunning, // Only poll when item is running
+        refetchInterval: isItemRunning ? 2000 : false, // Poll every 2 seconds when running
+        refetchIntervalInBackground: true,
+        retry: 3,
+        retryDelay: 1000,
+        staleTime: 1500, // Consider data stale after 1.5 seconds
+    });
+
+    // Update state when statusData changes
+    useEffect(() => {
+        if (statusData) {
+            setApiStatusResponse(statusData);
+        }
+    }, [statusData]);
 
     //check if item is in the current queue or the history
     const isHistory = 'result' in popupItem;
@@ -83,6 +108,13 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         handleQItemPopupClose();
     }
 
+    const handleAbortClick = async () => {
+        const success = await abortRE();
+        if (success) {
+            handleQItemPopupClose();
+        }
+    };
+
     const displayKwarg = (value: [] | string) => {
         //value may be an Array, String, or Object
         if (Array.isArray(value)) {
@@ -125,9 +157,58 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     };
 
     const settings = [
+        // Real-time status row when item is running
+        ...(isItemRunning ? [{
+            name: 'Live Status',
+            icon: <Pulse size={36} className={statusLoading ? 'animate-pulse text-blue-500' : 'text-green-500'} weight="bold" />,
+            content: statusError ? (
+                <div className="text-red-600 text-sm">
+                    Error fetching status: {statusError.message}
+                </div>
+            ) : statusData ? (
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Manager State:</span>
+                        <span className={`font-medium ${
+                            statusData.manager_state === 'executing_queue' ? 'text-green-600' : 
+                            statusData.manager_state === 'paused' ? 'text-yellow-600' : 'text-gray-600'
+                        }`}>
+                            {statusData.manager_state}
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">RE State:</span>
+                        <span className={`font-medium ${
+                            statusData.re_state === 'executing' ? 'text-green-600' : 'text-gray-600'
+                        }`}>
+                            {statusData.re_state}
+                        </span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">Worker Environment:</span>
+                        <span className={`font-medium ${
+                            statusData.worker_environment_state === 'idle' ? 'text-green-600' : 
+                            statusData.worker_environment_state === 'executing_plan' ? 'text-blue-600' : 'text-gray-600'
+                        }`}>
+                            {statusData.worker_environment_state}
+                        </span>
+                    </div>
+                    {statusData.running_item_uid && (
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">Running Item:</span>
+                            <span className="font-mono text-xs text-blue-600">
+                                {statusData.running_item_uid.slice(0, 8)}...
+                            </span>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="text-gray-500 text-sm">Loading status...</div>
+            )
+        }] : []),
         {
             name:'Parameters',
-            icon: tailwindIcons.adjustmentsVertical,
+            icon: <Faders size={36}/>,
             content: popupItem.kwargs &&
                 <Fragment>
                     {popupItem.kwargs && Object.keys(popupItem.kwargs).map((kwarg) => printParameter(kwarg))}
@@ -136,17 +217,17 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         },
         {
             name:'UID',
-            icon: tailwindIcons.fingerprint,
+            icon: <Fingerprint size={36}/>,
             content: popupItem.item_uid,
         },
         {
             name:'User',
-            icon: tailwindIcons.user,
+            icon: <User size={36}/>,
             content: popupItem.user,
         },
         {
             name:'User_Group',
-            icon: tailwindIcons.users,
+            icon: <UsersThree size={36}/>,
             content: popupItem.user_group,
         },
     ];
@@ -273,6 +354,44 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                             ''
                         )}
                         <section  className={`${isHistory ? 'w-2/5' : 'w-full'} h-full overflow-auto flex flex-col space-y-4 py-2`}>
+                            {isItemRunning ?
+                            <>
+                                <h2 className="text-center text-xl font-semibold">Active Run Information</h2>
+                                <Row 
+                                    name="Status" 
+                                    icon={<Pulse size={36}/>} 
+                                    content={
+                                        <>
+                                        <p className="">{apiStatusResponse?.manager_state === "paused" ? "Plan is currently paused" : "Plan is running"}</p>
+                                        <span className="flex justify-start gap-4">
+                                        <ButtonWithIcon 
+                                            text={apiStatusResponse?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
+                                            icon={apiStatusResponse?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
+                                            isSecondary={true}
+                                            styles="bg-white"
+                                            cb={apiStatusResponse?.manager_state === "paused" ? resumeRE : pauseRE}
+                                        />
+
+                                        {apiStatusResponse?.manager_state === "paused" ?
+                                        <ButtonWithIcon
+                                            text="Delete Plan"
+                                            icon={<Trash size={20}/>}
+                                            isSecondary={true}
+                                            styles="bg-red-300 hover:bg-red-500"
+                                            cb={handleAbortClick}
+                                            />
+                                            :
+                                            ''
+                                    }
+
+                                        </span>
+                                        </>
+                                    } 
+                                    />
+                            </>
+                            :
+                                ''
+                            }
                             <h2 className="text-center text-xl font-semibold">Plan Information</h2>
                             {settings.map((row) => <Row key={row.name} name={row.name} icon={row.icon} content={row.content} />)}
                             <div  className={`${isItemDeleteButtonVisible ? '' : 'hidden'} flex justify-center `}>
