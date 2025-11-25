@@ -119,7 +119,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
     }, [])
 
     return (
-        <main className={cn("max-w-screen-3xl w-full min-w-[52rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
+        <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
             {/* ITEM POPUP  */}
             {(isQItemPopupVisible && popupItem!==null) && (
                 <QItemPopup 
@@ -130,7 +130,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                     isItemRunning={popupItem === runningItem}
                 />
             )} 
-            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full`}>
+            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full min-w-56`}>
                 <SidePanel 
                     queueData={currentQueue?.items || []}
                     queueHistoryData={queueHistory?.items || []} 
@@ -159,7 +159,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                     <QSConsole 
                         title="Console Output" 
                         icon={tailwindIcons.commandLine} 
-                        expandedHeight="h-3/4" 
+                        expandedHeight="h-full" 
                         defaultHeight="h-1/2" 
                         processConsoleMessage={processConsoleMessage}/> 
                     <SettingsContainer 
