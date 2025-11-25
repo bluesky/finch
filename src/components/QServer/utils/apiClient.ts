@@ -115,10 +115,10 @@ const getQueueHistory = async (cb:(data:GetHistoryResponse)=>void, mock=false) =
     }
 };
 
-const getStatus = async (cb:(data:GetStatusResponse)=>void, mock = false) => {
+const getStatus = async (cb:(data:GetStatusResponse | null)=>void, mock = false): Promise<GetStatusResponse | null> => {
     if (mock) {
         cb(mockGetStatusResponse);
-        return;
+        return mockGetStatusResponse;
     }
     try {
         const response = await axios.get(queueServerApiUrl + '/api/status', 
@@ -127,8 +127,10 @@ const getStatus = async (cb:(data:GetStatusResponse)=>void, mock = false) => {
             }}
         );
         cb(response.data);
+        return response.data;
     } catch (error) {
         console.error('Error fetching status:', error);
+        return null;
     }
 };
 

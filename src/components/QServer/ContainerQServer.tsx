@@ -49,7 +49,8 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
         updateGlobalMetadata,
         removeDuplicateMetadata,
         isGlobalMetadataChecked,
-        handleGlobalMetadataCheckboxChange
+        handleGlobalMetadataCheckboxChange,
+        apiStatus
     } = useQueueServer();
 
     const handleCurrentQItemClick = (item:PopupItem) => {
@@ -108,8 +109,8 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
 
     useEffect(() => {
         //check if the re worker has opened or not with GET
-        const checkWorkerEnvironment = (res:GetStatusResponse) => {
-            if (res.worker_environment_exists === false || res.worker_environment_state === 'closed') {
+        const checkWorkerEnvironment = (res:GetStatusResponse | null) => {
+            if (res && (res.worker_environment_exists === false || res.worker_environment_state === 'closed')) {
                 console.log('RE worker environment closed, attempting to open a new worker environment');
                 openWorkerEnvironment();
             }
@@ -136,6 +137,7 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                     isREToggleOn={isREToggleOn} 
                     handleSidepanelExpandClick={handleSidepanelExpandClick}
                     isSidepanelExpanded={isSidepanelExpanded}
+                    runEngineState={apiStatus ? apiStatus.re_state : null}
                 >
                     <QSList type="short" queueData={currentQueue?.items || []} handleQItemClick={handleCurrentQItemClick}/>
                     <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn} handleItemClick={handleRunEngineItemClick}/>

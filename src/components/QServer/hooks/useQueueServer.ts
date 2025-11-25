@@ -1,7 +1,7 @@
 // hooks/useQueueServer.js
 import { useState, useEffect, useRef } from 'react';
-import { getQueue, getQueueHistory, getQueueItem } from "../utils/apiClient";
-import { GetHistoryResponse, GetQueueResponse, RunningQueueItem } from '../types/apiTypes';
+import { getQueue, getQueueHistory, getQueueItem, getStatus } from "../utils/apiClient";
+import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../types/apiTypes';
 import { GlobalMetadata, PlanInput } from '../types/types';
 
 export const useQueueServer = () => {
@@ -12,6 +12,7 @@ export const useQueueServer = () => {
     const runEngineToggleRef = useRef(isREToggleOn);
     const [ globalMetadata, setGlobalMetadata ] = useState<GlobalMetadata>({});
     const [ isGlobalMetadataChecked, setIsGlobalMetadataChecked ] = useState(true);
+    const [ apiStatus, setApiStatus ] = useState<GetStatusResponse | null>(null);
 
 
     //setup polling interval for getting regular updates from the http server
@@ -60,21 +61,9 @@ export const useQueueServer = () => {
                 if (!isItemRunning && prevState !== null) {
                     return null;
                 }
-
                 return prevState;
-                
-
                })
-
                 setIsREToggleOn(Object.keys(res.running_item).length > 0);
-
-/* 
-                if (JSON.stringify(res.running_item) !== JSON.stringify(runningItemRef.current)) {
-                    setRunningItem(res.running_item);
-                    setIsREToggleOn(Object.keys(res.running_item).length > 0);
-                } else if (Object.keys(res.running_item).length === 0) {
-                    setIsREToggleOn(false);
-                } */
             }
         } catch(error) {
             console.log({error});
@@ -91,17 +80,15 @@ export const useQueueServer = () => {
                     return res;
                 }
             });
-            /* 
-            try {
-                if (res.plan_history_uid !== planHistoryUidRef.current) {
-                    setQueueHistoryData(res.items);
-                    planHistoryUidRef.current = res.plan_history_uid;
-                }
-            } catch(e) {
-                console.log(e);
-            } */
+
         } else {
             console.log('Error retrieving queue history: ', res);
+        }
+    };
+
+    const handleApiStatusResponse = (res: GetStatusResponse | null) => {
+        if (res) {
+            setApiStatus(res);
         }
     };
 
@@ -183,10 +170,12 @@ export const useQueueServer = () => {
 
         const queueInterval = setInterval(() => getQueue(handleQueueDataResponse), pollingInterval);
         const historyInterval = setInterval(() => getQueueHistory(handleQueueHistoryResponse), pollingInterval);
+        const statusInterval = setInterval(() => getStatus(handleApiStatusResponse), pollingInterval);
 
         return () => {
             clearInterval(queueInterval);
             clearInterval(historyInterval);
+            clearInterval(statusInterval);
         };
     }, [pollingInterval]);
 
@@ -204,6 +193,7 @@ export const useQueueServer = () => {
         updateGlobalMetadata,
         removeDuplicateMetadata,
         isGlobalMetadataChecked,
-        handleGlobalMetadataCheckboxChange
+        handleGlobalMetadataCheckboxChange,
+        apiStatus
     };
 };

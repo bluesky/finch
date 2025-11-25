@@ -19,7 +19,7 @@ export interface GetStatusResponse {
     worker_environment_exists: boolean;
     worker_environment_state: string;
     worker_background_tasks: number;
-    re_state: string | null;
+    re_state: string;
     ip_kernel_state: string | null;
     ip_kernel_captured: string | boolean | null;
     pause_pending: boolean;

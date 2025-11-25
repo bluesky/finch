@@ -62,6 +62,12 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const handleDeleteResponse = (data: any) => {
         setAreResultsVisible(true);
         setResponse(data);
+        if (data?.success === true) {
+            //close the popup after 2 seconds
+            setTimeout(() => {
+                handleQItemPopupClose();
+            }, 2000);
+        }
     };
 
     const handleCloseResults = () => {
@@ -157,55 +163,6 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     };
 
     const settings = [
-        // Real-time status row when item is running
-        ...(isItemRunning ? [{
-            name: 'Live Status',
-            icon: <Pulse size={36} className={statusLoading ? 'animate-pulse text-blue-500' : 'text-green-500'} weight="bold" />,
-            content: statusError ? (
-                <div className="text-red-600 text-sm">
-                    Error fetching status: {statusError.message}
-                </div>
-            ) : statusData ? (
-                <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                        <span className="text-gray-600">Manager State:</span>
-                        <span className={`font-medium ${
-                            statusData.manager_state === 'executing_queue' ? 'text-green-600' : 
-                            statusData.manager_state === 'paused' ? 'text-yellow-600' : 'text-gray-600'
-                        }`}>
-                            {statusData.manager_state}
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-gray-600">RE State:</span>
-                        <span className={`font-medium ${
-                            statusData.re_state === 'executing' ? 'text-green-600' : 'text-gray-600'
-                        }`}>
-                            {statusData.re_state}
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span className="text-gray-600">Worker Environment:</span>
-                        <span className={`font-medium ${
-                            statusData.worker_environment_state === 'idle' ? 'text-green-600' : 
-                            statusData.worker_environment_state === 'executing_plan' ? 'text-blue-600' : 'text-gray-600'
-                        }`}>
-                            {statusData.worker_environment_state}
-                        </span>
-                    </div>
-                    {statusData.running_item_uid && (
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">Running Item:</span>
-                            <span className="font-mono text-xs text-blue-600">
-                                {statusData.running_item_uid.slice(0, 8)}...
-                            </span>
-                        </div>
-                    )}
-                </div>
-            ) : (
-                <div className="text-gray-500 text-sm">Loading status...</div>
-            )
-        }] : []),
         {
             name:'Parameters',
             icon: <Faders size={36}/>,
@@ -312,7 +269,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             )
         }
         return(
-            <div key={name} className={`${name === 'Message' || name === 'Traceback' ? 'items-start' : 'items-center'} flex`}>
+            <div key={name} className={`${name === 'Message' || name === 'Traceback' || name === 'Status' ? 'items-start' : 'items-center'} flex`}>
                 <div className="w-1/6"> 
                     <div id={name+'Tooltip'} className="w-10 text-slate-400 m-auto">{icon}</div>
                     <Tooltip anchorSelect={'#' + name + 'Tooltip'} content={name.replace('_', ' ')} place="left" variant="info"/>
@@ -356,38 +313,77 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                         <section  className={`${isHistory ? 'w-2/5' : 'w-full'} h-full overflow-auto flex flex-col space-y-4 py-2`}>
                             {isItemRunning ?
                             <>
+                            <div className="flex flex-col pb-12 pt-4">
                                 <h2 className="text-center text-xl font-semibold">Active Run Information</h2>
                                 <Row 
                                     name="Status" 
                                     icon={<Pulse size={36}/>} 
                                     content={
-                                        <>
-                                        <p className="">{apiStatusResponse?.manager_state === "paused" ? "Plan is currently paused" : "Plan is running"}</p>
-                                        <span className="flex justify-start gap-4">
-                                        <ButtonWithIcon 
-                                            text={apiStatusResponse?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
-                                            icon={apiStatusResponse?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
-                                            isSecondary={true}
-                                            styles="bg-white"
-                                            cb={apiStatusResponse?.manager_state === "paused" ? resumeRE : pauseRE}
-                                        />
+                                        <>                                           
+                                            {statusError ? (
+                                                <div className="text-red-600 text-sm">
+                                                    Error fetching status: {statusError.message}
+                                                </div>
+                                            ) : statusData ? (
+                                                <div className="space-y-1 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Manager State:</span>
+                                                        <span className=''>
+                                                            {statusData.manager_state}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">RE State:</span>
+                                                        <span className=''>
+                                                            {statusData.re_state}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Worker Environment:</span>
+                                                        <span className=''>
+                                                            {statusData.worker_environment_state}
+                                                        </span>
+                                                    </div>
+                                                    {statusData.running_item_uid && (
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600">Running Item:</span>
+                                                            <span className="">
+                                                                {statusData.running_item_uid.slice(0, 8)}...
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="text-gray-500 text-sm">Loading status...</div>
+                                            )
+                                            }
+                                            <span className="flex justify-start items-center gap-4 mt-4">
+                                                <ButtonWithIcon 
+                                                    text={apiStatusResponse?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
+                                                    icon={apiStatusResponse?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
+                                                    isSecondary={true}
+                                                    styles="bg-white"
+                                                    cb={apiStatusResponse?.manager_state === "paused" ? resumeRE : pauseRE}
+                                                    disabled={apiStatusResponse?.pause_pending === true}
+                                                />
+                                                <p>{apiStatusResponse?.pause_pending === true ? "Pause pending..." : ""}</p>
 
-                                        {apiStatusResponse?.manager_state === "paused" ?
-                                        <ButtonWithIcon
-                                            text="Delete Plan"
-                                            icon={<Trash size={20}/>}
-                                            isSecondary={true}
-                                            styles="bg-red-300 hover:bg-red-500"
-                                            cb={handleAbortClick}
-                                            />
-                                            :
-                                            ''
-                                    }
-
-                                        </span>
+                                                {apiStatusResponse?.manager_state === "paused" ?
+                                                    <ButtonWithIcon
+                                                        text="Delete Plan"
+                                                        icon={<Trash size={20}/>}
+                                                        isSecondary={true}
+                                                        styles="bg-red-300 hover:bg-red-500"
+                                                        cb={handleAbortClick}
+                                                    />
+                                                        :
+                                                        ''
+                                                }
+                                            </span>
                                         </>
                                     } 
                                     />
+                            </div>
                             </>
                             :
                                 ''

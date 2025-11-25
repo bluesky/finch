@@ -170,6 +170,13 @@ export function useQSAddItem({
     const handleSubmissionResponse = (response: PostItemAddResponse) => {
         setIsSubmissionPopupOpen(true);
         setSubmissionResponse(response);
+        if (response.success === true) {
+            //close the popup after 5 seconds
+            setTimeout(() => {
+                setIsSubmissionPopupOpen(false);
+                setActivePlan(null);
+            }, 5000);
+        }
     };
 
     const submitPlan = (body: AddQueueItemBody) => {
