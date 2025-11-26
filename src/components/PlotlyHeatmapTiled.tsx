@@ -196,7 +196,7 @@ export default function PlotlyHeatmapTiled({
       {array && (
         <>
           <h3 className="h-8 text-sky-900 text-ellipsis">{metadata?.id || 'No data available'}</h3>
-          <div className={`w-full ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}>
+          <div className={`w-full pb-12 ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}>
             <PlotlyHeatmap
               array={array}
               lockPlotHeightToParent={true}

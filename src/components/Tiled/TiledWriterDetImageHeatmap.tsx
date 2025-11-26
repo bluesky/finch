@@ -1,4 +1,4 @@
-import { truncate } from "fs";
+import { cn } from "@/lib/utils";
 import PlotlyHeatmapTiled from "../PlotlyHeatmapTiled";
 import { useTiledWriterDetImageHeatmap } from "./hooks/useTiledWriterDetImageHeatmap";
 
@@ -57,13 +57,13 @@ export default function TiledWriterDetImageHeatmap({
     console.log(`[TiledWriterDetImageHeatmap] Rendering PlotlyHeatmapTiled with path: ${tiledPath}`);
     
     return (
-        <div className={className}>
+        <div className={cn("mb-8", className)}>
             <p className="text-xs text-gray-600 mb-2">
                 {getStatusText()}
             </p>
             <PlotlyHeatmapTiled 
                 url={tiledPath}
-                className={plotClassName}
+                className={cn("pb-8", plotClassName)}
                 size={size}
                 enablePolling={blueskyRunId && enablePolling ? true : false}
             />
