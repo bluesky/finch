@@ -17,8 +17,8 @@ export default function ExperimentEnergyScan({
     onError
 }: ExperimentEnergyScanProps) {
     // Energy scan form state
-    const [startEnergy, setStartEnergy] = useState<number>(8000);
-    const [stopEnergy, setStopEnergy] = useState<number>(9000);
+    const [startEnergy, setStartEnergy] = useState<number>(1000);
+    const [stopEnergy, setStopEnergy] = useState<number>(12000);
     const [numPoints, setNumPoints] = useState<number>(20);
     const [blueskyRunId, setBlueskyRunId] = useState<string>("");
 
@@ -107,7 +107,7 @@ export default function ExperimentEnergyScan({
                                 planName="scan"
                                 kwargs={{
                                     detectors: ["det", "diode"],
-                                    motor: "mono",
+                                    motor: "mono_energy",
                                     start: startEnergy,
                                     stop: stopEnergy,
                                     num: numPoints,
@@ -126,7 +126,7 @@ export default function ExperimentEnergyScan({
                     
                     <div className="flex-1 min-w-96">
                         <h3 className="text-lg font-semibold mb-4">Energy Scan Results</h3>
-                        <div className="flex">
+                        <div className="flex items-center gap-4 h-4/5 pt-8">
                             <TiledWriterDetImageHeatmap
                                 blueskyRunId={blueskyRunId}
                                 size="small"
@@ -135,8 +135,8 @@ export default function ExperimentEnergyScan({
                             <TiledWriterScatterPlot 
                                 blueskyRunId={blueskyRunId}
                                 tiledTrace={{ x: "seq_num", y: "diode" }}
-                                className="w-full h-fit"
-                                plotClassName="h-80"
+                                className="w-full h-full"
+                                plotClassName="h-full"
                                 showStatusText={false}
                             />
                         </div>
