@@ -57,7 +57,7 @@ export default function TiledWriterDetImageHeatmap({
     //console.log(`[TiledWriterDetImageHeatmap] Rendering PlotlyHeatmapTiled with path: ${tiledPath}`);
     
     return (
-        <div className={cn("mb-8", className)}>
+        <div className={cn("mb-8 flex-shrink-0", className)}>
             <p className="text-xs text-gray-600 mb-2">
                 {getStatusText()}
             </p>

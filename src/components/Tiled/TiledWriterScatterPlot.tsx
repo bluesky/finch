@@ -61,7 +61,7 @@ export default function TiledWriterScatterPlot({
     console.log(`[TiledWriterScatterPlot] Rendering TiledScatterPlot with path: ${tiledPath}`);
     
     return (
-        <div className={className}>
+        <>
             {showStatusText && (
                 <p className="text-xs text-gray-600 mb-2">
                     {getStatusText()}
@@ -74,6 +74,6 @@ export default function TiledWriterScatterPlot({
                 pollingIntervalMs={pollingIntervalMs || 1000}
                 className={plotClassName}
             />
-        </div>
+        </>
     );
 }           

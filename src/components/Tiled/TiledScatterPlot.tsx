@@ -64,7 +64,7 @@ export default function TiledScatterPlot({ tiledTrace, path, partition=0, tiledB
     }
 
     return (
-        <div className={cn("w-full h-[30rem] p-4 rounded-lg bg-white", className)}>
+        <div className={cn("flex-grow h-[30rem] p-4 rounded-lg bg-white min-w-0", className)}>
             <div className="text-sm text-gray-600 h-8">
                 {getStatusText()}
             </div>

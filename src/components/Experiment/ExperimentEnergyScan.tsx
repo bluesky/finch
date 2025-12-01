@@ -155,8 +155,8 @@ export default function ExperimentEnergyScan({
                             <TiledWriterScatterPlot 
                                 blueskyRunId={blueskyRunId}
                                 tiledTrace={{ x: "seq_num", y: "diode" }}
-                                className="w-full h-full"
-                                plotClassName="h-full"
+                                className=""
+                                plotClassName=""
                                 showStatusText={false}
                             />
                         </div>
