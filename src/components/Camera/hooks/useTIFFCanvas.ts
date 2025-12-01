@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { getDefaultCameraUrl } from '../utils/apiClient';
+import { getDefaultTiffUrl } from '../utils/apiClient';
 import { CanvasSizes } from '../CameraCanvas';
 
 export type UseTIFFCanvasProps = {
@@ -15,7 +15,7 @@ export function useTIFFCanvas({
     sizePVs = {},
     canvasSize = 'medium',
     prefix = '13PIL1',
-    wsUrl='ws://localhost:8002/tiff-socket'
+    wsUrl
 }: UseTIFFCanvasProps) {
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
@@ -69,7 +69,9 @@ export function useTIFFCanvas({
         let nextFrame: null | ImageBitmap = null;
     
         try {
-            var url = wsUrl ? wsUrl : getDefaultCameraUrl();
+            //if the VITE_TIFF_WS is set, use that as default url
+            var url = wsUrl ? wsUrl : getDefaultTiffUrl();
+            console.log({url})
             ws.current = new WebSocket(url);
         } catch (error) {
             console.log({error});
