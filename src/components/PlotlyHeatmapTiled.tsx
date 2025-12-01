@@ -148,8 +148,7 @@ export default function PlotlyHeatmapTiled({
     if (!enablePolling || !url) return;
 
     const pollForShapeChanges = async () => {
-      console.log({enablePolling})
-      console.log(`[PlotlyHeatmapTiled] Polling for shape changes at ${url}...`);
+      //console.log(`[PlotlyHeatmapTiled] Polling for shape changes at ${url}...`);
       try {
         const resp = await fetch(url);
         const json = await resp.json();

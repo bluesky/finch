@@ -54,7 +54,7 @@ export default function TiledWriterDetImageHeatmap({
         return `Det Image for run: ${blueskyRunId} ${enablePolling ? '(Live - polling enabled)' : '(Complete - polling disabled)'}`;
     };
 
-    console.log(`[TiledWriterDetImageHeatmap] Rendering PlotlyHeatmapTiled with path: ${tiledPath}`);
+    //console.log(`[TiledWriterDetImageHeatmap] Rendering PlotlyHeatmapTiled with path: ${tiledPath}`);
     
     return (
         <div className={cn("mb-8", className)}>

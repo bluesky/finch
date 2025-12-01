@@ -39,7 +39,7 @@ export function useTiledWriterDetImageHeatmap(
             const hasStopKey = runData.data.attributes?.metadata?.stop !== undefined;
             
             if (hasStopKey && enablePolling) {
-                console.log(`[useTiledWriterDetImageHeatmap] Stop key found for run ${blueskyRunId}, disabling polling`);
+                //console.log(`[useTiledWriterDetImageHeatmap] Stop key found for run ${blueskyRunId}, disabling polling`);
                 setEnablePolling(false);
             }
 
@@ -59,7 +59,7 @@ export function useTiledWriterDetImageHeatmap(
                 throw new Error('det_image is not an array structure');
             }
 
-            console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
+            //console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
             setTiledPath(`${tiledBaseUrl}/api/v1/metadata/${detImagePath}`);
 
         } catch (err) {
@@ -93,7 +93,7 @@ export function useTiledWriterDetImageHeatmap(
     // Update polling state when isRunFinished changes
     useEffect(() => {
         if (isRunFinished && enablePolling) {
-            console.log(`[useTiledWriterDetImageHeatmap] Run ${blueskyRunId} marked as finished, disabling polling`);
+            //console.log(`[useTiledWriterDetImageHeatmap] Run ${blueskyRunId} marked as finished, disabling polling`);
             setEnablePolling(false);
         }
     }, [isRunFinished, enablePolling, blueskyRunId]);
