@@ -16,7 +16,6 @@ import {
  * @returns Object containing device states and control functions
  */
 export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
-    console.log('hello')
     //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);

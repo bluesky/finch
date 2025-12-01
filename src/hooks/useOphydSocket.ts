@@ -122,13 +122,13 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
             return;
         }
 
-        console.log('initializing WebSocket connection to', apiUrl);
+        //console.log('initializing WebSocket connection to', apiUrl);
         const ws = new WebSocket(apiUrl);
         wsRef.current = ws;
 
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
-            console.log('WebSocket connection opened');
+            //console.log('WebSocket connection opened');
             deviceNameList.forEach((deviceName) => {
                 const subscribeMessage = {
                     action: 'subscribe',
@@ -183,7 +183,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
 
         // Handle WebSocket closure
         ws.onclose = () => {
-            console.log('WebSocket connection closed');
+            //console.log('WebSocket connection closed');
         };
 
         // Cleanup WebSocket connection on unmount
