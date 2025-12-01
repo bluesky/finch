@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
 import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
@@ -20,7 +21,29 @@ export default function ExperimentEnergyScan({
     const [startEnergy, setStartEnergy] = useState<number>(1000);
     const [stopEnergy, setStopEnergy] = useState<number>(12000);
     const [numPoints, setNumPoints] = useState<number>(20);
-    const [blueskyRunId, setBlueskyRunId] = useState<string>("");
+    const [executedItemUid, setExecutedItemUid] = useState<string>("");
+
+    // TanStack Query to poll for Bluesky run list until we get results
+    const { data: runList = [] } = useQuery<string[]>({
+        queryKey: ['bluesky-run-list', executedItemUid],
+        queryFn: () => getBlueskyRunList(executedItemUid),
+        enabled: !!executedItemUid, // Only run when we have an item UID
+        refetchInterval: (query) => {
+            // Stop polling if we have at least one run or if there's an error
+            const data = query.state.data;
+            return (data && Array.isArray(data) && data.length > 0) ? false : 1000;
+        },
+        refetchIntervalInBackground: true,
+        retry: (failureCount) => {
+            // Keep retrying for up to 30 seconds (30 attempts at 1s intervals)
+            return failureCount < 30;
+        },
+        retryDelay: 1000,
+        staleTime: 500, // Consider data stale quickly to ensure fresh polling
+    });
+
+    // Get the first run ID when available
+    const blueskyRunId = runList && runList.length > 0 ? runList[0] : "";
 
     // Energy scan form handlers
     const handleStartEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,12 +61,9 @@ export default function ExperimentEnergyScan({
     const handleSuccess = async (response: any) => {
         console.log("Energy scan executed successfully!", response);
         
-        // Get the run ID for the scatter plot
+        // Set the item UID to trigger TanStack Query polling
         if (response.item && 'item_uid' in response.item) {
-            const runList = await getBlueskyRunList(response.item.item_uid);
-            if (runList && runList.length > 0 && typeof runList[0] === 'string') {
-                setBlueskyRunId(runList[0]);
-            }
+            setExecutedItemUid(response.item.item_uid);
         }
         
         onSuccess?.(response);
