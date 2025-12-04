@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getDevicesAllowed, getPlansAllowed, postQueueItem, executeItem } from '../utils/apiClient';
 import { AllowedDevices, CopiedPlan } from '../types/types';
 import { Plan, Parameter, Device, PostItemAddResponse, ExecuteQueueItemBody } from '../types/apiTypes';
@@ -26,12 +26,14 @@ interface UseQSAddItemProps {
     copiedPlan?: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
     globalMetadata?: {[key: string]: any};
+    defaultSelectedPlan?: string;
 }
 
 export function useQSAddItem({
     copiedPlan = null,
     isGlobalMetadataChecked = false,
-    globalMetadata = {}
+    globalMetadata = {},
+    defaultSelectedPlan
 }: UseQSAddItemProps = {}) {
     // State variables
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
@@ -46,7 +48,7 @@ export function useQSAddItem({
     const [resetInputsTrigger, setResetInputsTrigger] = useState<boolean>(false);
 
     // API response handlers
-    const handlePlanResponse = (data: GetPlansAllowedResponse) => {
+    const handlePlanResponse = useCallback((data: GetPlansAllowedResponse) => {
         if ('success' in data) {
             if (data.success === true) {
                 if ('plans_allowed' in data) {
@@ -57,6 +59,11 @@ export function useQSAddItem({
                             return acc;
                         }, {});
                     setAllowedPlans(sortedPlans);
+                    if (defaultSelectedPlan && defaultSelectedPlan in sortedPlans) {
+                        setActivePlan(defaultSelectedPlan);
+                        initializeParameters(defaultSelectedPlan, undefined, sortedPlans);
+                        updateBodyName(defaultSelectedPlan);
+                    }
                 } else {
                     console.log('No plans_allowed key found in response object from allowed plans');
                 }
@@ -64,9 +71,9 @@ export function useQSAddItem({
                 console.error('GET request to allowed plans returned success:false');
             }
         } 
-    };
+    }, []);
 
-    const handleDeviceResponse = (data: GetDevicesAllowedResponse) => {
+    const handleDeviceResponse = useCallback((data: GetDevicesAllowedResponse) => {
         if ('success' in data) {
             if (data.success === true) {
                 if ('devices_allowed' in data) {
@@ -84,40 +91,18 @@ export function useQSAddItem({
                 console.log('GET request to allowed devices returned success:false');
             }
         }
-    };
+    }, []);
 
     // Plan and parameter management
-    const handlePlanSelect = (plan: string) => {
-        if (activePlan !== plan) {
-            setActivePlan(plan);
-            initializeParameters(plan);
-            updateBodyName(plan);
-            setResetInputsTrigger(prev => !prev);
-        }
-    };
+    const updateBodyName = useCallback((name: string) => {
+        setBody(state => {
+            var stateCopy = state;
+            stateCopy.item.name = name;
+            return stateCopy;
+        });
+    }, []);
 
-    const initializeParameters = (plan = '', parameters?: {[key:string]: any}) => {
-        var tempParameters: {[key: string]: ParameterInput} = {};
-        const multiSelectParamList = ['detectors'];
-        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
-        
-        for (var param of allowedPlans[plan].parameters) {
-            let defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
-            let isRequiredByDefinition = (param.description && param.description.toLowerCase().trim().startsWith("req"));
-            tempParameters[param.name] = {...param, value: defaultValue, required: requiredParamList.includes(param.name) || isRequiredByDefinition === true};
-        }
-        
-        if (parameters !== undefined) {
-            for (var key in parameters) {
-                tempParameters[key].value = parameters[key];
-            }
-        }
-        
-        setParameters(tempParameters);
-        updateBodyKwargs(tempParameters);
-    };
-
-    const updateBodyKwargs = (parameters: ParameterInputDict) => {
+    const updateBodyKwargs = useCallback((parameters: ParameterInputDict) => {
         var parametersCopy = JSON.parse(JSON.stringify(parameters));
         
         if (isGlobalMetadataChecked) {
@@ -145,17 +130,39 @@ export function useQSAddItem({
             stateCopy.item.kwargs = newKwargs;
             return stateCopy;
         });
-    };
+    }, [isGlobalMetadataChecked, globalMetadata]);
 
-    const updateBodyName = (name: string) => {
-        setBody(state => {
-            var stateCopy = state;
-            stateCopy.item.name = name;
-            return stateCopy;
-        });
-    };
+    const initializeParameters = useCallback((plan = '', parameters?: {[key:string]: any}, sortedPlans?: Record<string, Plan>) => {
+        var tempParameters: {[key: string]: ParameterInput} = {};
+        const multiSelectParamList = ['detectors'];
+        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
+        let plans = sortedPlans ? sortedPlans : allowedPlans;
+        for (var param of plans[plan].parameters) {
+            let defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
+            let isRequiredByDefinition = (param.description && param.description.toLowerCase().trim().startsWith("req"));
+            tempParameters[param.name] = {...param, value: defaultValue, required: requiredParamList.includes(param.name) || isRequiredByDefinition === true};
+        }
+        
+        if (parameters !== undefined) {
+            for (var key in parameters) {
+                tempParameters[key].value = parameters[key];
+            }
+        }
+        
+        setParameters(tempParameters);
+        updateBodyKwargs(tempParameters);
+    }, [allowedPlans, updateBodyKwargs]);
 
-    const checkRequiredParameters = () => {
+    const handlePlanSelect = useCallback((plan: string) => {
+        if (activePlan !== plan) {
+            setActivePlan(plan);
+            initializeParameters(plan);
+            updateBodyName(plan);
+            setResetInputsTrigger(prev => !prev);
+        }
+    }, [activePlan, initializeParameters, updateBodyName]);
+
+    const checkRequiredParameters = useCallback(() => {
         var allRequiredParametersFilled = true;
         for (var key in parameters) {
             if (parameters[key].required && parameters[key].value.length === 0) {
@@ -164,10 +171,10 @@ export function useQSAddItem({
             }
         }
         return allRequiredParametersFilled;
-    };
+    }, [parameters]);
 
     // Submission handlers
-    const handleSubmissionResponse = (response: PostItemAddResponse) => {
+    const handleSubmissionResponse = useCallback((response: PostItemAddResponse) => {
         setIsSubmissionPopupOpen(true);
         setSubmissionResponse(response);
         if (response.success === true) {
@@ -177,16 +184,16 @@ export function useQSAddItem({
                 setActivePlan(null);
             }, 5000);
         }
-    };
+    }, []);
 
-    const submitPlan = (body: AddQueueItemBody) => {
+    const submitPlan = useCallback((body: AddQueueItemBody) => {
         let allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
             postQueueItem(body, handleSubmissionResponse);
         }
-    };
+    }, [checkRequiredParameters, handleSubmissionResponse]);
 
-    const executePlan = (body: ExecuteQueueItemBody) => {
+    const executePlan = useCallback((body: ExecuteQueueItemBody) => {
         let allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
             const executeBody = {
@@ -194,26 +201,26 @@ export function useQSAddItem({
             };
             executeItem(executeBody, handleSubmissionResponse);
         }
-    };
+    }, [checkRequiredParameters, handleSubmissionResponse]);
 
-    const closeSubmissionPopup = (clearInputs = true) => {
+    const closeSubmissionPopup = useCallback((clearInputs = true) => {
         setIsSubmissionPopupOpen(false);
         if (clearInputs) setActivePlan(null);
-    };
+    }, []);
 
-    const handleParameterRefreshClick = (activePlan: string | null) => {
+    const handleParameterRefreshClick = useCallback((activePlan: string | null) => {
         if (typeof activePlan === 'string') {
             initializeParameters(activePlan);
             setResetInputsTrigger(prev => !prev);
         }
-    };
+    }, [initializeParameters]);
 
-    const handleExpandClick = () => {
+    const handleExpandClick = useCallback(() => {
         setIsExpanded(!isExpanded);
         setIsSubmissionPopupOpen(false);
-    };
+    }, [isExpanded]);
 
-    const handlePositionInputChange = (val: string) => {
+    const handlePositionInputChange = useCallback((val: string) => {
         var sanitizedVal: string;
         
         if (typeof val === 'string' && !isNaN(parseInt(val))) {
@@ -232,7 +239,7 @@ export function useQSAddItem({
             return stateCopy;
         });
         setPositionInput(val);
-    };
+    }, []);
 
     // Effects
     useEffect(() => {

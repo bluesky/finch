@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Tooltip } from "react-tooltip";
 import { CopiedPlan } from "./types/types";
 
@@ -22,6 +23,7 @@ type DictionaryInputProps = {
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked: boolean;
     globalMetadata: {[key: string]: any};
+    className?: string;
 };
 
 //hardcode the number of possible key value input pairs
@@ -43,7 +45,7 @@ var inputDictDefault = {
         msg: ''
     },
 };
-export default function DictionaryInput({ cb, label='', required=true, description='', styles='', resetInputsTrigger=false, copiedPlan, isGlobalMetadataChecked=false, globalMetadata={} }: DictionaryInputProps) {
+export default function DictionaryInput({ cb, label='', required=true, description='', styles='', resetInputsTrigger=false, copiedPlan, isGlobalMetadataChecked=false, globalMetadata={}, className }: DictionaryInputProps) {
 
     const [inputDict, setInputDict] = useState<InputDict>(inputDictDefault);
 
@@ -130,18 +132,17 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
                 inputDictionary[inputDict[key].key] = inputDict[key].val;
             }
         }
-
         if (isGlobalMetadataChecked) {
             //set the dictionary by adding the global metadata
             cb({...globalMetadata, ...inputDictionary});
         } else {
             cb(inputDictionary);
         }
-    }, [isGlobalMetadataChecked, globalMetadata])
+    }, [isGlobalMetadataChecked, globalMetadata, cb])
 
 
     return (
-        <div className={`border-2 border-slate-300 rounded-lg w-11/12 max-w-96 min-w-72 mt-2 h-fit ${styles}`}>
+        <div className={cn(`border-2 border-slate-300 rounded-lg w-11/12 max-w-96 min-w-72 mt-2 h-fit`, className)}>
             <p id={label+'ParamInputTooltip'} className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300">{`${label} ${required ? '(required)' : '(optional)'}`}</p>
             <Tooltip anchorSelect={'#' + label + 'ParamInputTooltip'} children={<p className="whitespace-pre-wrap">{description}</p>} place="top" variant="info" style={{'maxWidth' : "500px", 'height': 'fit-content'}} delayShow={400}/>
             <div className="">

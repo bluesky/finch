@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { tailwindIcons } from '../../assets/icons';
 import { Tooltip } from 'react-tooltip';
 import { AllowedDevices } from './types/types';
@@ -12,6 +13,7 @@ type MultiSelectInputProps = {
     allowedDevices: AllowedDevices;
     description: string | undefined;
     required: boolean;
+    className?: string;
     styles?: string;
 };
 export default function MultiSelectInput(
@@ -24,7 +26,8 @@ export default function MultiSelectInput(
         allowedDevices, 
         description='', 
         required=false, 
-        styles=''
+        styles='',
+        className
     }: MultiSelectInputProps) {
     const [inputValue, setInputValue] = useState('');
     const [availableItems, setAvailableItems] = useState(Object.keys(allowedDevices));
@@ -86,7 +89,7 @@ export default function MultiSelectInput(
 
 
     return (
-        <div ref={containerRef} className="relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit">
+        <div ref={containerRef} className={cn("relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit", className)}>
             <p id={label + 'ParamInputTooltip'} className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300">{`${label} ${required ? '(required)' : '(optional)'}`}</p> 
             <Tooltip anchorSelect={'#' + label + 'ParamInputTooltip'} children={<p className="whitespace-pre-wrap">{description}</p>} place="top" variant="info" style={{'maxWidth' : "500px", 'height': 'fit-content'}} delayShow={400}/>
             <div className="flex flex-wrap justify-around rounded p-2">

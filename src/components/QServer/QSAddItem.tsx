@@ -44,7 +44,6 @@ export default function QSAddItem({
         updateBodyKwargs,
         checkRequiredParameters,
     } = useQSAddItem({ copiedPlan, isGlobalMetadataChecked, globalMetadata });
-
     // Icons
     const arrowRefresh = tailwindIcons.arrowRefresh;
     const arrowLongLeft = tailwindIcons.arrowLongLeft;

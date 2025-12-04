@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 import { Tooltip } from "react-tooltip";
 import { CopiedPlan } from "./types/types";
 
@@ -12,6 +13,7 @@ type TextInputProps = {
     resetInputsTrigger?: boolean;
     copiedPlan?: CopiedPlan | null;
     type?: string;
+    className?: string;
 };
 export default function TextInput( 
     {
@@ -23,7 +25,8 @@ export default function TextInput(
         styles='', 
         resetInputsTrigger=false, 
         copiedPlan=null,
-        type='text'
+        type='text',
+        className
     }:TextInputProps ) {
     const [inputValue, setInputValue] = useState(value);
 
@@ -57,7 +60,7 @@ export default function TextInput(
     }, [copiedPlan])
 
     return (
-       <div className={`border-2 border-slate-300 rounded-lg w-5/12 max-w-48 min-w-36 mt-2 h-fit ${styles}`}>
+       <div className={cn("border-2 border-slate-300 rounded-lg w-5/12 max-w-48 min-w-36 mt-2 h-fit", className)}>
             <p id={label+'ParamInputTooltip'} className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300">{`${label} ${required ? '(required)' : '(optional)'}`}</p>
             <Tooltip anchorSelect={'#' + label + 'ParamInputTooltip'} children={<p className="whitespace-pre-wrap">{description}</p>} place="top" variant="info" style={{'maxWidth' : "500px", 'height': 'fit-content'}} delayShow={400}/>
             <input 
