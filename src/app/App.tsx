@@ -6,6 +6,7 @@ import BL531Control from './pages/BL531Control';
 import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
 import CameraPage from './pages/Camera';
 import Beamstop from '@/features/Beamstop';
+import HeatmapTest from './pages/HeatmapTest';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
@@ -16,7 +17,7 @@ import { House, Joystick, StackPlus, ImageSquare, Camera  } from "@phosphor-icon
 
 function App() {
   const routes:RouteItem[] = [
-    {element:<About/>, path: "/", label: "About", icon: <House size={32} />},
+    {element:<HeatmapTest/>, path: "/", label: "Heatmap", icon: <House size={32} />},
     {
       element:
         <Beamstop stackVertical={false} enableBestOption={true} beamstopXTitle="Beamstop - X" beamstopYTitle="Beamstop - Y" beamstopCurrentName="bl201-beamstop:current" beamstopXName="bl531_xps2:beamstop_x_mm" beamstopYName="bl531_xps2:beamstop_y_mm" /> ,
