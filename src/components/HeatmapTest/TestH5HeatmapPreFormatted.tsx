@@ -1,30 +1,19 @@
 import '@h5web/lib/styles.css';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useLayoutEffect, useMemo } from 'react';
 import { Domain, HeatmapVis, getDomain } from '@h5web/lib';
 import { smallH5HeatmapData, smallH5HeatmapDomain, smallHeatmapData } from './utils/createSampleHeatmapData';
 import ndarray from 'ndarray';
 
-type TestH5HeatmapProps = {
+type TestH5HeatmapPreFormattedProps = {
     onInitializedCallback?: (time: number) => void;
-    arrayData?: number[][];
-    arrayDataH5?: ndarray.NdArray<number[]>;
+    arrayDataH5: ndarray.NdArray<number[]>;
     h5Domain?: Domain | undefined;
     title?: string;
 };
-export default function TestH5Heatmap({ onInitializedCallback, arrayData=smallHeatmapData, arrayDataH5, h5Domain, title }: TestH5HeatmapProps) {
+export default function TestH5HeatmapPreFormatted({ onInitializedCallback, arrayDataH5, h5Domain, title }: TestH5HeatmapPreFormattedProps) {
     const [shouldRender, setShouldRender] = useState(false);
     const [renderTime, setRenderTime] = useState<number | null>(null);
     const startTimeRef = useRef<number | null>(null);
-
-    // Convert 2D array to ndarray format for H5Web
-    const h5Data = useMemo(() => {
-        console.log('Running h5Data useMemo - converting 2D array to ndarray');
-        return ndarray(arrayData.flat(), [arrayData.length, arrayData[0]?.length || 0]);
-    }, [arrayData]);
-    const h5DomainFromArray = useMemo(() => {
-        console.log('Running h5Domain useMemo - calculating domain from h5Data');
-        return getDomain(h5Data);
-    }, [h5Data]);
 
     const handleRenderClick = () => {
         startTimeRef.current = performance.now();
@@ -38,11 +27,6 @@ export default function TestH5Heatmap({ onInitializedCallback, arrayData=smallHe
             const duration = endTime - startTimeRef.current;
             setRenderTime(duration);
             
-            // Log data analysis
-            const dataToAnalyze = arrayDataH5 || h5Data;
-            console.log('H5 Heatmap - Data at (0,0):', dataToAnalyze.get(0, 0));
-            console.log('H5 Heatmap - Array size:', dataToAnalyze.shape[0], 'x', dataToAnalyze.shape[1], '- Total elements:', dataToAnalyze.size);
-            console.log('H5 Heatmap - Original 2D array data at (0,0):', arrayData[0][0]);
             
             if (onInitializedCallback) {
                 onInitializedCallback(duration);
@@ -51,13 +35,10 @@ export default function TestH5Heatmap({ onInitializedCallback, arrayData=smallHe
     };
 
     // Trigger render time measurement when component renders
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (shouldRender && startTimeRef.current) {
-            // Use a small timeout to ensure the component is fully rendered
-            const timer = setTimeout(() => {
-                handlePlotReady();
-            }, 50);
-            return () => clearTimeout(timer);
+            // This runs synchronously after all DOM mutations
+            handlePlotReady();
         }
     }, [shouldRender]);
 
@@ -67,9 +48,10 @@ export default function TestH5Heatmap({ onInitializedCallback, arrayData=smallHe
             {shouldRender ? (
                 <div className="flex" style={{ height: '500px', width: '500px' }}>
                     <HeatmapVis
-                        dataArray={arrayDataH5 ? arrayDataH5 : h5Data}
-                        domain={h5Domain ? h5Domain : h5DomainFromArray}
+                        dataArray={arrayDataH5}
+                        domain={h5Domain}
                         colorMap="Viridis"
+
                     />
                 </div>
             ) : (

@@ -1,8 +1,8 @@
 import ndarray from "ndarray";
 import { getDomain } from "@h5web/lib";
-const smallSizeDim = 50;
-const medSizeDim = 100;
-const largeSizeDim = 500;
+export const smallSizeDim = 50;
+export const medSizeDim = 500;
+export const largeSizeDim = 1000;
 
 const generate2DArray = (rows: number, cols: number): number[][] => {
   const array: number[][] = [];
