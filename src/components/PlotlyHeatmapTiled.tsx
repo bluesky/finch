@@ -204,11 +204,12 @@ export default function PlotlyHeatmapTiled({
               showTicks={false}
               showScale={true}
               enableLogScale={true}
+              flipYAxis={true}
               />
           </div>
         </>
       )}
-      {shape?.length === 3 && (
+      {(shape?.length === 3 && shape[0] > 1) && (
         <div className="w-full px-8 h-12">
           <input
             type="range"

@@ -29,7 +29,9 @@ export type PlotlyHeatmapProps = {
     /** Should the color scale show up? it will take up some space to the right of the plot */
     showScale?: boolean,
     /** Enable log scale slider control */
-    enableLogScale?: boolean
+    enableLogScale?: boolean,
+    /** Flip y axis */
+    flipYAxis?: boolean
 }
 
 //TODO: there are some issues with the display when zooming out
@@ -48,6 +50,7 @@ export default function PlotlyHeatmap({
     lockPlotHeightToParent=false, //locks the height of the plot to the height of the container, should not be set to True if lockPlotWidthHeightToInputArray is on
     lockPlotWidthHeightToInputArray=false, //restricts the maximum view of the plot so that it never exceeds a 1 pixel to 1 array element density
     enableLogScale = false, //enable log scale slider
+    flipYAxis = true
 }: PlotlyHeatmapProps) {
     const plotContainer = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); //applied to plot, not the container
@@ -205,7 +208,7 @@ export default function PlotlyHeatmap({
                             yaxis: {
                                 title: yAxisTitle,
                                 range: [-0.5, array.length-0.5], // Dynamically adjust y-axis range
-                                autorange: false,
+                                autorange: flipYAxis ? 'reversed' : false,
                                 automargin: false,
                                 tickmode: showTicks ? 'linear' : undefined, // tick marks should only appear when
                                 tick0: 0, // Starting tick
