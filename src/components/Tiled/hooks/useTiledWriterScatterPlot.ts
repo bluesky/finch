@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getSearchResults } from "@blueskyproject/tiled";
+import { getSearchResults, TiledSearchConfig } from "@blueskyproject/tiled";
 import { checkRunCompletion } from "../utils/tiledUtils";
 
 type UseTiledWriterScatterPlotReturn = {
@@ -92,6 +92,7 @@ export const useTiledWriterScatterPlot = (
     useEffect(() => {
         const findTiledPath = async (): Promise<boolean> => {
             // Check if blueskyRunId is empty
+            const searchConfig: TiledSearchConfig = {path: blueskyRunId};
             if (!blueskyRunId || blueskyRunId.trim() === '') {
                 console.log(`[useTiledWriterScatterPlot] Empty blueskyRunId, waiting for run ID`);
                 setError('Waiting for run ID');
@@ -103,7 +104,7 @@ export const useTiledWriterScatterPlot = (
                 console.log(`[useTiledWriterScatterPlot] Searching for blueskyRunId: ${blueskyRunId}`);
                 
                 // Step 1: Search for the run ID to see if it exists
-                const initialSearchResults = await getSearchResults(blueskyRunId);
+                const initialSearchResults = await getSearchResults(searchConfig);
                 console.log(`[useTiledWriterScatterPlot] Initial search results:`, initialSearchResults);
                 
                 if (!initialSearchResults) {
@@ -122,7 +123,7 @@ export const useTiledWriterScatterPlot = (
                 console.log(`[useTiledWriterScatterPlot] Trying streams path: ${streamsPath}`);
                 
                 try {
-                    const streamsResults = await getSearchResults(streamsPath);
+                    const streamsResults = await getSearchResults({path: streamsPath});
                     if (streamsResults) {
                         const finalPath = `${streamsPath}/internal`;
                         await handleSuccessfulPath(finalPath, "streams");
@@ -137,7 +138,7 @@ export const useTiledWriterScatterPlot = (
                 console.log(`[useTiledWriterScatterPlot] Trying direct primary path: ${directPath}`);
                 
                 try {
-                    const directResults = await getSearchResults(directPath);
+                    const directResults = await getSearchResults({path: directPath});
                     if (directResults) {
                         const finalPath = `${directPath}/internal`;
                         await handleSuccessfulPath(finalPath, "direct");
