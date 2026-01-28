@@ -18,9 +18,9 @@ export default function ExperimentEnergyScan({
     onError
 }: ExperimentEnergyScanProps) {
     // Energy scan form state
-    const [startEnergy, setStartEnergy] = useState<number>(1000);
-    const [stopEnergy, setStopEnergy] = useState<number>(12000);
-    const [numPoints, setNumPoints] = useState<number>(20);
+    const [startEnergy, setStartEnergy] = useState<number>(7000);
+    const [stopEnergy, setStopEnergy] = useState<number>(7500);
+    const [numPoints, setNumPoints] = useState<number>(10);
     const [executedItemUid, setExecutedItemUid] = useState<string>("");
 
     // TanStack Query to poll for Bluesky run list until we get results
@@ -124,14 +124,14 @@ export default function ExperimentEnergyScan({
                         
                         <div className="pt-2">
                             <ExperimentExecutePlanButtonGeneric
-                                planName="scan"
+                                planName="energy_scan"
                                 kwargs={{
                                     detectors: ["det", "diode"],
                                     motor: "mono_energy",
                                     start: startEnergy,
                                     stop: stopEnergy,
                                     num: numPoints,
-                                    md: {}
+                                    md: {exact_plan_name: "energy_scan"}
                                 }}
                                 onSuccess={handleSuccess}
                                 onError={handleError}

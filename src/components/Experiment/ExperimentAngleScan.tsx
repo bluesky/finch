@@ -27,6 +27,7 @@ export default function ExperimentAngleScan({
     const [numPoints, setNumPoints] = useState<number>(5);
     const [executedItemUid, setExecutedItemUid] = useState<string>("");
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
+    const [blueskyRunId, setBlueskyRunId] = useState<string>("");
 
     useEffect(() => {
         const storedUser = localStorage.getItem("energy_scan_user");
@@ -59,7 +60,14 @@ export default function ExperimentAngleScan({
     });
 
     // Get the first run ID when available
-    const blueskyRunId = runList && runList.length > 0 ? runList[0] : "";
+    const pollRunId = runList && runList.length > 0 ? runList[0] : "";
+    
+    // Update blueskyRunId when polling returns new run
+    useEffect(() => {
+        if (pollRunId) {
+            setBlueskyRunId(pollRunId);
+        }
+    }, [pollRunId]);
 
     // Angle scan form handlers
     const handleStartAngleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,7 +213,8 @@ export default function ExperimentAngleScan({
                             <ExperimentHistory
                                 planName="angle_scan"
                                 metadataFulltextSearch={user}
-                                onItemClick={(item) => console.log('Selected item:', item.id)}
+                                onItemClick={(item) => setBlueskyRunId(item.id)}
+                                enablePersistentSelection={true}
                             />
                         )}
                     </div>
@@ -237,13 +246,13 @@ export default function ExperimentAngleScan({
                                 isRunFinished={false}
                                 plotClassName="bg-transparent"
                             />
-                                <TiledWriterScatterPlot 
-                                    blueskyRunId={blueskyRunId}
-                                    tiledTrace={{ x: "seq_num", y: "hexapod_motor_Ry_readback" }}
-                                    className="max-h-[40rem] h-full"
-                                    plotClassName="h-full"
-                                    showStatusText={false}
-                                />
+                            <TiledWriterScatterPlot 
+                                blueskyRunId={blueskyRunId}
+                                tiledTrace={{ x: "seq_num", y: "hexapod_motor_Ry_readback" }}
+                                className="max-h-[40rem] h-full"
+                                plotClassName="h-full"
+                                showStatusText={false}
+                            />
                         </div>
                     </div>
                 </div>
