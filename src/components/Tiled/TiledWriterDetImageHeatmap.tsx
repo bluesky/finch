@@ -58,7 +58,7 @@ export default function TiledWriterDetImageHeatmap({
     
     return (
         <div className={cn("mb-8 flex-shrink-0", className)}>
-            <p className="text-xs text-gray-600 mb-2">
+            <p className="text-xs text-gray-600 mb-2 text-wrap">
                 {getStatusText()}
             </p>
             <PlotlyHeatmapTiled 

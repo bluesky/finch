@@ -72,7 +72,8 @@ export default function TiledWriterScatterPlot({
                 tiledTrace={tiledTrace}
                 enablePolling={enablePolling}
                 pollingIntervalMs={pollingIntervalMs || 1000}
-                className={plotClassName}
+                className={className}
+                plotClassName={plotClassName}
             />
         </>
     );
