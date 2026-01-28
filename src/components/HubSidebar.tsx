@@ -12,7 +12,7 @@ export type HubSidebarProps = {
 export default function HubSidebar({routes, className, activeLinkClassName, inactiveLinkClassName}: HubSidebarProps) {
     const navStyles = cn('flex flex-col items-center justify-center h-20 aspect-square rounded-lg text-white hover:bg-sky-800 cursor-pointer', inactiveLinkClassName);
     return (
-        <aside className={cn("row-span-2 bg-sky-950 flex flex-col py-4", className)}>
+        <aside className={cn("row-span-2 bg-sky-950 flex flex-col py-4 overflow-y-auto", className)}>
             {routes.map((item, index) => 
                 <div key={index} className="flex flex-col items-center">
                     <NavLink 
