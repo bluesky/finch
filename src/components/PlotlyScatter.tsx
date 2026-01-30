@@ -26,7 +26,7 @@ const sampleData: PlotParams['data'] = [
 
 const titleFont = {
   size: 16,
-  color: '#7f7f7f'
+  color: '#082f49'
 }
 
 export default function PlotlyScatter({
@@ -58,11 +58,13 @@ export default function PlotlyScatter({
   }, []);
 
   return (
-    <div className={cn('pb-4 max-h-full h-96', className)} ref={plotContainer}>
+    <div className={cn('max-h-full h-96 rounded-lg overflow-hidden', className)} ref={plotContainer}>
       <Plot
         data={data}
         layout={{
           title: title,
+          plot_bgcolor: '#E2E8F0',
+          paper_bgcolor: '#E2E8F0',
           xaxis: { 
             title: {
               text: xAxisTitle,

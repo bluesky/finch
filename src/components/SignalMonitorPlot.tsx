@@ -25,7 +25,7 @@ export default function SignalMonitorPlot({
     demo=false,
     tickTextIntervalSeconds=10,
     pv,
-    color="grey",
+    color="#082f49",
     yAxisTitle,
 }: SignalMonitorPlotProps) {
     const deviceNameList = useMemo(()=>[pv], []);
