@@ -13,10 +13,11 @@ type ExperimentHistoryProps = {
     tiledPageLimit?: number;
     onItemClick?: (item: TiledSearchItem<TiledStructures>) => void;
     enablePersistentSelection?: boolean;
+    initialSelectedItemId?: string;
 }
-export default function ExperimentHistory({planName, className, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit, onItemClick, enablePersistentSelection}: ExperimentHistoryProps) {
+export default function ExperimentHistory({planName, className, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit, onItemClick, enablePersistentSelection, initialSelectedItemId}: ExperimentHistoryProps) {
     const [ searchResults, setSearchResults ] = useState<TiledSearchResult | null>(null);
-    const [ selectedItemId, setSelectedItemId ] = useState<string | null>(null);
+    const [ selectedItemId, setSelectedItemId ] = useState<string | null>(initialSelectedItemId || null);
     useEffect(() => {
         const fetchData = async () => {
             //eventually uncomment this and get the key contains working once that's updated in tiled api

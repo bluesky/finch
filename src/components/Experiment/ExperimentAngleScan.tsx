@@ -109,7 +109,10 @@ export default function ExperimentAngleScan({
                         <div className="flex flex-col items-center">
                             <div className="flex items-center gap-12">
                                 <button
-                                    onClick={() => setViewMode('form')}
+                                    onClick={() => {
+                                        setViewMode('form');
+                                        setBlueskyRunId('');
+                                    }}
                                     className={`flex flex-col items-center gap-1 p-2 transition-colors ${
                                         viewMode === 'form' 
                                             ? 'text-sky-800' 
@@ -215,6 +218,7 @@ export default function ExperimentAngleScan({
                                 metadataFulltextSearch={user}
                                 onItemClick={(item) => setBlueskyRunId(item.id)}
                                 enablePersistentSelection={true}
+                                initialSelectedItemId={blueskyRunId}
                             />
                         )}
                     </div>
@@ -239,7 +243,7 @@ export default function ExperimentAngleScan({
                             </button>
                         </span>
 
-                        <div className="flex flex-grow items-center gap-4 h-fit justify-center">
+                        <div className="flex flex-grow items-center gap-4 h-fit justify-center" key={viewMode}>
                             <TiledWriterDetImageHeatmap
                                 blueskyRunId={blueskyRunId}
                                 size="medium"
@@ -247,6 +251,7 @@ export default function ExperimentAngleScan({
                                 plotClassName="bg-transparent"
                             />
                             <TiledWriterScatterPlot 
+                                key={blueskyRunId}
                                 blueskyRunId={blueskyRunId}
                                 tiledTrace={{ x: "seq_num", y: "hexapod_motor_Ry_readback" }}
                                 className="max-h-[40rem] h-full"

@@ -1,6 +1,7 @@
 import alsLogo from '@/assets/alsLogo.png';
 import { cn } from '@/lib/utils';
 
+import Shutter from './Shutter';
 
 export type HubHeaderProps = {
     title?: string;
@@ -15,6 +16,7 @@ export default function HubHeader({title="BEAMLINE APP", logoUrl="https://img.ic
             <img src={logoUrl} className="h-10 aspect-square"/>
             <h1 className={cn("text-sky-950 text-2xl font-semibold", titleClassName)}>{title}</h1>
         </div>
+        <Shutter />
     </header>
     )
 }

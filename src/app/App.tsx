@@ -13,6 +13,8 @@ import ALSBeamStatus from '@/components/ALSBeamStatus';
 import BL531Dashboard from './pages/BL531Dashboard';
 import Osprey from '@/components/Osprey/Osprey';
 import ScatteringPage from './pages/ScatteringPage';
+import ExperimentHistory from '@/components/Experiment/ExperimentHistory';
+import MultiModalAnalysis from '@/components/ReactMultiModal/MultiModalAnalysis';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
@@ -62,6 +64,7 @@ function App() {
     {element: <Osprey />, path: '/osprey', label: "Osprey", icon: <Feather size={32} />},
     // {element: <SampleDataPage />, path: '/sampledata', label: "Spectroscopy", icon: <AppWindow size={32} />},
     {element: <ScatteringPage />, path: '/scan', label: "Scan", icon: <AppWindow size={32} />},
+    {element: <MultiModalAnalysis />, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
   ]
   return (
     <QueryClientProvider client={new QueryClient()}>

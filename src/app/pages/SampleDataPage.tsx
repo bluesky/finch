@@ -11,7 +11,7 @@ export default function SampleDataPage() {
     const [ selectedPath, setSelectedPath ] = useState<string | null>(null);
     
     // Form state for count plan
-    const [detectors, setDetectors] = useState<string>("motor1");
+    const [detectors, setDetectors] = useState<string>("hexapod_motor_Tz");
     const [num, setNum] = useState<number>(1);
     const [delay, setDelay] = useState<number>(10);
     const [metadata, setMetadata] = useState<string>('{"experiment": "test"}');
@@ -19,7 +19,7 @@ export default function SampleDataPage() {
     
     // Form state for scan plan
     const [scanDetectors, setScanDetectors] = useState<string>("det1");
-    const [scanMotor, setScanMotor] = useState<string>("motor1");
+    const [scanMotor, setScanMotor] = useState<string>("hexapod_motor_Tz");
     const [scanStart, setScanStart] = useState<number>(0);
     const [scanStop, setScanStop] = useState<number>(10);
     const [scanNum, setScanNum] = useState<number>(11);
@@ -99,7 +99,7 @@ export default function SampleDataPage() {
                 <h2 className="text-xl font-bold mb-4 text-white">Tiled Writer Scatter Plot</h2>
                 <TiledWriterScatterPlot 
                     blueskyRunId={blueskyRunId}
-                    tiledTrace={{ x: "time", y: "sim_m1" }}
+                    tiledTrace={{ x: "time", y: "hexapod_motor_Tz_readback" }}
                     className="mb-6"
                 />
             </div>
@@ -201,7 +201,7 @@ export default function SampleDataPage() {
                                 type="text"
                                 value={scanMotor}
                                 onChange={handleScanMotorChange}
-                                placeholder="motor1"
+                                placeholder="hexapod_motor_tz"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                             />
                         </div>
