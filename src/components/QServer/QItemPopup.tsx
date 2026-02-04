@@ -22,10 +22,10 @@ type QItemPopupProps = {
     popupItem: PopupItem;
     handleQItemPopupClose: () => void;
     isItemDeleteButtonVisible?: boolean;
-    handleCopyItemClick: (name: string, kwargs: { [key: string]: any }) => void;
+    handleCopyItemClick?: (name: string, kwargs: { [key: string]: any }) => void;
     isItemRunning?: boolean;
 }
-export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick=()=>{}, isItemRunning }: QItemPopupProps) {
+export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick, isItemRunning }: QItemPopupProps) {
     const [isDeleteModeVisible, setIsDeleteModeVisibile] = useState(false);
     const [areResultsVisible, setAreResultsVisible] = useState(false);
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
@@ -94,6 +94,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
 
     const handleCopyClick = (name:string, kwargs: { [key: string]: any } | undefined) => {
         //close the popup after the item is copied so user can immediately see the plan below the popup
+        if (!handleCopyItemClick) return;
         if (kwargs) {
             handleCopyItemClick(name, kwargs);
         } else {
@@ -157,7 +158,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             content: popupItem.kwargs &&
                 <Fragment>
                     {popupItem.kwargs && Object.keys(popupItem.kwargs).map((kwarg) => printParameter(kwarg))}
-                    <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} styles={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>
+                    {handleCopyClick && <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} styles={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>}
                 </Fragment>
         },
         {
