@@ -255,7 +255,7 @@ export default function ExperimentEnergyScan({
                                 blueskyRunId={blueskyRunId}
                                 tiledTrace={{ x: "seq_num", y: "diode" }}
                                 className="max-h-[40rem] h-full"
-                                plotClassName="h-full"
+                                plotClassName="h-[calc(100%-2rem)]"
                                 showStatusText={false}
                             />
                         </div>
