@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Device, Devices } from 'src/types/deviceControllerTypes';
+import { Devices } from 'src/types/deviceControllerTypes';
 import {
     MessageResponse,
     ErrorResponse,
