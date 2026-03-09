@@ -15,8 +15,8 @@ export default function Camera() {
         <div className="flex flex-wrap items-start justify-center gap-16">
            <article className="flex flex-col items-center w-fit">
                 <h2 className="text-3xl font-bold mb-4 text-white">Basler Camera</h2>
-                <CameraContainer prefix="BL531acA5427" enableControlPanel={true} enableSettings={false} canvasSize="medium"/>
-                <ReactEDM P="BL531acA5427" R="cam1" fileName="ADBase.adl" />
+                <CameraContainer prefix="BL531a2A2448" enableControlPanel={true} enableSettings={false} canvasSize="medium"/>
+                <ReactEDM P="BL531a2A2448" R="cam1" fileName="ADBase.adl" />
            </article>
             <article className="flex flex-col items-center w-fit">
                 <h2 className="text-3xl font-bold mb-4 text-white">Pilatus 1M</h2>
