@@ -4,6 +4,7 @@ import ContainerQServer from '@/components/QServer/ContainerQServer';
 import HubAppLayout from '@/components/HubAppLayout';
 import BL531Control from './pages/BL531Control';
 import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
+import { Tiled } from '@blueskyproject/tiled';
 import CameraPage from './pages/Camera';
 import Beamstop from '@/features/Beamstop';
 import GoogleDoc from '@/components/GoogleDoc';
@@ -13,15 +14,17 @@ import ALSBeamStatus from '@/components/ALSBeamStatus';
 import BL531Dashboard from './pages/BL531Dashboard';
 import Osprey from '@/components/Osprey/Osprey';
 import ScatteringPage from './pages/ScatteringPage';
+import AngleScanPage from './pages/AngleScanPage';
 import ExperimentHistory from '@/components/Experiment/ExperimentHistory';
 import MultiModalAnalysis from '@/components/ReactMultiModal/MultiModalAnalysis';
+import Histogram from '@/components/Histogram/Histogram';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-import { House, Joystick, StackPlus, ImageSquare, Camera, GoogleLogo, Feather, Terminal,  LightbulbFilament, AppWindow} from "@phosphor-icons/react";
+import { Barcode, House, Joystick, StackPlus, ImageSquare, Camera, GoogleLogo, Feather, Terminal,  LightbulbFilament, AppWindow, ChartBar} from "@phosphor-icons/react";
 import DashboardPage from '@/stories/DashboardPage';
 import { Query, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const docs = [
@@ -63,7 +66,9 @@ function App() {
     {element: <ALSBeamStatus />, path: '/beamstatus', label: "Beam", icon: <LightbulbFilament size={32} />},
     {element: <Osprey />, path: '/osprey', label: "Osprey", icon: <Feather size={32} />},
     // {element: <SampleDataPage />, path: '/sampledata', label: "Spectroscopy", icon: <AppWindow size={32} />},
-    {element: <ScatteringPage />, path: '/scan', label: "Scan", icon: <AppWindow size={32} />},
+    {element: <ScatteringPage />, path: '/energyscan', label: "Energy Scan", icon: <Barcode size={32} />},
+    {element: <AngleScanPage />, path: '/anglescan', label: "Angle Scan", icon: <Barcode size={32} />},
+    {element: <Histogram arrayPV="dxpMercury:mca1.VAL" acquirePV="dxpMercury:StartAll" showDeviceController={false} showPlotSettings={false} />, path: '/histogram', label: "Histogram", icon: <ChartBar size={32} />},
     {element: <MultiModalAnalysis />, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
   ]
   return (
