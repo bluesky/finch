@@ -22,7 +22,7 @@ export default function HubSidebar({routes, className, activeLinkClassName, inac
                         }
                     >
                         {item.icon}
-                        <span className="font-light">{item.label}</span>
+                        <span className="font-light text-center">{item.label}</span>
                     </NavLink>
                     <div className="h-[1px] w-10/12 border-b border-white/50 my-4"></div>
                 </div>
