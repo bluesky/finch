@@ -281,7 +281,7 @@ export const Primary: Story = {
     reverseSort: false,
     enableStartupScreen: false,
     size: 'medium',
-    tiledBaseUrl: 'https://tiled-demo.blueskyproject.io/api/v1',
+    tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
     onSelectCallback: (links) => console.log('Selected Tiled link:', links.self),
     isButtonMode: false,
     isPopup: false,
@@ -311,7 +311,7 @@ export const CustomUrl: Story = {
     args: {
       isButtonMode: true,
       size: 'medium',
-      tiledBaseUrl: 'https://tiled-demo.blueskyproject.io/api/v1',
+      tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
       reverseSort: false,
     },
   };
