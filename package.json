@@ -11,7 +11,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
-    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build"
+    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build",
+    "test": "vitest"
   },
   "files": [
     "dist"
@@ -62,6 +63,9 @@
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/d3-shape": "^3.1.7",
     "@types/node": "^22.14.0",
     "@types/react": "^18.3.17",
@@ -77,6 +81,8 @@
     "eslint-plugin-storybook": "^0.11.2",
     "gh-pages": "^6.3.0",
     "globals": "^15.13.0",
+    "happy-dom": "^20.8.3",
+    "jsdom": "^28.1.0",
     "msw": "^2.8.4",
     "msw-storybook-addon": "^2.0.4",
     "postcss": "^8.4.49",
@@ -90,7 +96,8 @@
     "typescript-eslint": "^8.18.1",
     "vite": "^6.0.3",
     "vite-plugin-dts": "^4.5.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.18"
   },
   "repository": {
     "type": "git",
