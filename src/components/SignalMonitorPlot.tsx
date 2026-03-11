@@ -4,7 +4,7 @@ import useOphydSocket from "@/hooks/useOphydSocket";
 import PlotlyScatter from "./PlotlyScatter";
 import { PlotlyScatterData } from "@/types/plotTypes";
 import { Datum } from "plotly.js";
-import { generateSampleData, blankScatterData } from "@/utils/plotGenerators";
+import { blankScatterData } from "@/utils/plotGenerators";
 
 //const sampleData: PlotlyScatterData = generateSampleData(30) // 30 points of sample data
 export type SignalMonitorPlotProps = {
@@ -31,13 +31,14 @@ export default function SignalMonitorPlot({
     const deviceNameList = useMemo(()=>[pv], []);
     const { devices } = useOphydSocket(deviceNameList);  //todo: create an optional callback arg that sends update messages into fn
     let styledData = {...blankScatterData, marker: {...blankScatterData.marker, color:color}};
-    const [data, setData] = useState<PlotlyScatterData>(demo ? generateSampleData(numVisiblePoints) : styledData);
+    const [data, setData] = useState<PlotlyScatterData>(styledData);
     const [ xLayout, setXLayout] = useState<{tickvals:string[], ticktext:string[]}>({tickvals: [], ticktext: []});
 
     const addSinglePoint = useCallback(()=>{
         setData((prevData) => {
-            const newXValue = new Date().toLocaleTimeString('en-US', { hour12: false });
-            const newYValue = Math.random() * 100;
+            const now = new Date();
+            const newXValue = now.toLocaleTimeString('en-US', { hour12: false });
+            const newYValue = Math.sin(now.getTime() / 1000) * 50 + 50;
             const newX: Datum[] = [...(prevData.x as Datum[]), newXValue];
             const newY: Datum[] = [...(prevData.y as Datum[]), newYValue];
             if (newX.length > numVisiblePoints) {
@@ -157,7 +158,7 @@ export default function SignalMonitorPlot({
             className={className} 
             xAxisLayout={xLayout}
             xAxisTitle={pv}
-            yAxisTitle={devices[pv] && devices[pv].units}
+            yAxisTitle={yAxisTitle ?? (devices[pv] && devices[pv].units)}
         />
     )
 }
