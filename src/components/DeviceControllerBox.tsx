@@ -95,7 +95,7 @@ export default function DeviceControllerBox({ device, deviceRBV, handleSetValueR
                     className={`w-28`} 
                     handleEnter={(input)=>input!==null && handleSetValueRequest(device.name, input)}  
                     onChange={(input) => setAbsoluteMoveValue(input)} 
-                    inputClassName="text-right"
+                    classNameInput="text-right"
                     disabled={device.locked}
                 />
                 <Button 
@@ -119,7 +119,7 @@ export default function DeviceControllerBox({ device, deviceRBV, handleSetValueR
                     <p className="absolute top-0 -left-3  z-10 text-slate-700">-+</p>
                     <InputNumber 
                         onChange={(input) => setRelativeMoveIncrement(input)}
-                        inputClassName={`w-20`}
+                        classNameInput={`w-20`}
                         disabled={device.locked}
                     />
                     <p className="text-slate-700">{formattedCurrentValue}</p>

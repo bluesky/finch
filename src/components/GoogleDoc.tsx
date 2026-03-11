@@ -8,13 +8,15 @@ export type doc = {
 }
 
 type GoogleDocProps = {
+    /** URL of a single document to embed. Used when no docs list is provided, or as the initial selection when docs is also provided. */
     url?: string;
+    /** List of documents to show in a dropdown selector. When provided, renders a select menu and defaults to the first item (or url if given). */
     docs?: doc[];
 };
 
 const googleDocIcon = "https://img.icons8.com/?size=100&id=30464&format=png&color=000000";
 
-export default function GoogleDoc({ url, docs }: GoogleDocProps) {
+export default function GoogleDoc({ url, docs, ...props }: GoogleDocProps) {
     const [ selectedDocUrl, setSelectedDocUrl ] = useState<string>(url ? url : (docs && docs.length > 0 ? docs[0].url : ""));
 
     const handleDocChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -22,7 +24,7 @@ export default function GoogleDoc({ url, docs }: GoogleDocProps) {
     };
 
     return docs && docs.length > 0 ? (
-        <div className="w-full h-full flex flex-col">
+        <div className="w-full h-full flex flex-col" {...props}>
             <div className="p-4 bg-gray-100 border-b border-gray-300 flex items-center gap-4">
                 <img src={googleDocIcon} alt="Google Doc" className="w-8 h-8"/>
                 <select
@@ -47,7 +49,7 @@ export default function GoogleDoc({ url, docs }: GoogleDocProps) {
             </div>
         </div>
     ) : (
-        <div className="w-full h-full flex justify-center items-center ">
+        <div className="w-full h-full flex justify-center items-center " {...props}>
             <iframe
                 src={url}
                 title="Google Doc Viewer"
