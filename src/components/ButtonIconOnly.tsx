@@ -13,9 +13,9 @@ type ButtonIconOnlyProps = {
     /** Changes button style to white background with border instead of primary blue when true */
     isSecondary?: boolean;
 }
-export default function ButtonIconOnly({ icon, className, classNameIcon, onClick, disabled, isSecondary }: ButtonIconOnlyProps) {
+export default function ButtonIconOnly({ icon, className, classNameIcon, onClick, disabled, isSecondary, ...props }: ButtonIconOnlyProps) {
     return (
-        <button className={cn(`${isSecondary ? 'bg-white border-slate-300 border hover:bg-slate-100' : 'bg-sky-500 hover:bg-sky-600'} rounded-sm px-2 py-1`, className)} onClick={onClick} disabled={disabled}>
+        <button className={cn(`${isSecondary ? 'bg-white border-slate-300 border hover:bg-slate-100' : 'bg-sky-500 hover:bg-sky-600'} rounded-sm px-2 py-1`, className)} onClick={onClick} disabled={disabled} {...props}>
             <span className={cn(`${isSecondary ? 'text-black' : 'text-white'} `, classNameIcon)}>{icon}</span>
         </button>
     )

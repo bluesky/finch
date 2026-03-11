@@ -12,7 +12,7 @@ export type ControllerRelativeMoveProps = {
     currentValue: number | null;
     locked?: boolean;
 }
-export default function ControllerRelativeMove({handleEnter, inputLabel, inputClassName, className, currentValue, resultantTextClassName, locked}: ControllerRelativeMoveProps) {
+export default function ControllerRelativeMove({handleEnter, inputLabel, inputClassName, className, currentValue, resultantTextClassName, locked, ...props}: ControllerRelativeMoveProps) {
     const [ inputValue, setInputValue ] = useState<number | null>(null);
     const resultantAddition = currentValue !== null && inputValue !== null ? currentValue + inputValue : null;
     const resultantSubtraction = currentValue !== null && inputValue !== null ? currentValue - inputValue : null;
@@ -27,6 +27,7 @@ export default function ControllerRelativeMove({handleEnter, inputLabel, inputCl
                 locked ? "pointer-events-none opacity-50 hover:cursor-not-allowed" : "", 
                 className
             )}
+            {...props}
         >
             <p className={cn("font-extralight w-24 text-right", resultantTextClassName)}>{subtractionText}</p>
             <ArrowCircleLeft size={24} className="hover:text-sky-500 hover:cursor-pointer" onClick={()=>handleEnter && handleEnter(resultantSubtraction)} />
