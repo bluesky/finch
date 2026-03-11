@@ -31,7 +31,7 @@ export default function ControllerRelativeMove({handleEnter, inputLabel, inputCl
         >
             <p className={cn("font-extralight w-24 text-right", resultantTextClassName)}>{subtractionText}</p>
             <ArrowCircleLeft size={24} className="hover:text-sky-500 hover:cursor-pointer" onClick={()=>handleEnter && handleEnter(resultantSubtraction)} />
-            <InputNumber className={`w-24 text-center ${inputClassName}`} onChange={(input) => setInputValue(input)} inputClassName="text-center"/>
+            <InputNumber disabled={locked} className={`w-24 text-center ${inputClassName}`} onChange={(input) => setInputValue(input)} inputClassName="text-center"/>
             <ArrowCircleRight size={24} className="hover:text-sky-500 hover:cursor-pointer" onClick={()=>handleEnter && handleEnter(resultantAddition)}/>
             <p className={cn("font-extralight w-24 text-left", resultantTextClassName)}>{additionText}</p>
         </div>

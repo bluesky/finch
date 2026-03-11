@@ -11,11 +11,11 @@ type DeviceControllerBoxSimpleProps = {
     handleMinimizeClick: (deviceName: string) => void;
 }
 
-export default function DeviceControllerBoxSimple({ device, handleSetValueRequest, handleLockClick, handleMinimizeClick }: DeviceControllerBoxSimpleProps) {
+export default function DeviceControllerBoxSimple({ device, handleSetValueRequest, handleLockClick, handleMinimizeClick, ...props }: DeviceControllerBoxSimpleProps) {
     if (!device) return;
     const backgroundColorClass = device.locked ? 'bg-slate-400' : 'bg-slate-100';
     return (
-        <article className={`w-96 border border-slate-300 rounded-xl flex flex-col ${backgroundColorClass} ${device.locked && 'opacity-60'}`}>
+        <article className={`w-96 border border-slate-300 rounded-xl flex flex-col ${backgroundColorClass} ${device.locked && 'opacity-60'}`} {...props}>
             <div className="flex justify-between px-2 py-2 flex-shrink-0">
                 {device.locked 
                     ? 
