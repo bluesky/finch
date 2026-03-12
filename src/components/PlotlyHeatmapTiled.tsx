@@ -1,13 +1,18 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PlotlyHeatmap from './PlotlyHeatmap';
 // import { logNormalizeArray, histEqualizeArray } from '@/utils/plotProcessors';
 import { cn } from '@/lib/utils';
-type Props = {
-  url: string | null; // Metadata URL from Tiled (e.g., /api/v1/metadata/my_image), or null for empty display
-  className?: string; // Optional className for styling
-  size?: 'small' | 'medium' | 'large'; // Optional size prop for styling
-  enablePolling?: boolean; // Whether to poll for shape updates
-  pollingIntervalMs?: number; // Polling interval in milliseconds
+export type PlotlyHeatmapProps = {
+  /** Tiled metadata URL (e.g. /api/v1/metadata/my_image). Pass null to show an empty placeholder. */
+  url: string | null;
+  /** Additional CSS classes applied to the root section element. */
+  className?: string;
+  /** Controls the fixed dimensions of the component. Defaults to 'medium'. */
+  size?: 'small' | 'medium' | 'large';
+  /** When true, periodically polls the metadata URL to detect shape changes and auto-advance to the latest frame. */
+  enablePolling?: boolean;
+  /** Interval in milliseconds between polling requests. Defaults to 2000. */
+  pollingIntervalMs?: number;
 };
 
 export default function PlotlyHeatmapTiled({ 
@@ -16,7 +21,7 @@ export default function PlotlyHeatmapTiled({
   size='medium', 
   enablePolling = false,
   pollingIntervalMs = 2000
-}: Props) {
+}: PlotlyHeatmapProps) {
   const [array, setArray] = useState<number[][] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sliderIndex, setSliderIndex] = useState<number>(0);
@@ -148,7 +153,6 @@ export default function PlotlyHeatmapTiled({
     if (!enablePolling || !url) return;
 
     const pollForShapeChanges = async () => {
-      //console.log(`[PlotlyHeatmapTiled] Polling for shape changes at ${url}...`);
       try {
         const resp = await fetch(url);
         const json = await resp.json();
@@ -161,12 +165,10 @@ export default function PlotlyHeatmapTiled({
                               (newShape.length === 3 && newShape[0] !== shape[0]);
           
           if (shapeChanged) {
-            console.log(`[PlotlyHeatmapTiled] Shape changed from ${JSON.stringify(shape)} to ${JSON.stringify(newShape)}`);
             setShape(newShape);
             
             // Only fetch and decode if user hasn't moved the slider
             if (!userHasMovedSlider && fullUrl) {
-              console.log(`[PlotlyHeatmapTiled] Auto-updating to latest frame`);
               const latestFrameIndex = newShape.length === 3 ? newShape[0] - 1 : 0;
               setSliderIndex(latestFrameIndex);
               initialSliderPosition.current = latestFrameIndex;

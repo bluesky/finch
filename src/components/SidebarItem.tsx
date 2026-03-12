@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 type SidebarItemProps = {
     /** content to be rendered underneath the title */
@@ -7,39 +8,32 @@ type SidebarItemProps = {
     title?: string;
     /** any valid JSX, but SVG works best for color attribute */
     icon?: JSX.Element;
-    /** Tailwind ClassName for height, the width auto matches the height */
-    iconHeight?: `h-${string}`
-    /** Tailwind ClassName */
-    titleColor?: `text-${string}`
     /** Tailwind ClassNames */
-    containerStyles?: string
+    className?: string
     /** Tailwind ClassNames */
-    iconStyles?: string
+    classNameIcon?: string
     /** Tailwind ClassNames */
-    titleStyles?: string
+    classNameTitle?: string
     /** Tailwind ClassNames */
-    childrenStyles?: string
-
+    classNameChildren?: string
 }
 export default function SidebarItem({
     children,
     title,
     icon,
-    iconHeight='h-8',
-    titleColor='text-sky-900',
-    containerStyles,
-    iconStyles,
-    titleStyles,
-    childrenStyles,
+    className,
+    classNameIcon,
+    classNameTitle,
+    classNameChildren,
     ...props
 }: SidebarItemProps) {
     return (
-        <div className={containerStyles} {...props}>
-            <h2 className={`${titleColor} ${titleStyles} font-medium text-xl flex justify-start items-end`}>
-                {icon && <div className={`${titleColor} ${iconHeight} ${iconStyles} aspect-square mr-2`}>{icon}</div>}
+        <div className={className} {...props}>
+            <h2 className={cn(`text-sky-900 font-medium text-xl flex justify-start items-end`, classNameTitle)}>
+                {icon && <div className={cn(`text-sky-900 h-8 aspect-square mr-2`, classNameIcon)}>{icon}</div>}
                 {title}
             </h2>
-            <div className={`${childrenStyles} text-slate-900 px-2`}>
+            <div className={cn(`text-slate-900 px-2`, classNameChildren)}>
                 {children}  
             </div>
         </div>

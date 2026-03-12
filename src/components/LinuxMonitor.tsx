@@ -1,10 +1,9 @@
-import React from "react";
-
 type LinuxMonitorProps = {
+    /** URL of the Linux monitor */
     url?: string;
 };
 
-export default function LinuxMonitor({ url = "http://192.168.10.155:7681/" }: LinuxMonitorProps) {
+export default function LinuxMonitor({ url = "http://localhost:7681/" }: LinuxMonitorProps) {
     return (
         <div className="w-full h-full flex justify-center items-center">
             <iframe

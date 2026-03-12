@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import Plot from 'react-plotly.js';
+import { cn } from '@/lib/utils';
 
 export type PlotlyHeatmapProps = {
     /** A nested array displayed top-down */
@@ -14,10 +15,6 @@ export type PlotlyHeatmapProps = {
     colorScale?: 'Viridis' | 'YlOrRd' | 'Cividis' | 'Hot' | 'Electric' | 'Plasma',
     /** Adjust the height of the plot. ex) a factor of 2 makes each row in the array take up 2 pixels */
     verticalScaleFactor?: number,
-    /** Tailwind ClassName, width of the plot container */
-    width?: `w-${string}`,
-    /** Tailwind ClassName, height of the plot container */
-    height?: `h-${string}`,
     /** Should tick marks show up? */
     showTicks?: boolean,
     /** Spacing between tick marks along data  */
@@ -32,25 +29,30 @@ export type PlotlyHeatmapProps = {
     enableLogScale?: boolean,
     /** Flip y axis */
     flipYAxis?: boolean
+    /** Additional CSS classes applied to the root container. */
+    className?: string;
+    /** Additional CSS classes applied to the optional controller panel. */
+    classNameControls?: string;
 }
 
 //TODO: there are some issues with the display when zooming out
 export default function PlotlyHeatmap({
-    array, //2d array [[1, 2, 3], [2, 2 1]]
+    array, 
     title = '',
     xAxisTitle = '',
     yAxisTitle = '',
-    colorScale = 'Viridis', //plotly compatible colorScale
-    verticalScaleFactor = 0.1, // Adjusts the height of the plot. ex) A factor of 2 makes each row in the array take up 2 pixels
-    width = 'w-full', 
-    height='h-full',
+    colorScale = 'Viridis',
+    verticalScaleFactor = 0.1,
     showTicks = false,
     tickStep = 100,
     showScale = true,
-    lockPlotHeightToParent=false, //locks the height of the plot to the height of the container, should not be set to True if lockPlotWidthHeightToInputArray is on
-    lockPlotWidthHeightToInputArray=false, //restricts the maximum view of the plot so that it never exceeds a 1 pixel to 1 array element density
-    enableLogScale = false, //enable log scale slider
-    flipYAxis = true
+    lockPlotHeightToParent=false,
+    lockPlotWidthHeightToInputArray=false,
+    enableLogScale = false,
+    flipYAxis = true,
+    className,
+    classNameControls,
+    ...props
 }: PlotlyHeatmapProps) {
     const plotContainer = useRef(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 }); //applied to plot, not the container
@@ -138,7 +140,7 @@ export default function PlotlyHeatmap({
     return (
         <>
             {enableLogScale && (
-                <div className="flex items-center justify-center gap-2 p-2 rounded-t-md mb-1">
+                <div className={cn("flex items-center justify-center gap-2 p-2 rounded-t-md mb-1", classNameControls)}>
                     <div className="flex items-center gap-2 ">
                         <button
                             onClick={() => handleScaleTypeChange('log')}
@@ -180,7 +182,7 @@ export default function PlotlyHeatmap({
                     </div>
                 </div>
             )}
-            <div className={`${height} ${width} rounded-b-md flex relative`} ref={plotContainer}>
+            <div className={cn(`h-full w-full rounded-b-md flex relative`, className)} ref={plotContainer} {...props}>
                 <div className="flex-1 flex flex-col">
                     <Plot
                         data={[
