@@ -25,9 +25,9 @@ describe('SidebarItem Component', () => {
   });
 
   it('does not render icon wrapper when icon is omitted', () => {
-    render(<SidebarItem title="No Icon" />);
+    render(<SidebarItem title="No Icon" classNameIcon='my-icon-class'/>);
     // icon wrapper div has classNameIcon class — should not be present
-    expect(document.querySelector('.h-8')).not.toBeInTheDocument();
+    expect(document.querySelector('.my-icon-class')).not.toBeInTheDocument();
   });
 
   it('applies className to root element', () => {
