@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Plot, { PlotParams } from 'react-plotly.js';
 import { cn } from '@/lib/utils';
 
@@ -38,7 +38,7 @@ const titleFont = {
   color: '#082f49'
 }
 
-export default function PlotlyScatter({
+const PlotlyScatter = React.memo(function PlotlyScatter({
   data = sampleData,
   title,
   xAxisTitle,
@@ -105,4 +105,6 @@ export default function PlotlyScatter({
       />
     </div>
   );
-}
+});
+
+export default PlotlyScatter;
