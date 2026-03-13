@@ -28,7 +28,7 @@ return (
         )}
         {...props}
     >
-        <InputNumber disabled={locked} label={inputLabel} labelPosition='right' className={cn(`w-32`, classNameInput)} handleEnter={handleEnter} onChange={(input) => setInputValue(input)} classNameInput="text-right"/>
+        <InputNumber disabled={locked} label={inputLabel} labelPosition='right' className={cn(`w-32`)} handleEnter={handleEnter} onChange={(input) => setInputValue(input)} classNameInput={cn("text-right", classNameInput)}/>
         <ArrowCircleRight size={24} className="hover:text-sky-500 hover:cursor-pointer" onClick={()=>handleEnter && handleEnter(inputValue)}/>
     </div>
 )
