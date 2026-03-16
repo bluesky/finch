@@ -30,6 +30,15 @@ export default function BeamEnergyController({ currentValueDegrees, onAbsoluteMo
         setInputValue("");
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key !== 'Enter' || isLocked) return;
+        if (moveMode === 'Set Energy') {
+            onAbsoluteMove?.(Number(inputValue));
+        } else {
+            onRelativeMove?.(Number(inputValue));
+        }
+    };
+
     return (
         <div className={`${isLocked ? "opacity-50 hover:cursor-not-allowed" : ""} w-full`}>
             <div className={`${isLocked ? "pointer-events-none" : ""} w-fit m-auto flex justify-center items-center pt-6 space-x-2`}>
@@ -45,6 +54,7 @@ export default function BeamEnergyController({ currentValueDegrees, onAbsoluteMo
                             disabled={isLocked}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="w-20 border border-slate-300 rounded-md pl-1 bg-sky-200 shadow-inner h-fit"
                             name="absolute-move-input"
                         />
@@ -75,6 +85,7 @@ export default function BeamEnergyController({ currentValueDegrees, onAbsoluteMo
                             disabled={isLocked}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={handleKeyDown}
                             className="w-20 border border-slate-300 rounded-md pl-1 bg-sky-200 shadow-inner h-fit"
                             name="absolute-move-input"
                         />
