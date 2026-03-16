@@ -1,5 +1,6 @@
-import { Lock, Question } from "@phosphor-icons/react"
-import { deviceIcons } from "@/assets/icons";
+import { Lock, Question, Joystick, ChartLine } from "@phosphor-icons/react";
+import BeamEnergyTitleIcon from "./BeamEnergyTitleIcon";
+import { cn } from "@/lib/utils";
 type BeamEnergyHeaderProps = {
     /** Display title shown below the monochromator icon. */
     title: string;
@@ -21,18 +22,20 @@ type BeamEnergyHeaderProps = {
     handleTogglePlot: () => void;
     /** Callback to toggle the about/debug section visibility. */
     handleToggleAbout: () => void;
+    className?: string;
 }
-export default function BeamEnergyHeader({title, pv, showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout}: BeamEnergyHeaderProps) {
+export default function BeamEnergyHeader({title, pv, showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout, className}: BeamEnergyHeaderProps) {
     return (
-        <nav className="flex items-start justify-between">
-            <Lock size={24} className={`${isLocked ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleToggleLock}/>
-            <div className="flex flex-col items-center justify-start">
-                <span className="w-24 h-auto">{deviceIcons.monoLargeNoArrows}</span>
-                <h2 className="text-sky-950 font-semibold text-md">{title}</h2>
-                <h3 className="text-sky-950 font-extralight -mt-2">{pv}</h3>
-            </div>
-            <Question size={24} className={`${showAbout ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleToggleAbout}/>
+        <nav className={cn(`justify-between flex items-start absolute top-0 left-0 w-full p-4`, className)}>
 
+            <span className="flex gap-2">
+                <Lock size={24} className={`${isLocked ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleToggleLock}/>
+                <Joystick size={24} className={`${showController && !showAbout ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleToggleController}/>
+            </span>
+            <span className="flex gap-2">
+                <ChartLine size={24} className={`${showPlot && !showAbout ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleTogglePlot}/>
+                <Question size={24} className={`${showAbout ? "text-slate-900" : "text-slate-500"} hover:cursor-pointer hover:text-slate-700`} onClick={handleToggleAbout}/>
+            </span>
         </nav>
     )
 }

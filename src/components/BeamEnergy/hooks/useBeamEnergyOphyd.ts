@@ -55,10 +55,26 @@ export default function useBeamEnergyOphyd({deviceName="mono", wsUrl}:UseBeamEne
 
 
     const handleToggleController = () => {
+        if (showAbout && showController) {
+            setShowAbout(false);
+            return;
+        }
+        if (showPlot && !showController) {
+            setShowPlot(false);
+            setShowController(true);
+            return;
+        }
         setShowController((prev) => !prev);
     };
 
     const handleTogglePlot = () => {
+        if (showAbout && showPlot) {
+            setShowAbout(false);
+            return;
+        }
+        if (showController && !showPlot) {
+            setShowController(false);
+        }
         setShowPlot((prev) => !prev);
     };
 
