@@ -1,5 +1,5 @@
 export default function HexapodPlot() {
     return (
-        <div>HexapodPlot</div>
+        <div>Live Plot Section Coming Soon</div>
     )
 }

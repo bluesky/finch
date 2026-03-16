@@ -113,8 +113,8 @@ export default function HexapodController({ hexapodRBVs, onStartClick, onStopCli
                             <p className="text-xs text-slate-700 text-wrap pl-2">Hint: Press the 'Enter' key in a cell to jog the selected axis</p>
                             :
                             <>
-                                <ButtonWithIcon icon={<ArrowFatRight size={20}/>} cb={() => onStartClick(movePositionForm, (moveMode!== 'Absolute Move'))} size="small" text='START' iconPosition='right' styles='py-1 px-2 h-fit'/>
-                                <ButtonWithIcon icon={<Pause size={20}/>} cb={onStopClick} isSecondary={true} size="small" text="STOP" iconPosition='right' styles="py-1 px-2 h-fit bg-white/50 border-slate-400"/>
+                                <ButtonWithIcon icon={<ArrowFatRight size={20}/>} cb={() => onStartClick(movePositionForm, (moveMode!== 'Absolute Move'))} size="small" text='START' iconPosition='right' className='py-1 px-2 h-fit'/>
+                                <ButtonWithIcon icon={<Pause size={20}/>} cb={onStopClick} isSecondary={true} size="small" text="STOP" iconPosition='right' className="py-1 px-2 h-fit border-slate-400"/>
                             </>
                         }
                     </span>
