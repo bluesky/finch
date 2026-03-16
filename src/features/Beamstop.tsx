@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from "react";
 
-import SignalMonitorPlot from "@/components/SignalMonitorPlot";
+import SignalMonitorPlot from "@/components/SignalMonitorPlotPV";
+import SignalMonitorPlotOphyd from "@/components/SignalMonitorPlotOphyd";
 import DeviceControllerBox from "@/components/DeviceControllerBox";
 import useOphydSocket from "@/hooks/useOphydSocket";
 import Button from "@/components/Button";
-import BeamEnergy from "@/components/BeamEnergy";
 
 import { deviceIcons } from "@/assets/icons";
 
@@ -71,7 +71,7 @@ export default function Beamstop(
         <section className={`w-full h-full ${stackVertical ? 'flex-col' : 'max-w-[1200px]'} flex max-h-[800px] relative`}>
             <article className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full'}  bg-white flex flex-col p-8`}>
                 <h3 className="text-4xl text-center">Beamstop Current: {devices[beamstopCurrentName] && devices[beamstopCurrentName].value} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units?.slice(0,3)}</h3>
-                <SignalMonitorPlot pv={beamstopCurrentName} className={stackVertical ? 'h-full' : 'h-1/2'} numVisiblePoints={200} tickTextIntervalSeconds={30}/>
+                <SignalMonitorPlotOphyd deviceName={beamstopCurrentName} className={stackVertical ? 'h-full' : 'h-1/2'} numVisiblePoints={200} tickTextIntervalSeconds={30} demo={true} yAxisTitle="demo mode"/>
                 { enableBestOption && 
                     <>
                         <p>Best Beamstop Current Value: {bestCurrent ? bestCurrent.toPrecision(5) : 'N/A'} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units}</p>

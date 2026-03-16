@@ -6,9 +6,13 @@ import BeamEnergyPlot from "./BeamEnergyPlot";
 import BeamEnergyAbout from "./BeamEnergyAbout";
 
 export type BeamEnergyProps = {
+    /** EPICS PV for the monochromator angle (RBV). Defaults to 'bl531_xps1:mono_angle_deg'. */
     pv?: string,
+    /** Display title shown in the widget header. Defaults to 'Beam Energy'. */
     title?: string,
+    /** Angular offset in degrees applied when converting mono angle to beam energy. */
     thetaOffsetDeg?: number
+    /** WebSocket server URL. When omitted, uses the application default. */
     wsUrl?: string
 }
 export default function BeamEnergy({pv="bl531_xps1:mono_angle_deg", title="Beam Energy", thetaOffsetDeg, wsUrl}:BeamEnergyProps) {
