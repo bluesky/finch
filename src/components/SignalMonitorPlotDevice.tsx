@@ -14,7 +14,7 @@ export type SignalMonitorPlotDeviceProps = {
     /** Pre-connected device object. When null/undefined the plot waits for data. */
     device: DeviceLike | null | undefined;
     /** Label shown on the x-axis (typically the PV or device name). */
-    deviceLabel: string;
+    deviceLabel?: string;
     /** Additional CSS classes applied to the root container. */
     className?: string;
     /** Maximum number of data points shown at once before the oldest are dropped (strip chart window). Defaults to 30. */
