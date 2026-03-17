@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
 import { getPlansAllowedPromise, executeItemPromise, getQueuePromise } from '../QServer/utils/apiClient';
-import { PostItemAddResponse, GetQueueResponse } from '../QServer/types/apiTypes';
+import { PostItemAddResponse } from '../QServer/types/apiTypes';
 import Button from '../Button';
 
 type ExperimentExecutePlanButtonGenericProps = {
+    /** The name of the QServer plan to execute (e.g. `'count'`, `'energy_scan'`). */
     planName: string;
+    /** Keyword arguments forwarded verbatim to the plan in the API request body. */
     kwargs: { [key: string]: any };
+    /** When true, prevents the button from being clicked regardless of plan availability. */
     disabled?: boolean;
+    /** Additional CSS class names to apply to the button. */
     className?: string;
+    /** Callback invoked after the plan executes successfully. Receives the raw API response. */
     onSuccess?: (response: PostItemAddResponse) => void;
+    /** Callback invoked when plan availability check or execution fails. Receives a human-readable error message. */
     onError?: (error: string) => void;
 };
 
@@ -139,7 +145,7 @@ export default function ExperimentExecutePlanButtonGeneric({
                 text={getButtonText()}
                 cb={handleExecuteClick}
                 disabled={isButtonDisabled()}
-                styles={`${className} ${isQueueServerBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`${className} ${isQueueServerBusy ? 'opacity-50 cursor-not-allowed' : ''}`}
             />
             {isQueueServerBusy && (
                 <div className="text-sm text-red-600 mt-1 text-center">

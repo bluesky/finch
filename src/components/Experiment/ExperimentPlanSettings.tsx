@@ -1,19 +1,13 @@
-import QSAddItem from "../QServer/QSAddItem";
 import QSParameterInput from "../QServer/QSParameterInput";
 import { useQSAddItem } from "../QServer/hooks/useQSAddItem";
 
 export default function ExperimentPlanSettings() {
     const {
-        submissionResponse,
         allowedDevices,
         parameters,
         resetInputsTrigger,
         setParameters,
-        submitPlan,
-        executePlan,
-        handleParameterRefreshClick,
         updateBodyKwargs,
-        checkRequiredParameters,
     } = useQSAddItem();
 
     return (

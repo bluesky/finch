@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { cn } from "@/lib/utils";
 import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
 import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
 import { getBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
@@ -10,8 +9,11 @@ import ExperimentHistory from "./ExperimentHistory";
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
 
 type ExperimentAngleScanProps = {
+    /** Additional CSS class names to apply to the root container. */
     className?: string;
+    /** Callback invoked after a successful plan execution. Receives the raw API response. */
     onSuccess?: (response: any) => void;
+    /** Callback invoked when plan execution fails. Receives a human-readable error message. */
     onError?: (error: string) => void;
 };
 
