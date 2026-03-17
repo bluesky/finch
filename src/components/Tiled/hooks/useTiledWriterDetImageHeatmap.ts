@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 
 type UseTiledWriterDetImageHeatmapOptions = {
+    /** When `true`, disables polling because the run is already complete. Defaults to `false`. */
     isRunFinished?: boolean;
+    /** Milliseconds between Tiled data refetches while the run is ongoing. Defaults to `2000`. */
     pollingIntervalMs?: number;
+    /** Base URL of the Tiled server. Defaults to `'http://192.168.10.155:8000'`. */
     tiledBaseUrl?: string;
 };
 

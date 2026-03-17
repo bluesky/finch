@@ -1,6 +1,11 @@
 import { TiledItemLinks } from "@blueskyproject/tiled"
 import { getBlueskyPlanMetadata } from "@blueskyproject/tiled";
 
+/**
+ * Extracts the Tiled node path from a `TiledItemLinks` object.
+ * The path is the segment of the `self` URL that follows `/metadata/` and can be
+ * passed directly as the `path` prop to components such as `TiledScatterPlot`.
+ */
 export const getPathFromLinks = (links: TiledItemLinks) => {
     //given a links object from Tiled (inserted on the 'select' button in <Tiled/>) return the path to use as a prop in other components
     const self = links?.self
