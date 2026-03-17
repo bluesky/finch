@@ -32,11 +32,6 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
     const [ copiedPlan, setCopiedPlan ] = useState<CopiedPlan | null>(null);
     const [ isSidepanelExpanded, setIsSidepanelExpanded ] = useState(false);
     const [ minimizeAllWidgets, setMinimizeAllWidgets ] = useState(false);
-
-    if (url) {
-        console.log('setting the url')
-        setQueueServerApiUrl(url)
-    }
     
     const {
         currentQueue,

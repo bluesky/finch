@@ -1,4 +1,3 @@
-// hooks/useQueueServer.js
 import { useState, useEffect, useRef } from 'react';
 import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from './useQServerQueries';
 import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../types/apiTypes';
