@@ -1,7 +1,7 @@
 import HexapodHeader from "./HexapodHeader";
 import HexapodController from "./HexapodController";
 import HexapodPlot from "./HexapodPlot";
-import HexapodAbout from "./HexapodAbout";
+//import HexapodAbout from "./HexapodAbout";
 import useHexapod from "./hooks/useHexapod";
 
 type HexapodProps = {
