@@ -98,7 +98,7 @@ describe('ButtonWithIcon Component', () => {
     const { container } = render(<ButtonWithIcon text="Secondary" icon={<TestIcon />} isSecondary={true} />);
     const button = container.firstChild;
     
-    expect(button).toHaveClass('bg-transparent', 'text-black', 'border');
+    expect(button).toHaveClass('bg-white/50', 'text-black', 'border');
     expect(button).not.toHaveClass('bg-sky-500', 'text-white');
   });
 
