@@ -5,10 +5,15 @@ import InputSliderRange from "../InputSliderRange";
 import HistogramPlotSettings from "./HistogramPlotSettings";
 
 type HistorgramPlotProps = {
+    /** Histogram counts array where each index is a channel and each value is the count. `null` renders a placeholder. */
     arrayData: number[] | null;
+    /** When `true`, renders `HistogramPlotSettings` above the plot. */
     showPlotSettings?: boolean;
+    /** Additional class names applied to the outer container element. */
     className?: string;
+    /** Additional class names applied to the `HistogramPlotSettings` element. */
     classNameSettings?: string;
+    /** Plot title displayed above the chart. Defaults to `"Histogram"`. */
     title?: string;
 }
 

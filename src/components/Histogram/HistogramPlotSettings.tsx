@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 type HistogramPlotSettingsProps = {
+    /** Additional class names applied to the container element. */
     className?: string;
 }
 
