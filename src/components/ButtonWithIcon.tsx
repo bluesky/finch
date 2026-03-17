@@ -73,8 +73,8 @@ export default function ButtonWithIcon({
         <button 
             disabled={disabled} 
             className={cn(`
-                ${isSecondary ? `bg-transparent hover:bg-slate-100 text-black border` : `bg-sky-500 text-white`}
-                ${disabled ? 'hover:cursor-not-allowed' : (isSecondary ? 'hover:bg-slate-100' : 'hover:bg-sky-600')} 
+                ${isSecondary ? `bg-white/50 hover:bg-slate-200 text-black border` : `bg-sky-500 hover:bg-sky-600 text-white`}
+                ${disabled && 'hover:cursor-not-allowed'} 
                 ${textSizes[size]} 
                 ${paddingSizes[size]} 
                 rounded-lg font-medium w-fit`, className)} 
