@@ -70,7 +70,11 @@ export default function useHexapod(props: UseHexapodProps = {}) {
     const onClickLock = useCallback(() => {
         setIsLocked((prev) => !prev);
     }, []);
+
     const onClickController = () => {
+        if (!showAbout && !showPlot && showController) {
+            return;
+        }
         if (showPlot && !showController) {
             setShowPlot(false);
             setShowController(true);
@@ -80,6 +84,12 @@ export default function useHexapod(props: UseHexapodProps = {}) {
     }
 
     const onClickPlot =() => {
+        if (showAbout) {
+            setShowPlot(true);
+            setShowAbout(false);
+            setShowController(false);
+            return;
+        }
         if (showController && !showPlot) {
             setShowController(false);
             setShowPlot(true);
