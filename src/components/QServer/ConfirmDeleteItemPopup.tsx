@@ -14,8 +14,8 @@ export default function ConfirmDeleteItemPopup( {handleDelete=()=>{}, handleCanc
                 <div className={`text-yellow-600 h-20 w-20`}>{tailwindIcons.exclamationTriangle}</div>
                 <p className="text-lg font-bold text-black">Remove this item from the Queue?</p>
                 <div className="flex items-center justify-center space-x-8">
-                    <Button text='Cancel' cb={handleCancel} bgColor="bg-white" hoverBgColor="hover:bg-slate-200" textColor="text-black" styles="border border-slate-400" />
-                    <Button text='Delete' cb={handleDelete} bgColor="bg-red-600" hoverBgColor="hover:bg-red-400"/>
+                    <Button text='Cancel' cb={handleCancel} className="bg-white over:bg-slate-200 text-black border border-slate-400" />
+                    <Button text='Delete' cb={handleDelete} className="bg-red-600 hover:bg-red-400" />
                 </div>
             </div>
         </div>

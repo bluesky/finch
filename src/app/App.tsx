@@ -1,22 +1,17 @@
 import './App.css';
-import About from './pages/About';
 import ContainerQServer from '@/components/QServer/ContainerQServer';
 import HubAppLayout from '@/components/HubAppLayout';
 import BL531Control from './pages/BL531Control';
 import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
-import { Tiled } from '@blueskyproject/tiled';
 import CameraPage from './pages/Camera';
 import Beamstop from '@/features/Beamstop';
 import GoogleDoc from '@/components/GoogleDoc';
-import LinuxMonitor from '@/components/LinuxMonitor';
-import SampleDataPage from './pages/SampleDataPage';
-import ALSBeamStatus from '@/components/ALSBeamStatus';
 import BL531Dashboard from './pages/BL531Dashboard';
 import ScatteringPage from './pages/ScatteringPage';
 import AngleScanPage from './pages/AngleScanPage';
-import ExperimentHistory from '@/components/Experiment/ExperimentHistory';
 import Histogram from '@/components/Histogram/Histogram';
 import IFrame from '@/components/IFrame';
+import ServiceStatusPage from './pages/ServiceStatusPage';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
@@ -24,8 +19,7 @@ import '@blueskyproject/tiled/style.css';
 import { RouteItem } from '@/types/navigationRouterTypes';
 
 import { Barcode, House, Joystick, StackPlus, ImageSquare, Camera, GoogleLogo, Feather, Terminal,  LightbulbFilament, AppWindow, ChartBar} from "@phosphor-icons/react";
-import DashboardPage from '@/stories/DashboardPage';
-import { Query, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const docs = [
   {
     title: "BL531 New Feature Request Documentation",
@@ -61,8 +55,8 @@ function App() {
     },
     {element: <CameraPage/>, path: '/camera', label: "Camera", icon: <Camera size={32} />},
     {element: <GoogleDoc docs={docs} />, path: '/doc', label: "docs", icon: <GoogleLogo size={32} />},
-    {element: <LinuxMonitor />, path: '/terminal', label: "Terminal", icon: <Terminal size={32} />},
-    {element: <ALSBeamStatus />, path: '/beamstatus', label: "Beam", icon: <LightbulbFilament size={32} />},
+    {element: <ServiceStatusPage />, path: '/status', label: "Status", icon: <Terminal size={32} />},
+    // {element: <IFrame url="https://controls.als.lbl.gov/als-beamstatus/site/alsstatus_alsweb" width={755} height={635}/>, path: '/beamstatus', label: "Beam", icon: <LightbulbFilament size={32} />},
     {element: <IFrame url="http://192.168.10.156:8080" isSizeResponsive={true}/>, path: '/osprey', label: "Osprey", icon: <Feather size={32} />},
     // {element: <SampleDataPage />, path: '/sampledata', label: "Spectroscopy", icon: <AppWindow size={32} />},
     {element: <ScatteringPage />, path: '/energyscan', label: "Energy Scan", icon: <Barcode size={32} />},

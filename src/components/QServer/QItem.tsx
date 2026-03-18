@@ -46,7 +46,7 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
                 <div className={`${failed ? 'mt-12' : 'mt-6'} flex flex-col items-center relative h-20`}>
                     {failed ? <div className="text-red-500 absolute left-1/2 transform -translate-x-1/2 -translate-y-full aspect-square h-6">{tailwindIcons.exclamationTriangle}</div> : ''}                    
                     <li className={`${commonStyles} hover:cursor-pointer border ${item.result.exit_status === 'failed' ? 'border-red-600 border-2' : 'border-slate-500'}  bg-slate-100 overflow-clip rounded-t-md h-16 ${styles}`} onClick={handleClick}>
-                        <span className={`${getPlanColor(item.name)} flex items-center justify-around rounded-t-md opacity-80`}>
+                        <span className={`${getPlanColor(item.name)} flex items-center justify-around rounded-t-md opacity-80 overflow-x-hidden`}>
                             <p className={` text-white text-center `}>{item.name}</p>
                         </span>
                         
@@ -98,7 +98,7 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
             return (
                 <div className="flex flex-col items-center rounded-t-md h-20">
                     <li  className={`${commonStyles} hover:cursor-pointer h-16 border border-slate-500 bg-white overflow-clip rounded-t-md ${styles}`} onClick={handleClick}>
-                        <p className={`${getPlanColor(item.name)} text-white text-center rounded-t-md`}>{item.name}</p>
+                        <p className={`${getPlanColor(item.name)} text-white text-center rounded-t-md overflow-hidden`}>{item.name}</p>
                         <div className="text-xs ml-2 flex-grow overflow-hidden">
                             {('kwargs' in item && 'md' in item.kwargs) ?
                             <Fragment>

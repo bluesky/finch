@@ -11,7 +11,6 @@ import ButtonWithIcon from "../ButtonWithIcon";
 import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
 import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
-import { Tooltip } from 'react-tooltip';
 import { deleteQueueItem, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
 import { GetRunsActiveResponse, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
 
@@ -158,7 +157,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             content: popupItem.kwargs &&
                 <Fragment>
                     {popupItem.kwargs && Object.keys(popupItem.kwargs).map((kwarg) => printParameter(kwarg))}
-                    {handleCopyClick && <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} styles={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>}
+                    {handleCopyClick && <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} className={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>}
                 </Fragment>
         },
         {
