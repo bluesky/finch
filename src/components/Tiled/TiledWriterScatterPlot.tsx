@@ -43,7 +43,8 @@ export default function TiledWriterScatterPlot({
         enablePolling 
     } = useTiledWriterScatterPlot(blueskyRunId, { 
         isRunFinished, 
-        pollingIntervalMs 
+        pollingIntervalMs,
+        tiledBaseUrl 
     });
 
     // Determine status text based on current state

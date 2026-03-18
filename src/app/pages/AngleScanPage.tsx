@@ -10,6 +10,7 @@ export default function AngleScanPage() {
                     onError={(error) => {
                         console.error("Angle scan failed:", error);
                     }}
+                    tiledBaseUrl="http://192.168.10.155:8000/api/v1"
                 />
             </div>
         </div>

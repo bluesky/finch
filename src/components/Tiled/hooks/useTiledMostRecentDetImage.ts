@@ -5,7 +5,7 @@ import { checkRunCompletion } from '../utils/tiledUtils';
 type UseTiledMostRecentDetImageOptions = {
     /** Milliseconds between Tiled search polls. Defaults to `2000`. */
     pollingIntervalMs?: number;
-    /** Base URL of the Tiled server. Defaults to `'http://192.168.10.155:8000'`. */
+    /** Base URL of the Tiled server. Defaults to `'http://localhost:8000/api/v1'`. */
     tiledBaseUrl?: string;
     /** When `false`, polling is disabled on mount. Defaults to `true`. */
     enabled?: boolean;
@@ -31,7 +31,7 @@ export const useTiledMostRecentDetImage = (
 ): UseTiledMostRecentDetImageReturn => {
     const { 
         pollingIntervalMs = 2000, 
-        tiledBaseUrl = 'http://192.168.10.155:8000',
+        tiledBaseUrl = 'http://localhost:8000/api/v1',
         enabled = true 
     } = options;
 
@@ -47,7 +47,7 @@ export const useTiledMostRecentDetImage = (
         try { 
             // Get last 10 entries, sorted by most recent
             const searchResponse = await fetch(
-                `${tiledBaseUrl}/api/v1/search/?sort=-&page[offset]=0&page[limit]=10`
+                `${tiledBaseUrl}/search/?sort=-&page[offset]=0&page[limit]=10`
             );
 
             if (!searchResponse.ok) {
@@ -64,7 +64,7 @@ export const useTiledMostRecentDetImage = (
 
                 try {
                     const detImageResponse = await fetch(
-                        `${tiledBaseUrl}/api/v1/metadata/${detImagePath}`
+                        `${tiledBaseUrl}/metadata/${detImagePath}`
                     );
                     if (detImageResponse.ok) {
                         const detImageData = await detImageResponse.json();

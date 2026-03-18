@@ -15,12 +15,15 @@ type ExperimentEnergyScanProps = {
     onSuccess?: (response: any) => void;
     /** Callback invoked when plan execution fails. Receives a human-readable error message. */
     onError?: (error: string) => void;
+    /** The url for the Tiled server */
+    tiledBaseUrl?: string;
 };
 
 export default function ExperimentEnergyScan({ 
     className,
     onSuccess,
-    onError
+    onError,
+    tiledBaseUrl
 }: ExperimentEnergyScanProps) {
     // Energy scan form state
     const [user, setUser] = useState<string>("");
@@ -251,6 +254,7 @@ export default function ExperimentEnergyScan({
                                 size="medium"
                                 isRunFinished={false}
                                 plotClassName="bg-transparent"
+                                tiledBaseUrl={tiledBaseUrl}
                             />
                             <TiledWriterScatterPlot 
                                 key={blueskyRunId}
@@ -259,6 +263,7 @@ export default function ExperimentEnergyScan({
                                 className="max-h-[40rem] h-full"
                                 plotClassName="h-[calc(100%-2rem)]"
                                 showStatusText={false}
+                                tiledBaseUrl={tiledBaseUrl}
                             />
                         </div>
                     </div>

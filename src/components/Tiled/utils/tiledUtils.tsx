@@ -28,10 +28,10 @@ export const getPathFromLinks = (links: TiledItemLinks) => {
  * @param path - The bluesky run ID to check
  * @returns Promise<boolean> - true if run is complete, false if ongoing
  */
-export const checkRunCompletion = async (path: string): Promise<boolean> => {
+export const checkRunCompletion = async (path: string, url?: string): Promise<boolean> => {
     try {
         console.log(`[tiledUtils] Checking run completion for path: ${path}`);
-        const metadata = await getBlueskyPlanMetadata(path);
+        const metadata = await getBlueskyPlanMetadata(path, url);
         
         // Safety check: if metadata is falsy, don't proceed
         if (!metadata) {

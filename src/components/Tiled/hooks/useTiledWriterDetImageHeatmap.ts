@@ -5,7 +5,7 @@ type UseTiledWriterDetImageHeatmapOptions = {
     isRunFinished?: boolean;
     /** Milliseconds between Tiled data refetches while the run is ongoing. Defaults to `2000`. */
     pollingIntervalMs?: number;
-    /** Base URL of the Tiled server. Defaults to `'http://192.168.10.155:8000'`. */
+    /** Base URL of the Tiled server. Defaults to `'http://localhost:8000/api/v1'`. */
     tiledBaseUrl?: string;
 };
 
@@ -16,7 +16,7 @@ export function useTiledWriterDetImageHeatmap(
     const {
         isRunFinished = false,
         pollingIntervalMs = 2000,
-        tiledBaseUrl = 'http://192.168.10.155:8000'
+        tiledBaseUrl = 'http://localhost:8000/api/v1'
     } = options;
 
     const [tiledPath, setTiledPath] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export function useTiledWriterDetImageHeatmap(
             setError(null);
 
             // Check if the run exists and get its metadata
-            const runResponse = await fetch(`${tiledBaseUrl}/api/v1/metadata/${blueskyRunId}`);
+            const runResponse = await fetch(`${tiledBaseUrl}/metadata/${blueskyRunId}`);
             
             if (!runResponse.ok) {
                 throw new Error(`Run ${blueskyRunId} not found`);
@@ -48,7 +48,7 @@ export function useTiledWriterDetImageHeatmap(
 
             // Construct path to det_image: {id}/primary/det_image
             const detImagePath = `${blueskyRunId}/primary/det_image`;
-            const detImageResponse = await fetch(`${tiledBaseUrl}/api/v1/metadata/${detImagePath}`);
+            const detImageResponse = await fetch(`${tiledBaseUrl}/metadata/${detImagePath}`);
 
             if (!detImageResponse.ok) {
                 throw new Error(`det_image not found at path: ${detImagePath}`);
@@ -63,7 +63,7 @@ export function useTiledWriterDetImageHeatmap(
             }
 
             //console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
-            setTiledPath(`${tiledBaseUrl}/api/v1/metadata/${detImagePath}`);
+            setTiledPath(`${tiledBaseUrl}/metadata/${detImagePath}`);
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';

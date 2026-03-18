@@ -15,12 +15,15 @@ type ExperimentAngleScanProps = {
     onSuccess?: (response: any) => void;
     /** Callback invoked when plan execution fails. Receives a human-readable error message. */
     onError?: (error: string) => void;
+    /** The base Tiled url */
+    tiledBaseUrl?: string;
 };
 
 export default function ExperimentAngleScan({ 
     className,
     onSuccess,
-    onError
+    onError,
+    tiledBaseUrl
 }: ExperimentAngleScanProps) {
     // Angle scan form state
     const [user, setUser] = useState<string>("");
@@ -251,6 +254,7 @@ export default function ExperimentAngleScan({
                                 size="medium"
                                 isRunFinished={false}
                                 plotClassName="bg-transparent"
+                                tiledBaseUrl={tiledBaseUrl}
                             />
                             <TiledWriterScatterPlot 
                                 key={blueskyRunId}
@@ -259,6 +263,7 @@ export default function ExperimentAngleScan({
                                 className="max-h-[40rem] h-full"
                                 plotClassName="h-[calc(100%-2rem)]"
                                 showStatusText={false}
+                                tiledBaseUrl={tiledBaseUrl}
                             />
                         </div>
                     </div>

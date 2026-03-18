@@ -22,13 +22,15 @@ type UseTiledWriterScatterPlotOptions = {
     isRunFinished?: boolean;
     /** Milliseconds between completion-check polls. Defaults to `5000`. */
     pollingIntervalMs?: number;
+    /** The base url for the tiled server, ex) http://localhost:8000/api/v1 */
+    tiledBaseUrl?: string;
 };
 
 export const useTiledWriterScatterPlot = (
     blueskyRunId: string, 
     options: UseTiledWriterScatterPlotOptions = {}
 ): UseTiledWriterScatterPlotReturn => {
-    const { isRunFinished = false, pollingIntervalMs = 5000 } = options;
+    const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl } = options;
     
     const [tiledPath, setTiledPath] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +44,7 @@ export const useTiledWriterScatterPlot = (
         console.log(`[useTiledWriterScatterPlot] Starting completion polling for run: ${blueskyRunId}`);
         
         const intervalId = setInterval(async () => {
-            const isComplete = await checkRunCompletion(blueskyRunId);
+            const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
             if (isComplete) {
                 setEnablePolling(false);
                 clearInterval(intervalId);

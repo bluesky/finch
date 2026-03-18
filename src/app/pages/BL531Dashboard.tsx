@@ -1,14 +1,14 @@
 import CameraContainer from "@/components/Camera/CameraContainer"
 import TIFFCanvas from "@/components/Camera/TIFFCanvas"
-import Osprey from "@/components/Osprey/Osprey"
 import Bento from "@/components/Bento"
 import Hexapod from "@/components/Hexapod/Hexapod"
-import SignalMonitorPlot from "@/components/SignalMonitorPlot"
+import SignalMonitorPlotPV from "@/components/SignalMonitorPlotPV"
 import BeamEnergyOphyd from "@/components/BeamEnergy/BeamEnergyOphyd"
 import Shutter from "@/components/Shutter";
 import useResizeObserver from "@/hooks/useResizeObserver";
 import TIFFContainer from "@/components/Camera/TIFFContainer";
 import QServerPlanMonitor from "@/features/QServerPlanMonitor";
+import IFrame from "@/components/IFrame"
 
 export default function BL531Dashboard() {
     const {containerRef, dimensions} = useResizeObserver();
@@ -56,7 +56,7 @@ export default function BL531Dashboard() {
             <Bento className="bg-white/40 p-8 rounded-md items-start justify-around flex-shrink-0 gap-x-0 gap-y-8">
                 <div className="flex flex-col items-center justify-start gap-4">
                     <p className="text-lg text-white text-center">Beam Energy & Diode</p>
-                    <SignalMonitorPlot pv={"bl201-beamstop:current"} className={'max-h-64 w-[26rem] rounded-lg'} numVisiblePoints={200} tickTextIntervalSeconds={30} yAxisTitle="Current"/>
+                    <SignalMonitorPlotPV pv={"bl201-beamstop:current"} className={'max-h-64 w-[26rem] rounded-lg'} numVisiblePoints={200} tickTextIntervalSeconds={30} yAxisTitle="Current"/>
                     <BeamEnergyOphyd />
                 </div>
                 <div className="flex flex-col">
@@ -80,9 +80,7 @@ export default function BL531Dashboard() {
                     <QServerPlanMonitor className="h-[32rem]"/>
                 </div>
             </Bento>
-            <section ref={containerRef} className="w-full min-h-0 flex-grow">
-                <Osprey width={dimensions.width} height={dimensions.height} className="m-0 p-0"/>
-            </section>
+            <IFrame url="http://192.168.10.156:8080" isSizeResponsive={true}/>
         </div>
             
     )

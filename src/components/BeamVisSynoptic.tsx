@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import useOphydSocket from '@/hooks/useOphydSocket';
 import * as THREE from 'three';
 
-const WS_URL = 'ws://192.168.10.155:8002/ophydSocket';
+const WS_URL = 'ws://localhost:8002/ophydSocket';
 const PV_LIST = [
   'bl531_xps2:sample_x_mm.RBV',
   'bl531_xps2:sample_y_mm.RBV',

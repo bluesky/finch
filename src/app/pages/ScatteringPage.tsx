@@ -22,6 +22,7 @@ export default function ScatteringPage() {
                     onError={(error) => {
                         console.error("Energy scan failed:", error);
                     }}
+                    tiledBaseUrl="http://192.168.10.155:8000/api/v1"
                 />
             </div>
             {/* <div className="min-w-96">
@@ -37,7 +38,7 @@ export default function ScatteringPage() {
             <div className="flex gap-8">
                 <div>
                     <h2 className="text-xl font-bold mb-4 text-white">Most Recent Detector Image</h2>
-                    <TiledWriterDetImageHeatmap blueskyRunId={blueskyRunId} isRunFinished={isRunFinished} />
+                    <TiledWriterDetImageHeatmap blueskyRunId={blueskyRunId} isRunFinished={isRunFinished} tiledBaseUrl="http://192.168.10.155:8000/api/v1"/>
                 </div>
                 <div className="flex flex-col gap-12 pt-16">
                     <BeamEnergyOphyd />

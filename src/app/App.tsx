@@ -12,12 +12,11 @@ import LinuxMonitor from '@/components/LinuxMonitor';
 import SampleDataPage from './pages/SampleDataPage';
 import ALSBeamStatus from '@/components/ALSBeamStatus';
 import BL531Dashboard from './pages/BL531Dashboard';
-import Osprey from '@/components/Osprey/Osprey';
 import ScatteringPage from './pages/ScatteringPage';
 import AngleScanPage from './pages/AngleScanPage';
 import ExperimentHistory from '@/components/Experiment/ExperimentHistory';
-import MultiModalAnalysis from '@/components/ReactMultiModal/MultiModalAnalysis';
 import Histogram from '@/components/Histogram/Histogram';
+import IFrame from '@/components/IFrame';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
@@ -64,12 +63,12 @@ function App() {
     {element: <GoogleDoc docs={docs} />, path: '/doc', label: "docs", icon: <GoogleLogo size={32} />},
     {element: <LinuxMonitor />, path: '/terminal', label: "Terminal", icon: <Terminal size={32} />},
     {element: <ALSBeamStatus />, path: '/beamstatus', label: "Beam", icon: <LightbulbFilament size={32} />},
-    {element: <Osprey />, path: '/osprey', label: "Osprey", icon: <Feather size={32} />},
+    {element: <IFrame url="http://192.168.10.156:8080" isSizeResponsive={true}/>, path: '/osprey', label: "Osprey", icon: <Feather size={32} />},
     // {element: <SampleDataPage />, path: '/sampledata', label: "Spectroscopy", icon: <AppWindow size={32} />},
     {element: <ScatteringPage />, path: '/energyscan', label: "Energy Scan", icon: <Barcode size={32} />},
     {element: <AngleScanPage />, path: '/anglescan', label: "Angle Scan", icon: <Barcode size={32} />},
     {element: <Histogram arrayPV="dxpMercury:mca1.VAL" acquirePV="dxpMercury:StartAll" showDeviceController={false} showPlotSettings={false} />, path: '/histogram', label: "Histogram", icon: <ChartBar size={32} />},
-    {element: <MultiModalAnalysis />, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
+    {element: <IFrame url="http://192.168.10.156:4001/" title="multimodal"/>, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
   ]
   return (
     <QueryClientProvider client={new QueryClient()}>
