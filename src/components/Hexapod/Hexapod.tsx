@@ -26,7 +26,7 @@ export default function Hexapod({prefix, demo}: HexapodProps) {
     } = useHexapod({prefix, demo});
 
     return (
-        <section className="w-[26rem] h-[32rem] bg-slate-200 rounded-lg shadow-lg p-4">
+        <section className="min-w-[26rem] w-[26rem] min-h-[32rem] h-[32rem] bg-slate-200 rounded-lg shadow-lg p-4">
             <HexapodHeader prefix={prefix} showController={showController} showPlot={showPlot} showAbout={showAbout} isLocked={isLocked} onClickLock={onClickLock} onClickController={onClickController} onClickPlot={onClickPlot} onClickAbout={onClickAbout} />
             {(showController && !showAbout) && <HexapodController hexapodRBVs={hexapodRBVs} onStartClick={handleStartClick} onStopClick={handleStopClick} isLocked={isLocked} />}
             {(showPlot && !showAbout) && <HexapodPlot  />}

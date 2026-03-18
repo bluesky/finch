@@ -72,6 +72,12 @@ export default function useHexapod(props: UseHexapodProps = {}) {
     }, []);
 
     const onClickController = () => {
+        if (showAbout) {
+            setShowAbout(false);
+            setShowPlot(false);
+            setShowController(true);
+            return;
+        }
         if (!showAbout && !showPlot && showController) {
             return;
         }
