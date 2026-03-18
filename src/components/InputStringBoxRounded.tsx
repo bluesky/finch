@@ -1,14 +1,23 @@
+import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { Tooltip } from "react-tooltip";
 
 type InputStringBoxRoundedProps = {
+    /** Called on every keystroke with the current input string. */
     cb: (input: string) => void;
+    /** Label displayed above the input, also used as the tooltip anchor. */
     label?: string;
+    /** Initial value of the input. */
     value: string;
+    /** Tooltip description shown on hover over the label. */
     description?: string;
+    /** When true, appends "(required)" to the label and shows a warning border on blur if empty. */
     required?: boolean;
-    styles?: string;
+    /** Additional Tailwind classes applied to the root container. */
+    className?: string;
+    /** Tailwind width class applied to the root container (e.g. "w-48"). Defaults to a responsive width. */
     width?: string;
+    /** When true, forces the warning border and label color to show regardless of local validation state. */
     showWarningGlobal?: boolean;
 };
 export default function InputStringBoxRounded({
@@ -18,8 +27,9 @@ export default function InputStringBoxRounded({
     description = '', 
     required = false,
     width = '', 
-    styles = '',
-    showWarningGlobal = false
+    className = '',
+    showWarningGlobal = false,
+    ...props
 }: InputStringBoxRoundedProps) {
     const [inputValue, setInputValue] = useState(value);
     const [showWarning, setShowWarning] = useState(false);
@@ -40,7 +50,7 @@ export default function InputStringBoxRounded({
     };
 
     return (
-            <div className={`${width === '' ? 'w-5/12 max-w-48 min-w-36' : width} border-2 ${showWarning || showWarningGlobal ? 'border-red-500' : 'border-slate-300'} rounded-lg mt-2 h-fit ${styles}`}>
+            <div className={cn(`${width === '' ? 'w-5/12 max-w-48 min-w-36' : width} border-2 ${showWarning || showWarningGlobal ? 'border-red-500' : 'border-slate-300'} rounded-lg mt-2 h-fit`, className)} {...props}>
                 <p id={sanitizedId + 'ParamInputTooltip'} className={`${showWarning || showWarningGlobal ? 'text-red-500' : 'text-gray-500'} text-sm pl-4 border-b border-dashed border-slate-300`}>
                     {`${label} ${required ? '(required)' : '(optional)'}`}
                 </p>

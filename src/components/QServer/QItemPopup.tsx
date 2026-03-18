@@ -1,15 +1,19 @@
-import { useState, Fragment } from "react";
+import { useState, Fragment, useEffect } from "react";
+import { useStatusQuery } from './hooks/useQServerQueries';
+import QItemPopupRow from './QItemPopupRow';
 
 import { PopupItem, HistoryResultRow } from "./types/types";
 
 import DeleteResultPopup from "./DeleteResultPopup";
 import ConfirmDeleteItemPopup from "./ConfirmDeleteItemPopup";
 import Button from "../Button";
+import ButtonWithIcon from "../ButtonWithIcon";
 import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
+import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
 import { Tooltip } from 'react-tooltip';
-import { deleteQueueItem } from "./utils/apiClient";
-import { PostItemRemoveResponse } from "./types/apiTypes";
+import { deleteQueueItem, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
+import { GetRunsActiveResponse, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
 
 import dayjs from "dayjs";
 
@@ -18,25 +22,40 @@ type QItemPopupProps = {
     popupItem: PopupItem;
     handleQItemPopupClose: () => void;
     isItemDeleteButtonVisible?: boolean;
-    handleCopyItemClick: (name: string, kwargs: { [key: string]: any }) => void;
+    handleCopyItemClick?: (name: string, kwargs: { [key: string]: any }) => void;
+    isItemRunning?: boolean;
 }
-export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick=()=>{} }: QItemPopupProps) {
+export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick, isItemRunning }: QItemPopupProps) {
     const [isDeleteModeVisible, setIsDeleteModeVisibile] = useState(false);
     const [areResultsVisible, setAreResultsVisible] = useState(false);
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
     const [isTracebackCopied, setIsTracebackCopied] = useState(false);
+    const [runsActiveResponse, setRunsActiveResponse] = useState<GetRunsActiveResponse| null>(null);
+    const [apiStatusResponse, setApiStatusResponse] = useState<GetStatusResponse | null>(null);
+
+    // Use the centralized status query from our query hooks
+    const { data: statusData, isLoading: statusLoading, error: statusError } = useStatusQuery();
+
+    // Update state when statusData changes
+    useEffect(() => {
+        if (statusData) {
+            setApiStatusResponse(statusData);
+        }
+    }, [statusData]);
 
     //check if item is in the current queue or the history
     const isHistory = 'result' in popupItem;
 
-    //Color settings for delete mode
-    const deleteBg = 'bg-slate-300';
-    const deleteBorder = 'border-slate-300';
-    const deleteText = 'text-slate-400';
 
     const handleDeleteResponse = (data: any) => {
         setAreResultsVisible(true);
         setResponse(data);
+        if (data?.success === true) {
+            //close the popup after 2 seconds
+            setTimeout(() => {
+                handleQItemPopupClose();
+            }, 2000);
+        }
     };
 
     const handleCloseResults = () => {
@@ -75,6 +94,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
 
     const handleCopyClick = (name:string, kwargs: { [key: string]: any } | undefined) => {
         //close the popup after the item is copied so user can immediately see the plan below the popup
+        if (!handleCopyItemClick) return;
         if (kwargs) {
             handleCopyItemClick(name, kwargs);
         } else {
@@ -82,6 +102,13 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         }
         handleQItemPopupClose();
     }
+
+    const handleAbortClick = async () => {
+        const success = await abortRE();
+        if (success) {
+            handleQItemPopupClose();
+        }
+    };
 
     const displayKwarg = (value: [] | string) => {
         //value may be an Array, String, or Object
@@ -103,7 +130,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             <span className="flex" key={kwarg}>
                 <p className="w-1/2">{kwarg}</p>
                 <div className= "w-1/2 flex flex-wrap justify-start">
-                    {popupItem.kwargs[kwarg].map((item) => <p key={item} className={`${isDeleteModeVisible ? deleteBg : 'bg-sky-100'} mr-2 px-1 mb-2 rounded-sm`}>{item}</p>)}
+                    {popupItem.kwargs[kwarg].map((item) => <p key={item} className={`${isDeleteModeVisible ? 'bg-slate-300' : 'bg-sky-100'} mr-2 px-1 mb-2 rounded-sm`}>{item}</p>)}
                 </div>
             </span>
             )
@@ -127,26 +154,26 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const settings = [
         {
             name:'Parameters',
-            icon: tailwindIcons.adjustmentsVertical,
+            icon: <Faders size={36}/>,
             content: popupItem.kwargs &&
                 <Fragment>
                     {popupItem.kwargs && Object.keys(popupItem.kwargs).map((kwarg) => printParameter(kwarg))}
-                    <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} styles={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>
+                    {handleCopyClick && <div className="flex justify-center py-4"><Button text='Copy Plan' cb={()=> handleCopyClick(popupItem.name, popupItem.kwargs)} styles={`m-auto ${isDeleteModeVisible ? 'opacity-0' : ''}`}/></div>}
                 </Fragment>
         },
         {
             name:'UID',
-            icon: tailwindIcons.fingerprint,
+            icon: <Fingerprint size={36}/>,
             content: popupItem.item_uid,
         },
         {
             name:'User',
-            icon: tailwindIcons.user,
+            icon: <User size={36}/>,
             content: popupItem.user,
         },
         {
             name:'User_Group',
-            icon: tailwindIcons.users,
+            icon: <UsersThree size={36}/>,
             content: popupItem.user_group,
         },
     ];
@@ -210,45 +237,11 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         ];
     }
 
-    type RowProps = {
-        name: string;
-        icon: JSX.Element;
-        content: JSX.Element | undefined | string;
-    }
-    const Row = ({name, icon, content}: RowProps) => {
-        if (name === 'Parameters') {
-            return (
-                <div key={name} className="flex pt-4">
-                    <div className="w-1/6"> 
-                        <div id={name+'Tooltip'} className="w-10 text-slate-400 m-auto">{icon}</div>
-                        <Tooltip anchorSelect={'#' + name + 'Tooltip'} content={name} place="left" variant="info"/>
-                    </div>
-                    <div className={`w-4/6 rounded-md border px-2 pt-2 ${isDeleteModeVisible ? deleteBg + ' ' + deleteBorder : 'bg-white'}`}>
-                        {content}
-                    </div>
-                    <div className="w-1/6"></div>
-                </div>
-            )
-        }
-        return(
-            <div key={name} className={`${name === 'Message' || name === 'Traceback' ? 'items-start' : 'items-center'} flex`}>
-                <div className="w-1/6"> 
-                    <div id={name+'Tooltip'} className="w-10 text-slate-400 m-auto">{icon}</div>
-                    <Tooltip anchorSelect={'#' + name + 'Tooltip'} content={name.replace('_', ' ')} place="left" variant="info"/>
-                </div>
-                <div className={`${name === 'Traceback' ? 'w-5/6 bg-white p-2 mr-2 rounded-md border border-slate-200' : 'w-4/6'}`}>
-                    {content}
-                </div>
-                {name==='Traceback' ? '' : <div className="w-1/6"></div> }
-            </div>
-        )
-    };
-
 
 
         return (
             <div  onClick={handleQItemPopupClose} className={`absolute top-0 left-0 w-full h-full z-40 rounded-md ${getPlanColorOpacity(popupItem.name)} flex justify-center items-center ${isDeleteModeVisible ? 'bg-red-600/40' : ''}`}>
-                <div  onClick={(e)=> e.stopPropagation()} className={`z-50 relative  ${isHistory ? 'w-[90%] h-[70%] max-w-6xl max-h-[80rem]' : 'w-[75%]  h-[50%] min-h-[40rem] max-w-[40rem] max-h-[60rem]'} rounded-lg ${isDeleteModeVisible ? deleteBg : 'bg-slate-50'}`}>
+                <div  onClick={(e)=> e.stopPropagation()} className={`z-50 relative  ${isHistory ? 'w-[90%] h-[70%] max-w-6xl max-h-[80rem]' : 'w-[75%]  h-[50%] min-h-[40rem] max-w-[40rem] max-h-[60rem]'} rounded-lg ${isDeleteModeVisible ? 'bg-slate-300' : 'bg-slate-50'}`}>
                     {areResultsVisible && <DeleteResultPopup response={response} handleCloseClick={handleCloseResults}/>}
                     {isDeleteModeVisible && <ConfirmDeleteItemPopup handleCancel={handleCancelDeleteClick} handleDelete={handleConfirmDeleteClick} />}
                     <span  className={`${getPlanColor(popupItem.name)} h-[10%] max-h-12 flex items-center justify-between rounded-t-lg ${isDeleteModeVisible ? 'opacity-20' : ''}`}>
@@ -263,7 +256,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                                 {results.map((item) => {
                                     return (
                                         item.content !== null ?
-                                            <Row name={item.name} icon={item.icon} content={item.content} key={item.name}/>
+                                            <QItemPopupRow name={item.name} icon={item.icon} content={item.content} key={item.name}/>
                                         :
                                             ''
                                     )
@@ -273,8 +266,85 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                             ''
                         )}
                         <section  className={`${isHistory ? 'w-2/5' : 'w-full'} h-full overflow-auto flex flex-col space-y-4 py-2`}>
+                            {isItemRunning ?
+                            <>
+                            <div className="flex flex-col pb-12 pt-4">
+                                <h2 className="text-center text-xl font-semibold">Active Run Information</h2>
+                                <QItemPopupRow 
+                                    name="Status" 
+                                    icon={<Pulse size={36}/>} 
+                                    content={
+                                        <>                                           
+                                            {statusError ? (
+                                                <div className="text-red-600 text-sm">
+                                                    Error fetching status: {statusError.message}
+                                                </div>
+                                            ) : statusData ? (
+                                                <div className="space-y-1 text-sm">
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Manager State:</span>
+                                                        <span className=''>
+                                                            {statusData.manager_state}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">RE State:</span>
+                                                        <span className=''>
+                                                            {statusData.re_state}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between">
+                                                        <span className="text-gray-600">Worker Environment:</span>
+                                                        <span className=''>
+                                                            {statusData.worker_environment_state}
+                                                        </span>
+                                                    </div>
+                                                    {statusData.running_item_uid && (
+                                                        <div className="flex justify-between">
+                                                            <span className="text-gray-600">Running Item:</span>
+                                                            <span className="">
+                                                                {statusData.running_item_uid.slice(0, 8)}...
+                                                            </span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="text-gray-500 text-sm">Loading status...</div>
+                                            )
+                                            }
+                                            <span className="flex justify-start items-center gap-4 mt-4">
+                                                <ButtonWithIcon 
+                                                    text={apiStatusResponse?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
+                                                    icon={apiStatusResponse?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
+                                                    isSecondary={true}
+                                                    styles="bg-white"
+                                                    cb={apiStatusResponse?.manager_state === "paused" ? resumeRE : pauseRE}
+                                                    disabled={apiStatusResponse?.pause_pending === true}
+                                                />
+                                                <p>{apiStatusResponse?.pause_pending === true ? "Pause pending..." : ""}</p>
+
+                                                {apiStatusResponse?.manager_state === "paused" ?
+                                                    <ButtonWithIcon
+                                                        text="Delete Plan"
+                                                        icon={<Trash size={20}/>}
+                                                        isSecondary={true}
+                                                        styles="bg-red-300 hover:bg-red-500"
+                                                        cb={handleAbortClick}
+                                                    />
+                                                        :
+                                                        ''
+                                                }
+                                            </span>
+                                        </>
+                                    } 
+                                    />
+                            </div>
+                            </>
+                            :
+                                ''
+                            }
                             <h2 className="text-center text-xl font-semibold">Plan Information</h2>
-                            {settings.map((row) => <Row key={row.name} name={row.name} icon={row.icon} content={row.content} />)}
+                            {settings.map((row) => <QItemPopupRow key={row.name} name={row.name} icon={row.icon} content={row.content} hideBackground={isDeleteModeVisible}/>)}
                             <div  className={`${isItemDeleteButtonVisible ? '' : 'hidden'} flex justify-center `}>
                                 <span className={` ${isDeleteModeVisible ? 'hidden' : ''} hover:cursor-pointer w-12 h-12 hover:text-red-500`} onClick={handleFirstDeleteClick}>{tailwindIcons.trash}</span>
                             </div>

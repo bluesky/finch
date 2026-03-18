@@ -2,9 +2,13 @@ import { useState, useRef, useEffect } from 'react';
 import { tailwindIcons } from '@/assets/icons';
 
 type InputEnumProps = {
+    /** Display label shown to the left of the dropdown. */
     label?: string;
+    /** List of string options to display in the dropdown. */
     enums?: string[];
+    /** Callback invoked with the selected string when the user picks an option. */
     onSubmit?: (input: string) => void;
+    /** When `true`, prevents interaction and renders the control in a disabled style. */
     isDisabled?: boolean;
 };
 

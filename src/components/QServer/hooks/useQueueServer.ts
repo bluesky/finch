@@ -1,7 +1,6 @@
-// hooks/useQueueServer.js
 import { useState, useEffect, useRef } from 'react';
-import { getQueue, getQueueHistory, getQueueItem } from "../utils/apiClient";
-import { GetHistoryResponse, GetQueueResponse, RunningQueueItem } from '../types/apiTypes';
+import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from './useQServerQueries';
+import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../types/apiTypes';
 import { GlobalMetadata, PlanInput } from '../types/types';
 
 export const useQueueServer = () => {
@@ -12,16 +11,11 @@ export const useQueueServer = () => {
     const runEngineToggleRef = useRef(isREToggleOn);
     const [ globalMetadata, setGlobalMetadata ] = useState<GlobalMetadata>({});
     const [ isGlobalMetadataChecked, setIsGlobalMetadataChecked ] = useState(true);
+    const [ apiStatus, setApiStatus ] = useState<GetStatusResponse | null>(null);
 
-
-    //setup polling interval for getting regular updates from the http server
-    var pollingInterval:number;
-    const oneSecond = 1000; //1 second in milliseconds
-    const twoSeconds = 2000; //2 seconds in milliseconds
-    const tenSeconds = 10000; //10 seconds in milliseconds
-    const thirtySeconds = 30000; //30 seconds in milliseconds
-
-    pollingInterval = import.meta.env.VITE_QSERVER_POLLING_INTERVAL ? parseInt(import.meta.env.VITE_QSERVER_POLLING_INTERVAL) : twoSeconds;
+    const queueQuery = useQueueQuery();
+    const historyQuery = useQueueHistoryQuery();
+    const statusQuery = useStatusQuery();
 
     const handleQueueDataResponse = (res: GetQueueResponse) => {
         try {
@@ -35,9 +29,6 @@ export const useQueueServer = () => {
                     }
                 });
 
-/*                 if (JSON.stringify(res.items) !== JSON.stringify(queueDataRef.current)) {
-                    setQueueData(res.items);
-                } */
                setRunningItem((prevState) => {
                 const isItemRunning = Object.keys(res.running_item).length > 0;
                 //no running item before, and nothing running now:
@@ -60,21 +51,9 @@ export const useQueueServer = () => {
                 if (!isItemRunning && prevState !== null) {
                     return null;
                 }
-
                 return prevState;
-                
-
                })
-
                 setIsREToggleOn(Object.keys(res.running_item).length > 0);
-
-/* 
-                if (JSON.stringify(res.running_item) !== JSON.stringify(runningItemRef.current)) {
-                    setRunningItem(res.running_item);
-                    setIsREToggleOn(Object.keys(res.running_item).length > 0);
-                } else if (Object.keys(res.running_item).length === 0) {
-                    setIsREToggleOn(false);
-                } */
             }
         } catch(error) {
             console.log({error});
@@ -91,19 +70,35 @@ export const useQueueServer = () => {
                     return res;
                 }
             });
-            /* 
-            try {
-                if (res.plan_history_uid !== planHistoryUidRef.current) {
-                    setQueueHistoryData(res.items);
-                    planHistoryUidRef.current = res.plan_history_uid;
-                }
-            } catch(e) {
-                console.log(e);
-            } */
+
         } else {
             console.log('Error retrieving queue history: ', res);
         }
     };
+
+    const handleApiStatusResponse = (res: GetStatusResponse | null) => {
+        if (res) {
+            setApiStatus(res);
+        }
+    };
+
+    useEffect(() => {
+        if (queueQuery.data && queueQuery.isSuccess) {
+            handleQueueDataResponse(queueQuery.data);
+        }
+    }, [queueQuery.data, queueQuery.isSuccess]);
+
+    useEffect(() => {
+        if (historyQuery.data && historyQuery.isSuccess) {
+            handleQueueHistoryResponse(historyQuery.data);
+        }
+    }, [historyQuery.data, historyQuery.isSuccess]);
+
+    useEffect(() => {
+        if (statusQuery.data && statusQuery.isSuccess) {
+            handleApiStatusResponse(statusQuery.data);
+        }
+    }, [statusQuery.data, statusQuery.isSuccess]);
 
     const processConsoleMessage = (msg:string) => {
         //using the console log to trigger get requests has some issues with stale state, even with useRef
@@ -112,45 +107,45 @@ export const useQueueServer = () => {
         //console.log({msg});
         //function processess each Queue Server console message to trigger immediate state and UI updates
         if (msg.startsWith("Processing the next queue item")) {
-            getQueue(handleQueueDataResponse);
-            getQueueHistory(handleQueueHistoryResponse);
+            queueQuery.refetch();
+            historyQuery.refetch();
         }
 
         if (msg.startsWith("Starting the plan")) {
             //update RE worker
-            getQueue(handleQueueDataResponse);
-            getQueueHistory(handleQueueHistoryResponse);
+            queueQuery.refetch();
+            historyQuery.refetch();
         }
 
         if (msg.startsWith("Starting queue processing")) {
-            getQueue(handleQueueDataResponse);
+            queueQuery.refetch();
         }
 
         if (msg.startsWith("Item added: success=True")) {
-            getQueue(handleQueueDataResponse);
+            queueQuery.refetch();
         }
 
         if (msg.startsWith("Clearing the queue")) {
-            getQueue(handleQueueDataResponse);
+            queueQuery.refetch();
         }
 
         if (msg.startsWith("Queue is empty")) {
             //message will occur if RE worker turned on with no available queue items
             //TO DO - fix this because it's not turning the toggle switch to 'off'
-            setTimeout(()=> getQueue(handleQueueDataResponse), 500 ); //call the server some time after failure occurs
+            setTimeout(() => queueQuery.refetch(), 500); //call the server some time after failure occurs
         }
 
         if (msg.startsWith("The plan failed")) {
             //get request on queue items
             //qserver takes some time to place the item back into the queue
-            setTimeout(()=> getQueue(handleQueueDataResponse), 500 ); //call the server some time after failure occurs
-            setTimeout(()=> getQueueHistory(handleQueueHistoryResponse), 500 );
+            setTimeout(() => queueQuery.refetch(), 500); //call the server some time after failure occurs
+            setTimeout(() => historyQuery.refetch(), 500);
         }
 
         if (msg.startsWith("Removing item from the queue")) {
             //get request on queue items
             //qserver takes some time to place the item back into the queue
-            setTimeout(()=> getQueue(handleQueueDataResponse), 500 ); //call the server some time after failure occurs
+            setTimeout(() => queueQuery.refetch(), 500); //call the server some time after failure occurs
         }
     };
 
@@ -177,19 +172,6 @@ export const useQueueServer = () => {
         setIsGlobalMetadataChecked(isChecked);
     };
 
-    useEffect(() => {
-        getQueue(handleQueueDataResponse);
-        getQueueHistory(handleQueueHistoryResponse);
-
-        const queueInterval = setInterval(() => getQueue(handleQueueDataResponse), pollingInterval);
-        const historyInterval = setInterval(() => getQueueHistory(handleQueueHistoryResponse), pollingInterval);
-
-        return () => {
-            clearInterval(queueInterval);
-            clearInterval(historyInterval);
-        };
-    }, [pollingInterval]);
-
     return {
         currentQueue,
         queueHistory,
@@ -204,6 +186,10 @@ export const useQueueServer = () => {
         updateGlobalMetadata,
         removeDuplicateMetadata,
         isGlobalMetadataChecked,
-        handleGlobalMetadataCheckboxChange
+        handleGlobalMetadataCheckboxChange,
+        apiStatus,
+        refetchQueue: queueQuery.refetch,
+        refetchHistory: historyQuery.refetch,
+        refetchStatus: statusQuery.refetch,
     };
 };

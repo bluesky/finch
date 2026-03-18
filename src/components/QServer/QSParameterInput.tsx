@@ -34,11 +34,6 @@ export default function QSParameterInput( {
     globalMetadata={}}: QSParameterInputProps) {
     //to do: refactor to remove parameterName and change param to a string
 
-    const stringParameterList = [];
-    const booleanParameterList = ['snake', 'backstep', 'take_pre_data'];
-    const integerParameterList = ['num', 'nth'];
-    const arrayParameterList = ['positions'];
-
     //-----Functions for MultiSelectInput ---------------
     const isItemInArray = (item:string) => {
         if (Array.isArray(parameter.value)) {

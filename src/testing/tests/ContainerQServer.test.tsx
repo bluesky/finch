@@ -1,0 +1,220 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// ── Mocks ─────────────────────────────────────────────────────────────────────
+
+// Covers both `@/assets/icons` and `src/assets/icons` (same resolved file)
+vi.mock('@/assets/icons', () => ({
+  tailwindIcons: {
+    plus: <span data-testid="icon-plus" />,
+    commandLine: <span data-testid="icon-cmd" />,
+    cog: <span data-testid="icon-cog" />,
+    minus: <span data-testid="icon-minus" />,
+    arrowsPointingIn: <span data-testid="icon-arrows-in" />,
+    arrowsPointingOut: <span data-testid="icon-arrows-out" />,
+  },
+  customIcons: {
+    rectangles: <span data-testid="icon-rects" />,
+    waitingRoom: <span data-testid="icon-wait" />,
+  },
+}));
+
+const useQueueServerMock = vi.fn(() => ({
+  currentQueue: null,
+  queueHistory: null,
+  isREToggleOn: false,
+  runningItem: null,
+  setIsREToggleOn: vi.fn(),
+  processConsoleMessage: vi.fn(),
+  globalMetadata: {},
+  updateGlobalMetadata: vi.fn(),
+  removeDuplicateMetadata: vi.fn((plan: any) => plan),
+  isGlobalMetadataChecked: true,
+  handleGlobalMetadataCheckboxChange: vi.fn(),
+  apiStatus: null,
+}));
+vi.mock('../../components/QServer/hooks/useQueueServer', () => ({
+  useQueueServer: () => useQueueServerMock(),
+}));
+
+vi.mock('../../components/QServer/utils/apiClient', () => ({
+  getStatus: vi.fn(),
+  openWorkerEnvironment: vi.fn(),
+  setQueueServerApiUrl: vi.fn(),
+}));
+
+// Mock the two QSList instances — distinguish by `type` prop for targeted clicks
+const QSListMock = vi.fn(({ handleQItemClick, type }: any) => (
+  <button
+    data-testid={`qs-list-${type}`}
+    onClick={() => handleQItemClick({ name: 'test_plan', item_uid: 'uid-1', kwargs: {} })}
+  >
+    {type} item
+  </button>
+));
+vi.mock('../../components/QServer/QSList', () => ({ default: (props: any) => QSListMock(props) }));
+
+const QItemPopupMock = vi.fn(({ handleQItemPopupClose, isItemDeleteButtonVisible }: any) => (
+  <div data-testid="q-item-popup">
+    <span data-testid="popup-delete-flag">{String(isItemDeleteButtonVisible)}</span>
+    <button data-testid="popup-close" onClick={handleQItemPopupClose}>Close</button>
+  </div>
+));
+vi.mock('../../components/QServer/QItemPopup', () => ({ default: (props: any) => QItemPopupMock(props) }));
+
+vi.mock('../../components/QServer/QSRunEngineWorker', () => ({
+  default: ({ handleItemClick }: any) => (
+    <button data-testid="re-worker-item" onClick={() => handleItemClick({ item_uid: 'run-1', name: 'running_plan', kwargs: {} })}>
+      running item
+    </button>
+  ),
+}));
+
+vi.mock('../../components/QServer/QSAddItem', () => ({
+  default: ({ title }: any) => <div data-testid="qs-add-item">{title}</div>,
+}));
+vi.mock('../../components/QServer/QSConsole', () => ({
+  default: ({ title }: any) => <div data-testid="qs-console">{title}</div>,
+}));
+vi.mock('../../components/QServer/SettingsContainer', () => ({
+  default: ({ title }: any) => <div data-testid="qs-settings">{title}</div>,
+}));
+
+// ── Imports (after mocks) ──────────────────────────────────────────────────────
+
+import ContainerQServer from '../../components/QServer/ContainerQServer';
+
+// ── Tests ─────────────────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  QSListMock.mockClear();
+  QItemPopupMock.mockClear();
+  useQueueServerMock.mockClear();
+});
+
+describe('ContainerQServer', () => {
+  it('renders without crashing', () => {
+    const { container } = render(<ContainerQServer />);
+    expect(container.firstChild).toBeInTheDocument();
+  });
+
+  it('applies className prop to the root element', () => {
+    const { container } = render(<ContainerQServer className="my-class" />);
+    expect(container.firstChild).toHaveClass('my-class');
+  });
+
+  it('shows "Queue" section heading', () => {
+    render(<ContainerQServer />);
+    expect(screen.getByText('Queue')).toBeInTheDocument();
+  });
+
+  it('shows "History" section heading', () => {
+    render(<ContainerQServer />);
+    expect(screen.getByText('History')).toBeInTheDocument();
+  });
+
+  it('shows "Run Engine" section heading', () => {
+    render(<ContainerQServer />);
+    expect(screen.getByText('Run Engine')).toBeInTheDocument();
+  });
+
+  it('shows widget titles for Add Item, Console Output, and Settings', () => {
+    render(<ContainerQServer />);
+    // Each title appears in both the Widget header and the mocked child stub
+    expect(screen.getAllByText('Add Item').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Console Output').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Settings').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not show the item popup on initial render', () => {
+    render(<ContainerQServer />);
+    expect(screen.queryByTestId('q-item-popup')).not.toBeInTheDocument();
+  });
+
+  it('shows the popup with delete button when a queue item is clicked', () => {
+    render(<ContainerQServer />);
+    fireEvent.click(screen.getByTestId('qs-list-short'));
+    expect(screen.getByTestId('q-item-popup')).toBeInTheDocument();
+    expect(screen.getByTestId('popup-delete-flag').textContent).toBe('true');
+  });
+
+  it('shows the popup without delete button when a history item is clicked', () => {
+    render(<ContainerQServer />);
+    fireEvent.click(screen.getByTestId('qs-list-history'));
+    expect(screen.getByTestId('q-item-popup')).toBeInTheDocument();
+    expect(screen.getByTestId('popup-delete-flag').textContent).toBe('false');
+  });
+
+  it('shows the popup without delete button when the running RE item is clicked', () => {
+    render(<ContainerQServer />);
+    fireEvent.click(screen.getByTestId('re-worker-item'));
+    expect(screen.getByTestId('q-item-popup')).toBeInTheDocument();
+    expect(screen.getByTestId('popup-delete-flag').textContent).toBe('false');
+  });
+
+  it('closes the popup when the close button is clicked', () => {
+    render(<ContainerQServer />);
+    fireEvent.click(screen.getByTestId('qs-list-short'));
+    expect(screen.getByTestId('q-item-popup')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('popup-close'));
+    expect(screen.queryByTestId('q-item-popup')).not.toBeInTheDocument();
+  });
+
+  it('expands the side panel when the expand icon is clicked', () => {
+    const { container } = render(<ContainerQServer />);
+    // The side panel wrapper is the first child div of the root main
+    const sidePanelWrapper = container.querySelector('main > div:first-child')!;
+    expect(sidePanelWrapper).toHaveClass('w-1/5');
+    // The SidePanel expand icon is the first icon-arrows-out in the DOM (Widget headers also use it)
+    fireEvent.click(screen.getAllByTestId('icon-arrows-out')[0]);
+    expect(sidePanelWrapper).toHaveClass('w-4/5');
+  });
+
+  it('collapses the side panel when the expand icon is clicked again', () => {
+    const { container } = render(<ContainerQServer />);
+    const sidePanelWrapper = container.querySelector('main > div:first-child')!;
+    fireEvent.click(screen.getAllByTestId('icon-arrows-out')[0]);
+    expect(sidePanelWrapper).toHaveClass('w-4/5');
+    // After expanding, the SidePanel icon switches to icon-arrows-in (unique in the DOM)
+    fireEvent.click(screen.getByTestId('icon-arrows-in'));
+    expect(sidePanelWrapper).toHaveClass('w-1/5');
+  });
+
+  it('shows queue item count from currentQueue', () => {
+    useQueueServerMock.mockReturnValueOnce({
+      currentQueue: { items: [{ item_uid: '1' }, { item_uid: '2' }], plan_queue_uid: 'q1', running_item: {}, success: true } as any,
+      queueHistory: null,
+      isREToggleOn: false,
+      runningItem: null,
+      setIsREToggleOn: vi.fn(),
+      processConsoleMessage: vi.fn(),
+      globalMetadata: {},
+      updateGlobalMetadata: vi.fn(),
+      removeDuplicateMetadata: vi.fn((p: any) => p),
+      isGlobalMetadataChecked: true,
+      handleGlobalMetadataCheckboxChange: vi.fn(),
+      apiStatus: null,
+    });
+    render(<ContainerQServer />);
+    expect(screen.getByText('2')).toBeInTheDocument(); // queue count
+  });
+
+  it('shows history item count from queueHistory', () => {
+    useQueueServerMock.mockReturnValueOnce({
+      currentQueue: null,
+      queueHistory: { items: [{ item_uid: 'h1' }, { item_uid: 'h2' }, { item_uid: 'h3' }], plan_history_uid: 'hist1', success: true } as any,
+      isREToggleOn: false,
+      runningItem: null,
+      setIsREToggleOn: vi.fn(),
+      processConsoleMessage: vi.fn(),
+      globalMetadata: {},
+      updateGlobalMetadata: vi.fn(),
+      removeDuplicateMetadata: vi.fn((p: any) => p),
+      isGlobalMetadataChecked: true,
+      handleGlobalMetadataCheckboxChange: vi.fn(),
+      apiStatus: null,
+    });
+    render(<ContainerQServer />);
+    expect(screen.getByText('3')).toBeInTheDocument(); // history count
+  });
+});

@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react";
 
-import { Table, TableHeader, TableHead, TableCaption, TableBody, TableRow, TableCell } from "./ui/table";
+import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "./ui/table";
 import ControllerAbsoluteMove from "./ControllerAbsoluteMove";
 import ControllerRelativeMove from "./ControllerRelativeMove";
 import { Devices } from "@/types/deviceControllerTypes";
+import { cn } from "@/lib/utils";
 
 export type TableDeviceControllerProps = {
+    /** Map of device names to their current state objects. Each entry renders as one table row. */
     devices: Devices;
+    /** Called when the user submits an absolute or relative move value for a device. */
     handleSetValueRequest: (deviceName: string, value: number) => void;
+    /** Called to toggle the locked state for a device, enabling or disabling its move controls. */
     toggleDeviceLock: (deviceName: string, locked: boolean) => void;
+    /** Called to toggle the expanded state for a device row, showing or hiding its raw JSON data. */
     toggleExpand: (deviceName: string) => void;
+    /** Additional CSS classes applied to the root container. */
+    className?: string;
 }
 
-export default function TableDeviceController({devices, handleSetValueRequest, toggleDeviceLock, toggleExpand}: TableDeviceControllerProps) {
+export default function TableDeviceController({devices, handleSetValueRequest, toggleDeviceLock, toggleExpand, className, ...props}: TableDeviceControllerProps) {
 
 
     // State to track flashing rows
@@ -40,53 +47,56 @@ export default function TableDeviceController({devices, handleSetValueRequest, t
         setFlashingRows(updatedFlashingRows);
     }, [devices]);
     return (
-        <Table className="max-w-[900px] m-auto bg-neutral-50 border border-neutral-200" >
-        <TableCaption>Ophyd Devices.</TableCaption>
-        <TableHeader>
-            <TableRow>
-            <TableHead className="w-48">Device Name</TableHead>
-            <TableHead className="text-center pr-8">Current Value</TableHead>
-            <TableHead className="text-left">Absolute Move</TableHead>
-            <TableHead className="text-center">Relative Move</TableHead>
-            </TableRow>
-        </TableHeader>
-            <TableBody>
-                {
-                    Object.keys(devices).map((deviceName) => {
-                        const device = devices[deviceName];
-                        return (
-                            <TableRow key={deviceName} className={`${flashingRows[deviceName] ? 'animate-flash1' : ''} text-black`}>
-                                <TableCell 
-                                    className="hover:cursor-pointer py-5" 
-                                    onClick={()=>toggleExpand(deviceName)}
-                                >
-                                    <>
-                                        <p>{deviceName}</p>
-                                        {device.expanded && <pre className="text-xs">{JSON.stringify(device, null, 2)}</pre>}
-                                    </>
-                                </TableCell>
-                                <TableCell className="text-center text-md">
-                                    {`${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`}
-                                </TableCell>
-                                <TableCell className="">
-                                    <ControllerAbsoluteMove 
-                                        handleEnter={(input)=>input!==null && handleSetValueRequest(deviceName, input)} 
-                                        inputLabel={device.units && device.units.slice(0,3)}
-                                    />
-                                </TableCell>
-                                <TableCell className="">
-                                    <ControllerRelativeMove
-                                        className="justify-center" 
-                                        handleEnter={(input)=>input!==null && handleSetValueRequest(deviceName, input)} 
-                                        inputLabel={device.units && device.units.slice(0,3)} 
-                                        currentValue={typeof device.value === 'number' ? device.value : null}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        )
-                    })
-                }
-            </TableBody>
-        </Table>
+        <div className={cn("p-4 w-fit h-fit bg-slate-200 rounded-lg shadow-lg", className)} {...props}>
+            <Table className="max-w-[900px] m-auto">
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-48 text-sky-900 font-medium">Device Name</TableHead>
+                        <TableHead className="text-center pr-8 text-sky-900 font-medium">Current Value</TableHead>
+                        <TableHead className="text-left text-sky-900 font-medium">Absolute Move</TableHead>
+                        <TableHead className="text-center text-sky-900 font-medium">Relative Move</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {
+                        Object.keys(devices).map((deviceName) => {
+                            const device = devices[deviceName];
+                            return (
+                                <TableRow key={deviceName} className={`${flashingRows[deviceName] ? 'animate-flash1' : ''} text-black`}>
+                                    <TableCell
+                                        className="hover:cursor-pointer py-5"
+                                        onClick={()=>toggleExpand(deviceName)}
+                                    >
+                                        <>
+                                            <p>{deviceName}</p>
+                                            {device.expanded && <pre className="text-xs">{JSON.stringify(device, null, 2)}</pre>}
+                                        </>
+                                    </TableCell>
+                                    <TableCell className="text-center text-md text-sky-700 font-medium">
+                                        {`${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`}
+                                    </TableCell>
+                                    <TableCell>
+                                        <ControllerAbsoluteMove
+                                            handleEnter={(input)=>input!==null && handleSetValueRequest(deviceName, input)}
+                                            inputLabel={device.units && device.units.slice(0,3)}
+                                            classNameInput="bg-sky-200 shadow-inner rounded-md"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <ControllerRelativeMove
+                                            className="justify-center"
+                                            handleEnter={(input)=>input!==null && handleSetValueRequest(deviceName, input)}
+                                            inputLabel={device.units && device.units.slice(0,3)}
+                                            currentValue={typeof device.value === 'number' ? device.value : null}
+                                            classNameInput="bg-sky-200 shadow-inner rounded-md"
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })
+                    }
+                </TableBody>
+            </Table>
+        </div>
     )
 }

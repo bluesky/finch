@@ -9,6 +9,7 @@ import {
     mockDeleteQueueItemResponse, 
     mockGetHistoryResponse, 
     mockAddItemSuccessResponse, 
+    mockGetRunsActiveResponse,
     mockExecuteItemResponse } from './qServerMockData';
 import {
     AddQueueItemBody, 
@@ -23,20 +24,31 @@ import {
     PostEnvironmentOpenResponse, 
     GetQueueItemResponse,
     RemoveQueueItemBody,
+    GetRunsActiveResponse,
     PostItemRemoveResponse} from '../types/apiTypes';
 
-const getQServerKey = () => {
-    //todo: fix this so it works for vite
+
+const initializeQueueServerKey = () => {
     var key;
     const defaultKey = 'test';
-    key = import.meta.env.VITE_QSERVER_KEY || defaultKey;
+    key = import.meta.env.VITE_QSERVER_API_KEY || defaultKey;
     return key;
 }
 
-
-const getHttpServerUrl = () => {
-
-   const httpUrl = 'api/qserver';
+const initializeQueueServerApiUrl = () => {
+    const currentWebsiteIP = window.location.hostname;
+    const currentWebsitePort = window.location.port;
+    const port = ":60610";
+    var httpUrl;
+    if (import.meta.env.VITE_QSERVER_API_URL) {
+        httpUrl = import.meta.env.VITE_QSERVER_API_URL
+    } else {
+        if (import.meta.env.VITE_PROXY_WS === 'false') {
+            httpUrl = "http://" + currentWebsiteIP + port; //default when ran locally
+        } else {
+            httpUrl=`http://${currentWebsiteIP}:${currentWebsitePort}/api/qserver` //reverse proxy, does not work with React live dev server
+        }
+    }
     return httpUrl;
 };
 
@@ -45,12 +57,12 @@ const getQSConsoleUrl = () => {
         //having an env variable would be for developers running React on a separate workstation from fastAPI
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    const pathname = "/queue_server";
-    const port = ":8000";
+    const pathname = "/api/v1/qs-console-socket";
+    const port = ":8001";
     var wsUrl;
 
-    if (import.meta.env.VITE_QS_CONSOLE_URL) {
-        wsUrl = import.meta.env.VITE_QS_CONSOLE_URL;
+    if (import.meta.env.VITE_QSERVER_WS) {
+        wsUrl = import.meta.env.VITE_QSERVER_WS;
     } else {
         if (import.meta.env.VITE_PROXY_WS === 'false') {
             wsUrl = "ws://" + currentWebsiteIP + port + pathname; //default when ran locally
@@ -62,9 +74,11 @@ const getQSConsoleUrl = () => {
     return wsUrl;
 };
 
-const httpServerUrl = getHttpServerUrl();
-const qServerKey = getQServerKey();
-
+var queueServerApiUrl = initializeQueueServerApiUrl();
+const setQueueServerApiUrl = (url:string) => {
+    queueServerApiUrl = url;
+}
+const qServerKey = initializeQueueServerKey();
 
 
 const getQueue = async (cb:(data:GetQueueResponse)=>void, mock=false) => {
@@ -73,7 +87,7 @@ const getQueue = async (cb:(data:GetQueueResponse)=>void, mock=false) => {
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/queue/get', 
+        const response = await axios.get(queueServerApiUrl + '/api/queue/get', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -90,7 +104,7 @@ const getQueueHistory = async (cb:(data:GetHistoryResponse)=>void, mock=false) =
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/history/get', 
+        const response = await axios.get(queueServerApiUrl + '/api/history/get', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -101,21 +115,22 @@ const getQueueHistory = async (cb:(data:GetHistoryResponse)=>void, mock=false) =
     }
 };
 
-
-const getStatus = async (cb:(data:GetStatusResponse)=>void, mock = false) => {
+const getStatus = async (cb:(data:GetStatusResponse | null)=>void, mock = false): Promise<GetStatusResponse | null> => {
     if (mock) {
         cb(mockGetStatusResponse);
-        return;
+        return mockGetStatusResponse;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/status', 
+        const response = await axios.get(queueServerApiUrl + '/api/status', 
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
         );
         cb(response.data);
+        return response.data;
     } catch (error) {
         console.error('Error fetching status:', error);
+        return null;
     }
 };
 
@@ -125,7 +140,7 @@ const getPlansAllowed = async (cb:(data:GetPlansAllowedResponse)=>void, mock = f
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/plans/allowed',
+        const response = await axios.get(queueServerApiUrl + '/api/plans/allowed',
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -142,7 +157,7 @@ const getDevicesAllowed = async (cb:(data:GetDevicesAllowedResponse)=>void, mock
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/devices/allowed',
+        const response = await axios.get(queueServerApiUrl + '/api/devices/allowed',
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
             }}
@@ -156,7 +171,7 @@ const getDevicesAllowed = async (cb:(data:GetDevicesAllowedResponse)=>void, mock
 const startRE = async () => {
     //returns true if no errors encountered
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/start', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/start', 
             {},
             {headers : {
                 'Authorization' : 'ApiKey ' + qServerKey
@@ -173,13 +188,73 @@ const startRE = async () => {
     }
 };
 
+const pauseRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/pause', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error pausing RE:', error);
+        return false;
+    }
+};
+
+const resumeRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/resume', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error resuming RE:', error);
+        return false;
+    }
+};
+
+const abortRE = async () => {
+    //returns true if no errors encountered
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/re/abort', 
+            {},
+            {headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }});
+
+            if (response.data.success === true) { 
+                return true;
+            } else {
+                return false;
+            }
+    } catch (error) {
+        console.error('Error aborting RE:', error);
+        return false;
+    }
+};
+
 const postQueueItem = async (body:AddQueueItemBody, cb:(data:PostItemAddResponse)=>void, mock=false) => {
     if (mock) {
         cb(mockAddItemSuccessResponse);
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/add', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/add', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -199,7 +274,7 @@ const executeItem = async (body:ExecuteQueueItemBody, cb:(data:PostItemExecuteRe
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/execute', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/execute', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -219,7 +294,7 @@ const getQueueItem = async (uid='', cb:(data:GetQueueItemResponse)=>void, mock=f
         return;
     }
     try {
-        const response = await axios.get(httpServerUrl + '/api/queue/item/get', {
+        const response = await axios.get(queueServerApiUrl + '/api/queue/item/get', {
             params: {uid: uid},
             headers : {
                 'uid' : uid,
@@ -239,7 +314,7 @@ const deleteQueueItem = async (body:RemoveQueueItemBody, cb:(data:PostItemRemove
         return; 
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/queue/item/remove', 
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/remove', 
         body,
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -259,7 +334,7 @@ const openWorkerEnvironment = async (cb:(data:PostEnvironmentOpenResponse)=>void
         return;
     }
     try {
-        const response = await axios.post(httpServerUrl + '/api/environment/open',
+        const response = await axios.post(queueServerApiUrl + '/api/environment/open',
         {}, 
         {headers : {
             'Authorization' : 'ApiKey ' + qServerKey
@@ -276,8 +351,152 @@ const openWorkerEnvironment = async (cb:(data:PostEnvironmentOpenResponse)=>void
     }
 };
 
+const getRunsActive = async (cb:(data:GetRunsActiveResponse)=>void, mock=false) => {
+    if (mock) {
+        cb(mockGetRunsActiveResponse);
+        return;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/re/runs/active', {
+            headers : {
+                'Authorization' : 'ApiKey ' + qServerKey
+            }
+        });
+        cb(response.data);
+    } catch (error) {
+        console.error('Error fetching active runs:', error);
+    }
+};
+
+// Promise-based versions of the API functions
+const getRunsActivePromise = async (mock = false): Promise<GetRunsActiveResponse> => {
+    if (mock) {
+        return mockGetRunsActiveResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/re/runs/active', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching active runs:', error);
+        throw error;
+    }
+};
+
+const executeItemPromise = async (body: ExecuteQueueItemBody, mock = false): Promise<PostItemExecuteResponse> => {
+    if (mock) {
+        return mockExecuteItemResponse;
+    }
+    try {
+        const response = await axios.post(queueServerApiUrl + '/api/queue/item/execute', 
+            body,
+            {
+                headers: {
+                    'Authorization': 'ApiKey ' + qServerKey
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error('Error executing plan', error);
+        throw error;
+    }
+};
+
+const getQueueHistoryPromise = async (mock = false): Promise<GetHistoryResponse> => {
+    if (mock) {
+        return mockGetHistoryResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/history/get', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching history:', error);
+        throw error;
+    }
+};
+
+const getStatusPromise = async (mock = false): Promise<GetStatusResponse> => {
+    if (mock) {
+        return mockGetStatusResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/status', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching status:', error);
+        throw error;
+    }
+};
+
+const getPlansAllowedPromise = async (mock = false): Promise<GetPlansAllowedResponse> => {
+    if (mock) {
+        return mockGetPlansAllowedResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/plans/allowed', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching plans allowed:', error);
+        throw error;
+    }
+};
+
+const getQueuePromise = async (mock = false): Promise<GetQueueResponse> => {
+    if (mock) {
+        return mockGetQueueResponse;
+    }
+    try {
+        const response = await axios.get(queueServerApiUrl + '/api/queue/get', {
+            headers: {
+                'Authorization': 'ApiKey ' + qServerKey
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching queue:', error);
+        throw error;
+    }
+};
 
 
-
-
-export { getQueue, getStatus, getPlansAllowed, getDevicesAllowed, startRE, postQueueItem, getQueueItem, deleteQueueItem, getQueueHistory, executeItem, openWorkerEnvironment, getQSConsoleUrl };
+export {
+    setQueueServerApiUrl, 
+    getQueue, 
+    getStatus, 
+    getPlansAllowed, 
+    getDevicesAllowed, 
+    startRE, 
+    pauseRE,
+    resumeRE,
+    abortRE,
+    postQueueItem, 
+    getQueueItem, 
+    deleteQueueItem, 
+    getQueueHistory, 
+    executeItem, 
+    openWorkerEnvironment, 
+    getQSConsoleUrl, 
+    getRunsActive,
+    getRunsActivePromise,
+    executeItemPromise,
+    getQueueHistoryPromise,
+    getStatusPromise,
+    getPlansAllowedPromise,
+    getQueuePromise
+};

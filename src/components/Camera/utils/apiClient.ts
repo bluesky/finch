@@ -5,12 +5,11 @@ export const getDefaultCameraUrl = () => {
 
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    const pathname = "/pvcamera";
     var wsUrl;
 
     try {
-        if (import.meta.env.REACT_APP_CAMERA_URL) {
-            wsUrl = import.meta.env.REACT_APP_CAMERA_URL; //custom
+        if (import.meta.env.VITE_CAMERA_WS) {
+            wsUrl = import.meta.env.VITE_CAMERA_WS; //custom
         } else {
             wsUrl=`ws://${currentWebsiteIP}:${currentWebsitePort}/api/camera` //default reverse proxy
         }
@@ -21,3 +20,23 @@ export const getDefaultCameraUrl = () => {
 
     return wsUrl;
 };
+
+export const getDefaultTiffUrl = () => {
+
+    const currentWebsiteIP = window.location.hostname;
+    const currentWebsitePort = window.location.port;
+    var wsUrl;
+
+    try {
+        if (import.meta.env.VITE_TIFF_WS) {
+            wsUrl = import.meta.env.VITE_TIFF_WS; //custom
+        } else {
+            wsUrl=`ws://${currentWebsiteIP}:${currentWebsitePort}/api/tiff` //default reverse proxy
+        }
+    } catch (e) {
+        console.error("Error getting default TIFF URL: ", e);
+        return 'ws://localhost:8002/api/tiff'; //fallback for the frontend api
+    }
+
+    return wsUrl;
+}

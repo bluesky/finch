@@ -11,19 +11,20 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, getQueueItem, openWorkerEnvironment } from "./utils/apiClient";
+import { getStatus, openWorkerEnvironment, setQueueServerApiUrl } from "./utils/apiClient";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
-import { CopiedPlan, ParameterInput, PopupItem } from "./types/types";
-import { GetStatusResponse } from "./types/apiTypes";
+import { CopiedPlan, PopupItem } from "./types/types";
+import { GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
 
 import { cn } from '@/lib/utils';
 
 export type ContainerQServerProps = {
     className?: string;
+    url?: string;
 }
-export default function ContainerQServer({className}:ContainerQServerProps) {
+export default function ContainerQServer({className, url}:ContainerQServerProps) {
 
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
     const [ popupItem, setPopupItem ] = useState<PopupItem | null>(null);
@@ -43,15 +44,21 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
         updateGlobalMetadata,
         removeDuplicateMetadata,
         isGlobalMetadataChecked,
-        handleGlobalMetadataCheckboxChange
+        handleGlobalMetadataCheckboxChange,
+        apiStatus
     } = useQueueServer();
 
-    //create a handleCurrentQitemClick and handleHisotryQItemClick
     const handleCurrentQItemClick = (item:PopupItem) => {
         setPopupItem(item);
         setIsItemDeleteButtonVisible(true);
         setIsQItemPopupVisible(true);
     };
+
+    const handleRunEngineItemClick = (runningItem: RunningQueueItem) => {
+        setPopupItem(runningItem );
+        setIsItemDeleteButtonVisible(false);
+        setIsQItemPopupVisible(true);
+    }
 
     const handleHistoryQItemClick = (item:PopupItem) => {
         setPopupItem(item);
@@ -97,8 +104,8 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
 
     useEffect(() => {
         //check if the re worker has opened or not with GET
-        const checkWorkerEnvironment = (res:GetStatusResponse) => {
-            if (res.worker_environment_exists === false || res.worker_environment_state === 'closed') {
+        const checkWorkerEnvironment = (res:GetStatusResponse | null) => {
+            if (res && (res.worker_environment_exists === false || res.worker_environment_state === 'closed')) {
                 console.log('RE worker environment closed, attempting to open a new worker environment');
                 openWorkerEnvironment();
             }
@@ -107,7 +114,7 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
     }, [])
 
     return (
-        <main className={cn("max-w-screen-3xl w-full min-w-[52rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
+        <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
             {/* ITEM POPUP  */}
             {(isQItemPopupVisible && popupItem!==null) && (
                 <QItemPopup 
@@ -115,33 +122,26 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
                     popupItem={popupItem} 
                     isItemDeleteButtonVisible={isItemDeleteButtonVisible} 
                     handleCopyItemClick={handleCopyItemClick} 
+                    isItemRunning={popupItem === runningItem}
                 />
             )} 
-            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full`}>
+            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full min-w-56`}>
                 <SidePanel 
                     queueData={currentQueue?.items || []}
                     queueHistoryData={queueHistory?.items || []} 
                     isREToggleOn={isREToggleOn} 
                     handleSidepanelExpandClick={handleSidepanelExpandClick}
                     isSidepanelExpanded={isSidepanelExpanded}
+                    runEngineState={apiStatus ? apiStatus.re_state : null}
                 >
                     <QSList type="short" queueData={currentQueue?.items || []} handleQItemClick={handleCurrentQItemClick}/>
-                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn}/>
+                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn} handleItemClick={handleRunEngineItemClick}/>
                     <QSList type="history" queueData={queueHistory?.items || []} handleQItemClick={handleHistoryQItemClick}/>
                 </SidePanel>
             </div>
 
             <div className="flex-grow  rounded-md">
                 <MainPanel minimizeAllWidgets={minimizeAllWidgets} expandPanel={handleSidepanelExpandClick}>
-                    <SettingsContainer 
-                        title="Settings" 
-                        icon={tailwindIcons.cog} 
-                        expandedHeight="h-1/2" 
-                        defaultHeight="h-1/4" 
-                        maxHeight="max-h-[30rem]" 
-                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
-                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
-                        updateGlobalMetadata={updateGlobalMetadata}/>
                     <QSAddItem 
                         title="Add Item" 
                         icon={tailwindIcons.plus} 
@@ -154,9 +154,18 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
                     <QSConsole 
                         title="Console Output" 
                         icon={tailwindIcons.commandLine} 
-                        expandedHeight="h-3/4" 
-                        defaultHeight="h-[22%]" 
+                        expandedHeight="h-full" 
+                        defaultHeight="h-1/2" 
                         processConsoleMessage={processConsoleMessage}/> 
+                    <SettingsContainer 
+                        title="Settings" 
+                        icon={tailwindIcons.cog} 
+                        expandedHeight="h-1/2" 
+                        defaultHeight="h-1/5" 
+                        maxHeight="max-h-[30rem]" 
+                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
+                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
+                        updateGlobalMetadata={updateGlobalMetadata}/>
                 </MainPanel>
             </div>
         </main>

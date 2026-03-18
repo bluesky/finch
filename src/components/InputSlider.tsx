@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import React, { useState } from "react";
 
 export type InputSliderProps = {
@@ -28,7 +29,7 @@ export type InputSliderProps = {
   /** A function that is called with the newest value */
   onChange?: (value: number) => void;
   /** Tailwind ClassNames applied to parent container */
-  styles?: string;
+  className?: string;
 };
 
 export default function InputSlider({
@@ -45,16 +46,16 @@ export default function InputSlider({
   width='w-full',
   showSideInput=true,
   onChange,
-  styles = "",
+  className = "",
   ...props
 }: InputSliderProps) {
     //todo: remove this
     const [currentValue, setCurrentValue] = useState(value);
 
-    //todo: create thumb styles with a few different options, no way to control thumb style without direct CSS
+    //todo: create thumb className with a few different options, no way to control thumb style without direct CSS
     const thumbStyleCSS = ``;
 
-    //todo: create slider styles with a few different options, no way to control all aspects of slider style without direct CSS
+    //todo: create slider className with a few different options, no way to control all aspects of slider style without direct CSS
     const sliderStyleCSS = ``;
 
     //todo: implement
@@ -122,7 +123,7 @@ export default function InputSlider({
     };
 
     return (
-        <div className={`flex items-center pt-4 pb-4 pr-2 min-h-12 group ${width} ${styles}`} {...props}>
+        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group ${width}`, className)} {...props}>
             {/** Optional Label on Left of Slider*/}
             {label && <label className="font-medium text-gray-700 w-fit pr-2">{label}</label>}
 

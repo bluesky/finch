@@ -19,9 +19,9 @@ export interface GetStatusResponse {
     worker_environment_exists: boolean;
     worker_environment_state: string;
     worker_background_tasks: number;
-    re_state: string | null;
+    re_state: string;
     ip_kernel_state: string | null;
-    ip_kernel_captured: string | null;
+    ip_kernel_captured: string | boolean | null;
     pause_pending: boolean;
     run_list_uid: string;
     plan_queue_uid: string;
@@ -195,3 +195,16 @@ export interface RemoveQueueItemBody {
 export interface PostItemRemoveResponse extends PostItemAddResponse {
     qsize: number;
 };
+
+export interface RunsActiveListItem {
+    uid: string;
+    scan_id: number;
+    is_open: boolean;
+    exit_status: string | null;
+}
+export interface GetRunsActiveResponse {
+    success: boolean;
+    msg: string;
+    run_list: RunsActiveListItem[];
+    run_list_uid: string;
+}

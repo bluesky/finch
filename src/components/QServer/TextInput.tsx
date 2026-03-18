@@ -33,12 +33,12 @@ export default function TextInput(
         const newValue = e.target.value;
 
         if (intTypeList.includes(label) || type==="int") {
-            if (/^\d*$/.test(newValue)) {
+            if (/^-?\d*$/.test(newValue)) {
                 setInputValue(newValue);
                 cb(newValue === '' ? '' : parseInt(newValue));
             }
         } else if (floatTypeList.includes(label) || type=="float") {
-            if (/^\d*\.?\d*$/.test(newValue)) {
+            if (/^-?\d*\.?\d*$/.test(newValue)) {
                 setInputValue(newValue);
                 cb(newValue === '' ? '' : parseFloat(newValue));
             }

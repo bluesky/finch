@@ -20,15 +20,17 @@ Instructions for setting those services are left to Bluesky Web, but a list of t
 
 2\. The Queue Server API is formally named 'bluesky http server.'
 
-# Specifying URLS/PORTS with environment variables
-Whether using Finch directly cloned down from Github or by installing it via NPM, environment variables can be used to conveniently alter the ports and addresses used for connections between Finch and the backend services.
+# Specifying Backend URLs and keys with environment variables
+Whether using Finch directly cloned down from Github or by installing it via NPM, environment variables can be used to conveniently alter the addresses and api keys used for connections between Finch and the backend services.
 
 A list of environment variables and their corresponding services are provided below.
 
-| Service  | Environment Variables | Default Value | Description |
+| Service  | Environment Variables | Default Value in Finch | Description |
 | :---- | :---- | :---- | :---- |
-| [Tiled](https://github.com/bluesky/tiled) | `VITE_API_TILED_URL` | `http://localhost:8000/api/v1` | Base URL for Tiled API endpoints |
-| [Tiled](https://github.com/bluesky/tiled) | `VITE_API_TILED_API_KEY` | None | API key for authenticated Tiled requests |
-| [Queue Server API](https://github.com/bluesky/bluesky-httpserver) | `VITE_QSERVER_REST` | `http://localhost:60610` | REST API endpoint for Queue Server |
-| [Queue Server](https://github.com/bluesky/bluesky-queueserver) | `VITE_QSERVER_WS` | `ws://localhost:8000/queue_server` | WebSocket endpoint for Queue Server |
-| Camera Service | `VITE_CAMERA_WS` | `ws://localhost:8000/pvcamera` | WebSocket endpoint for camera feeds |
+| Tiled | `VITE_API_TILED_URL` | `http://localhost:8000/api/v1` | Base URL for Tiled API endpoints |
+| Tiled| `VITE_API_TILED_API_KEY` | None | API key for authenticated Tiled requests |
+| Ophyd API | `VITE_QSERVER_WS` | `ws://localhost:8001/api/v1/qs-console-socket` | WebSocket endpoint for Queue Server Console Monitor |
+| Ophyd API | `VITE_PV_WS` | `ws://localhost:8001/api/v1/pv-socket` | WebSocket endpoint for camera feeds |
+| Ophyd API | `VITE_CAMERA_WS` | `ws://localhost:8001/api/v1/camera-socket` | WebSocket endpoint for camera feeds |
+| Frontend API | `VITE_FRONTEND_API_URL` | `http://localhost:8002` | Base URL for frontend API endpoints |
+| Queue Server API  | `VITE_QSERVER_API_URL` | `http://localhost:60610` | Base URL for Queue Server API endpoints |
