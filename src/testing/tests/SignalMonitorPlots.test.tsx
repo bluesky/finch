@@ -3,9 +3,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import SignalMonitorPlotDevice from '../../components/SignalMonitorPlotDevice';
 import SignalMonitorPlotPV from '../../components/SignalMonitorPlotPV';
 import SignalMonitorPlotOphyd from '../../components/SignalMonitorPlotOphyd';
+import type { PlotlyScatterProps } from '../../components/PlotlyScatter';
 
 // Capture props forwarded to PlotlyScatter
-const ScatterMock = vi.fn(({ xAxisTitle, yAxisTitle }: any) => (
+const ScatterMock = vi.fn(({ xAxisTitle, yAxisTitle }: PlotlyScatterProps) => (
   <div
     data-testid="plotly-scatter"
     data-x-title={xAxisTitle ?? ''}
@@ -14,7 +15,7 @@ const ScatterMock = vi.fn(({ xAxisTitle, yAxisTitle }: any) => (
 ));
 
 vi.mock('../../components/PlotlyScatter', () => ({
-  default: (props: any) => ScatterMock(props),
+  default: (props: unknown) => ScatterMock(props as PlotlyScatterProps),
 }));
 
 vi.mock('@/hooks/useOphydPVSocket', () => ({ default: vi.fn() }));
@@ -28,8 +29,8 @@ const makeDevice = (value: number, units = 'counts') => ({ value, units, connect
 beforeEach(() => {
   ScatterMock.mockClear();
   vi.useFakeTimers();
-  vi.mocked(useOphydPVSocket).mockReturnValue({ devices: {} } as any);
-  vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: {} } as any);
+  vi.mocked(useOphydPVSocket).mockReturnValue({ devices: {} } as unknown as ReturnType<typeof useOphydPVSocket>);
+  vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: {} } as unknown as ReturnType<typeof useOphydDeviceSocket>);
 });
 
 afterEach(() => {
@@ -132,7 +133,7 @@ describe('SignalMonitorPlotDevice', () => {
     );
     act(() => { vi.advanceTimersByTime(2000); });
     const lastCall = ScatterMock.mock.calls[ScatterMock.mock.calls.length - 1][0];
-    expect(lastCall.data[0].x.length).toBeLessThanOrEqual(numVisiblePoints);
+    expect((lastCall.data[0] as { x: unknown[] }).x.length).toBeLessThanOrEqual(numVisiblePoints);
   });
 
   // --- Live mode ---
@@ -170,13 +171,13 @@ describe('SignalMonitorPlotPV', () => {
   });
 
   it('passes yAxisTitle prop through to PlotlyScatter', () => {
-    vi.mocked(useOphydPVSocket).mockReturnValue({ devices: { 'TEST:PV': makeDevice(99, 'deg') } } as any);
+    vi.mocked(useOphydPVSocket).mockReturnValue({ devices: { 'TEST:PV': makeDevice(99, 'deg') } } as unknown as ReturnType<typeof useOphydPVSocket>);
     render(<SignalMonitorPlotPV pv="TEST:PV" yAxisTitle="Angle" />);
     expect(screen.getByTestId('plotly-scatter')).toHaveAttribute('data-y-title', 'Angle');
   });
 
   it('falls back to device units for yAxisTitle when prop is omitted', () => {
-    vi.mocked(useOphydPVSocket).mockReturnValue({ devices: { 'TEST:PV': makeDevice(99, 'deg') } } as any);
+    vi.mocked(useOphydPVSocket).mockReturnValue({ devices: { 'TEST:PV': makeDevice(99, 'deg') } } as unknown as ReturnType<typeof useOphydPVSocket>);
     render(<SignalMonitorPlotPV pv="TEST:PV" />);
     expect(screen.getByTestId('plotly-scatter')).toHaveAttribute('data-y-title', 'deg');
   });
@@ -196,13 +197,13 @@ describe('SignalMonitorPlotOphyd', () => {
   });
 
   it('passes yAxisTitle prop through to PlotlyScatter', () => {
-    vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: { motor1: makeDevice(5.5, 'mm') } } as any);
+    vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: { motor1: makeDevice(5.5, 'mm') } } as unknown as ReturnType<typeof useOphydDeviceSocket>);
     render(<SignalMonitorPlotOphyd deviceName="motor1" yAxisTitle="Position" />);
     expect(screen.getByTestId('plotly-scatter')).toHaveAttribute('data-y-title', 'Position');
   });
 
   it('falls back to device units for yAxisTitle when prop is omitted', () => {
-    vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: { motor1: makeDevice(5.5, 'mm') } } as any);
+    vi.mocked(useOphydDeviceSocket).mockReturnValue({ devices: { motor1: makeDevice(5.5, 'mm') } } as unknown as ReturnType<typeof useOphydDeviceSocket>);
     render(<SignalMonitorPlotOphyd deviceName="motor1" />);
     expect(screen.getByTestId('plotly-scatter')).toHaveAttribute('data-y-title', 'mm');
   });

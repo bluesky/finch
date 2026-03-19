@@ -9,10 +9,10 @@ vi.mock('@/assets/icons', () => ({
 }));
 
 const ScatterMock = vi.fn(() => <div data-testid="signal-monitor-plot" />);
-vi.mock('../../components/SignalMonitorPlotDevice', () => ({ default: (props: any) => ScatterMock(props) }));
+vi.mock('../../components/SignalMonitorPlotDevice', () => ({ default: (props: Record<string, unknown>) => ScatterMock(props) }));
 
 vi.mock('../../components/SelectDropdown', () => ({
-  default: ({ onValueChange, initialSelectedItem }: any) => (
+  default: ({ onValueChange, initialSelectedItem }: { onValueChange?: (v: string) => void; initialSelectedItem?: string }) => (
     <select
       data-testid="move-mode-select"
       defaultValue={initialSelectedItem}

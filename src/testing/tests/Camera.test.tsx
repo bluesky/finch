@@ -9,7 +9,7 @@ vi.mock('@/assets/icons', () => ({
 }));
 
 vi.mock('../../components/ButtonWithIcon', () => ({
-  default: ({ text, cb, disabled }: any) => (
+  default: ({ text, cb, disabled }: { text?: string; cb?: () => void; disabled?: boolean }) => (
     <button data-testid="button-with-icon" onClick={cb} disabled={disabled}>{text}</button>
   ),
 }));
@@ -76,17 +76,17 @@ vi.mock('../../components/Camera/TIFFCanvas', () => ({
 
 // Mocked form inputs used by CameraCustomSetup
 vi.mock('../../components/Button', () => ({
-  default: ({ text, cb }: any) => <button data-testid="button" onClick={cb}>{text}</button>,
+  default: ({ text, cb }: { text?: string; cb?: () => void }) => <button data-testid="button" onClick={cb}>{text}</button>,
 }));
 
 vi.mock('../../components/InputStringBoxRounded', () => ({
-  default: ({ label, cb }: any) => (
+  default: ({ label, cb }: { label?: string; cb?: (value: string) => void }) => (
     <input data-testid={`input-${label}`} onChange={(e) => cb?.(e.target.value)} />
   ),
 }));
 
 vi.mock('../../components/InputEnumBoxRounded', () => ({
-  default: ({ label, enums, cb }: any) => (
+  default: ({ label, enums, cb }: { label?: string; enums?: string[]; cb?: (value: string) => void }) => (
     <select data-testid={`enum-${label}`} onChange={(e) => cb?.(e.target.value)}>
       {(enums || []).map((e: string) => <option key={e} value={e}>{e}</option>)}
     </select>
@@ -94,8 +94,8 @@ vi.mock('../../components/InputEnumBoxRounded', () => ({
 }));
 
 vi.mock('../../components/InputCheckBox', () => ({
-  default: ({ label, isChecked, cb }: any) => (
-    <input type="checkbox" aria-label={label} checked={isChecked} onChange={(e) => cb?.(e.target.checked)} />
+  default: ({ label, isChecked, cb }: { label?: string | boolean; isChecked?: boolean; cb?: (checked: boolean) => void }) => (
+    <input type="checkbox" aria-label={typeof label === 'string' ? label : undefined} checked={isChecked} onChange={(e) => cb?.(e.target.checked)} />
   ),
 }));
 
@@ -106,6 +106,7 @@ vi.mock('../../components/Camera/utils/apiClient', () => ({
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
+import { Devices } from '../../types/deviceControllerTypes';
 import InputFloat from '../../components/Camera/InputFloat';
 import InputInteger from '../../components/Camera/InputInteger';
 import InputString from '../../components/Camera/InputString';
@@ -261,7 +262,7 @@ describe('InputField', () => {
         onSubmit={vi.fn()}
         pv="test:pv"
         input={{ suffix: 'AcquireTime', label: 'Acquire Time', type: 'float' }}
-        cameraSettingsPVs={{ 'test:pv': { connected: true, value: 0.5 } } as any}
+        cameraSettingsPVs={{ 'test:pv': { connected: true, value: 0.5 } } as unknown as Devices}
       />,
     );
     expect(screen.getByText('0.5')).toBeInTheDocument();

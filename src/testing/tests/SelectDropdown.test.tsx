@@ -1,3 +1,4 @@
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { createContext, useContext } from 'react';
@@ -6,22 +7,22 @@ import SelectDropdown from '../../components/SelectDropdown';
 const SelectContext = createContext<{ onValueChange?: (v: string) => void }>({});
 
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ children, onValueChange, defaultValue }: any) => (
+  Select: ({ children, onValueChange, defaultValue }: { children?: React.ReactNode; onValueChange?: (v: string) => void; defaultValue?: string }) => (
     <SelectContext.Provider value={{ onValueChange }}>
       <div data-testid="select" data-default-value={defaultValue ?? ''}>{children}</div>
     </SelectContext.Provider>
   ),
-  SelectTrigger: ({ children, className }: any) => (
+  SelectTrigger: ({ children, className }: { children?: React.ReactNode; className?: string }) => (
     <button data-testid="select-trigger" className={className}>{children}</button>
   ),
-  SelectValue: ({ placeholder }: any) => (
+  SelectValue: ({ placeholder }: { placeholder?: string }) => (
     <span data-testid="select-value">{placeholder}</span>
   ),
-  SelectContent: ({ children, className }: any) => (
+  SelectContent: ({ children, className }: { children?: React.ReactNode; className?: string }) => (
     <div data-testid="select-content" className={className}>{children}</div>
   ),
-  SelectGroup: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children, value, className }: any) => {
+  SelectGroup: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children, value, className }: { children?: React.ReactNode; value: string; className?: string }) => {
     const { onValueChange } = useContext(SelectContext);
     return (
       <div
@@ -34,7 +35,7 @@ vi.mock('@/components/ui/select', () => ({
       </div>
     );
   },
-  SelectLabel: ({ children }: any) => <div>{children}</div>,
+  SelectLabel: ({ children }: { children?: React.ReactNode }) => <div>{children}</div>,
 }));
 
 const items = ['Option A', 'Option B', 'Option C'];

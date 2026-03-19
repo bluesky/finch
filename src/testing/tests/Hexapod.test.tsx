@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 vi.mock('../../components/Hexapod/assets/hexapodAxisSketch.png', () => ({ default: 'hexapod-sketch.png' }));
 
 vi.mock('../../components/SelectDropdown', () => ({
-  default: ({ onValueChange, initialSelectedItem }: any) => (
+  default: ({ onValueChange, initialSelectedItem }: { onValueChange?: (v: string) => void; initialSelectedItem?: string }) => (
     <select
       data-testid="move-mode-select"
       defaultValue={initialSelectedItem}

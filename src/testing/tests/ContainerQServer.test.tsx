@@ -1,5 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { useQueueServer } from '../../components/QServer/hooks/useQueueServer';
+import type { PlanInput } from '../../components/QServer/types/types';
+import type { QueueItem, RunningQueueItem } from '../../components/QServer/types/apiTypes';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -28,7 +31,7 @@ const useQueueServerMock = vi.fn(() => ({
   processConsoleMessage: vi.fn(),
   globalMetadata: {},
   updateGlobalMetadata: vi.fn(),
-  removeDuplicateMetadata: vi.fn((plan: any) => plan),
+  removeDuplicateMetadata: vi.fn((plan: PlanInput) => plan),
   isGlobalMetadataChecked: true,
   handleGlobalMetadataCheckboxChange: vi.fn(),
   apiStatus: null,
@@ -44,40 +47,40 @@ vi.mock('../../components/QServer/utils/apiClient', () => ({
 }));
 
 // Mock the two QSList instances — distinguish by `type` prop for targeted clicks
-const QSListMock = vi.fn(({ handleQItemClick, type }: any) => (
+const QSListMock = vi.fn(({ handleQItemClick, type }: { handleQItemClick: (item: QueueItem) => void; type: string }) => (
   <button
     data-testid={`qs-list-${type}`}
-    onClick={() => handleQItemClick({ name: 'test_plan', item_uid: 'uid-1', kwargs: {} })}
+    onClick={() => handleQItemClick({ name: 'test_plan', item_uid: 'uid-1', kwargs: {}, user: '', user_group: '', item_type: 'plan' })}
   >
     {type} item
   </button>
 ));
-vi.mock('../../components/QServer/QSList', () => ({ default: (props: any) => QSListMock(props) }));
+vi.mock('../../components/QServer/QSList', () => ({ default: (props: unknown) => QSListMock(props as Parameters<typeof QSListMock>[0]) }));
 
-const QItemPopupMock = vi.fn(({ handleQItemPopupClose, isItemDeleteButtonVisible }: any) => (
+const QItemPopupMock = vi.fn(({ handleQItemPopupClose, isItemDeleteButtonVisible }: { handleQItemPopupClose: () => void; isItemDeleteButtonVisible: boolean }) => (
   <div data-testid="q-item-popup">
     <span data-testid="popup-delete-flag">{String(isItemDeleteButtonVisible)}</span>
     <button data-testid="popup-close" onClick={handleQItemPopupClose}>Close</button>
   </div>
 ));
-vi.mock('../../components/QServer/QItemPopup', () => ({ default: (props: any) => QItemPopupMock(props) }));
+vi.mock('../../components/QServer/QItemPopup', () => ({ default: (props: unknown) => QItemPopupMock(props as Parameters<typeof QItemPopupMock>[0]) }));
 
 vi.mock('../../components/QServer/QSRunEngineWorker', () => ({
-  default: ({ handleItemClick }: any) => (
-    <button data-testid="re-worker-item" onClick={() => handleItemClick({ item_uid: 'run-1', name: 'running_plan', kwargs: {} })}>
+  default: ({ handleItemClick }: { handleItemClick: (item: RunningQueueItem) => void }) => (
+    <button data-testid="re-worker-item" onClick={() => handleItemClick({ item_uid: 'run-1', name: 'running_plan', kwargs: {}, user: '', user_group: '', item_type: 'plan', properties: { time_start: 0 } })}>
       running item
     </button>
   ),
 }));
 
 vi.mock('../../components/QServer/QSAddItem', () => ({
-  default: ({ title }: any) => <div data-testid="qs-add-item">{title}</div>,
+  default: ({ title }: { title?: string }) => <div data-testid="qs-add-item">{title}</div>,
 }));
 vi.mock('../../components/QServer/QSConsole', () => ({
-  default: ({ title }: any) => <div data-testid="qs-console">{title}</div>,
+  default: ({ title }: { title?: string }) => <div data-testid="qs-console">{title}</div>,
 }));
 vi.mock('../../components/QServer/SettingsContainer', () => ({
-  default: ({ title }: any) => <div data-testid="qs-settings">{title}</div>,
+  default: ({ title }: { title?: string }) => <div data-testid="qs-settings">{title}</div>,
 }));
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
@@ -182,7 +185,7 @@ describe('ContainerQServer', () => {
 
   it('shows queue item count from currentQueue', () => {
     useQueueServerMock.mockReturnValueOnce({
-      currentQueue: { items: [{ item_uid: '1' }, { item_uid: '2' }], plan_queue_uid: 'q1', running_item: {}, success: true } as any,
+      currentQueue: { items: [{ item_uid: '1' }, { item_uid: '2' }], plan_queue_uid: 'q1', running_item: {}, success: true },
       queueHistory: null,
       isREToggleOn: false,
       runningItem: null,
@@ -190,11 +193,11 @@ describe('ContainerQServer', () => {
       processConsoleMessage: vi.fn(),
       globalMetadata: {},
       updateGlobalMetadata: vi.fn(),
-      removeDuplicateMetadata: vi.fn((p: any) => p),
+      removeDuplicateMetadata: vi.fn((p: PlanInput) => p),
       isGlobalMetadataChecked: true,
       handleGlobalMetadataCheckboxChange: vi.fn(),
       apiStatus: null,
-    });
+    } as unknown as ReturnType<typeof useQueueServer>);
     render(<ContainerQServer />);
     expect(screen.getByText('2')).toBeInTheDocument(); // queue count
   });
@@ -202,18 +205,18 @@ describe('ContainerQServer', () => {
   it('shows history item count from queueHistory', () => {
     useQueueServerMock.mockReturnValueOnce({
       currentQueue: null,
-      queueHistory: { items: [{ item_uid: 'h1' }, { item_uid: 'h2' }, { item_uid: 'h3' }], plan_history_uid: 'hist1', success: true } as any,
+      queueHistory: { items: [{ item_uid: 'h1' }, { item_uid: 'h2' }, { item_uid: 'h3' }], plan_history_uid: 'hist1', success: true },
       isREToggleOn: false,
       runningItem: null,
       setIsREToggleOn: vi.fn(),
       processConsoleMessage: vi.fn(),
       globalMetadata: {},
       updateGlobalMetadata: vi.fn(),
-      removeDuplicateMetadata: vi.fn((p: any) => p),
+      removeDuplicateMetadata: vi.fn((p: PlanInput) => p),
       isGlobalMetadataChecked: true,
       handleGlobalMetadataCheckboxChange: vi.fn(),
       apiStatus: null,
-    });
+    } as unknown as ReturnType<typeof useQueueServer>);
     render(<ContainerQServer />);
     expect(screen.getByText('3')).toBeInTheDocument(); // history count
   });

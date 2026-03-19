@@ -4,15 +4,15 @@ import TableDeviceController from '../../components/TableDeviceController';
 import { Device, Devices } from '@/types/deviceControllerTypes';
 
 // Expose handleEnter callbacks so tests can trigger them directly
-const AbsoluteMock = vi.fn(({ handleEnter }: any) => (
-  <button data-testid="abs-move" onClick={() => handleEnter(10)}>abs</button>
+const AbsoluteMock = vi.fn(({ handleEnter }: { handleEnter?: (input: number | null) => void }) => (
+  <button data-testid="abs-move" onClick={() => handleEnter && handleEnter(10)}>abs</button>
 ));
-const RelativeMock = vi.fn(({ handleEnter, currentValue }: any) => (
-  <button data-testid="rel-move" onClick={() => handleEnter(currentValue + 1)}>rel</button>
+const RelativeMock = vi.fn(({ handleEnter, currentValue }: { handleEnter?: (input: number | null) => void; currentValue: number | null }) => (
+  <button data-testid="rel-move" onClick={() => handleEnter && handleEnter(currentValue !== null ? currentValue + 1 : null)}>rel</button>
 ));
 
-vi.mock('../../components/ControllerAbsoluteMove', () => ({ default: (props: any) => AbsoluteMock(props) }));
-vi.mock('../../components/ControllerRelativeMove', () => ({ default: (props: any) => RelativeMock(props) }));
+vi.mock('../../components/ControllerAbsoluteMove', () => ({ default: (props: unknown) => AbsoluteMock(props as Parameters<typeof AbsoluteMock>[0]) }));
+vi.mock('../../components/ControllerRelativeMove', () => ({ default: (props: unknown) => RelativeMock(props as Parameters<typeof RelativeMock>[0]) }));
 
 const makeDevice = (overrides: Partial<Device> = {}): Device => ({
   pv: 'TEST:PV',

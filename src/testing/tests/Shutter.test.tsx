@@ -16,7 +16,7 @@ const setupDevice = (value: number | string, connected = true) => {
       'bl531:LJT4:1:AO0': { value, connected },
     },
     handleSetValueRequest: mockHandleSetValueRequest,
-  } as any);
+  } as unknown as ReturnType<typeof useOphydPVSocket>);
 };
 
 beforeEach(() => {

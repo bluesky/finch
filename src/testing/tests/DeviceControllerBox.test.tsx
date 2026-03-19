@@ -187,7 +187,7 @@ describe('DeviceControllerBox Component', () => {
   });
 
   it('renders the svgIcon when provided', () => {
-    const { container } = render(
+    render(
       <DeviceControllerBox {...defaultProps} svgIcon={<svg data-testid="custom-icon" />} />
     );
     expect(screen.getByTestId('custom-icon')).toBeInTheDocument();

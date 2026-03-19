@@ -14,13 +14,13 @@ vi.mock('@tanstack/react-query', () => ({
 }));
 
 vi.mock('../../components/PlotlyScatter', () => ({
-    default: ({ data }: any) => (
+    default: ({ data }: { data?: { x?: unknown[] }[] }) => (
         <div data-testid="plotly-scatter" data-point-count={data?.[0]?.x?.length ?? 0} />
     ),
 }));
 
 vi.mock('../../components/PlotlyHeatmapTiled', () => ({
-    default: ({ url }: any) => <div data-testid="plotly-heatmap-tiled" data-url={url} />,
+    default: ({ url }: { url?: string | null }) => <div data-testid="plotly-heatmap-tiled" data-url={url ?? undefined} />,
 }));
 
 // NOTE: TiledScatterPlot is NOT mocked here so it can be tested directly.
@@ -50,7 +50,7 @@ const trace = { x: 'motor', y: 'detector' };
 
 describe('TiledScatterPlot', () => {
     beforeEach(() => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as any);
+        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as unknown as ReturnType<typeof useQuery>);
     });
 
     it('shows waiting message when path is null', () => {
@@ -59,7 +59,7 @@ describe('TiledScatterPlot', () => {
     });
 
     it('shows loading message while fetching', () => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: true, error: null } as any);
+        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: true, error: null } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
         expect(screen.getByText('Loading data...')).toBeInTheDocument();
     });
@@ -69,7 +69,7 @@ describe('TiledScatterPlot', () => {
             data: undefined,
             isLoading: false,
             error: new Error('timeout'),
-        } as any);
+        } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
         expect(screen.getByText('Error loading data: timeout')).toBeInTheDocument();
     });
@@ -84,7 +84,7 @@ describe('TiledScatterPlot', () => {
             data: { other_col: [1, 2] },
             isLoading: false,
             error: null,
-        } as any);
+        } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
         expect(screen.getByText('Error: Missing data for scatter plot (motor, detector)')).toBeInTheDocument();
     });
@@ -94,7 +94,7 @@ describe('TiledScatterPlot', () => {
             data: { motor: [1, 2, 3], detector: [4, 5, 6] },
             isLoading: false,
             error: null,
-        } as any);
+        } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
         expect(screen.getByText('Scatter plot data: 3 points')).toBeInTheDocument();
     });
@@ -104,7 +104,7 @@ describe('TiledScatterPlot', () => {
             data: { motor: [1, 2], detector: [3, 4] },
             isLoading: false,
             error: null,
-        } as any);
+        } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" enablePolling />);
         expect(screen.getByText('Scatter plot data: 2 points (Live)')).toBeInTheDocument();
     });
@@ -201,7 +201,7 @@ describe('TiledWriterDetImageHeatmap', () => {
 
 describe('TiledWriterScatterPlot', () => {
     beforeEach(() => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as any);
+        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as unknown as ReturnType<typeof useQuery>);
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
             tiledPath: null,
             isLoading: false,

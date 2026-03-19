@@ -44,7 +44,7 @@ vi.mock('@blueskyproject/tiled', () => ({
 }));
 
 vi.mock('../../components/Button', () => ({
-  default: ({ text, cb, disabled }: any) => (
+  default: ({ text, cb, disabled }: { text?: string; cb?: () => void; disabled?: boolean }) => (
     <button data-testid="plan-button" onClick={cb} disabled={disabled}>{text}</button>
   ),
 }));
@@ -165,7 +165,7 @@ describe('ExperimentHistory', () => {
           },
         },
       ],
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof getSearchResults>>);
     render(<ExperimentHistory />);
     await waitFor(() => expect(screen.getByText('success')).toBeInTheDocument());
     expect(screen.getByText('run-1')).toBeInTheDocument();
@@ -177,7 +177,7 @@ describe('ExperimentHistory', () => {
       id: 'run-2',
       attributes: { metadata: { start: { time: 1700000000 }, stop: { time: 1700000030, exit_status: 'success' } } },
     };
-    vi.mocked(getSearchResults).mockResolvedValue({ data: [mockItem] } as any);
+    vi.mocked(getSearchResults).mockResolvedValue({ data: [mockItem] } as unknown as Awaited<ReturnType<typeof getSearchResults>>);
     render(<ExperimentHistory onItemClick={onItemClick} />);
     await waitFor(() => screen.getByText('run-2'));
     fireEvent.click(screen.getByText('run-2'));
@@ -185,7 +185,7 @@ describe('ExperimentHistory', () => {
   });
 
   it('shows user filter text when metadataFulltextSearch is provided', async () => {
-    vi.mocked(getSearchResults).mockResolvedValue({ data: [] } as any);
+    vi.mocked(getSearchResults).mockResolvedValue({ data: [] } as unknown as Awaited<ReturnType<typeof getSearchResults>>);
     render(<ExperimentHistory metadataFulltextSearch="alice" />);
     await waitFor(() => expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument());
     expect(screen.getByText(/alice/)).toBeInTheDocument();
@@ -238,7 +238,7 @@ describe('ExperimentExecutePlanButtonGeneric', () => {
       running_item: { item_uid: 'running-1', name: 'some_plan' },
       items: [],
       plan_queue_uid: 'q1',
-    } as any);
+    } as unknown as Awaited<ReturnType<typeof getQueuePromise>>);
     render(<ExperimentExecutePlanButtonGeneric planName="energy_scan" kwargs={{}} />);
     await waitFor(() => expect(screen.getByText('Queue server busy')).toBeInTheDocument());
   });
@@ -264,7 +264,7 @@ describe('ExperimentPlanSettings', () => {
       resetInputsTrigger: 0,
       setParameters: vi.fn(),
       updateBodyKwargs: vi.fn(),
-    } as any);
+    } as unknown as ReturnType<typeof useQSAddItem>);
     render(<ExperimentPlanSettings />);
     expect(screen.getByTestId('qs-param-input')).toBeInTheDocument();
   });

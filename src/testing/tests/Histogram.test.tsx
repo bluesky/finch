@@ -8,7 +8,7 @@ vi.mock('react-plotly.js', () => ({
 }));
 
 vi.mock('../../components/InputSliderRange', () => ({
-    default: ({ label }: any) => <div data-testid="input-slider-range">{label}</div>,
+    default: ({ label }: { label?: string }) => <div data-testid="input-slider-range">{label}</div>,
 }));
 
 const mockHandleSetValueRequest = vi.fn();
@@ -26,6 +26,7 @@ import HistogramPlotSettings from '../../components/Histogram/HistogramPlotSetti
 import HistogramDeviceController from '../../components/Histogram/HistogramDeviceController';
 import Histogram from '../../components/Histogram/Histogram';
 import useOphydPVSocket from '@/hooks/useOphydPVSocket';
+import { Device } from '@/types/deviceControllerTypes';
 
 // ── HistogramPlotSettings ──────────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ describe('HistogramDeviceController', () => {
     it('renders without crashing', () => {
         const { container } = render(
             <HistogramDeviceController
-                acquireDevice={undefined as any}
+                acquireDevice={undefined as unknown as Device}
                 handleStartAcquisition={noop}
                 handleStopAcquisition={noop}
             />
@@ -60,7 +61,7 @@ describe('HistogramDeviceController', () => {
     it('applies custom className', () => {
         const { container } = render(
             <HistogramDeviceController
-                acquireDevice={undefined as any}
+                acquireDevice={undefined as unknown as Device}
                 handleStartAcquisition={noop}
                 handleStopAcquisition={noop}
                 className="my-controller"
@@ -123,7 +124,7 @@ describe('Histogram', () => {
         vi.mocked(useOphydPVSocket).mockReturnValue({
             devices: {},
             handleSetValueRequest: mockHandleSetValueRequest,
-        } as any);
+        } as unknown as ReturnType<typeof useOphydPVSocket>);
     });
 
     it('renders without crashing in demo mode', () => {
@@ -160,7 +161,7 @@ describe('Histogram', () => {
         vi.mocked(useOphydPVSocket).mockReturnValue({
             devices: { 'test:array': { value: null } },
             handleSetValueRequest: mockHandleSetValueRequest,
-        } as any);
+        } as unknown as ReturnType<typeof useOphydPVSocket>);
         render(<Histogram arrayPV="test:array" acquirePV="test:acquire" />);
         expect(useOphydPVSocket).toHaveBeenCalledWith(['test:array', 'test:acquire']);
     });
