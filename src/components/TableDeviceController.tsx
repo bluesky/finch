@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { Lock, LockOpen } from "@phosphor-icons/react";
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from "./ui/table";
 import ControllerAbsoluteMove from "./ControllerAbsoluteMove";
 import ControllerRelativeMove from "./ControllerRelativeMove";
@@ -68,7 +69,15 @@ export default function TableDeviceController({devices, handleSetValueRequest, t
                                         onClick={()=>toggleExpand(deviceName)}
                                     >
                                         <>
-                                            <p>{deviceName}</p>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); toggleDeviceLock(deviceName, !device.locked); }}
+                                                    className="text-sky-700 hover:text-sky-900 shrink-0"
+                                                >
+                                                    {device.locked ? <Lock size={16} weight="fill" /> : <LockOpen size={16} />}
+                                                </button>
+                                                <p>{deviceName}</p>
+                                            </div>
                                             {device.expanded && <pre className="text-xs">{JSON.stringify(device, null, 2)}</pre>}
                                         </>
                                     </TableCell>
@@ -80,6 +89,7 @@ export default function TableDeviceController({devices, handleSetValueRequest, t
                                             handleEnter={(input)=>input!==null && handleSetValueRequest(deviceName, input)}
                                             inputLabel={device.units && device.units.slice(0,3)}
                                             classNameInput="bg-sky-200 shadow-inner rounded-md"
+                                            locked={device.locked}
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -89,6 +99,7 @@ export default function TableDeviceController({devices, handleSetValueRequest, t
                                             inputLabel={device.units && device.units.slice(0,3)}
                                             currentValue={typeof device.value === 'number' ? device.value : null}
                                             classNameInput="bg-sky-200 shadow-inner rounded-md"
+                                            locked={device.locked}
                                         />
                                     </TableCell>
                                 </TableRow>
