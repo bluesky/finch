@@ -27,9 +27,7 @@ export default function QSRunEngineWorker({ isREToggleOn=false, setIsREToggleOn=
             //use setTimeout to ensure that the toggle is seen moving up before moving down during a failure so user knows it was attempted
             setTimeout( async () => {
                 const apiCallStatus = await startRE();
-                if (apiCallStatus) {
-                    
-                } else {
+                if (!apiCallStatus) {
                     setIsREToggleOn(false); 
                 }
             }, 300);

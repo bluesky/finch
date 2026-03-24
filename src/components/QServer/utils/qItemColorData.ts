@@ -45,12 +45,12 @@ const colorListOpacity = [
 ];
 
 const randomColor = (plan:string) => {
-    let pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorList.length;
+    const pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorList.length;
     return colorList[pseudoRandomInt];
 };
 
 const randomColorOpacity = (plan:string) => {
-    let pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorListOpacity.length;
+    const pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorListOpacity.length;
     return colorListOpacity[pseudoRandomInt];
 };
 

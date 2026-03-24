@@ -1,6 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Device, Devices } from 'src/types/deviceControllerTypes';
+import { Devices } from 'src/types/deviceControllerTypes';
 import { deviceMessages } from './deviceMessages';
+
+type MockUpdate = {
+    sub_type?: 'meta';
+    lower_ctrl_limit?: number | null;
+    upper_ctrl_limit?: number | null;
+    [key: string]: unknown;
+};
+
+type MockMessageData = {
+    action?: string;
+    pv?: string;
+    update?: MockUpdate;
+    [key: string]: unknown;
+};
+
+type MockMessageWrapper = { data: MockMessageData };
 
 
 export default function useMockOphydSocket(deviceNameList: string[]) {
@@ -37,7 +53,7 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
         // Process each device in the mock data
         Object.keys(deviceMessages).forEach((key) => {
             const deviceName = key;
-            const messages = deviceMessages[key as keyof typeof deviceMessages] as any[];
+            const messages = deviceMessages[key as keyof typeof deviceMessages] as MockMessageWrapper[];
 
             // Only process if this device is in our deviceNameList
             if (!deviceNameList.includes(deviceName)) return;
@@ -54,7 +70,7 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
                         let updatedDevice = { ...prevDevices[deviceName] };
 
                         // Handle meta updates
-                        if ('update' in message && message.update.sub_type === 'meta') {
+                        if ('update' in message && message?.update?.sub_type === 'meta') {
                             updatedDevice = {
                                 ...updatedDevice,
                                 ...message.update,
@@ -63,7 +79,7 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
                             };
                         }
                         // Handle value updates (when update exists but no sub_type)
-                        else if ('update' in message && !message.update.sub_type) {
+                        else if ('update' in message && !message?.update?.sub_type) {
                             updatedDevice = {
                                 ...updatedDevice,
                                 ...message.update,
@@ -97,7 +113,7 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
         }
 
         const currentTimestamp = Date.now() / 1000; // Convert to seconds to match EPICS timestamp format
-        let updatedDevices = { ...prevDevices };
+        const updatedDevices = { ...prevDevices };
 
         // Update the main device with the new value and timestamp
         updatedDevices[deviceName] = {

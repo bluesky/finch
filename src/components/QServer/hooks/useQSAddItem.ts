@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getDevicesAllowed, getPlansAllowed, postQueueItem, executeItem } from '../utils/apiClient';
 import { AllowedDevices, CopiedPlan } from '../types/types';
 import { Plan, Parameter, Device, PostItemAddResponse, ExecuteQueueItemBody } from '../types/apiTypes';
@@ -25,7 +25,7 @@ const sampleBody = {
 interface UseQSAddItemProps {
     copiedPlan?: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
-    globalMetadata?: {[key: string]: any};
+    globalMetadata?: {[key: string]: unknown};
 }
 
 export function useQSAddItem({
@@ -36,7 +36,7 @@ export function useQSAddItem({
     // State variables
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [isSubmissionPopupOpen, setIsSubmissionPopupOpen] = useState<boolean>(false);
-    const [submissionResponse, setSubmissionResponse] = useState<Record<string, any>>({});
+    const [submissionResponse, setSubmissionResponse] = useState<PostItemAddResponse >({} as PostItemAddResponse);
     const [allowedPlans, setAllowedPlans] = useState<Record<string, Plan>>({});
     const [allowedDevices, setAllowedDevices] = useState<AllowedDevices>({});
     const [activePlan, setActivePlan] = useState<string | null>(null);
@@ -63,7 +63,7 @@ export function useQSAddItem({
             } else {
                 console.error('GET request to allowed plans returned success:false');
             }
-        } 
+        }
     };
 
     const handleDeviceResponse = (data: GetDevicesAllowedResponse) => {
@@ -87,39 +87,9 @@ export function useQSAddItem({
     };
 
     // Plan and parameter management
-    const handlePlanSelect = (plan: string) => {
-        if (activePlan !== plan) {
-            setActivePlan(plan);
-            initializeParameters(plan);
-            updateBodyName(plan);
-            setResetInputsTrigger(prev => !prev);
-        }
-    };
+    const updateBodyKwargs = useCallback((parameters: ParameterInputDict) => {
+        const parametersCopy = JSON.parse(JSON.stringify(parameters));
 
-    const initializeParameters = (plan = '', parameters?: {[key:string]: any}) => {
-        var tempParameters: {[key: string]: ParameterInput} = {};
-        const multiSelectParamList = ['detectors'];
-        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
-        
-        for (var param of allowedPlans[plan].parameters) {
-            let defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
-            let isRequiredByDefinition = (param.description && param.description.toLowerCase().trim().startsWith("req"));
-            tempParameters[param.name] = {...param, value: defaultValue, required: requiredParamList.includes(param.name) || isRequiredByDefinition === true};
-        }
-        
-        if (parameters !== undefined) {
-            for (var key in parameters) {
-                tempParameters[key].value = parameters[key];
-            }
-        }
-        
-        setParameters(tempParameters);
-        updateBodyKwargs(tempParameters);
-    };
-
-    const updateBodyKwargs = (parameters: ParameterInputDict) => {
-        var parametersCopy = JSON.parse(JSON.stringify(parameters));
-        
         if (isGlobalMetadataChecked) {
             if (globalMetadata) {
                 if (!('md' in parametersCopy)) {
@@ -130,34 +100,64 @@ export function useQSAddItem({
         }
 
         setBody(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
-            var newKwargs: {[key:string]: any} = {};
-            
-            for (var key in parametersCopy) {
-                let val = parametersCopy[key].value;
+            const stateCopy = JSON.parse(JSON.stringify(state));
+            const newKwargs: Record<string, unknown> = {};
+
+            for (const key in parametersCopy) {
+                const val = parametersCopy[key].value;
                 if (val === '' || (Array.isArray(val) && val.length === 0)) {
                     // value is empty, do not add to kwargs
                 } else {
                     newKwargs[key] = parametersCopy[key].value;
                 }
             }
-            
+
             stateCopy.item.kwargs = newKwargs;
             return stateCopy;
         });
+    }, [isGlobalMetadataChecked, globalMetadata]);
+
+    const initializeParameters = useCallback((plan = '', parameters?: Record<string, unknown>) => {
+        const tempParameters: {[key: string]: ParameterInput} = {};
+        const multiSelectParamList = ['detectors'];
+        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
+
+        for (const param of allowedPlans[plan].parameters) {
+            const defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
+            const isRequiredByDefinition = (param.description && param.description.toLowerCase().trim().startsWith("req"));
+            tempParameters[param.name] = {...param, value: defaultValue, required: requiredParamList.includes(param.name) || isRequiredByDefinition === true};
+        }
+
+        if (parameters !== undefined) {
+            for (const key in parameters) {
+                tempParameters[key].value = parameters[key] as string | string[];
+            }
+        }
+
+        setParameters(tempParameters);
+        updateBodyKwargs(tempParameters);
+    }, [allowedPlans, updateBodyKwargs]);
+
+    const handlePlanSelect = (plan: string) => {
+        if (activePlan !== plan) {
+            setActivePlan(plan);
+            initializeParameters(plan);
+            updateBodyName(plan);
+            setResetInputsTrigger(prev => !prev);
+        }
     };
 
     const updateBodyName = (name: string) => {
         setBody(state => {
-            var stateCopy = state;
+            const stateCopy = state;
             stateCopy.item.name = name;
             return stateCopy;
         });
     };
 
     const checkRequiredParameters = () => {
-        var allRequiredParametersFilled = true;
-        for (var key in parameters) {
+        let allRequiredParametersFilled = true;
+        for (const key in parameters) {
             if (parameters[key].required && parameters[key].value.length === 0) {
                 allRequiredParametersFilled = false;
                 break;
@@ -169,7 +169,7 @@ export function useQSAddItem({
     // Submission handlers
     const handleSubmissionResponse = (response: PostItemAddResponse) => {
         setIsSubmissionPopupOpen(true);
-        setSubmissionResponse(response);
+        setSubmissionResponse(response as unknown as Record<string, unknown>);
         if (response.success === true) {
             //close the popup after 5 seconds
             setTimeout(() => {
@@ -180,14 +180,14 @@ export function useQSAddItem({
     };
 
     const submitPlan = (body: AddQueueItemBody) => {
-        let allRequiredParametersFilled = checkRequiredParameters();
+        const allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
             postQueueItem(body, handleSubmissionResponse);
         }
     };
 
     const executePlan = (body: ExecuteQueueItemBody) => {
-        let allRequiredParametersFilled = checkRequiredParameters();
+        const allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
             const executeBody = {
                 item: body.item
@@ -214,8 +214,8 @@ export function useQSAddItem({
     };
 
     const handlePositionInputChange = (val: string) => {
-        var sanitizedVal: string;
-        
+        let sanitizedVal: string;
+
         if (typeof val === 'string' && !isNaN(parseInt(val))) {
             sanitizedVal = val.trim();
         } else {
@@ -227,7 +227,7 @@ export function useQSAddItem({
         }
 
         setBody(state => {
-            var stateCopy = state;
+            const stateCopy = state;
             stateCopy.pos = sanitizedVal;
             return stateCopy;
         });
@@ -244,10 +244,10 @@ export function useQSAddItem({
         if (copiedPlan !== null) {
             setIsExpanded(true);
             setActivePlan(copiedPlan.name);
-            initializeParameters(copiedPlan.name, copiedPlan.parameters);
+            initializeParameters(copiedPlan.name, copiedPlan.parameters as Record<string, unknown>);
             updateBodyName(copiedPlan.name);
         }
-    }, [copiedPlan]);
+    }, [copiedPlan, initializeParameters]);
 
     // Return all state and handlers that the component needs
     return {
@@ -262,11 +262,11 @@ export function useQSAddItem({
         body,
         positionInput,
         resetInputsTrigger,
-        
+
         // State setters
         setActivePlan,
         setParameters,
-        
+
         // Handlers
         handlePlanSelect,
         handleSubmissionResponse,

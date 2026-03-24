@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 
-import SignalMonitorPlot from "@/components/SignalMonitorPlotPV";
 import SignalMonitorPlotOphyd from "@/components/SignalMonitorPlotOphyd";
 import DeviceControllerBox from "@/components/DeviceControllerBox";
 import useOphydSocket from "@/hooks/useOphydSocket";
@@ -36,7 +35,7 @@ export default function Beamstop(
     const beamstopXNameRBV = useMemo(()=>beamstopXName + '.RBV', [beamstopXName]);
     const beamstopYNameRBV = useMemo(()=> beamstopYName + '.RBV', [beamstopYName]);
     const deviceNameList = useMemo(()=>[beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName], [beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName]);
-    const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } = useOphydSocket(deviceNameList);
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList);
     const [ bestCurrent, setBestCurrent ] = useState<number | null>(null);
     const [bestXValue, setBestXValue] = useState<number | null>(null);
     const [bestYValue, setBestYValue] = useState<number | null>(null);
@@ -66,7 +65,7 @@ export default function Beamstop(
                 }
             }
         }
-    }, [devices]);
+    }, [devices, beamstopCurrentName, beamstopXName, beamstopYName, bestCurrent]);
     return (
         <section className={`w-full h-full ${stackVertical ? 'flex-col' : 'max-w-[1200px]'} flex max-h-[800px] relative`}>
             <article className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full'}  bg-white flex flex-col p-8`}>

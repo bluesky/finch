@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-//import { getQSConsoleUrl } from '../../utilities/connectionHelper';
 import { getQSConsoleUrl } from './utils/apiClient';
 import { WidgetStyleProps } from './Widget';
 import './styles/qserver.css';
@@ -40,10 +39,10 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
         setIsToggleOn(!isToggleOn);
     };
 
-    const handleWebSocketMessage = (event:any) => {
+    const handleWebSocketMessage = (event: MessageEvent) => {
         //console.log('received message from ws');
         //this function receives the websocket message and displays it to the client
-        var eventData = JSON.parse(event.data);
+        const eventData = JSON.parse(event.data) as Record<string, string>;
         //console.log({eventData});
         if ("msg" in eventData) {
 
@@ -52,9 +51,9 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
                 //console.log({messages});
                 if (eventData.msg === "\n") return messages;
 
-                var id = 0;
+                let id = 0;
                 if (messages.length > 0) id = messages.length;
-                var timeStamp;
+                let timeStamp;
                 if ("time" in eventData) {
                     timeStamp = dayjs.unix(parseFloat(eventData.time)).format('hh:mm:ss::SSS a'); 
                 } else {
@@ -63,10 +62,10 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
 
                 //process the message, sometimes it contains "[ date and service ] ...." at the 
                 //start of the message which becomes difficult to read
-                var bracketText = '';
-                var mainText = '';
+                let bracketText = '';
+                let mainText = '';
                 if (eventData.msg.startsWith('[')) {
-                    var closingBracketIndex = eventData.msg.indexOf(']');
+                    const closingBracketIndex = eventData.msg.indexOf(']');
                     bracketText = eventData.msg.slice(0, closingBracketIndex + 1); 
                     mainText = eventData.msg.slice(closingBracketIndex + 1);
                 } else {
@@ -77,7 +76,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
                 //console.log({bracketText});
                 //console.log({mainText});
                 processConsoleMessage(mainText.trim()); //check keywords, update other React state if matches found
-                var newMessage = {mainText: mainText, bracketText: bracketText, time: timeStamp, id: id};
+                const newMessage = {mainText: mainText, bracketText: bracketText, time: timeStamp, id: id};
             
           
                 return [...messages, newMessage];
@@ -103,7 +102,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
         }
     }
 
-    const initializeConnection = (wsUrl:string, connection:React.MutableRefObject<WebSocket | null>, isOpened:boolean) => {
+    const initializeConnection = (wsUrl:string, connection:React.MutableRefObject<WebSocket | null>, _isOpened:boolean) => {
         //Ensure wsUrl is not empty
         if (wsUrl === '') {
             return;
@@ -112,7 +111,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
         closeWebSocket(connection);
     
 
-        var socket = new WebSocket(wsUrl);
+        const socket = new WebSocket(wsUrl);
 
         setStatusMessage("Attempting WS Connection");
 
@@ -127,7 +126,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
 
     
         //if websocket opens, add event listener for messages
-        socket.addEventListener("open", event => {
+        socket.addEventListener("open", _event => {
             setIsOpened(true);
             console.log("Opened connection in socket to: " + wsUrl);
             setStatusMessage("Opened connection " + dayjs().format('hh:mm A'));
@@ -136,7 +135,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
         });
 
         //if websocket closes, attempt to reconnect & display a message
-        socket.addEventListener("close", event => {
+        socket.addEventListener("close", _event => {
             console.log('ws connection to fastapi server closed');
             setIsToggleOn(false);
             if (hasErrorOccuredRef.current === true) {
@@ -179,6 +178,7 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
 
     useEffect(() => {
         toggleSwitch();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getSearchResults, TiledSearchConfig } from "@blueskyproject/tiled";
 import { checkRunCompletion } from "../utils/tiledUtils";
 
@@ -40,7 +40,7 @@ export const useTiledWriterScatterPlot = (
     const [retryInterval, setRetryInterval] = useState<NodeJS.Timeout | null>(null);
 
     // Function to start polling for completion
-    const startCompletionPolling = (customPollingInterval?: number) => {
+    const startCompletionPolling = useCallback((customPollingInterval?: number) => {
         console.log(`[useTiledWriterScatterPlot] Starting completion polling for run: ${blueskyRunId}`);
         
         const intervalId = setInterval(async () => {
@@ -56,7 +56,7 @@ export const useTiledWriterScatterPlot = (
         }, customPollingInterval || pollingIntervalMs);
         
         setPollingInterval(intervalId);
-    };
+    }, [blueskyRunId, tiledBaseUrl, pollingIntervalMs]);
 
     // Function to stop polling
     const stopCompletionPolling = () => {
@@ -68,16 +68,16 @@ export const useTiledWriterScatterPlot = (
     };
 
     // Function to stop retry polling
-    const stopRetryPolling = () => {
+    const stopRetryPolling = useCallback(() => {
         if (retryInterval) {
             clearInterval(retryInterval);
             setRetryInterval(null);
             console.log(`[useTiledWriterScatterPlot] Stopped retry polling`);
         }
-    };
+    }, [retryInterval]);
 
     // Function to handle successful path discovery
-    const handleSuccessfulPath = async (finalPath: string, pathType: string) => {
+    const handleSuccessfulPath = useCallback(async (finalPath: string, pathType: string) => {
         console.log(`[useTiledWriterScatterPlot] Success! Using ${pathType} path: ${finalPath}`);
         setTiledPath(finalPath);
         setIsLoading(false);
@@ -96,7 +96,7 @@ export const useTiledWriterScatterPlot = (
                 startCompletionPolling();
             }
         }
-    };
+    }, [blueskyRunId, isRunFinished, stopRetryPolling, startCompletionPolling]);
 
     // Find the Tiled path
     useEffect(() => {
@@ -139,7 +139,7 @@ export const useTiledWriterScatterPlot = (
                         await handleSuccessfulPath(finalPath, "streams");
                         return true;
                     }
-                } catch (streamsError) {
+                } catch (_streamsError) {
                     console.log(`[useTiledWriterScatterPlot] Streams path not found, trying direct primary path`);
                 }
                 
@@ -154,7 +154,7 @@ export const useTiledWriterScatterPlot = (
                         await handleSuccessfulPath(finalPath, "direct");
                         return true;
                     }
-                } catch (directError) {
+                } catch (_directError) {
                     console.log(`[useTiledWriterScatterPlot] Direct primary path not found either`);
                 }
                 
@@ -210,7 +210,7 @@ export const useTiledWriterScatterPlot = (
         };
 
         startSearch();
-    }, [blueskyRunId, isRunFinished]);
+    }, [blueskyRunId, isRunFinished, handleSuccessfulPath, stopRetryPolling]);
 
     // Cleanup intervals on unmount
     useEffect(() => {

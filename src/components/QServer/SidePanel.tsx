@@ -4,11 +4,11 @@ import sleepingIcon from './images/sleepingManIcon.png';
 import './styles/qserver.css';
 import './RunningIcon.css';
 import React, { Fragment, Children } from "react";
+import { HistoryItem, QueueItem } from "./types/apiTypes";
 
 type SidePanelProps = {
-    queueData: any[];
-    queueHistoryData: any[];
-    isREToggleOn: boolean;
+    queueData: QueueItem[];
+    queueHistoryData: HistoryItem[];
     handleSidepanelExpandClick: (isExpanded: boolean) => void;
     isSidepanelExpanded: boolean;
     runEngineState?: string | null;
@@ -17,7 +17,6 @@ type SidePanelProps = {
 export default function SidePanel({
     queueData=[],
     queueHistoryData=[], 
-    isREToggleOn=false,
     handleSidepanelExpandClick=()=>{},
     isSidepanelExpanded=false,
     runEngineState,

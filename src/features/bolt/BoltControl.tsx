@@ -9,7 +9,7 @@ import { deviceIcons } from '@/assets/icons';
 
 export default function BoltControl() {
     const deviceNameList = useMemo(()=>['IOC:m1', 'IOC:m2'], []);
-    const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } = useOphydSocket(deviceNameList);
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList);
 
     return (
         <Bento>

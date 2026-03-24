@@ -6,7 +6,7 @@ import QItem from "./QItem";
 import { Tooltip } from "react-tooltip";
 import { useQSAddItem } from "./hooks/useQSAddItem";
 
-import { CopiedPlan } from "./types/types";
+import { CopiedPlan, GlobalMetadata } from "./types/types";
 import { WidgetStyleProps } from "./Widget";
 
 const positionTooltipMessage = 'The position for the plan to be inserted at. \n Type = String or Integer. \n Default = "back" for the back of the Queue. \n Use "front" to insert at the front of the Queue. \n Integer values may be used, where 0 represents the front of the Queue.'
@@ -14,7 +14,7 @@ const positionTooltipMessage = 'The position for the plan to be inserted at. \n 
 type QsAddItemProps = WidgetStyleProps & {
     copiedPlan?: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
-    globalMetadata?: {[key: string]: any};
+    globalMetadata?: GlobalMetadata;
 };
 
 export default function QSAddItem({

@@ -1,9 +1,7 @@
 import { useState, Fragment, useEffect } from "react";
 import { useStatusQuery } from './hooks/useQServerQueries';
 import QItemPopupRow from './QItemPopupRow';
-
-import { PopupItem, HistoryResultRow } from "./types/types";
-
+import { PopupItem, HistoryResultRow, ParameterInputDict } from "./types/types";
 import DeleteResultPopup from "./DeleteResultPopup";
 import ConfirmDeleteItemPopup from "./ConfirmDeleteItemPopup";
 import Button from "../Button";
@@ -12,7 +10,7 @@ import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
 import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
 import { deleteQueueItem, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
-import { GetRunsActiveResponse, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
+import { GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
 
 import dayjs from "dayjs";
 
@@ -21,7 +19,7 @@ type QItemPopupProps = {
     popupItem: PopupItem;
     handleQItemPopupClose: () => void;
     isItemDeleteButtonVisible?: boolean;
-    handleCopyItemClick?: (name: string, kwargs: { [key: string]: any }) => void;
+    handleCopyItemClick?: (name: string, kwargs: ParameterInputDict) => void;
     isItemRunning?: boolean;
 }
 export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick, isItemRunning }: QItemPopupProps) {
@@ -29,11 +27,10 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const [areResultsVisible, setAreResultsVisible] = useState(false);
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
     const [isTracebackCopied, setIsTracebackCopied] = useState(false);
-    const [runsActiveResponse, setRunsActiveResponse] = useState<GetRunsActiveResponse| null>(null);
     const [apiStatusResponse, setApiStatusResponse] = useState<GetStatusResponse | null>(null);
 
     // Use the centralized status query from our query hooks
-    const { data: statusData, isLoading: statusLoading, error: statusError } = useStatusQuery();
+    const { data: statusData, error: statusError } = useStatusQuery();
 
     // Update state when statusData changes
     useEffect(() => {
@@ -46,7 +43,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const isHistory = 'result' in popupItem;
 
 
-    const handleDeleteResponse = (data: any) => {
+    const handleDeleteResponse = (data: PostItemRemoveResponse) => {
         setAreResultsVisible(true);
         setResponse(data);
         if (data?.success === true) {
@@ -81,7 +78,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     };
 
     const handleCopyTracebackClick = () => {
-        (popupItem.result && popupItem.result.traceback) &&
+        if (popupItem.result && popupItem.result.traceback) {
         navigator.clipboard.writeText(popupItem.result.traceback)
             .then(() => {
                 setIsTracebackCopied(true);
@@ -89,9 +86,10 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             .catch((err) => {
                 console.error('Failed to copy traceback: ', err);
             });
+        }
     };
 
-    const handleCopyClick = (name:string, kwargs: { [key: string]: any } | undefined) => {
+    const handleCopyClick = (name:string, kwargs: ParameterInputDict | undefined) => {
         //close the popup after the item is copied so user can immediately see the plan below the popup
         if (!handleCopyItemClick) return;
         if (kwargs) {
@@ -108,18 +106,6 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
             handleQItemPopupClose();
         }
     };
-
-    const displayKwarg = (value: [] | string) => {
-        //value may be an Array, String, or Object
-        if (Array.isArray(value)) {
-            return value.toString().replaceAll(',', ', ');
-        } else if (typeof value === 'string') {
-            return value;
-        } else {
-            return JSON.stringify(value);
-        }
-    };
-
 
     //to do - revise this for a single return with conditional rendering onthe div / p tag for content
     const printParameter = (kwarg:string) => {
@@ -177,7 +163,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         },
     ];
 
-    var results:HistoryResultRow[] = [];
+    let results:HistoryResultRow[] = [];
     if (isHistory && popupItem.result) {
         const result = popupItem.result;
         results = [

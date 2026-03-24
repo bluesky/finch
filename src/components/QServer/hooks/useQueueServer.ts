@@ -6,7 +6,7 @@ import { GlobalMetadata, PlanInput } from '../types/types';
 export const useQueueServer = () => {
     const [ currentQueue, setCurrentQueue ] = useState<GetQueueResponse | null>(null);
     const [ queueHistory, setQueueHistory ] = useState<GetHistoryResponse | null>(null);
-    const [runningItem, setRunningItem] = useState<RunningQueueItem | null>(null);
+    const [runningItem, setRunningItem] = useState<RunningQueueItem | null | Record<string, never>>(null);
     const [isREToggleOn, setIsREToggleOn] = useState(false);
     const runEngineToggleRef = useRef(isREToggleOn);
     const [ globalMetadata, setGlobalMetadata ] = useState<GlobalMetadata>({});
@@ -30,29 +30,29 @@ export const useQueueServer = () => {
                 });
 
                setRunningItem((prevState) => {
-                const isItemRunning = Object.keys(res.running_item).length > 0;
-                //no running item before, and nothing running now:
-                if (prevState === null && !isItemRunning ) {
-                    //still not active item
+                    const isItemRunning = Object.keys(res.running_item).length > 0;
+                    //no running item before, and nothing running now:
+                    if (prevState === null && !isItemRunning ) {
+                        //still not active item
+                        return prevState;
+                    }
+
+                    //no running item before, but there is now:
+                    if (prevState === null && isItemRunning && 'item_uid' in res.running_item) {
+                        return res.running_item;
+                    }
+
+                    //item running before, different item running now:
+                    if ((isItemRunning && 'item_uid' in res.running_item) && (prevState !== null) && (prevState.item_uid !== res.running_item.item_uid)) {
+                        return res.running_item as RunningQueueItem;
+                    }
+
+                    //item running before, no item running now:
+                    if (!isItemRunning && prevState !== null) {
+                        return null;
+                    }
                     return prevState;
-                }
-
-                //no running item before, but there is now:
-                if (prevState === null && isItemRunning && 'item_uid' in res.running_item) {
-                    return res.running_item;
-                }
-
-                //item running before, different item running now:
-                if ((isItemRunning && 'item_uid' in res.running_item) && (prevState !== null) && (prevState.item_uid !== res.running_item.item_uid)) {
-                    return res.running_item;
-                }
-
-                //item running before, no item running now:
-                if (!isItemRunning && prevState !== null) {
-                    return null;
-                }
-                return prevState;
-               })
+               });
                 setIsREToggleOn(Object.keys(res.running_item).length > 0);
             }
         } catch(error) {

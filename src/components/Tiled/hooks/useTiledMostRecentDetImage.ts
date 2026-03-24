@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState, useRef } from 'react';
-import { checkRunCompletion } from '../utils/tiledUtils';
+import { useState, useRef } from 'react';
 
 type UseTiledMostRecentDetImageOptions = {
     /** Milliseconds between Tiled search polls. Defaults to `2000`. */
@@ -95,7 +94,7 @@ export const useTiledMostRecentDetImage = (
                             }
                         }
                     }
-                } catch (detImageError) {
+                } catch (_detImageError) {
                     continue;
                 }
             }
@@ -112,7 +111,7 @@ export const useTiledMostRecentDetImage = (
         data: blueskyRunId,
         isLoading,
         error,
-        refetch
+        refetch: _refetch
     } = useQuery({
         queryKey: ['tiledMostRecentDetImage', tiledBaseUrl],
         queryFn: searchForDetImage,

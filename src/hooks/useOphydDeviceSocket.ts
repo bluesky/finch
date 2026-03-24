@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Device, Devices, OphydDevices } from 'src/types/deviceControllerTypes';
+import { OphydDevices } from 'src/types/deviceControllerTypes';
 import {
     MessageResponse,
     ErrorResponse,
@@ -193,7 +193,7 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, deviceNameList]);
+    }, [wsUrl, deviceNameList, apiUrl]);
 
     return {
         devices,

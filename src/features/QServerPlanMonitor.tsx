@@ -14,7 +14,7 @@ export type QServerPlanMonitorProps = {
 export default function QServerPlanMonitor({ className = '' }: QServerPlanMonitorProps) {
     const [ isSidepanelExpanded, setIsSidepanelExpanded ] = useState(false);
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
-    const [ popupItem, setPopupItem ] = useState<any>(null);
+    const [ popupItem, setPopupItem ] = useState<null | PopupItem>(null);
     const [ isItemDeleteButtonVisible, setIsItemDeleteButtonVisible ] = useState(true);
 
     const handleSidepanelExpandClick = () => {

@@ -29,9 +29,8 @@ import {
 
 
 const initializeQueueServerKey = () => {
-    var key;
     const defaultKey = 'test';
-    key = import.meta.env.VITE_QSERVER_API_KEY || defaultKey;
+    const key = import.meta.env.VITE_QSERVER_API_KEY || defaultKey;
     return key;
 }
 
@@ -39,7 +38,7 @@ const initializeQueueServerApiUrl = () => {
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
     const port = ":60610";
-    var httpUrl;
+    let httpUrl;
     if (import.meta.env.VITE_QSERVER_API_URL) {
         httpUrl = import.meta.env.VITE_QSERVER_API_URL
     } else {
@@ -59,7 +58,7 @@ const getQSConsoleUrl = () => {
     const currentWebsitePort = window.location.port;
     const pathname = "/api/v1/qs-console-socket";
     const port = ":8001";
-    var wsUrl;
+    let wsUrl;
 
     if (import.meta.env.VITE_QSERVER_WS) {
         wsUrl = import.meta.env.VITE_QSERVER_WS;
@@ -74,7 +73,7 @@ const getQSConsoleUrl = () => {
     return wsUrl;
 };
 
-var queueServerApiUrl = initializeQueueServerApiUrl();
+let queueServerApiUrl = initializeQueueServerApiUrl();
 const setQueueServerApiUrl = (url:string) => {
     queueServerApiUrl = url;
 }

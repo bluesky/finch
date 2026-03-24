@@ -11,20 +11,19 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, openWorkerEnvironment, setQueueServerApiUrl } from "./utils/apiClient";
+import { getStatus, openWorkerEnvironment } from "./utils/apiClient";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
-import { CopiedPlan, PopupItem } from "./types/types";
+import { CopiedPlan, ParameterInputDict, PopupItem } from "./types/types";
 import { GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
 
 import { cn } from '@/lib/utils';
 
 export type ContainerQServerProps = {
     className?: string;
-    url?: string;
 }
-export default function ContainerQServer({className, url}:ContainerQServerProps) {
+export default function ContainerQServer({className}:ContainerQServerProps) {
 
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
     const [ popupItem, setPopupItem ] = useState<PopupItem | null>(null);
@@ -90,15 +89,15 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
  * @param {object} kwargs - Object of format {key1: value1, key2: value2, ...}
  * // The values may be string, array, or objects
  */
-    const handleCopyItemClick = (name:string='', kwargs:{[key:string]:any}) => {
+    const handleCopyItemClick = (name:string='', kwargs:ParameterInputDict) => {
         //Copy over the selected item (including kwargs) to QSAddItem
         //Note that 'kwargs' effectively become 'parameters' for the plan object.
         //The backend API calls must use 'kwargs' keyword in JSON requests, the frontend names these as 'parameters' to be more user-friendly.
-        var plan = {
+        const plan = {
             name: name,
             parameters: kwargs //'kwargs' become 'parameters'
         };
-        var sanitizedPlan = removeDuplicateMetadata(plan);
+        const sanitizedPlan = removeDuplicateMetadata(plan);
         setCopiedPlan(sanitizedPlan);
     };
 
@@ -129,12 +128,11 @@ export default function ContainerQServer({className, url}:ContainerQServerProps)
                 <SidePanel 
                     queueData={currentQueue?.items || []}
                     queueHistoryData={queueHistory?.items || []} 
-                    isREToggleOn={isREToggleOn} 
                     handleSidepanelExpandClick={handleSidepanelExpandClick}
                     isSidepanelExpanded={isSidepanelExpanded}
                     runEngineState={apiStatus ? apiStatus.re_state : null}
                 >
-                    <QSList type="short" queueData={currentQueue?.items || []} handleQItemClick={handleCurrentQItemClick}/>
+                    <QSList type="short" queueData={currentQueue?.items as PopupItem[] || []} handleQItemClick={handleCurrentQItemClick}/>
                     <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn} handleItemClick={handleRunEngineItemClick}/>
                     <QSList type="history" queueData={queueHistory?.items || []} handleQItemClick={handleHistoryQItemClick}/>
                 </SidePanel>

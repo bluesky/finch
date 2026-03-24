@@ -54,7 +54,7 @@ export default function TextInput(
 
     useEffect(() => {
         setInputValue(value);
-    }, [copiedPlan])
+    }, [copiedPlan, value])
 
     return (
        <div className={`border-2 border-slate-300 rounded-lg w-5/12 max-w-48 min-w-36 mt-2 h-fit ${styles}`}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 type UseTiledWriterDetImageHeatmapOptions = {
     /** When `true`, disables polling because the run is already complete. Defaults to `false`. */
@@ -24,7 +24,7 @@ export function useTiledWriterDetImageHeatmap(
     const [error, setError] = useState<string | null>(null);
     const [enablePolling, setEnablePolling] = useState<boolean>(!isRunFinished);
 
-    const checkForDetImage = async () => {
+    const checkForDetImage = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
@@ -73,7 +73,7 @@ export function useTiledWriterDetImageHeatmap(
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [blueskyRunId, tiledBaseUrl, enablePolling]);
 
     useEffect(() => {
         if (!blueskyRunId) {
@@ -91,7 +91,7 @@ export function useTiledWriterDetImageHeatmap(
             const interval = setInterval(checkForDetImage, pollingIntervalMs);
             return () => clearInterval(interval);
         }
-    }, [blueskyRunId, enablePolling, isRunFinished, pollingIntervalMs, tiledBaseUrl]);
+    }, [blueskyRunId, enablePolling, isRunFinished, pollingIntervalMs, tiledBaseUrl, checkForDetImage]);
 
     // Update polling state when isRunFinished changes
     useEffect(() => {

@@ -4,11 +4,12 @@ import SettingsAudioAlert from './SettingsAudioAlert';
 import SettingsScreenLock from './SettingsScreenLock';
 import SettingsAuthentication from './SettingsAuthentication';
 import { WidgetStyleProps } from './Widget';
+import { GlobalMetadata } from './types/types';
 
 type SettingsContainerProps = WidgetStyleProps & {
   isGlobalMetadataChecked: boolean;
   handleGlobalMetadataCheckboxChange: (isChecked:boolean) => void;
-  updateGlobalMetadata: (newGlobalMetadata: any) => void;
+  updateGlobalMetadata: (newGlobalMetadata: GlobalMetadata) => void;
 };
 export default function SettingsContainer({isGlobalMetadataChecked=false, handleGlobalMetadataCheckboxChange=()=>{}, updateGlobalMetadata=()=>{}}: SettingsContainerProps) {
   const [selectedSetting, setSelectedSetting] = useState('Metadata');

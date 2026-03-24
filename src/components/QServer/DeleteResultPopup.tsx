@@ -13,26 +13,6 @@ export default function DeleteResultPopup( {handleCloseClick=()=>{}, response }:
     const closePopup = () => {
         handleCloseClick();
     };
-
-    const mockDeleteQueueItemResponse = {
-        "success": true,
-        "msg": "",
-        "item": {
-          "name": "count",
-          "kwargs": {
-            "detectors": [
-              "ab_det",
-              "custom_test_flyer"
-            ],
-            "num": 10
-          },
-          "item_type": "plan",
-          "user": "UNAUTHENTICATED_SINGLE_USER",
-          "user_group": "primary",
-          "item_uid": "1c5e0e17-5452-426c-9959-aa3e51f0e1d8"
-        },
-        "qsize": 0
-    };
     const SuccessMessage = () => {
         return (
         <Fragment>
@@ -42,7 +22,6 @@ export default function DeleteResultPopup( {handleCloseClick=()=>{}, response }:
         </Fragment>
         )
     };
-
     const FailureMessage = () => {
        return (
         <Fragment>
@@ -50,9 +29,7 @@ export default function DeleteResultPopup( {handleCloseClick=()=>{}, response }:
             <p className="mx-4 text-black">{response.msg}</p>
         </Fragment>
        )
-    }
-
-
+    };
 
     return (
         <div className={` absolute z-20 top-0 h-full w-full bg-slate-100/90 flex items-center justify-center rounded-lg`}>

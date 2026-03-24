@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { TiledPlotlyTrace } from "./types/tiledPlotTypes"
 import { useTiledWriterScatterPlot } from "./hooks/useTiledWriterScatterPlot";
 import TiledScatterPlot from "./TiledScatterPlot";
@@ -77,9 +76,10 @@ export default function TiledWriterScatterPlot({
                     {getStatusText()}
                 </p>
             )}
-            <TiledScatterPlot 
+            <TiledScatterPlot
                 path={tiledPath}
                 tiledTrace={tiledTrace}
+                partition={partition}
                 enablePolling={enablePolling}
                 pollingIntervalMs={pollingIntervalMs || 1000}
                 className={className}

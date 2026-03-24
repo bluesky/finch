@@ -1,3 +1,5 @@
+import { ParameterInputDict } from "./types";
+
 interface PlanQueueMode {
     loop: boolean;
     ignore_failures: boolean;
@@ -19,7 +21,7 @@ export interface GetStatusResponse {
     worker_environment_exists: boolean;
     worker_environment_state: string;
     worker_background_tasks: number;
-    re_state: string;
+    re_state: string | null;
     ip_kernel_state: string | null;
     ip_kernel_captured: string | boolean | null;
     pause_pending: boolean;
@@ -110,8 +112,8 @@ export interface GetPlansAllowedResponse {
 //For now we are allowing the use of either kwargs or args. Ideally every plan on the qserver takes kwargs ONLY, but this requires implementation of the qserver which may be lab specific.
 export interface BaseQueueItem {
     name: string;
-    kwargs?: { [key: string]: any };
-    args?: any[];
+    kwargs?: ParameterInputDict;
+    args?: unknown[];
     item_type: string;
 }
 
@@ -121,8 +123,7 @@ export interface QueueItem extends BaseQueueItem {
     item_uid: string;
 }
 
-export interface FailedQueueItem extends BaseQueueItem {   
-}
+export type FailedQueueItem = BaseQueueItem;
 
 export interface RunningQueueItem extends QueueItem {
     properties: {
@@ -150,13 +151,13 @@ export interface GetQueueResponse {
     msg: string;
     items: QueueItem[];
     plan_queue_uid: string;
-    running_item: RunningQueueItem | {}; 
+    running_item: RunningQueueItem | Record<string, never>;
 }
 
 export interface Result {
     exit_status: string;
     run_uids: string[];
-    scan_ids: number[];
+    scan_ids: string[];
     time_start: number;
     time_stop: number;
     msg: string;
@@ -181,7 +182,7 @@ export interface PostItemAddResponse {
     qsize: number | null;
 }
 
-export interface PostItemExecuteResponse extends PostItemAddResponse {}
+export type PostItemExecuteResponse = PostItemAddResponse;
 
 export interface PostEnvironmentOpenResponse {
     success: boolean;

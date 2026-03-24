@@ -74,7 +74,7 @@ export default function SignalMonitorPlotDevice({
             const newMarkerSize = Array.from({ length: n }, (_, i) => n === 1 ? 8 : Math.round(3 + (i / (n - 1)) * 5));
             return { ...prevData, x: newX, y: newY, marker: { ...prevData.marker, size: newMarkerSize } };
         });
-    }, []);
+    }, [numVisiblePoints, showMarkers]);
 
     const addTickValue = useCallback((newXValue: string) => {
         setXLayout((prevLayout) => {
@@ -96,7 +96,7 @@ export default function SignalMonitorPlotDevice({
                 return prevLayout;
             }
         });
-    }, [numVisiblePoints]);
+    }, [numVisiblePoints, tickTextIntervalSeconds]);
 
     useEffect(() => {
         if (demo) {
@@ -125,7 +125,7 @@ export default function SignalMonitorPlotDevice({
             }, pollingIntervalMilliseconds);
             return () => clearInterval(interval);
         }
-    }, [addSinglePoint, demo, pollingIntervalMilliseconds]);
+    }, [addSinglePoint, addTickValue, demo, numVisiblePoints, pollingIntervalMilliseconds, showMarkers]);
 
     const currentValue = device?.value;
     const formattedValue = typeof currentValue === 'number'

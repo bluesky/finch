@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import PlotlyScatter from "../PlotlyScatter";
+import { PlotData } from "plotly.js";
 
 import { getTableDataAsJson } from "@blueskyproject/tiled";
 import { TiledPlotlyTrace } from "./types/tiledPlotTypes";
@@ -60,7 +61,7 @@ export default function TiledScatterPlot({ tiledTrace, path, partition=0, tiledB
     };
 
     // Prepare plot data
-    let plotData: any[] = [];
+    let plotData: Partial<PlotData>[] = [];
     const xName = tiledTrace.x;
     const yName = tiledTrace.y;
     

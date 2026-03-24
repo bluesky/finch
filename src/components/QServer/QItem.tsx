@@ -1,16 +1,17 @@
-import { Fragment } from 'react';
 import { tailwindIcons } from '../../assets/icons';
 import { getPlanColor } from './utils/qItemColorData';
+import { BaseQueueItem, QueueItem, HistoryItem } from './types/apiTypes';
+import { ParameterInput } from './types/types';
 
 type QItemProps = {
-    item: any;
+    item: BaseQueueItem | QueueItem | HistoryItem | null;
     label?: string;
     text?: string;
     styles?: string;
-    handleClick?: (arg: any) => void;
+    handleClick?: () => void;
     type: 'history' | 'current' | 'blank';
 };
-export default function QItem ({ item=false, label='', text='', styles='', handleClick=()=>{}, type="current" }: QItemProps) {
+export default function QItem ({ item=null, label='', text='', styles='', handleClick=()=>{}, type="current" }: QItemProps) {
     const commonStyles = 'w-32 rounded-md mx-2  hover:shadow-lg hover:shadow-gray-500 list-none overflow-auto';
 
     if (!item) {
@@ -25,7 +26,7 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
         }
     }
     
-    const displayKwarg = (value:[]|string|{[key:string]:any}) => {
+    const displayKwarg = (value:[]| string | ParameterInput) => {
         //value may be an Array, String, or Object
         if (Array.isArray(value)) {
             return value.toString().replaceAll(',', ', ');
@@ -41,47 +42,48 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
     if (item!== null && Object.keys(item).length > 0 ) {
         if (type === 'history') {
             //Queue History
-            const failed = item.result.exit_status === 'failed';
+            const historyItem = item as HistoryItem;
+            const failed = historyItem.result.exit_status === 'failed';
             return (
                 <div className={`${failed ? 'mt-12' : 'mt-6'} flex flex-col items-center relative h-20`}>
-                    {failed ? <div className="text-red-500 absolute left-1/2 transform -translate-x-1/2 -translate-y-full aspect-square h-6">{tailwindIcons.exclamationTriangle}</div> : ''}                    
-                    <li className={`${commonStyles} hover:cursor-pointer border ${item.result.exit_status === 'failed' ? 'border-red-600 border-2' : 'border-slate-500'}  bg-slate-100 overflow-clip rounded-t-md h-16 ${styles}`} onClick={handleClick}>
+                    {failed ? <div className="text-red-500 absolute left-1/2 transform -translate-x-1/2 -translate-y-full aspect-square h-6">{tailwindIcons.exclamationTriangle}</div> : ''}
+                    <li className={`${commonStyles} hover:cursor-pointer border ${historyItem.result.exit_status === 'failed' ? 'border-red-600 border-2' : 'border-slate-500'}  bg-slate-100 overflow-clip rounded-t-md h-16 ${styles}`} onClick={handleClick}>
                         <span className={`${getPlanColor(item.name)} flex items-center justify-around rounded-t-md opacity-80 overflow-x-hidden`}>
-                            <p className={` text-white text-center `}>{item.name}</p>
+                            <p className={` text-white text-center `}>{historyItem.name}</p>
                         </span>
                         
                         <div className="text-xs ml-2 flex-grow overflow-hidden">
-                            {('kwargs' in item && 'md' in item.kwargs) ? 
-                                <Fragment>
-                                    {Object.keys(item.kwargs.md).map((key) => {
+                            {(historyItem?.kwargs && 'md' in historyItem.kwargs) ? 
+                                <>
+                                    {Object.entries(historyItem.kwargs.md).map(([key, value]) => {
                                         return (
                                             <div className="flex flex-wrap" key={key}>
                                                 <p>{key}</p>
                                                 <p>:</p>
-                                                <p>{item.kwargs.md[key]}</p>
+                                                <p>{String(value)}</p>
                                             </div>
                                         )
                                     })}
                                     {
-                                    Object.keys(item.kwargs).map((kwarg) => {
+                                    Object.entries(historyItem.kwargs).map(([kwarg, value]) => {
                                         return (
                                             <div className="flex flex-wrap" key={kwarg}>
                                                 <p className="text-black">{kwarg} </p>
                                                 <p>:</p>
-                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(item.kwargs[kwarg])}</p>
+                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(value)}</p>
                                             </div>
                                         )
                                     })
                                     }
-                                </Fragment> 
+                                </> 
                             :
-                                ('kwargs' in item) ? 
-                                    Object.keys(item.kwargs).map((kwarg) => {
+                                (item?.kwargs) ? 
+                                    Object.entries(item.kwargs).map(([kwarg, value]) => {
                                         return (
                                             <div className="flex flex-wrap" key={kwarg}>
                                                 <p className="text-black">{kwarg} </p>
                                                 <p>:</p>
-                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(item.kwargs[kwarg])}</p>
+                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(value)}</p>
                                             </div>
                                         )
                                     })
@@ -95,43 +97,43 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
             )
         } else {
             //Current Queue Item
+            const currentItem = item as QueueItem;
             return (
                 <div className="flex flex-col items-center rounded-t-md h-20">
                     <li  className={`${commonStyles} hover:cursor-pointer h-16 border border-slate-500 bg-white overflow-clip rounded-t-md ${styles}`} onClick={handleClick}>
-                        <p className={`${getPlanColor(item.name)} text-white text-center rounded-t-md overflow-hidden`}>{item.name}</p>
+                        <p className={`${getPlanColor(currentItem.name)} text-white text-center rounded-t-md overflow-hidden`}>{currentItem.name}</p>
                         <div className="text-xs ml-2 flex-grow overflow-hidden">
-                            {('kwargs' in item && 'md' in item.kwargs) ?
-                            <Fragment>
-                                {Object.keys(item.kwargs.md).map((key) => {
-                                    return (
-                                        <div className="flex flex-wrap" key={key}>
-                                            <p>{key}</p>
-                                            <p>:</p>
-                                            <p>{item.kwargs.md[key]}</p>
-                                        </div>
-                                    )
-                                })}
-                                {
-                                Object.keys(item.kwargs).map((kwarg) => {
-                                    return (
-                                        <div className="flex flex-wrap" key={kwarg}>
-                                            <p className="text-black">{kwarg} </p>
-                                            <p>:</p>
-                                            <p className="ml-2 text-wrap text-clip">{displayKwarg(item.kwargs[kwarg])}</p>
-                                        </div>
-                                    )
-                                })
-                                }
-
-                            </Fragment> 
-                            :
-                                ('kwargs' in item) ? 
-                                    Object.keys(item.kwargs).map((kwarg) => {
+                            {(currentItem?.kwargs && 'md' in currentItem.kwargs) ?
+                                <>
+                                    {Object.entries(currentItem.kwargs.md).map(([key, value]) => {
+                                        return (
+                                            <div className="flex flex-wrap" key={key}>
+                                                <p>{key}</p>
+                                                <p>:</p>
+                                                <p>{String(value)}</p>
+                                            </div>
+                                        )
+                                    })}
+                                    {
+                                    Object.entries(currentItem.kwargs).map(([kwarg, value]) => {
                                         return (
                                             <div className="flex flex-wrap" key={kwarg}>
                                                 <p className="text-black">{kwarg} </p>
                                                 <p>:</p>
-                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(item.kwargs[kwarg])}</p>
+                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(value)}</p>
+                                            </div>
+                                        )
+                                    })
+                                    }
+                                </> 
+                            :
+                                (currentItem?.kwargs) ? 
+                                    Object.entries(currentItem.kwargs).map(([kwarg, value]) => {
+                                        return (
+                                            <div className="flex flex-wrap" key={kwarg}>
+                                                <p className="text-black">{kwarg} </p>
+                                                <p>:</p>
+                                                <p className="ml-2 text-wrap text-clip">{displayKwarg(value)}</p>
                                             </div>
                                         )
                                     })
@@ -145,23 +147,5 @@ export default function QItem ({ item=false, label='', text='', styles='', handl
             )
         }
 
-    } else {
-/*         if (type==="blank") {
-            console.log('blank')
-            return (
-                <div className="flex flex-col items-center pb-2">
-                    <li className={`${commonStyles} hover:shadow-none h-16 border border-dashed border-slate-500 min-w-32 bg-slate-400 ${styles}`}>
-                        <p className="text-center text-slate-400">{text}</p>
-                    </li>
-                </div>
-            )
-        }
-        //empty item as visual placeholder
-        //TODO: do we need to delete this, or was it normally used at line 34 QSList.tsx?
-        return (
-            <li className={`${commonStyles} hover:shadow-none h-16 border border-dashed border-slate-500 min-w-32 bg-slate-400 ${styles}`}>
-                <p className="text-center text-slate-400">{text}</p>
-            </li>
-        ) */
-    }
+    } 
 }
