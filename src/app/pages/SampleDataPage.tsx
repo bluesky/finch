@@ -7,9 +7,7 @@ import ExperimentExecutePlanButtonGeneric from "@/components/Experiment/Experime
 
 import { getPathFromLinks } from "@/components/Tiled/utils/tiledUtils";
 
-export default function SampleDataPage() {
-    const [ selectedPath, setSelectedPath ] = useState<string | null>(null);
-    
+export default function SampleDataPage() {    
     // Form state for count plan
     const [detectors, setDetectors] = useState<string>("hexapod_motor_Tz");
     const [num, setNum] = useState<number>(1);
@@ -28,7 +26,6 @@ export default function SampleDataPage() {
     const printPath = (links: TiledItemLinks) => {
         const path = getPathFromLinks(links);
         console.log("Selected Tiled path:", path);
-        setSelectedPath(path);
     }
 
     const handleDetectorsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,7 +76,7 @@ export default function SampleDataPage() {
     let parsedMetadata = {};
     try {
         parsedMetadata = JSON.parse(metadata);
-    } catch (e) {
+    } catch (_e) {
         console.warn("Invalid metadata JSON, using empty object");
     }
 
@@ -89,7 +86,7 @@ export default function SampleDataPage() {
     let parsedScanMetadata = {};
     try {
         parsedScanMetadata = JSON.parse(scanMetadata);
-    } catch (e) {
+    } catch (_e) {
         console.warn("Invalid scan metadata JSON, using empty object");
     }
 

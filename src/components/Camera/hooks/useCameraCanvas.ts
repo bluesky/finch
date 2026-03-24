@@ -61,7 +61,7 @@ export function useCameraCanvas({
         } else {
             // Return a concatenated PV based on the prefix (if provided) and a default Image suffix
             if (prefix.length > 0) {
-                let concatenatedPV = prefix + ':' + defaultImageSuffix;
+                const concatenatedPV = prefix + ':' + defaultImageSuffix;
                 return concatenatedPV;
             } else {
                 // Return a default image PV when there are no inputs
@@ -75,8 +75,8 @@ export function useCameraCanvas({
         if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
         try {
             for (const key in obj1) {
-                let val1 = obj1[key];
-                let val2 = obj2[key];
+                const val1 = obj1[key];
+                const val2 = obj2[key];
                 if (typeof val1 !== typeof val2) return false;
                 if (typeof val1 === 'string' && (val1.length < 1 || val2.length < 1)) return false;
             }
@@ -94,9 +94,9 @@ export function useCameraCanvas({
         } else {
             // Return object with concatenated values with user provided prefix and default suffixes
             if (prefix.length > 0) {
-                var tempSizePVs: {[key:string]: string} = {};
+                const tempSizePVs: {[key:string]: string} = {};
                 for (const key in defaultSizeSuffixes) {
-                    let concatenatedPV = prefix + ':' + defaultSizeSuffixes[key as keyof typeof defaultSizeSuffixes];
+                    const concatenatedPV = prefix + ':' + defaultSizeSuffixes[key as keyof typeof defaultSizeSuffixes];
                     tempSizePVs[key] = concatenatedPV;
                 }
                 return tempSizePVs;
@@ -143,20 +143,20 @@ export function useCameraCanvas({
         let nextFrame: null | ImageBitmap = null;
     
         try {
-            var url = wsUrl ? wsUrl : getDefaultCameraUrl();
+            const url = wsUrl ? wsUrl : getDefaultCameraUrl();
             ws.current = new WebSocket(url);
         } catch (error) {
             console.log({error});
             return;
         }
 
-        ws.current.onopen = (event) => {
+        ws.current.onopen = (_event) => {
             if (ws.current === null) return;
             setSocketStatus('Open');
             frameCount.current = 0;
             startTime.current = new Date();
             // send message to websocket containing the pvs for the image and pixel size          
-            let wsMessage = {imageArray_PV: getImageArrayPV(), ...getSizePVs()};
+            const wsMessage = {imageArray_PV: getImageArrayPV(), ...getSizePVs()};
             ws.current.send(JSON.stringify(wsMessage));
         };
     
@@ -182,8 +182,8 @@ export function useCameraCanvas({
                     nextFrame = imageBitmap;
                     isFrameReady = true;  // Mark frame as ready
                     if (startTime.current !== null && frameCount.current !== null) {
-                        let currentTime = new Date();
-                        var totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                        const currentTime = new Date();
+                        let totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
                         if (totalDurationSeconds > 5) {
                             // reset the total duration so we can get an accurate fps.
                             startTime.current = new Date();

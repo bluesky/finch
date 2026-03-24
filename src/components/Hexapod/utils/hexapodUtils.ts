@@ -44,7 +44,7 @@ const getSanitizedPrefix = (prefix: string) => {
 
 //Generates a list of PVs for a device given a prefix and a list of suffixes
 export function createDevicePVList(prefix: string, suffixes: string[]): string[] {
-    let sanitizedPrefix = getSanitizedPrefix(prefix);
+    const sanitizedPrefix = getSanitizedPrefix(prefix);
     return suffixes.map(suffix => `${sanitizedPrefix}:${suffix}`);
 };
 
@@ -70,7 +70,7 @@ export const generateHexapodPVList = (prefix: string) => createDevicePVList(pref
 ]);
 
 export const generateHexapodPVs = (prefix: string) => {
-    let sanitizedPrefix = getSanitizedPrefix(prefix);
+    const sanitizedPrefix = getSanitizedPrefix(prefix);
     return {
         readTx: `${sanitizedPrefix}:${readTx}`,
         readTy: `${sanitizedPrefix}:${readTy}`,

@@ -14,12 +14,10 @@ type InputGroupProps = {
     prefix: string,
     /** Map of full PV names to live device objects forwarded to each `InputField`. */
     cameraSettingsPVs: Devices,
-    /** When `false`, hides the collapsible title bar. Defaults to `true`. */
-    showTitleBar?: boolean,
     /** Callback invoked when the user submits a new value for any PV in the group. */
     onSubmit: (pv:string, value:string | boolean | number) => void
 }
-export default function InputGroup({settingsGroup, prefix='13SIM1', cameraSettingsPVs, showTitleBar=true, onSubmit}: InputGroupProps) {
+export default function InputGroup({settingsGroup, prefix='13SIM1', cameraSettingsPVs, onSubmit}: InputGroupProps) {
     const [ isExpanded, setIsExpanded ] = useState(true);
 
     const handleHeadingClick = () => {

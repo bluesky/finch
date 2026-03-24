@@ -1,7 +1,7 @@
 // types/three-examples.d.ts
 
 declare module 'three/examples/jsm/postprocessing/EffectComposer' {
-    import { WebGLRenderer, Scene, Camera, Texture } from 'three';
+    import { WebGLRenderer, Scene as _Scene, Camera as _Camera, Texture as _Texture } from 'three';
     import { Pass } from 'three/examples/jsm/postprocessing/Pass';
   
     export class EffectComposer {
@@ -22,7 +22,7 @@ declare module 'three/examples/jsm/postprocessing/EffectComposer' {
   }
   
   declare module 'three/examples/jsm/postprocessing/UnrealBloomPass' {
-    import { Vector2, Texture } from 'three';
+    import { Vector2, Texture as _Texture } from 'three';
     import { Pass } from 'three/examples/jsm/postprocessing/Pass';
   
     export class UnrealBloomPass extends Pass {

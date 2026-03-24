@@ -14,24 +14,6 @@ type CameraControlPanelProps = {
 }
 export default function CameraControlPanel({ cameraControlPV, startAcquire, stopAcquire}:CameraControlPanelProps) {
     
-    const sampleAcquirePV = {
-        "value": 0,
-        "lastUpdate": "03:10:25 PM",
-        "pv": "13SIM1:cam1:Acquire",
-        "isConnected": true,
-        "type": "update",
-        "vtype": "VEnum",
-        "labels": [
-            "Done",
-            "Acquire"
-        ],
-        "severity": "NONE",
-        "text": "Done",
-        "readonly": false,
-        "seconds": 1729544045,
-        "nanos": 563411000
-    }
-    
 
     if (!cameraControlPV) return;
 

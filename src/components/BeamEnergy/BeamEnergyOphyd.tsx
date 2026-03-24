@@ -19,7 +19,7 @@ export type BeamEnergyOphydProps = {
     /** Additional CSS class names to apply to the component. */
     className?: string;
 }
-export default function BeamEnergyOphyd({deviceName="mono_energy", title="Beam Energy", thetaOffsetDeg, wsUrl, className}:BeamEnergyOphydProps) {
+export default function BeamEnergyOphyd({deviceName="mono_energy", title="Beam Energy", thetaOffsetDeg: _thetaOffsetDeg, wsUrl, className}:BeamEnergyOphydProps) {
     const { 
         currentValueEV,
         handleAbsoluteMove,

@@ -40,11 +40,11 @@ interface ControlPanelProps {
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
   panelOpen,
-  togglePanel,
+  togglePanel: _togglePanel,
   configs,
   setConfigs,
-  isPlaying,
-  handlePlayPause,
+  isPlaying: _isPlaying,
+  handlePlayPause: _handlePlayPause,
   playAngle,
   handleManualAngleChange,
   cameraX,
@@ -61,7 +61,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   handleStageXChange,
   handleStageYChange,
   handleStageZChange,
-  handleToggleVisibility,
+  handleToggleVisibility: _handleToggleVisibility,
   // handleSampleMeshChange,
   controlLayout,
   onAxisHover,

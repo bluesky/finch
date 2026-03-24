@@ -2,11 +2,7 @@ import BeamEnergyOphyd from "@/components/BeamEnergy/BeamEnergyOphyd";
 import Hexapod from "@/components/Hexapod/Hexapod";
 import TiledWriterDetImageHeatmap from "@/components/Tiled/TiledWriterDetImageHeatmap";
 import ExperimentEnergyScan from "@/components/Experiment/ExperimentEnergyScan";
-import ExperimentAngleScan from "@/components/Experiment/ExperimentAngleScan";
-import ExperimentHistory from "@/components/Experiment/ExperimentHistory";
-
 import { useTiledMostRecentDetImage } from "@/components/Tiled/hooks/useTiledMostRecentDetImage";
-const planName="angle_scan";
 
 export default function ScatteringPage() {
     const { blueskyRunId, isRunFinished } = useTiledMostRecentDetImage();

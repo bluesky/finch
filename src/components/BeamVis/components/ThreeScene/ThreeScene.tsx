@@ -10,18 +10,10 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 import { createObjectFromConfig } from './factories';
 import { ComponentConfig } from '../../types/ComponentConfig';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { Line2 } from 'three/examples/jsm/lines/Line2.js';
 import { LineGeometry } from 'three/examples/jsm/lines/LineGeometry';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial';
 import { ArrowUp } from 'lucide-react';
-
-/** Types for photon streaming */
-interface Photon {
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
-  active: boolean;
-}
 
 export type HoveredAxis = { axis: 'X' | 'Y' | 'Z'; dirSign: 1 | -1 } | null;
 interface ThreeSceneProps {
@@ -138,7 +130,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
     const h = containerRef.current.clientHeight;
     const aspect = w / h;
     const viewSize = 1.5;
-    const size = new THREE.Vector2(w, h);
+    const _size = new THREE.Vector2(w, h);
 
 
     // Scene
@@ -320,7 +312,7 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       animationId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
       // Use latest sceneConfig from the ref
-      const currentConfig = sceneConfigRef.current;
+      const _currentConfig = sceneConfigRef.current;
       // animate dashed axis lines
       const h = hoveredRef.current;
       if (h) {

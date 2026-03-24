@@ -7,7 +7,7 @@ import { formatCurrentValue } from './utils/hexapodUtils';
 import ButtonWithIcon from '../ButtonWithIcon';
 import SelectDropdown from '../SelectDropdown';
 
-import { ArrowFatRight, ArrowsClockwise, Pause, Trash } from '@phosphor-icons/react';
+import { ArrowFatRight, Pause, Trash } from '@phosphor-icons/react';
 
 type MoveMode = 'Absolute Move' | 'Jog';
 const defaultMovePositionForm: HexapodMovePositionForm = {

@@ -21,7 +21,7 @@ type BeamEnergyControllerProps = {
     /** When true, disables all controls and dims the controller UI. */
     isLocked?: boolean;
 }
-export default function BeamEnergyController({ currentValueDegrees, onAbsoluteMove, onRelativeMove, onStop, isLocked }: BeamEnergyControllerProps) {
+export default function BeamEnergyController({ currentValueDegrees: _currentValueDegrees, onAbsoluteMove, onRelativeMove, onStop, isLocked }: BeamEnergyControllerProps) {
     const [ moveMode, setMoveMode ] = useState<MoveMode>(initialMoveMode);
     const [ inputValue, setInputValue ] = useState<string>("");
 

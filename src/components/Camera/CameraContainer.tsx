@@ -55,7 +55,7 @@ export default function CameraContainer(
     {
 
     const sanitizeInputPrefix = (prefix:string) => {
-        var santizedPrefix = '';
+        let santizedPrefix = '';
         if (prefix.trim().slice(-1) === ':') {
             santizedPrefix = prefix.trim().substring(0, prefix.length -1)
         } else {
@@ -69,18 +69,18 @@ export default function CameraContainer(
         //ex) a single pv suffix is at settings[0].inputs[0].suffix
         //console.log({settings})
 
-        var sanitizedPrefix = sanitizeInputPrefix(prefix);
+        const sanitizedPrefix = sanitizeInputPrefix(prefix);
 
-        var pvArray:string[] = [];
+        const pvArray:string[] = [];
         settings.forEach((group) => {
             group.inputs.forEach((input) => {
                 //console.log(group.prefix)
-                let pv = `${sanitizedPrefix}:${group.prefix !== null ? group.prefix + ':' : ''}${input.suffix}`
+                const pv = `${sanitizedPrefix}:${group.prefix !== null ? group.prefix + ':' : ''}${input.suffix}`
                 pvArray.push(pv);
             })
         })
         if (enableControlPanel) {
-            let controlPV: string | false = createControlPVString(prefix);
+            const controlPV: string | false = createControlPVString(prefix);
             controlPV && pvArray.push(controlPV);
         }
         return pvArray;
@@ -91,8 +91,8 @@ export default function CameraContainer(
             console.log('Error in concatenating a camera control PV, received empty prefix string');
             return false;
         }
-        let acquireSuffix = 'cam1:Acquire'; //the suffix responsible for acquiring images, has a value of 1 or 0
-        var controlPV = `${sanitizeInputPrefix(prefix)}:${acquireSuffix}`;
+        const acquireSuffix = 'cam1:Acquire'; //the suffix responsible for acquiring images, has a value of 1 or 0
+        const controlPV = `${sanitizeInputPrefix(prefix)}:${acquireSuffix}`;
         return controlPV;
     };
 
@@ -104,14 +104,12 @@ export default function CameraContainer(
             </div>
         )
     } else {
-        var deviceNames = useMemo(()=>createDeviceNameArray(settings, prefix), []);
+        const deviceNames = useMemo(()=>createDeviceNameArray(settings, prefix), []);
     
     
         const {
             handleSetValueRequest,
             devices,
-            toggleExpand,
-            toggleDeviceLock
         } = useOphydSocket(deviceNames, cameraControlWsUrl);
     
         const startAcquire = useCallback( () => {

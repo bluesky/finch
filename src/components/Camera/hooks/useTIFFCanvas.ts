@@ -70,7 +70,7 @@ export function useTIFFCanvas({
     
         try {
             //if the VITE_TIFF_WS is set, use that as default url
-            var url = wsUrl ? wsUrl : getDefaultTiffUrl();
+            const url = wsUrl ? wsUrl : getDefaultTiffUrl();
             console.log({url})
             ws.current = new WebSocket(url);
         } catch (error) {
@@ -78,13 +78,13 @@ export function useTIFFCanvas({
             return;
         }
 
-        ws.current.onopen = (event) => {
+        ws.current.onopen = (_event) => {
             if (ws.current === null) return;
             setSocketStatus('Open');
             frameCount.current = 0;
             startTime.current = new Date();
             // send message to websocket containing the pvs for the image and pixel size          
-            let wsMessage = {prefix: prefix};
+            const wsMessage = {prefix: prefix};
             ws.current.send(JSON.stringify(wsMessage));
         };
     
@@ -110,8 +110,8 @@ export function useTIFFCanvas({
                     nextFrame = imageBitmap;
                     isFrameReady = true;  // Mark frame as ready
                     if (startTime.current !== null && frameCount.current !== null) {
-                        let currentTime = new Date();
-                        var totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                        const currentTime = new Date();
+                        let totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
                         if (totalDurationSeconds > 5) {
                             // reset the total duration so we can get an accurate fps.
                             startTime.current = new Date();

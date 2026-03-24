@@ -5,7 +5,7 @@ export const getDefaultCameraUrl = () => {
 
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    var wsUrl;
+    let wsUrl;
 
     try {
         if (import.meta.env.VITE_CAMERA_WS) {
@@ -25,7 +25,7 @@ export const getDefaultTiffUrl = () => {
 
     const currentWebsiteIP = window.location.hostname;
     const currentWebsitePort = window.location.port;
-    var wsUrl;
+    let wsUrl;
 
     try {
         if (import.meta.env.VITE_TIFF_WS) {

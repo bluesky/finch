@@ -94,7 +94,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, motionState }
         // place label above for top row, below otherwise
         const labelY = isTopRow ? -30 : 35;
         // const device = deviceMap.get(n.label);
-        const isSample = n.id === 'sample-mount';
+        const _isSample = n.id === 'sample-mount';
         const isMoving = motionState.isMoving && motionState.objectId === n.id;
         const currentStatusColor = isMoving ? statusColor['moving'] : statusColor[n.status];
 

@@ -7,7 +7,7 @@ type BeamEnergyPlotProps = {
     label?: string;
 }
 
-export default function BeamEnergyPlot({ currentValueEV, label = "Beam Energy" }: BeamEnergyPlotProps) {
+export default function BeamEnergyPlot({ currentValueEV, label: _label = "Beam Energy" }: BeamEnergyPlotProps) {
     const isValid = currentValueEV !== undefined && !isNaN(currentValueEV);
     const device = isValid ? { value: currentValueEV, units: 'eV' } : null;
 

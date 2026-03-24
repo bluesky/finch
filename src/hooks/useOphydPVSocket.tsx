@@ -193,7 +193,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, deviceNameList]);
+    }, [wsUrl, deviceNameList, apiUrl]);
 
     return {
         devices,

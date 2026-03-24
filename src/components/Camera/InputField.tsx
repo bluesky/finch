@@ -4,7 +4,7 @@ import InputFloat from "./InputFloat";
 import InputInteger from "./InputInteger";
 import InputString from "./InputString";
 
-import { DetectorInput, CameraSettingsState } from "./types/cameraTypes";
+import { DetectorInput } from "./types/cameraTypes";
 import { Devices } from "@/types/deviceControllerTypes";
 
 type InputFieldProps = {
@@ -19,17 +19,11 @@ type InputFieldProps = {
 };
 export default function InputField ({onSubmit=()=>{}, pv='', input={suffix: "Example", label: "Example", type: 'integer', min:0, max:5}, cameraSettingsPVs}: InputFieldProps) {
 
-    //check if the input is an enum..
-    let isEnum = false;
-    
     //create custom wrapper around submit function so we can correctly pass in the pv.
     //pv is determined in this component but not passed to children as a direct prop
     //This decouples the child component from needing the PV
-    
+
     const isPVConnected = pv in cameraSettingsPVs ? cameraSettingsPVs[pv].connected : false;
-    if (isPVConnected && 'enum_strs' in cameraSettingsPVs[pv] && cameraSettingsPVs[pv].enum_strs && typeof cameraSettingsPVs[pv].value === 'number') {
-        isEnum = true;
-    }
     
     const handleSubmitWithPV = (newValue: string | number | boolean) => {
         if (isPVConnected && 'enum_strs' in cameraSettingsPVs[pv] && cameraSettingsPVs[pv].enum_strs && typeof cameraSettingsPVs[pv].value === 'number') {

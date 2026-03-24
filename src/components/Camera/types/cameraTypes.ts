@@ -1,6 +1,3 @@
-import { ValueUpdateResponse, MetaUpdateResponse } from "@/types/ophydSocketTypes";
-
-
 export interface DetectorSetting {
     title: string;
     icon: null | JSX.Element;

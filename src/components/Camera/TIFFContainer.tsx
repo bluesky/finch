@@ -53,7 +53,7 @@ export default function TIFFContainer(
     {
 
     const sanitizeInputPrefix = (prefix:string) => {
-        var santizedPrefix = '';
+        let santizedPrefix = '';
         if (prefix.trim().slice(-1) === ':') {
             santizedPrefix = prefix.trim().substring(0, prefix.length -1)
         } else {
@@ -67,9 +67,9 @@ export default function TIFFContainer(
         //ex) a single pv suffix is at settings[0].inputs[0].suffix
         //console.log({settings})
 
-        var sanitizedPrefix = sanitizeInputPrefix(prefix);
+        const sanitizedPrefix = sanitizeInputPrefix(prefix);
 
-        var pvArray:string[] = [];
+        const pvArray:string[] = [];
         settings.forEach((group) => {
             group.inputs.forEach((input) => {
                 //console.log(group.prefix)
@@ -90,7 +90,7 @@ export default function TIFFContainer(
             return false;
         }
         let acquireSuffix = 'cam1:Acquire'; //the suffix responsible for acquiring images, has a value of 1 or 0
-        var controlPV = `${sanitizeInputPrefix(prefix)}:${acquireSuffix}`;
+        const controlPV = `${sanitizeInputPrefix(prefix)}:${acquireSuffix}`;
         return controlPV;
     };
 
@@ -102,14 +102,12 @@ export default function TIFFContainer(
             </div>
         )
     } else {
-        var deviceNames = useMemo(()=>createDeviceNameArray(settings, prefix), []);
+        const deviceNames = useMemo(()=>createDeviceNameArray(settings, prefix), []);
     
     
         const {
             handleSetValueRequest,
             devices,
-            toggleExpand,
-            toggleDeviceLock
         } = useOphydSocket(deviceNames, cameraControlWsUrl);
     
         const startAcquire = useCallback( () => {

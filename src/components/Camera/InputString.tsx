@@ -22,7 +22,7 @@ export default function InputString ({label='', onSubmit=(input)=>{console.log('
 
     return (
         <label className="w-full max-w-64 flex justify-between">
-            {label=''}
+            {label ? label : ''}
             <input
                 disabled={isDisabled}
                 type="text" 

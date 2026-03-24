@@ -1,17 +1,13 @@
 import CameraContainer from "@/components/Camera/CameraContainer"
-import TIFFCanvas from "@/components/Camera/TIFFCanvas"
 import Bento from "@/components/Bento"
 import Hexapod from "@/components/Hexapod/Hexapod"
 import SignalMonitorPlotPV from "@/components/SignalMonitorPlotPV"
 import BeamEnergyOphyd from "@/components/BeamEnergy/BeamEnergyOphyd"
-import Shutter from "@/components/Shutter";
-import useResizeObserver from "@/hooks/useResizeObserver";
 import TIFFContainer from "@/components/Camera/TIFFContainer";
 import QServerPlanMonitor from "@/features/QServerPlanMonitor";
 import IFrame from "@/components/IFrame"
 
 export default function BL531Dashboard() {
-    const {containerRef, dimensions} = useResizeObserver();
     // return (
     //     <div className="flex flex-col w-full h-full gap-4">
     //         <Bento className="bg-white/40 p-8 rounded-md items-start justify-around flex-shrink-0 gap-x-0 gap-y-8">

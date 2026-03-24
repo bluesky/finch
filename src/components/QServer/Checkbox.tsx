@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 type CheckboxProps = {
   label?: string | boolean;
   cb?: (isChecked:boolean) => void;

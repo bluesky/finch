@@ -1,10 +1,10 @@
 // BeamlineContainer.tsx
 
-import { useState, useRef, useEffect, useMemo, ChangeEvent, CSSProperties, FC } from 'react';
+import { useState, useMemo, ChangeEvent } from 'react';
 import ThreeScene from './ThreeScene/ThreeScene';
 import ControlPanel from './ControlPanel/ControlPanel';
 import { ComponentConfig } from '../types/ComponentConfig';
-import { beamlineDefinitions, BeamlineDefinition } from '../beam_configs';
+import { beamlineDefinitions } from '../beam_configs';
 import * as THREE from 'three';
 
 interface BeamlineContainerProps {

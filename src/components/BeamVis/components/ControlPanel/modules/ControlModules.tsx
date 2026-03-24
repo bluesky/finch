@@ -32,13 +32,13 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   handleStageYChange,
   handleStageZChange,
   motorX,
-  motorY,
+  motorY: _motorY,
   motorZ,
   handleMotorXChange,
-  handleMotorYChange,
+  handleMotorYChange: _handleMotorYChange,
   handleMotorZChange,
-  cameraX,
-  setCameraX,
+  cameraX: _cameraX,
+  setCameraX: _setCameraX,
   buttonStyle,
   sectionStyle,
   labelStyle,
@@ -49,7 +49,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   //////////////////////////////////////////////////////////
   const stageConfig = configs.find((c) => c.type === 'stage');
   const stagePosX = stageConfig?.transform.position[0] || 0;
-  const stagePosY = stageConfig?.transform.position[1] || 0;
+  const _stagePosY = stageConfig?.transform.position[1] || 0;
   const stagePosZ = stageConfig?.transform.position[2] || 0;
 
   //////////////////////////////////////////////////////////

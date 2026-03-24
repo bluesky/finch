@@ -11,7 +11,7 @@ type InputIntegerProps = {
 export default function InputInteger ({label='', onSubmit=(input)=>{console.log('submit ' + input )}, isDisabled=false }: InputIntegerProps) {
     const [value, setValue] = useState<string | number>('');
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        var newValue = e.target.value;
+        const newValue = e.target.value;
         if (!newValue.endsWith('.') && (!isNaN(parseInt(newValue)) || newValue==='')) {
             if (newValue === '') {
                 setValue('')

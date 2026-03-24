@@ -74,12 +74,11 @@ export default function ExperimentHistory({planName, className, metadataFulltext
                     </thead>
                     <tbody>
                         {searchResults.data.map((item) => {
-                            let startTime = item?.attributes?.metadata?.start?.time;
-                            let formattedStartTime = startTime ? dayjs.unix(startTime).format('MM/DD h:mm A') : "N/A";
-                            let endTime = item?.attributes?.metadata?.stop?.time;
-                            let duration = startTime && endTime ? dayjs.unix(endTime).diff(dayjs.unix(startTime), 'second') + " s" : "N/A";
-                            let status = item?.attributes?.metadata?.stop ? item?.attributes?.metadata?.stop?.exit_status : "running";
-                            let metadataSummary = item?.attributes?.metadata ? JSON.stringify(item.attributes.metadata).slice(0, 100) + "..." : "N/A";
+                            const startTime = item?.attributes?.metadata?.start?.time;
+                            const formattedStartTime = startTime ? dayjs.unix(startTime).format('MM/DD h:mm A') : "N/A";
+                            const endTime = item?.attributes?.metadata?.stop?.time;
+                            const duration = startTime && endTime ? dayjs.unix(endTime).diff(dayjs.unix(startTime), 'second') + " s" : "N/A";
+                            const status = item?.attributes?.metadata?.stop ? item?.attributes?.metadata?.stop?.exit_status : "running";
                             return (
                                 <tr key={item.id} className={`mb-2 p-2 text-slate-800 font-light mx-2 hover:bg-sky-200 cursor-pointer ${
                                     enablePersistentSelection && selectedItemId === item.id 

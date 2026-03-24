@@ -1,5 +1,4 @@
 import { Lock, Question, Joystick, ChartLine } from "@phosphor-icons/react";
-import BeamEnergyTitleIcon from "./BeamEnergyTitleIcon";
 import { cn } from "@/lib/utils";
 type BeamEnergyHeaderProps = {
     /** Display title shown below the monochromator icon. */
@@ -24,7 +23,7 @@ type BeamEnergyHeaderProps = {
     handleToggleAbout: () => void;
     className?: string;
 }
-export default function BeamEnergyHeader({title, pv, showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout, className}: BeamEnergyHeaderProps) {
+export default function BeamEnergyHeader({showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout, className}: BeamEnergyHeaderProps) {
     return (
         <nav className={cn(`justify-between flex items-start absolute top-0 left-0 w-full p-4`, className)}>
 

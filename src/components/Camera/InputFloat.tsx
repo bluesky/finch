@@ -11,7 +11,7 @@ type InputFloatProps = {
 export default function InputFloat ({label='', onSubmit=(input)=>console.log('submit: ' + input), isDisabled=false }: InputFloatProps) {
     const [value, setValue] = useState<number | string>('');
     const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
-        var newValue = e.target.value;
+        const newValue = e.target.value;
         if (!isNaN(parseFloat(newValue)) || newValue==='') {
             if (newValue === '') {
                 setValue('');

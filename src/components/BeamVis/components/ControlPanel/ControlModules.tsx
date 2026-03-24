@@ -42,14 +42,14 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   setConfigs,
   playAngle,
   handleManualAngleChange,
-  handleStageXChange,
-  handleStageYChange,
-  handleStageZChange,
+  handleStageXChange: _handleStageXChange,
+  handleStageYChange: _handleStageYChange,
+  handleStageZChange: _handleStageZChange,
   handleCenteringStageXChange,
   // handleCenteringStageYChange
   handleCenteringStageZChange,
-  cameraX,
-  setCameraX,
+  cameraX: _cameraX,
+  setCameraX: _setCameraX,
   buttonStyle,
   sectionStyle,
   labelStyle,
@@ -58,13 +58,13 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   // handleSampleMeshChange,
 }) => {
   // Look up specific stage configs by their IDs.
-  const horizontalStage = configs.find((c) => c.id === 'horizontalStage');
+  const _horizontalStage = configs.find((c) => c.id === 'horizontalStage');
   const rotationStage = configs.find((c) => c.id === 'rotationStage');
   const centeringStage = configs.find((c) => c.id === 'centeringStage');
 
   // Conditionally render each section based on controlLayout.
   const showRotationControls = controlLayout.stages?.some((s) => s.id === 'rotationStage');
-  const showHorizontalStageControls = controlLayout.stages?.some((s) => s.id === 'horizontalStage1');
+  const _showHorizontalStageControls = controlLayout.stages?.some((s) => s.id === 'horizontalStage1');
   const showCenteringMotor = controlLayout.stages?.some((s) => s.id === 'centeringStage');
 
   // Shutter controls are rendered only if enabled in common.
@@ -84,7 +84,7 @@ const ControlModules: React.FC<ControlModulesProps> = ({
   }, [setConfigs]);
 
   // Camera and beam controls based on common flags.
-  const showCameraControls = controlLayout.common?.camera;
+  const _showCameraControls = controlLayout.common?.camera;
   const showBeamControls = controlLayout.common?.beam;
   const beamCfg = configs.find((c) => c.type === 'beam');
   const beamModes = beamCfg?.beamModes || [];
