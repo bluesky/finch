@@ -26,6 +26,7 @@ export default function PlotlyHeatmapTiled({
   const [error, setError] = useState<string | null>(null);
   const [sliderIndex, setSliderIndex] = useState<number>(0);
   const [shape, setShape] = useState<number[] | null>(null);
+  const [fullUrl, setFullUrl] = useState<string | null>(null);
   const [ metadata, setMetadata ] = useState<Record<string, string> | null>(null);
   
   // Track if user has manually interacted with slider
@@ -110,22 +111,18 @@ export default function PlotlyHeatmapTiled({
         const resp = await fetch(url);
         const json = await resp.json();
         const shape = json.data?.attributes?.structure?.shape;
-        const fullUrl = json.data?.links?.full;
+        const dataFullUrl = json.data?.links?.full;
         setMetadata(json.data);
 
-        if (!shape || !fullUrl) throw new Error('Invalid metadata response');
+        if (!shape || !dataFullUrl) throw new Error('Invalid metadata response');
 
         setShape(shape);
+        setFullUrl(dataFullUrl);
         setSliderIndex(0);
         setUserHasMovedSlider(false);
         initialSliderPosition.current = 0;
         
-        if (shape.length === 2) {
-          //2d image
-          fetchAndDecodeBlock(0, fullUrl, shape); // load single frame
-        } else {
-          fetchAndDecodeBlock(0, fullUrl, shape); // load first z-slice
-        }
+        fetchAndDecodeBlock(0, dataFullUrl, shape);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         setError(`Failed to load metadata: ${msg}`);
@@ -135,18 +132,6 @@ export default function PlotlyHeatmapTiled({
 
     fetchMetadata();
   }, [url]);
-
-  useEffect(() => {
-    if (shape && url) {
-      const fetchSlice = async () => {
-        const metadataResp = await fetch(url);
-        const metadataJson = await metadataResp.json();
-        const fullUrl = metadataJson.data?.links?.full;
-        if (fullUrl) fetchAndDecodeBlock(sliderIndex, fullUrl, shape);
-      };
-      fetchSlice();
-    }
-  }, [sliderIndex, shape, url]);
 
   // Polling effect for shape updates
   useEffect(() => {
@@ -221,7 +206,8 @@ export default function PlotlyHeatmapTiled({
             onChange={(e) => {
               const newIndex = Number(e.target.value);
               setSliderIndex(newIndex);
-              
+              if (fullUrl && shape) fetchAndDecodeBlock(newIndex, fullUrl, shape);
+
               // Track if user has manually moved the slider
               if (newIndex !== initialSliderPosition.current) {
                 setUserHasMovedSlider(true);
