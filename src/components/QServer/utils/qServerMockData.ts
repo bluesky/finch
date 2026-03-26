@@ -1,4 +1,4 @@
-import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse } from "../types/apiTypes";
+import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from "../types/apiTypes";
 
 export const mockGetApiStatusResponse: GetStatusResponse = {
     "msg": "RE Manager v0.0.21",
@@ -4161,7 +4161,7 @@ export const mockExecuteItemResponse: PostItemExecuteResponse = {
     }
 };
 
-export const sampleQueueData = [
+export const sampleQueueData: QueueItem[] = [
     {
         "name": "count",
         "args": [
@@ -4215,7 +4215,7 @@ export const sampleQueueData = [
     }
 ];
 
-export const mockGetQueueResponse = {
+export const mockGetQueueResponse: GetQueueResponse = {
     "success": true,
     "msg": "",
     "items": sampleQueueData,

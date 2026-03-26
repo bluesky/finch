@@ -6,7 +6,7 @@ import QItem from "./QItem";
 import { Tooltip } from "react-tooltip";
 import { useQSAddItem } from "./hooks/useQSAddItem";
 
-import { CopiedPlan, GlobalMetadata } from "./types/types";
+import { CopiedPlan, GlobalMetadata, ParameterInput, ParameterInputDict } from "./types/types";
 import { WidgetStyleProps } from "./Widget";
 
 const positionTooltipMessage = 'The position for the plan to be inserted at. \n Type = String or Integer. \n Default = "back" for the back of the Queue. \n Use "front" to insert at the front of the Queue. \n Integer values may be used, where 0 represents the front of the Queue.'
@@ -87,9 +87,9 @@ export default function QSAddItem({
                     {parameters && Object.keys(parameters).map((param) => 
                         <QSParameterInput 
                             key={param} 
-                            param={parameters[param]} 
-                            parameter={parameters[param]}
-                            parameters={parameters} 
+                            param={parameters[param] as ParameterInput} 
+                            parameter={parameters[param] as ParameterInput}
+                            parameters={parameters as ParameterInputDict} 
                             parameterName={parameters[param].name}
                             updateBodyKwargs={updateBodyKwargs} 
                             setParameters={setParameters} 

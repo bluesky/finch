@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from './useQServerQueries';
 import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../types/apiTypes';
-import { GlobalMetadata, PlanInput } from '../types/types';
+import { GlobalMetadata, CopiedPlan } from '../types/types';
 
 export const useQueueServer = () => {
     const [ currentQueue, setCurrentQueue ] = useState<GetQueueResponse | null>(null);
     const [ queueHistory, setQueueHistory ] = useState<GetHistoryResponse | null>(null);
-    const [runningItem, setRunningItem] = useState<RunningQueueItem | null | Record<string, never>>(null);
+    const [runningItem, setRunningItem] = useState<RunningQueueItem | null >(null);
     const [isREToggleOn, setIsREToggleOn] = useState(false);
     const runEngineToggleRef = useRef(isREToggleOn);
     const [ globalMetadata, setGlobalMetadata ] = useState<GlobalMetadata>({});
@@ -34,12 +34,12 @@ export const useQueueServer = () => {
                     //no running item before, and nothing running now:
                     if (prevState === null && !isItemRunning ) {
                         //still not active item
-                        return prevState;
+                        return prevState as null;
                     }
 
                     //no running item before, but there is now:
                     if (prevState === null && isItemRunning && 'item_uid' in res.running_item) {
-                        return res.running_item;
+                        return res.running_item as RunningQueueItem;
                     }
 
                     //item running before, different item running now:
@@ -51,7 +51,7 @@ export const useQueueServer = () => {
                     if (!isItemRunning && prevState !== null) {
                         return null;
                     }
-                    return prevState;
+                    return prevState as RunningQueueItem | null;
                });
                 setIsREToggleOn(Object.keys(res.running_item).length > 0);
             }
@@ -153,18 +153,19 @@ export const useQueueServer = () => {
         setGlobalMetadata(dict);
     };
 
-    const removeDuplicateMetadata = (plan: PlanInput) => {
+    const removeDuplicateMetadata = (plan: CopiedPlan) => {
         //removes any duplicate between copied plan and global md
         //prevents user from seeing duplicated key/value in md parameter input
-
-        if ('md' in plan.parameters) {
-            for (const key in globalMetadata) {
-                //console.log({key});
-                if (key in plan.parameters.md) {
-                    delete plan.parameters.md[key];
+        if ("parameters" in plan && plan.parameters && typeof plan.parameters === 'object') {
+            if ('md' in plan.parameters && typeof plan.parameters.md === 'object' && plan.parameters.md !== null) {
+                for (const key in globalMetadata) {
+                    if (key in plan.parameters.md) {
+                        delete plan.parameters.md[key as keyof typeof plan.parameters.md];
+                    }
                 }
             }
         }
+
         return plan;
     };
 

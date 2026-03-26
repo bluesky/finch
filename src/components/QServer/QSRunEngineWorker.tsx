@@ -7,7 +7,7 @@ import { RunningQueueItem } from './types/apiTypes';
 type QSRunEngineWorkerProps = {
     isREToggleOn?: boolean;
     setIsREToggleOn?: (arg: boolean) => void;
-    runningItem?: RunningQueueItem | null;
+    runningItem: RunningQueueItem | null;
     handleItemClick?: (item: RunningQueueItem) => void;
 };
 export default function QSRunEngineWorker({ isREToggleOn=false, setIsREToggleOn=()=>{}, runningItem, handleItemClick }: QSRunEngineWorkerProps) {

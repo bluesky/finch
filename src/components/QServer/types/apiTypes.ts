@@ -1,5 +1,3 @@
-import { ParameterInputDict } from "./types";
-
 interface PlanQueueMode {
     loop: boolean;
     ignore_failures: boolean;
@@ -112,7 +110,7 @@ export interface GetPlansAllowedResponse {
 //For now we are allowing the use of either kwargs or args. Ideally every plan on the qserver takes kwargs ONLY, but this requires implementation of the qserver which may be lab specific.
 export interface BaseQueueItem {
     name: string;
-    kwargs?: ParameterInputDict;
+    kwargs?: ArbitraryKwargs; //previously ParameterInputDict, which contained added key/values intended for use in the UI form component, but is not something that comes from the api response
     args?: unknown[];
     item_type: string;
 }
@@ -133,6 +131,11 @@ export interface RunningQueueItem extends QueueItem {
 
 export interface ArbitraryKwargs {
     [key: string]: unknown;
+    md?: MetadataKwarg;
+}
+
+export interface MetadataKwarg {
+    [key: string]: string;
 }
 
 export interface ExecuteQueueItemBody {
@@ -163,7 +166,7 @@ export interface GetQueueResponse {
 export interface Result {
     exit_status: string;
     run_uids: string[];
-    scan_ids: string[];
+    scan_ids: string[] | number[];
     time_start: number;
     time_stop: number;
     msg: string;

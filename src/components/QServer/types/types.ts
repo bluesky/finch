@@ -1,6 +1,6 @@
-import { Parameter, Device, QueueItem, HistoryItem } from "./apiTypes";
+import { Parameter, Device, QueueItem, HistoryItem, RunningQueueItem, ArbitraryKwargs } from "./apiTypes";
 
-export interface PopupItem extends QueueItem, HistoryItem {}
+export type PopupItem = QueueItem | HistoryItem | RunningQueueItem;
 
 export interface HistoryResultRow {
     name: string;
@@ -43,9 +43,16 @@ export interface ParameterInputDict {
     [key: string]: ParameterInput;
 }
 
+export type BaseParameterDict = Record<string, ParameterInput | unknown>;
+
+// export interface CopiedPlan {
+//     name: string;
+//     parameters: ParameterInputDict;
+// }
+
 export interface CopiedPlan {
     name: string;
-    parameters: ParameterInputDict;
+    parameters: ArbitraryKwargs;
 }
 
 export interface AllowedDevices {

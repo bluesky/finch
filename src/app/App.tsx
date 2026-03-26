@@ -14,11 +14,12 @@ import IFrame from '@/components/IFrame';
 import ServiceStatusPage from './pages/ServiceStatusPage';
 import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
+import SimulatedDevicePage from './pages/SimulatedDevicePage';
 
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-import { Barcode, House, Joystick, StackPlus, ImageSquare, Camera, GoogleLogo, Feather, Terminal,  LightbulbFilament, AppWindow, ChartBar} from "@phosphor-icons/react";
+import { Barcode, House, Joystick, StackPlus, ImageSquare, Camera, GoogleLogo, Feather, Terminal, AppWindow, ChartBar} from "@phosphor-icons/react";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 const docs = [
   {
@@ -62,7 +63,7 @@ function App() {
     {element: <ScatteringPage />, path: '/energyscan', label: "Energy Scan", icon: <Barcode size={32} />},
     {element: <AngleScanPage />, path: '/anglescan', label: "Angle Scan", icon: <Barcode size={32} />},
     {element: <Histogram arrayPV="dxpMercury:mca1.VAL" acquirePV="dxpMercury:StartAll" showDeviceController={false} showPlotSettings={false} />, path: '/histogram', label: "Histogram", icon: <ChartBar size={32} />},
-    {element: <IFrame url="http://192.168.10.156:4001/" title="multimodal"/>, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
+    {element: <SimulatedDevicePage />, path: '/multimodal', label: "MultiModal Analysis", icon: <AppWindow size={32} />},
   ]
   return (
     <QueryClientProvider client={new QueryClient()}>

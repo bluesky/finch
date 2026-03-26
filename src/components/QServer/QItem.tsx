@@ -1,10 +1,10 @@
 import { tailwindIcons } from '../../assets/icons';
 import { getPlanColor } from './utils/qItemColorData';
-import { BaseQueueItem, QueueItem, HistoryItem } from './types/apiTypes';
+import { BaseQueueItem, QueueItem, HistoryItem, RunningQueueItem } from './types/apiTypes';
 import { ParameterInput } from './types/types';
 
 type QItemProps = {
-    item: BaseQueueItem | QueueItem | HistoryItem | null;
+    item: BaseQueueItem | QueueItem | HistoryItem | RunningQueueItem | null;
     label?: string;
     text?: string;
     styles?: string;
@@ -26,7 +26,7 @@ export default function QItem ({ item=null, label='', text='', styles='', handle
         }
     }
     
-    const displayKwarg = (value:[]| string | ParameterInput) => {
+    const displayKwarg = (value: unknown | []| string | ParameterInput) => {
         //value may be an Array, String, or Object
         if (Array.isArray(value)) {
             return value.toString().replaceAll(',', ', ');
@@ -53,7 +53,7 @@ export default function QItem ({ item=null, label='', text='', styles='', handle
                         </span>
                         
                         <div className="text-xs ml-2 flex-grow overflow-hidden">
-                            {(historyItem?.kwargs && 'md' in historyItem.kwargs) ? 
+                            {(historyItem?.kwargs?.md) ? 
                                 <>
                                     {Object.entries(historyItem.kwargs.md).map(([key, value]) => {
                                         return (
@@ -103,7 +103,7 @@ export default function QItem ({ item=null, label='', text='', styles='', handle
                     <li  className={`${commonStyles} hover:cursor-pointer h-16 border border-slate-500 bg-white overflow-clip rounded-t-md ${styles}`} onClick={handleClick}>
                         <p className={`${getPlanColor(currentItem.name)} text-white text-center rounded-t-md overflow-hidden`}>{currentItem.name}</p>
                         <div className="text-xs ml-2 flex-grow overflow-hidden">
-                            {(currentItem?.kwargs && 'md' in currentItem.kwargs) ?
+                            {(currentItem?.kwargs?.md) ?
                                 <>
                                     {Object.entries(currentItem.kwargs.md).map(([key, value]) => {
                                         return (

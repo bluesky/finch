@@ -15,8 +15,8 @@ import { getStatus, openWorkerEnvironment } from "./utils/apiClient";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
-import { CopiedPlan, ParameterInputDict, PopupItem } from "./types/types";
-import { GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
+import { CopiedPlan, PopupItem } from "./types/types";
+import { ArbitraryKwargs, GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
 
 import { cn } from '@/lib/utils';
 
@@ -89,7 +89,7 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
  * @param {object} kwargs - Object of format {key1: value1, key2: value2, ...}
  * // The values may be string, array, or objects
  */
-    const handleCopyItemClick = (name:string='', kwargs:ParameterInputDict) => {
+    const handleCopyItemClick = (name:string='', kwargs:ArbitraryKwargs) => {
         //Copy over the selected item (including kwargs) to QSAddItem
         //Note that 'kwargs' effectively become 'parameters' for the plan object.
         //The backend API calls must use 'kwargs' keyword in JSON requests, the frontend names these as 'parameters' to be more user-friendly.
@@ -121,7 +121,7 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
                     popupItem={popupItem} 
                     isItemDeleteButtonVisible={isItemDeleteButtonVisible} 
                     handleCopyItemClick={handleCopyItemClick} 
-                    isItemRunning={popupItem === runningItem}
+                    isItemRunning={popupItem.item_uid === runningItem?.item_uid}
                 />
             )} 
             <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full min-w-56`}>

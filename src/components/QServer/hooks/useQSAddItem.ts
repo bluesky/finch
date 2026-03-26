@@ -1,17 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getDevicesAllowed, getPlansAllowed, postQueueItem, executeItem } from '../utils/apiClient';
-import { AllowedDevices, CopiedPlan } from '../types/types';
-import { Plan, Parameter, Device, PostItemAddResponse, ExecuteQueueItemBody } from '../types/apiTypes';
+import { AllowedDevices, CopiedPlan, ParameterInputDict } from '../types/types';
+import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody } from '../types/apiTypes';
 import { AddQueueItemBody, GetDevicesAllowedResponse, GetPlansAllowedResponse } from '../types/apiTypes';
 
-interface ParameterInput extends Parameter {
-    value: string | string[];
-    required: boolean;
-}
 
-interface ParameterInputDict {
-    [key: string]: ParameterInput;
-}
 
 const sampleBody = {
     item: {
@@ -118,7 +111,7 @@ export function useQSAddItem({
     }, [isGlobalMetadataChecked, globalMetadata]);
 
     const initializeParameters = useCallback((plan = '', parameters?: Record<string, unknown>) => {
-        const tempParameters: {[key: string]: ParameterInput} = {};
+        const tempParameters: ParameterInputDict = {};
         const multiSelectParamList = ['detectors'];
         const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
 
@@ -169,7 +162,7 @@ export function useQSAddItem({
     // Submission handlers
     const handleSubmissionResponse = (response: PostItemAddResponse) => {
         setIsSubmissionPopupOpen(true);
-        setSubmissionResponse(response as unknown as Record<string, unknown>);
+        setSubmissionResponse(response as PostItemAddResponse);
         if (response.success === true) {
             //close the popup after 5 seconds
             setTimeout(() => {

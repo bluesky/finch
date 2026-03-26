@@ -115,7 +115,7 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
     useEffect(() => {
         if (copiedPlan) {
             if ('md' in copiedPlan.parameters) {
-                copyDictionary(copiedPlan.parameters.md);
+                copyDictionary(copiedPlan.parameters.md as ParameterInput);
             } else {
                 copyDictionary(null);
             }

@@ -1,7 +1,7 @@
 import { useState, Fragment, useEffect } from "react";
 import { useStatusQuery } from './hooks/useQServerQueries';
 import QItemPopupRow from './QItemPopupRow';
-import { PopupItem, HistoryResultRow, ParameterInputDict } from "./types/types";
+import { PopupItem, HistoryResultRow } from "./types/types";
 import DeleteResultPopup from "./DeleteResultPopup";
 import ConfirmDeleteItemPopup from "./ConfirmDeleteItemPopup";
 import Button from "../Button";
@@ -10,7 +10,7 @@ import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
 import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
 import { deleteQueueItem, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
-import { GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
+import { ArbitraryKwargs, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
 
 import dayjs from "dayjs";
 
@@ -19,7 +19,7 @@ type QItemPopupProps = {
     popupItem: PopupItem;
     handleQItemPopupClose: () => void;
     isItemDeleteButtonVisible?: boolean;
-    handleCopyItemClick?: (name: string, kwargs: ParameterInputDict) => void;
+    handleCopyItemClick?: (name: string, kwargs: ArbitraryKwargs) => void;
     isItemRunning?: boolean;
 }
 export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, isItemDeleteButtonVisible=true, handleCopyItemClick, isItemRunning }: QItemPopupProps) {
@@ -78,7 +78,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     };
 
     const handleCopyTracebackClick = () => {
-        if (popupItem.result && popupItem.result.traceback) {
+        if ("result" in popupItem && popupItem?.result?.traceback) {
         navigator.clipboard.writeText(popupItem.result.traceback)
             .then(() => {
                 setIsTracebackCopied(true);
@@ -89,7 +89,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
         }
     };
 
-    const handleCopyClick = (name:string, kwargs: ParameterInputDict | undefined) => {
+    const handleCopyClick = (name:string, kwargs: ArbitraryKwargs | undefined) => {
         //close the popup after the item is copied so user can immediately see the plan below the popup
         if (!handleCopyItemClick) return;
         if (kwargs) {
@@ -230,7 +230,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                     {areResultsVisible && <DeleteResultPopup response={response} handleCloseClick={handleCloseResults}/>}
                     {isDeleteModeVisible && <ConfirmDeleteItemPopup handleCancel={handleCancelDeleteClick} handleDelete={handleConfirmDeleteClick} />}
                     <span  className={`${getPlanColor(popupItem.name)} h-[10%] max-h-12 flex items-center justify-between rounded-t-lg ${isDeleteModeVisible ? 'opacity-20' : ''}`}>
-                        <div className="h-5/6 aspect-square w-fit text-red-500 ml-4">{popupItem.result && popupItem.result.exit_status === 'failed' ? tailwindIcons.exclamationTriangle : ''}</div>
+                        <div className="h-5/6 aspect-square w-fit text-red-500 ml-4">{("result" in popupItem && popupItem.result && popupItem.result.exit_status === 'failed') ? tailwindIcons.exclamationTriangle : ''}</div>
                         <p className={`text-center text-white text-2xl py-1  `}>{popupItem.name}</p>
                         <div  className='h-4/5 aspect-square hover:cursor-pointer hover:text-slate-200 text-black mr-4' onClick={handleQItemPopupClose}>{tailwindIcons.xCircle}</div>
                     </span>
