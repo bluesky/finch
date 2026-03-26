@@ -12,7 +12,7 @@ export type ButtonCopyToClipboardProps = {
     /** Text content that will be copied to the clipboard when button is clicked */
     copyText: string;
     /** Optional callback function triggered after successful copy operation */
-    cb?: Function;
+    cb?: ()=> void;
     /** Controls the size of the button icon - affects height and maintains square aspect ratio */
     size?: 'small' | 'medium' | 'large';
     /** Additional CSS classes applied to the button container */
@@ -37,7 +37,7 @@ export default function ButtonCopyToClipboard({
             .catch((err) => {
                 console.error('Failed to copy: ', err);
             });
-    }, [copyText]);
+    }, [copyText, cb]);
 
     const sizes = {
         small: 'h-6',

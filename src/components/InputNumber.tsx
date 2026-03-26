@@ -34,7 +34,7 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
         const inputValue = e.target.value;
         const numericValue = inputValue === '' ? null : parseFloat(inputValue);
         setValue(numericValue);
-        onChange && onChange(numericValue);
+        if (onChange) onChange(numericValue);
         if (numericValue !== null) {
             setIsValueInBounds((min === undefined || numericValue >= min) && (max === undefined || numericValue <= max));
         }
@@ -43,7 +43,7 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
     const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             if (isValueInBounds) {
-                handleEnter && handleEnter(value);
+                if (handleEnter) handleEnter(value);
             }
         }
     }

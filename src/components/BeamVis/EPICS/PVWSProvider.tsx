@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 // src/epics.tsx
 import {useRef, useEffect, useCallback, ReactNode} from 'react';
 import { EpicsContext, EpicsApi } from './EpicsContext';
@@ -9,7 +8,7 @@ export const PVWSProvider = ({ children }: { children: ReactNode }) => {
   const callbacks = useRef<Record<string, (v: number) => void>>({});
   const subscribedPVs = useRef<Set<string>>(new Set());
 
-  const sendMsg = (msg: Object) => {
+  const sendMsg = (msg: object) => {
     if (socket.current?.readyState === WebSocket.OPEN) {
       socket.current.send(JSON.stringify(msg));
       console.log('[EPICS][PVWS] sent: ', msg);

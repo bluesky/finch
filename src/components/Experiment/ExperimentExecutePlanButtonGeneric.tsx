@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { getPlansAllowedPromise, executeItemPromise, getQueuePromise } from '../QServer/utils/apiClient';
-import { PostItemAddResponse } from '../QServer/types/apiTypes';
+import { ArbitraryKwargs, PostItemAddResponse } from '../QServer/types/apiTypes';
 import Button from '../Button';
 
 type ExperimentExecutePlanButtonGenericProps = {
     /** The name of the QServer plan to execute (e.g. `'count'`, `'energy_scan'`). */
     planName: string;
     /** Keyword arguments forwarded verbatim to the plan in the API request body. */
-    kwargs: { [key: string]: any };
+    kwargs: ArbitraryKwargs;
     /** When true, prevents the button from being clicked regardless of plan availability. */
     disabled?: boolean;
     /** Additional CSS class names to apply to the button. */

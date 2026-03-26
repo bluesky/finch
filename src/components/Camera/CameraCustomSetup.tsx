@@ -15,11 +15,9 @@ const sizeMap:Record<CanvasSizes, string> = {
     medium: 'Md (512 x 512)',
     large: 'Lg (1024 x 1024)',
     automatic: 'Auto (match detector size)'
-}
+};
 
-type CameraCustomSetupProps = {
-}
-export default function CameraCustomSetup({}:CameraCustomSetupProps) {
+export default function CameraCustomSetup() {
     const [isSetupComplete, setIsSetupComplete] = useState(false);
     const [ warningMessage, setWarningMessage ] = useState('');
     const [ prefix, setPrefix ] = useState('');

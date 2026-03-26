@@ -1,11 +1,5 @@
-import { useState, Fragment } from 'react';
 import { tailwindIcons } from "../../assets/icons";
 import Button from "../Button";
-
-type ConfirmDeleteItemPopupProps = {
-    handleDelete: () => void;
-    handleCancel: () => void;
-};
 export default function ConfirmDeleteItemPopup( {handleDelete=()=>{}, handleCancel=()=>{} }) {
 
     return (

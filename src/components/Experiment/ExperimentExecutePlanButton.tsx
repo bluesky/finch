@@ -11,7 +11,7 @@ type ExperimentExecutePlanButtonProps = {
     /** Delay in seconds between exposures. Defaults to 10. */
     delay?: number;
     /** Arbitrary metadata dict included in the plan kwargs as `md`. */
-    md?: { [key: string]: any };
+    md?: { [key: string]: string };
     /** When true, prevents the button from being clicked regardless of plan availability. */
     disabled?: boolean;
     /** Additional CSS class names to apply to the button. */

@@ -131,7 +131,7 @@ export default function useHexapod(props: UseHexapodProps = {}) {
         inPosition: devices[hexapodPVs.inPosition],
         stop: devices[hexapodPVs.stop],
         moveType: devices[hexapodPVs.moveType],
-    }), [devices, prefix]);
+    }), [devices, hexapodPVs]);
 
     const hexapodSetpoints = useMemo(() => ({
         tx: devices[hexapodPVs.setTx],
@@ -140,7 +140,7 @@ export default function useHexapod(props: UseHexapodProps = {}) {
         rx: devices[hexapodPVs.setRx],
         ry: devices[hexapodPVs.setRy],
         rz: devices[hexapodPVs.setRz],
-    }), [devices, prefix]);
+    }), [devices, hexapodPVs]);
 
     const realHexapodRBVs: HexapodRBVs = useMemo(() => ({
         tx: devices[hexapodPVs.readTx],
@@ -149,7 +149,7 @@ export default function useHexapod(props: UseHexapodProps = {}) {
         rx: devices[hexapodPVs.readRx],
         ry: devices[hexapodPVs.readRy],
         rz: devices[hexapodPVs.readRz],
-    }), [devices, prefix]);
+    }), [devices, hexapodPVs]);
 
     // ── Demo RBVs ──────────────────────────────────────────────────────────────
 

@@ -1,3 +1,4 @@
+import { Devices } from '@/types/deviceControllerTypes';
 import InputGroup from './InputGroup';
 import { cn } from '@/lib/utils';
 
@@ -20,9 +21,9 @@ type CameraSettingsProps = {
     /** EPICS PV prefix prepended to each input suffix when constructing full PV names. */
     prefix?: string;
     /** Map of full PV names to their live device objects, used to display current values and connection state. */
-    cameraSettingsPVs: {[key:string]: any};
+    cameraSettingsPVs: Devices;
     /** Callback invoked when the user submits a new value for a PV. Receives the full PV name and new value. */
-    onSubmit?: (pv:string, value:string | boolean | number) => void,
+    onSubmit?: (pv:string, value:string | boolean | number) => void;
     /** Additional Tailwind class names applied to the settings panel container. */
     styles?: string;
 }

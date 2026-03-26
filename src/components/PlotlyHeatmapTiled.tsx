@@ -26,7 +26,7 @@ export default function PlotlyHeatmapTiled({
   const [error, setError] = useState<string | null>(null);
   const [sliderIndex, setSliderIndex] = useState<number>(0);
   const [shape, setShape] = useState<number[] | null>(null);
-  const [ metadata, setMetadata ] = useState<any>(null);
+  const [ metadata, setMetadata ] = useState<Record<string, string> | null>(null);
   
   // Track if user has manually interacted with slider
   const [userHasMovedSlider, setUserHasMovedSlider] = useState<boolean>(false);
@@ -146,7 +146,7 @@ export default function PlotlyHeatmapTiled({
       };
       fetchSlice();
     }
-  }, [sliderIndex]);
+  }, [sliderIndex, shape, url]);
 
   // Polling effect for shape updates
   useEffect(() => {

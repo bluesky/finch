@@ -55,7 +55,7 @@ export default function ExperimentHistory({planName, className, metadataFulltext
             }
         };
         fetchData();
-    }, [planName, metadataFulltextSearch]);
+    }, [planName, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit]);
 
     return (
     <section>
@@ -88,7 +88,7 @@ export default function ExperimentHistory({planName, className, metadataFulltext
                                     if (enablePersistentSelection) {
                                         setSelectedItemId(item.id);
                                     }
-                                    onItemClick && onItemClick(item);
+                                    if (onItemClick) onItemClick(item);
                                 }}>
                                     <td className="px-2 py-2">{formattedStartTime}</td>
                                     <td className="px-2 py-2 max-w-24 truncate">{item.id}</td>

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Plot, { PlotParams } from 'react-plotly.js';
+import { LayoutAxis } from 'plotly.js';
 import { cn } from '@/lib/utils';
 
 export type PlotlyScatterProps = {
@@ -16,9 +17,9 @@ export type PlotlyScatterProps = {
   /** Fixed [min, max] range for the y axis. When omitted Plotly auto-scales. */
   yAxisRange?: [number, number];
   /** Additional Plotly xaxis layout overrides merged on top of defaults. */
-  xAxisLayout?: {[key: string]: any};
+  xAxisLayout?: Partial<LayoutAxis>;
   /** Additional Plotly yaxis layout overrides merged on top of defaults. */
-  yAxisLayout?: {[key: string]: any};
+  yAxisLayout?: Partial<LayoutAxis>;
   /** Additional CSS classes applied to the root container div. */
   className?: string;
 };

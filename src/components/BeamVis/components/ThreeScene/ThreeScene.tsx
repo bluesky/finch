@@ -369,8 +369,8 @@ const ThreeScene: React.FC<ThreeSceneProps> = ({ sceneConfig, highlightedAxis, m
       scene.clear();
       //controlsRef.current?.dispose();
     };
-  }, []
-  ); // initialization runs only once
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // initialization runs only once
 
   // Ghosting effect
   useEffect(() => {

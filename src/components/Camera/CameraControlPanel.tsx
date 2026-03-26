@@ -1,12 +1,11 @@
 //import ButtonWithIcon from "../library/ButtonWithIcon";
 import ButtonWithIcon from "../ButtonWithIcon";
 import { phosphorIcons } from "../../assets/icons";
+import { Device } from "@/types/deviceControllerTypes";
 
 type CameraControlPanelProps = {
     /** Live device object for the `cam1:Acquire` PV, containing `connected`, `value`, and `enum_strs` fields. */
-    cameraControlPV: {
-        [key: string]: any;
-    };
+    cameraControlPV: Device;
     /** Callback to start image acquisition (sets `cam1:Acquire` to 1). */
     startAcquire: () => void;
     /** Callback to stop image acquisition (sets `cam1:Acquire` to 0). */
@@ -19,7 +18,9 @@ export default function CameraControlPanel({ cameraControlPV, startAcquire, stop
 
     let text= 'PV Not Connected';
     if (cameraControlPV.connected) {
-        text = cameraControlPV.enum_strs[cameraControlPV.value];
+        if (cameraControlPV.enum_strs && cameraControlPV.value !== undefined) {
+        text = cameraControlPV.enum_strs[cameraControlPV.value as number];
+        }
     }
 
     return (

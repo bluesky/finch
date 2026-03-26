@@ -1,11 +1,11 @@
 // types/three-examples.d.ts
 
 declare module 'three/examples/jsm/postprocessing/EffectComposer' {
-    import { WebGLRenderer, Scene as _Scene, Camera as _Camera, Texture as _Texture } from 'three';
+    import { WebGLRenderer, WebGLRenderTarget, Scene as _Scene, Camera as _Camera, Texture as _Texture } from 'three';
     import { Pass } from 'three/examples/jsm/postprocessing/Pass';
-  
+
     export class EffectComposer {
-      constructor(renderer: WebGLRenderer, renderTarget?: any);
+      constructor(renderer: WebGLRenderer, renderTarget?: WebGLRenderTarget);
       addPass(pass: Pass): void;
       render(delta?: number): void;
       setSize(width: number, height: number): void;
@@ -41,10 +41,10 @@ declare module 'three/examples/jsm/postprocessing/EffectComposer' {
   }
   
   declare module 'three/examples/jsm/loaders/FBXLoader' {
-    import { Loader, Object3D } from 'three';
-  
+    import { Loader, LoadingManager, Object3D } from 'three';
+
     export class FBXLoader extends Loader {
-      constructor(manager?: any);
+      constructor(manager?: LoadingManager);
       load(
         url: string,
         onLoad: (object: Object3D) => void,

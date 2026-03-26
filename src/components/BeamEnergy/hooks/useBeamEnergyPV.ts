@@ -84,7 +84,7 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
     const { devices, handleSetValueRequest } = useOphydSocket(deviceList, wsUrl);
 
     // Only capture a new timestamp when the angle actually changes.
-    const simTimestamp = useMemo(() => Date.now() / 1000, [simAngleDeg]);
+    const simTimestamp = useMemo(() => Date.now() / 1000, []);
 
     const device: Device | undefined = demo
         ? { pv, value: simAngleDeg, timestamp: simTimestamp, connected: true, read_access: true, write_access: true, name: pv, locked: false, expanded: false }

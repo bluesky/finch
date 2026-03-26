@@ -37,6 +37,7 @@ export const PlayProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePlay() {
   const ctx = useContext(PlayContext);
   if (!ctx) {

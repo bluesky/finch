@@ -7,12 +7,13 @@ import TiledWriterDetImageHeatmap from "../Tiled/TiledWriterDetImageHeatmap";
 import ExperimentHistory from "./ExperimentHistory";
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
+import { PostItemAddResponse } from "../QServer/types/apiTypes";
 
 type ExperimentEnergyScanProps = {
     /** Additional CSS class names to apply to the root container. */
     className?: string;
     /** Callback invoked after a successful plan execution. Receives the raw API response. */
-    onSuccess?: (response: any) => void;
+    onSuccess?: (response: PostItemAddResponse) => void;
     /** Callback invoked when plan execution fails. Receives a human-readable error message. */
     onError?: (error: string) => void;
     /** The url for the Tiled server */
@@ -87,7 +88,7 @@ export default function ExperimentEnergyScan({
         setNumPoints(Number(e.target.value));
     };
 
-    const handleSuccess = async (response: any) => {
+    const handleSuccess = async (response: PostItemAddResponse) => {
         console.log("Energy scan executed successfully!", response);
         
         // Set the item UID to trigger TanStack Query polling

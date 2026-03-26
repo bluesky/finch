@@ -32,8 +32,8 @@ interface ControlPanelProps {
   // handleSampleMeshChange: (meshType: 'cube' | 'cylinder' | 'fbx' | 'obj') => void;
   controlLayout: {
     common?: { camera?: boolean; beam?: boolean; shutter?: boolean };
-    stages?: any[];
-    sample?: any;
+    stages?: Array<{ id: string; type: string }>;
+    sample?: unknown;
     // ...other layout properties...
   };
 }

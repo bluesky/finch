@@ -10,7 +10,7 @@ interface StageLayout {
 interface ControlLayout {
   common?: { camera?: boolean; beam?: boolean; shutter?: boolean };
   stages?: StageLayout[];
-  sample?: any;
+  sample?: unknown;
 }
 
 interface ControlModulesProps {

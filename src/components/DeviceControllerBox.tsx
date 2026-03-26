@@ -24,12 +24,11 @@ export type DeviceControllerBoxProps = {
 }
 
 export default function DeviceControllerBox({ device, deviceRBV, handleSetValueRequest, handleLockClick, svgIcon, className, title, ...props}: DeviceControllerBoxProps) {
-    if (!device) return;
     const backgroundColorClass = device.locked ? 'bg-slate-400' : 'bg-slate-100';
     const [ absoluteMoveValue, setAbsoluteMoveValue ] = useState<number | null>(null);
     const [ relativeMoveIncrement, setRelativeMoveIncrement ] = useState<number | null>(null);
     const [ isExpanded, setIsExpanded ] = useState(false);
-
+    
     const currentValue = (deviceRBV ? deviceRBV.value : device.value) as number;
     const formattedCurrentValue = `${typeof currentValue === 'number' ? currentValue.toPrecision(4) : currentValue} ${device.units?.slice(0,3)}`;
     const handleIncrementClick = () => {
@@ -42,10 +41,13 @@ export default function DeviceControllerBox({ device, deviceRBV, handleSetValueR
             handleSetValueRequest(device.name, currentValue - relativeMoveIncrement);
         }
     };
-
+    
     const handleQuestionMarkClick = () => {
         setIsExpanded(!isExpanded);
     }
+    
+    if (!device) return;
+
     return (
         <article className={cn(`w-96 border border-slate-300 rounded-xl flex flex-col relative ${backgroundColorClass} ${device.locked && 'opacity-60'}`, className)} {...props}>
             {/*Row -Icons */}

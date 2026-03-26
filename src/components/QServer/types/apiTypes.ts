@@ -72,7 +72,7 @@ export interface GetDevicesAllowedResponse {
 //TO DO: verify what Parameter response looks like with enums so we can enforce better automatic checks for input types that are single enums vs multiple etc
 export interface Parameter {
     name: string;
-    kind: {
+    kind?: {
         name: string;
         value: number;
     };
@@ -131,8 +131,14 @@ export interface RunningQueueItem extends QueueItem {
     }
 }
 
+export interface ArbitraryKwargs {
+    [key: string]: unknown;
+}
+
 export interface ExecuteQueueItemBody {
-    item: BaseQueueItem;
+    item: Omit<BaseQueueItem, 'kwargs'> & {
+        kwargs?: ArbitraryKwargs;
+    };
 }
 
 export interface AddQueueItemBody {

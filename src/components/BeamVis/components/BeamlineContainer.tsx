@@ -8,9 +8,9 @@ import { beamlineDefinitions } from '../beam_configs';
 import * as THREE from 'three';
 
 interface BeamlineContainerProps {
-  devices: any,
+  devices: Record<string, { value?: number | string }>,
   handleSetValueRequest: (pv: string, value: number) => void;
-  motionState: any;
+  motionState: { isMoving: boolean; objectId: string | null; startPosition: THREE.Vector3 | null };
   initiateMove: (objectId: string, startPosition: THREE.Vector3) => void;
 }
 
@@ -50,11 +50,10 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
                 ]
               }
             };
-          case 'horizontalStage':
+          case 'horizontalStage': {
             const invertX = cfg.inversions?.x ?? 1;
             const invertY = cfg.inversions?.y ?? 1;
             const invertZ = cfg.inversions?.z ?? 1;
-
             return {
               ...cfg,
               transform: {
@@ -67,7 +66,8 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
                 ]
               }
             };
-          case 'rotationStage':
+          }
+          case 'rotationStage': {
             const angleNum = Number(devices['IOC:m7.VAL']?.value ?? 0);
             return {
               ...cfg,
@@ -76,6 +76,7 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
                 rotation: [0, (Math.PI * angleNum) / 180, 0]
               }
             };
+          }
           default:
             return cfg;
         }
@@ -83,7 +84,7 @@ const BeamlineContainer: React.FC<BeamlineContainerProps> = ({
     }
 
     return currentConfigs;
-  }, [selectedBeamline, beamlineDefinition, devices, isReady]);
+  }, [beamlineDefinition, devices, isReady]);
 
   const playAngle = Number(devices['IOC:m7.VAL']?.value ?? 0);
 

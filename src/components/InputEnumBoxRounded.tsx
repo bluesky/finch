@@ -41,8 +41,8 @@ export default function InputEnumBoxRounded({cb, label='', value='', enums=[], d
         }
     };
 
-    const handleClickOutside = (event: {target: any}) => {
-        if (containerRef.current && !containerRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
             setDropdownVisible(false);
         }
     };

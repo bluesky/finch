@@ -11,8 +11,6 @@ export type UseTIFFCanvasProps = {
 };
 
 export function useTIFFCanvas({
-    imageArrayPV = '',
-    sizePVs = {},
     canvasSize = 'medium',
     prefix = '13PIL1',
     wsUrl
@@ -149,21 +147,20 @@ export function useTIFFCanvas({
             frameCount.current = 0;
             console.log("Camera Web Socket closed");
         };
-    }, [wsUrl, canvasSize]);
+    }, [wsUrl, canvasSize, prefix]);
 
     useEffect(() => {
         if (!isInitialized.current) {
             isInitialized.current = true;
-            if (socketStatus === 'closed') {
-                startWebSocket();
-            }
+            startWebSocket();
         }
         return () => {
             if (ws.current) {
                 ws.current.close();
             }
         };
-    }, []); // Empty dependency array for initialization only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); //we only want this to run on mount/unmount, not when a user forces a re-render by stopping the websocket or toggling log scale
 
     return {
         canvasRef,

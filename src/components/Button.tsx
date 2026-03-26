@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 export type ButtonProps = {
     /** Callback function triggered when button is clicked */
-    cb?: Function;
+    cb?: ()=>void;
     /** Text content displayed inside the button */ 
     text?: string;
     /** Disables the button and prevents user interaction when true */
@@ -28,7 +28,7 @@ export default function Button({
 }: ButtonProps) {
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        cb(e);
+        if (cb)cb();
     };
 
     const textSizes = {

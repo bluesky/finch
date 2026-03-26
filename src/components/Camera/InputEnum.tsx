@@ -31,8 +31,8 @@ export default function InputEnum ({label='label', enums=['blank1','blank2'], on
         setDropdownVisible(false);
     };
 
-    const handleClickOutside = (event: { target: any; }) => {
-        if (containerRef.current && !containerRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+        if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
             setDropdownVisible(false);
         }
     };

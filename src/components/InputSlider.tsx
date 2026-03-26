@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 export type InputSliderProps = {
@@ -109,7 +108,7 @@ export default function InputSlider({
         return `calc(${((mark - min) / (max - min)) * 100}% + ${(-((mark - min) / (max - min))*thumbWidth) + thumbWidth/2}px)`;
     };
 
-    const isIndexFirstOrLast = (array:Number[], index: number): boolean => {
+    const isIndexFirstOrLast = (array:number[], index: number): boolean => {
         return (array.length - 1 === index || index === 0) ? true : false;
     };
 

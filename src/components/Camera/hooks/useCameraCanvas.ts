@@ -70,7 +70,7 @@ export function useCameraCanvas({
         }
     }, [imageArrayPV, prefix]);
 
-    const doesObjectStructureMatch = useCallback((obj1: {[key:string]: any}, obj2: {[key:string]: any}) => {
+    const doesObjectStructureMatch = useCallback((obj1: {[key:string]: string | string[]}, obj2: {[key:string]: string | string[]}) => {
         if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
         if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
         try {
@@ -227,15 +227,14 @@ export function useCameraCanvas({
         console.log('running hook')
         if (!isInitialized.current) {
             isInitialized.current = true;
-            if (socketStatus === 'closed') {
-                startWebSocket();
-            }
+            startWebSocket();
         }
         return () => {
             if (ws.current) {
                 ws.current.close();
             }
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty dependency array for initialization only
 
     return {

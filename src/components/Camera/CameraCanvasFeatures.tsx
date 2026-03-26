@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { phosphorIcons } from "@/assets/icons";
 import { SunDim, Sun, PaintBrush, Eraser } from '@phosphor-icons/react';
 import { useCameraDraw } from './hooks/useCameraDraw';
+import type { Point } from './hooks/useCameraDraw';
 
 export type CameraCanvasFeaturesProps = {
     /** Current WebSocket connection state (e.g. `'open'` or `'closed'`). */
@@ -39,7 +40,7 @@ export default function CameraCanvasFeatures({
         createStrokePath
     } = useCameraDraw(prefix);
 
-    const renderStroke = (stroke: any[], index: number) => {
+    const renderStroke = (stroke: Point[], index: number) => {
         const pathData = createStrokePath(stroke);
         if (!pathData) return null;
         
@@ -76,7 +77,7 @@ export default function CameraCanvasFeatures({
             title: isDrawingMode ? 'Exit Drawing Mode' : 'Enter Drawing Mode',
             isActive: isDrawingMode
         }
-    ], [socketStatus, isImageLogScale, onToggleConnection, onToggleLogScale, isDrawingMode]);
+    ], [socketStatus, isImageLogScale, onToggleConnection, onToggleLogScale, isDrawingMode, toggleDrawingMode]);
 
     return (
         <>
