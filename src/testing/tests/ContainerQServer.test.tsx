@@ -1,8 +1,9 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { useQueueServer } from '../../components/QServer/hooks/useQueueServer';
-import type { PlanInput } from '../../components/QServer/types/types';
-import type { QueueItem, RunningQueueItem } from '../../components/QServer/types/apiTypes';
+import type { CopiedPlan } from '../../components/QServer/types/types';
+import type { GetHistoryResponse, GetQueueResponse, GetStatusResponse, QueueItem, RunningQueueItem } from '../../components/QServer/types/apiTypes';
+import type { QueryObserverResult } from '@tanstack/react-query';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -22,7 +23,7 @@ vi.mock('@/assets/icons', () => ({
   },
 }));
 
-const useQueueServerMock = vi.fn(() => ({
+const useQueueServerMock = vi.fn((): ReturnType<typeof useQueueServer> => ({
   currentQueue: null,
   queueHistory: null,
   isREToggleOn: false,
@@ -31,10 +32,18 @@ const useQueueServerMock = vi.fn(() => ({
   processConsoleMessage: vi.fn(),
   globalMetadata: {},
   updateGlobalMetadata: vi.fn(),
-  removeDuplicateMetadata: vi.fn((plan: PlanInput) => plan),
+  removeDuplicateMetadata: vi.fn((plan: CopiedPlan) => plan as CopiedPlan),
   isGlobalMetadataChecked: true,
   handleGlobalMetadataCheckboxChange: vi.fn(),
   apiStatus: null,
+  
+  // Add the missing properties
+  runEngineToggleRef: { current: true },
+  handleQueueDataResponse: vi.fn(),
+  handleQueueHistoryResponse: vi.fn(),
+  refetchQueue: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetQueueResponse, Error>)),
+  refetchStatus: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetStatusResponse, Error>)),
+  refetchHistory: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetHistoryResponse, Error>)),
 }));
 vi.mock('../../components/QServer/hooks/useQueueServer', () => ({
   useQueueServer: () => useQueueServerMock(),
@@ -185,7 +194,32 @@ describe('ContainerQServer', () => {
 
   it('shows queue item count from currentQueue', () => {
     useQueueServerMock.mockReturnValueOnce({
-      currentQueue: { items: [{ item_uid: '1' }, { item_uid: '2' }], plan_queue_uid: 'q1', running_item: {}, success: true },
+      currentQueue: { 
+        msg: "",
+        items: [
+          { 
+            item_uid: '1',
+            name: 'test_plan_1',
+            item_type: 'plan',
+            args: [],
+            kwargs: {},
+            user: 'test_user',
+            user_group: 'test_group'
+          }, 
+          { 
+            item_uid: '2',
+            name: 'test_plan_2', 
+            item_type: 'plan',
+            args: [],
+            kwargs: {},
+            user: 'test_user',
+            user_group: 'test_group'
+          }
+        ], 
+        plan_queue_uid: 'q1', 
+        running_item: {}, 
+        success: true 
+      },
       queueHistory: null,
       isREToggleOn: false,
       runningItem: null,
@@ -193,11 +227,17 @@ describe('ContainerQServer', () => {
       processConsoleMessage: vi.fn(),
       globalMetadata: {},
       updateGlobalMetadata: vi.fn(),
-      removeDuplicateMetadata: vi.fn((p: PlanInput) => p),
+      removeDuplicateMetadata: vi.fn((p: CopiedPlan) => p),
       isGlobalMetadataChecked: true,
       handleGlobalMetadataCheckboxChange: vi.fn(),
       apiStatus: null,
-    } as unknown as ReturnType<typeof useQueueServer>);
+      runEngineToggleRef: { current: true },
+      handleQueueDataResponse: vi.fn(),
+      handleQueueHistoryResponse: vi.fn(),
+      refetchQueue: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetQueueResponse, Error>)),
+      refetchStatus: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetStatusResponse, Error>)),
+      refetchHistory: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetHistoryResponse, Error>)),
+    });
     render(<ContainerQServer />);
     expect(screen.getByText('2')).toBeInTheDocument(); // queue count
   });
@@ -205,18 +245,84 @@ describe('ContainerQServer', () => {
   it('shows history item count from queueHistory', () => {
     useQueueServerMock.mockReturnValueOnce({
       currentQueue: null,
-      queueHistory: { items: [{ item_uid: 'h1' }, { item_uid: 'h2' }, { item_uid: 'h3' }], plan_history_uid: 'hist1', success: true },
+      queueHistory: { 
+        msg: "",
+        items: [
+          { 
+            item_uid: 'h1',
+            name: 'history_plan_1',
+            item_type: 'plan',
+            args: [],
+            kwargs: {},
+            user: 'test_user',
+            user_group: 'test_group',
+            result: {
+               exit_status: 'completed',
+               run_uids: ['run_1'],
+               scan_ids: [1],
+               time_start: 0,
+               time_stop: 1,
+               msg: '',
+               traceback: ''
+            },
+          }, 
+          { 
+            item_uid: 'h2',
+            name: 'history_plan_2',
+            item_type: 'plan', 
+            args: [],
+            kwargs: {},
+            user: 'test_user',
+            user_group: 'test_group',
+            result: {
+               exit_status: 'completed',
+               run_uids: ['run_2'],
+               scan_ids: [2],
+               time_start: 0,
+               time_stop: 1,
+               msg: '',
+               traceback: ''
+            },
+          }, 
+          { 
+            item_uid: 'h3',
+            name: 'history_plan_3',
+            item_type: 'plan',
+            args: [],
+            kwargs: {},
+            user: 'test_user', 
+            user_group: 'test_group',
+            result: {
+               exit_status: 'completed',
+               run_uids: ['run_3'],
+               scan_ids: [3],
+               time_start: 0,
+               time_stop: 1,
+               msg: '',
+               traceback: ''
+            },
+          }
+        ], 
+        plan_history_uid: 'hist1', 
+        success: true, 
+      },
       isREToggleOn: false,
       runningItem: null,
       setIsREToggleOn: vi.fn(),
       processConsoleMessage: vi.fn(),
       globalMetadata: {},
       updateGlobalMetadata: vi.fn(),
-      removeDuplicateMetadata: vi.fn((p: PlanInput) => p),
+      removeDuplicateMetadata: vi.fn((p: CopiedPlan) => p),
       isGlobalMetadataChecked: true,
       handleGlobalMetadataCheckboxChange: vi.fn(),
       apiStatus: null,
-    } as unknown as ReturnType<typeof useQueueServer>);
+      runEngineToggleRef: { current: true },
+      handleQueueDataResponse: vi.fn(),
+      handleQueueHistoryResponse: vi.fn(),
+      refetchQueue: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetQueueResponse, Error>)),
+      refetchStatus: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetStatusResponse, Error>)),
+      refetchHistory: vi.fn(() => Promise.resolve({} as QueryObserverResult<GetHistoryResponse, Error>)),
+    });
     render(<ContainerQServer />);
     expect(screen.getByText('3')).toBeInTheDocument(); // history count
   });

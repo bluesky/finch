@@ -1,5 +1,32 @@
 // types/three-examples.d.ts
 
+declare module 'three/examples/jsm/postprocessing/Pass' {
+  import { WebGLRenderer, WebGLRenderTarget, Material } from 'three';
+
+  export class Pass {
+    enabled: boolean;
+    needsSwap: boolean;
+    clear: boolean;
+    renderToScreen: boolean;
+
+    setSize(width: number, height: number): void;
+    render(
+      renderer: WebGLRenderer,
+      writeBuffer: WebGLRenderTarget,
+      readBuffer: WebGLRenderTarget,
+      deltaTime?: number,
+      maskActive?: boolean
+    ): void;
+  }
+
+  export class FullScreenQuad {
+    constructor(material: Material);
+    material: Material;
+    render(renderer: WebGLRenderer): void;
+    dispose(): void;
+  }
+}
+
 declare module 'three/examples/jsm/postprocessing/EffectComposer' {
     import { WebGLRenderer, WebGLRenderTarget, Scene as _Scene, Camera as _Camera, Texture as _Texture } from 'three';
     import { Pass } from 'three/examples/jsm/postprocessing/Pass';
