@@ -1,4 +1,4 @@
-export default function About() {
+export default function AboutFinchPage() {
   return (
     <div className="p-4 text-slate-100">
       <h1 className="text-2xl font-bold mb-4">About Finch</h1>

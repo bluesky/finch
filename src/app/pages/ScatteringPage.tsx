@@ -21,16 +21,6 @@ export default function ScatteringPage() {
                     tiledBaseUrl="http://192.168.10.155:8000/api/v1"
                 />
             </div>
-            {/* <div className="min-w-96">
-                <ExperimentAngleScan 
-                    onSuccess={(response) => {
-                        console.log("Angle scan started", response);
-                    }}
-                    onError={(error) => {
-                        console.error("Angle scan failed:", error);
-                    }}
-                />
-            </div> */}
             <div className="flex gap-8">
                 <div>
                     <h2 className="text-xl font-bold mb-4 text-white">Most Recent Detector Image</h2>
