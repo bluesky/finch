@@ -1,0 +1,62 @@
+import ComponentViewer from "@/features/ComponentViewer/ComponentViewer";
+import { TestItemCollection } from "@/features/ComponentViewer/types";
+
+import DeviceControllerBox from "@/components/DeviceControllerBox";
+import TableDeviceController from "@/components/TableDeviceController";
+import BeamEnergyPV from "@/components/BeamEnergy/BeamEnergyPV";
+import Hexapod from "@/components/Hexapod/Hexapod";
+import SignalMonitorPlotDevice from "@/components/SignalMonitorPlotDevice";
+import Histogram from "@/components/Histogram/Histogram";
+import CameraContainer from "@/components/Camera/CameraContainer";
+
+import useSimOphydPVSocket from "@/hooks/useSimOphydPVSocket";
+const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
+
+export default function ComponentViewerExampleSim() {
+    const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+                useSimOphydPVSocket(SIM_DEVICES);    
+        const testItems: TestItemCollection = {
+            SimControl1: {
+                name: 'Generic Device Controller',
+                element: <DeviceControllerBox device={devices['motor1']} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} />,
+                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls.',
+            },
+            SimControl2: {
+                name: 'Device Controller Table',
+                element: <TableDeviceController devices={devices} toggleDeviceLock={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} toggleExpand={toggleExpand} />,
+                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls.',
+                },
+            SimControl3: {
+                name: 'Beam Energy Controller',
+                element: <BeamEnergyPV pv="fake mirror" demo={true} />,
+                info: 'This component accepts a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls. This display uses a demo mode with a simulated device.',
+            },
+            SimControl4: {
+                name: 'Hexapod Controller',
+                element: <Hexapod prefix="fake hexapod" demo={true} />,
+                info: 'This component accepts a prefix intended for an EPICS hexapod device, and connects via useOphydSocketPV. This display utilizes a demo mode with a simulated device.',
+            },
+            SimMonitor1: {
+                name: 'Signal Monitor Plot',
+                element: <SignalMonitorPlotDevice device={devices['sineSignal']} />,
+                info: 'This component accepts a preconnected device from useOphydSocketPV or useOphydSocketDevice and plots the value over time. This display shows a simulated sine wave device.',
+            },
+            SimMonitor2: {
+                name: 'Histogram',
+                element: <Histogram arrayPV="fake array" acquirePV="fake acquire" demo={true} />,
+                info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
+            },
+            RealCam1: {
+                name: 'EPICS Area Detector Array Stream',
+                element:            
+                    <article className="flex flex-col items-center w-fit">
+                        <h2 className="text-3xl font-bold mb-4 text-white">ADSimDetector</h2>
+                        <CameraContainer prefix='13SIM1' enableControlPanel={true} enableSettings={true} canvasSize="medium"/>
+                    </article>,
+                info: 'This component displays an EPICS area detector stream using the CameraContainer component. This test requires Ophyd Websocket and the ADSimDetector running.',
+            },
+        };
+        return (
+            <ComponentViewer testItems={testItems} className="m-auto w-full max-w-full"/>
+        )
+}
