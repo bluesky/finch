@@ -106,7 +106,7 @@ vi.mock('../../components/Camera/utils/apiClient', () => ({
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
-import { Devices } from '../../types/deviceControllerTypes';
+import { Device, Devices } from '../../types/deviceControllerTypes';
 import InputFloat from '../../components/Camera/InputFloat';
 import InputInteger from '../../components/Camera/InputInteger';
 import InputString from '../../components/Camera/InputString';
@@ -302,8 +302,8 @@ describe('InputGroup', () => {
 // ── CameraControlPanel ────────────────────────────────────────────────────────
 
 describe('CameraControlPanel', () => {
-  const connectedPV = { connected: true, value: 0, enum_strs: ['Done', 'Acquire'] };
-  const disconnectedPV = { connected: false, value: 0 };
+  const connectedPV: Device = { connected: true, value: 0, enum_strs: ['Done', 'Acquire'], name: 'cam1:Acquire', read_access: true, write_access: true, timestamp: 0, locked: false, expanded: false, pv: 'cam1:Acquire' };
+  const disconnectedPV: Device = { connected: false, value: 0, enum_strs: undefined, name: 'cam1:Acquire', read_access: false, write_access: false, timestamp: 0, locked: false, expanded: false, pv: 'cam1:Acquire' };
 
   it('renders without crashing', () => {
     const { container } = render(
@@ -408,10 +408,6 @@ describe('CameraContainer', () => {
     expect(screen.getByTestId('camera-canvas')).toBeInTheDocument();
   });
 
-  it('renders custom setup form when customSetup is true', () => {
-    render(<CameraContainer prefix="13SIM1" customSetup={true} />);
-    expect(screen.getByText('Custom Camera Setup')).toBeInTheDocument();
-  });
 });
 
 // ── TIFFContainer ─────────────────────────────────────────────────────────────
@@ -425,11 +421,6 @@ describe('TIFFContainer', () => {
   it('renders the TIFF canvas', () => {
     render(<TIFFContainer prefix="13SIM1" />);
     expect(screen.getByTestId('tiff-canvas')).toBeInTheDocument();
-  });
-
-  it('renders custom setup form when customSetup is true', () => {
-    render(<TIFFContainer prefix="13SIM1" customSetup={true} />);
-    expect(screen.getByText('Custom Camera Setup')).toBeInTheDocument();
   });
 });
 

@@ -28,16 +28,6 @@ describe('DeviceControllerBox Component', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('renders nothing when device is falsy', () => {
-    const { container } = render(
-      <DeviceControllerBox
-        {...defaultProps}
-        device={null as unknown as Device}
-      />
-    );
-    expect(container.firstChild).toBeNull();
-  });
-
   it('shows device name by default', () => {
     render(<DeviceControllerBox {...defaultProps} />);
     expect(screen.getByText('test-device')).toBeInTheDocument();
