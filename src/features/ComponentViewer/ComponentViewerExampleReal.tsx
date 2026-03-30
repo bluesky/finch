@@ -43,6 +43,6 @@ export default function ComponentViewerExampleReal() {
 
     };
     return (
-        <ComponentViewer testItems={testItems} className="bg-white m-auto w-full max-w-full"/>
+        <ComponentViewer testItems={testItems} className="w-full max-w-full" namespace="Real"/>
     )
 }

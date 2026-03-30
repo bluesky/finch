@@ -1,7 +1,10 @@
 import { ComponentViewerCollection, TestItemCollection } from "./types";
 
-export const writeTestResultsToLocalStorage = (testResults: ComponentViewerCollection) => {
-    localStorage.setItem('componentViewerResults', createTestResultsJSON(testResults));
+const getStorageKey = (namespace?: string) =>
+    namespace ? `componentViewerResults_${namespace}` : 'componentViewerResults';
+
+export const writeTestResultsToLocalStorage = (testResults: ComponentViewerCollection, namespace?: string) => {
+    localStorage.setItem(getStorageKey(namespace), createTestResultsJSON(testResults));
 }
 
 const doesLocalStorageDataMatchTestItems = (testItems: TestItemCollection, storedResults: ComponentViewerCollection) => {
@@ -17,9 +20,9 @@ const doesLocalStorageDataMatchTestItems = (testItems: TestItemCollection, store
     }
 }
 
-export const initializeTestResults = (testItems: TestItemCollection): ComponentViewerCollection => {
+export const initializeTestResults = (testItems: TestItemCollection, namespace?: string): ComponentViewerCollection => {
     //first check if we have existing results in local storage, if so then check if the ids and names match the testItems, if they do then return those results
-    const storedResults = localStorage.getItem('componentViewerResults');
+    const storedResults = localStorage.getItem(getStorageKey(namespace));
     if (storedResults) {
         const parsedResults = JSON.parse(storedResults);
         if (doesLocalStorageDataMatchTestItems(testItems, parsedResults)) {
@@ -45,7 +48,7 @@ export const initializeTestResults = (testItems: TestItemCollection): ComponentV
     Object.keys(testItems).forEach(key => {
         initialResults[key] = { ...testItems[key], isPassing: false, comment: '' };
     });
-    localStorage.setItem('componentViewerResults', createTestResultsJSON(initialResults));
+    localStorage.setItem(getStorageKey(namespace), createTestResultsJSON(initialResults));
     return initialResults;
 }
 

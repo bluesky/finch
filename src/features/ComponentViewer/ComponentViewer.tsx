@@ -8,9 +8,10 @@ import { CaretLeft, CaretRight } from "@phosphor-icons/react";
 export type ComponentViewerProps = {
     testItems: TestItemCollection;
     className?: string;
+    namespace?: string;
 }
-export default function ComponentViewer({ testItems, className }: ComponentViewerProps) {
-    const initializedTestResults = useMemo(() => initializeTestResults(testItems), []);
+export default function ComponentViewer({ testItems, className, namespace }: ComponentViewerProps) {
+    const initializedTestResults = useMemo(() => initializeTestResults(testItems, namespace), [ namespace]);
     const [ testResults, setTestResults] = useState<ComponentViewerCollection>(initializedTestResults);
     //const [ copyButtonText, setCopyButtonText ] = useState<string>('Copy Table');  
     const [ commandCopyStates, setCommandCopyStates ] = useState<Record<string, string>>({});
@@ -27,7 +28,7 @@ export default function ComponentViewer({ testItems, className }: ComponentViewe
             if (updatedResults[id]) {
                 updatedResults[id] = { ...updatedResults[id], comment };
             }
-            writeTestResultsToLocalStorage(updatedResults);
+            writeTestResultsToLocalStorage(updatedResults, namespace);
             return updatedResults;
         });
     }
@@ -39,7 +40,7 @@ export default function ComponentViewer({ testItems, className }: ComponentViewe
             if (updatedResults[id]) {
                 updatedResults[id] = { ...updatedResults[id], isPassing: !updatedResults[id].isPassing };
             }
-            writeTestResultsToLocalStorage(updatedResults);
+            writeTestResultsToLocalStorage(updatedResults, namespace);
             return updatedResults;
         });
     }
@@ -102,10 +103,10 @@ export default function ComponentViewer({ testItems, className }: ComponentViewe
     }
 
     return (
-        <div className={cn("p-4 w-full lg:w-3/4 max-w-6xl", className)}>
+        <div className={cn("w-full lg:w-3/4 max-w-6xl", className)}>
             {/* <h1 className="text-2xl text-center mb-4 text-sky-700">Component Test Page</h1> */}
             {/* A summary table that shows the test results, including id, name, passing status, and optional comment */}
-            <table className="min-w-full border-collapse border border-gray-200 text-sm">
+            <table className="max-w-full m-auto border-collapse border border-gray-200 text-sm bg-white">
                 <thead>
                     <tr>
                         <th className="border border-gray-200 p-1 w-1/12">ID</th>
@@ -214,7 +215,7 @@ export default function ComponentViewer({ testItems, className }: ComponentViewe
                         />
                     </div>
 
-                    {/*Optional Tiled Startup Command */}
+                    {/*Optional Startup Command */}
                     {currentTest.command && (
                         <div className="mb-4">
                             <div className="flex items-center space-x-2">
@@ -233,8 +234,8 @@ export default function ComponentViewer({ testItems, className }: ComponentViewe
 
                     {/* Display info if available */}
                     {currentTest.info && (
-                        <div className="mb-4">
-                            <p className="text-gray-600 text-sm">Info: {currentTest.info}{currentTest.link && (
+                        <div className="mb-4 max-w-5xl">
+                            <p className="text-gray-600 text-sm text-wrap w-fit">Info: {currentTest.info}{currentTest.link && (
                                 <> <a className="text-blue-500 underline" href={currentTest.link} target="_blank" rel="noopener noreferrer">here</a></>
                             )}</p>
                         </div>

@@ -8,6 +8,8 @@ import Hexapod from "@/components/Hexapod/Hexapod";
 import SignalMonitorPlotDevice from "@/components/SignalMonitorPlotDevice";
 import Histogram from "@/components/Histogram/Histogram";
 import CameraContainer from "@/components/Camera/CameraContainer";
+import { CubeTransparent } from "@phosphor-icons/react";
+
 
 import useSimOphydPVSocket from "@/hooks/useSimOphydPVSocket";
 const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
@@ -18,13 +20,13 @@ export default function ComponentViewerExampleSim() {
         const testItems: TestItemCollection = {
             SimControl1: {
                 name: 'Generic Device Controller',
-                element: <DeviceControllerBox device={devices['motor1']} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} />,
-                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls.',
+                element: <DeviceControllerBox device={devices['motor1']} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} svgIcon={<CubeTransparent size={72}/>} />,
+                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls. This display uses a simulated motor device.',
             },
             SimControl2: {
                 name: 'Device Controller Table',
                 element: <TableDeviceController devices={devices} toggleDeviceLock={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} toggleExpand={toggleExpand} />,
-                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls.',
+                info: 'This component accpets a preconnected device from useOphydSocketPV or useOphydSocketDevice to display the current value and allow simple controls. This display uses several simulated motor devices.',
                 },
             SimControl3: {
                 name: 'Beam Energy Controller',
@@ -46,17 +48,8 @@ export default function ComponentViewerExampleSim() {
                 element: <Histogram arrayPV="fake array" acquirePV="fake acquire" demo={true} />,
                 info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
             },
-            RealCam1: {
-                name: 'EPICS Area Detector Array Stream',
-                element:            
-                    <article className="flex flex-col items-center w-fit">
-                        <h2 className="text-3xl font-bold mb-4 text-white">ADSimDetector</h2>
-                        <CameraContainer prefix='13SIM1' enableControlPanel={true} enableSettings={true} canvasSize="medium"/>
-                    </article>,
-                info: 'This component displays an EPICS area detector stream using the CameraContainer component. This test requires Ophyd Websocket and the ADSimDetector running.',
-            },
         };
         return (
-            <ComponentViewer testItems={testItems} className="m-auto w-full max-w-full"/>
+            <ComponentViewer testItems={testItems} className="w-full max-w-full" namespace="Sim"/>
         )
 }
