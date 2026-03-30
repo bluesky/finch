@@ -216,7 +216,7 @@ const controllerIcons = {
         <g filter="url(#filter0_d_67_13)">
             <path d="M4 19.5L33.25 2.6125L33.25 36.3875L4 19.5Z" fill="currentColor"/>
         </g>
-        <path d="M25.4489 19.0881V20.1818H20.9943V19.0881H25.4489Z" fill="#CFCFCF"/>
+        <path d="M25.4489 19.0881V20.1818H20.9943V19.0881H25.4489Z" fill="oklch(55.4% 0.046 257.417)"/>
         <defs>
             <filter id="filter0_d_67_13" x="0" y="2.6123" width="37.25" height="41.7754" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
                 <feFlood floodOpacity="0" result="BackgroundImageFix"/>
@@ -234,7 +234,7 @@ const controllerIcons = {
         <g filter="url(#filter0_d_67_14)">
         <path d="M39 19.5L9.75 36.3875L9.75 2.6125L39 19.5Z" fill="currentColor"/>
         </g>
-        <path d="M19.0568 23.304V16.7415H20.1705V23.304H19.0568ZM16.3324 20.5795V19.4659H22.8949V20.5795H16.3324Z" fill="#CFCFCF"/>
+        <path d="M19.0568 23.304V16.7415H20.1705V23.304H19.0568ZM16.3324 20.5795V19.4659H22.8949V20.5795H16.3324Z" fill="oklch(55.4% 0.046 257.417)"/>
         <defs>
         <filter id="filter0_d_67_14" x="5.75" y="2.6123" width="37.25" height="41.7754" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
         <feFlood floodOpacity="0" result="BackgroundImageFix"/>
