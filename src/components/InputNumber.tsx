@@ -24,9 +24,11 @@ type InputNumberProps = {
     classNameInput?: string;
     /** Disables the input when true. */
     disabled?: boolean;
+    /** Name attribute for the input element. */
+    name?: string;
 };
 
-export default function InputNumber({ label, onChange, warningMessage, isWarningVisible, min, max, handleEnter, labelPosition='left', className, classNameInput, disabled=false, ...props }: InputNumberProps) {
+export default function InputNumber({ label, onChange, warningMessage, isWarningVisible, min, max, handleEnter, labelPosition='left', className, classNameInput, disabled=false, name, ...props }: InputNumberProps) {
     const [value, setValue] = useState<number | null>(null);
     const [isValueInBounds, setIsValueInBounds] = useState(true);
 
@@ -50,8 +52,9 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
 
     return (
         <label className={cn(`${labelPosition === 'right' && 'flex-row-reverse'} w-full max-w-[60rem] flex justify-between relative`, className)} {...props}>
-            <span className='mx-1 font-light'>{label}</span>
+            {label && <span className='mx-1 font-light'>{label}</span>}
             <input
+                name={name ? name : 'input-number'}
                 type="number" 
                 value={value === null ? '' : value}
                 className={
