@@ -55,7 +55,7 @@ describe('DeviceControllerBox Component', () => {
     const { container } = render(
       <DeviceControllerBox {...defaultProps} handleLockClick={handleLockClick} />
     );
-    const lockButton = container.querySelector('article > div:first-child > div:first-child') as HTMLElement;
+    const lockButton = container.querySelector('article > div:first-child > svg:first-child') as HTMLElement;
     fireEvent.click(lockButton);
     expect(handleLockClick).toHaveBeenCalledWith('test-device');
   });
@@ -156,7 +156,7 @@ describe('DeviceControllerBox Component', () => {
 
   it('toggles the detail popup when question mark button is clicked', () => {
     const { container } = render(<DeviceControllerBox {...defaultProps} />);
-    const questionMarkButton = container.querySelector('article > div:first-child > div:last-child') as HTMLElement;
+    const questionMarkButton = container.querySelector('article > div:first-child > svg:last-child') as HTMLElement;
 
     expect(screen.queryByText(/test-device \|/)).not.toBeInTheDocument();
     fireEvent.click(questionMarkButton);
@@ -168,7 +168,7 @@ describe('DeviceControllerBox Component', () => {
 
   it('popup shows JSON representation of device', () => {
     const { container } = render(<DeviceControllerBox {...defaultProps} />);
-    const questionMarkButton = container.querySelector('article > div:first-child > div:last-child') as HTMLElement;
+    const questionMarkButton = container.querySelector('article > div:first-child > svg:last-child') as HTMLElement;
     fireEvent.click(questionMarkButton);
 
     const pre = container.querySelector('pre');
