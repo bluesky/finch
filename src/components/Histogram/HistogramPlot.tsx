@@ -15,9 +15,11 @@ type HistorgramPlotProps = {
     classNameSettings?: string;
     /** Plot title displayed above the chart. Defaults to `"Histogram"`. */
     title?: string;
+    /** Number of significant figures for sum displays. Defaults to `6`. */
+    precision?: number;
 }
 
-export default function HistogramPlot({ arrayData, showPlotSettings, className, classNameSettings, title }: HistorgramPlotProps) {
+export default function HistogramPlot({ arrayData, showPlotSettings, className, classNameSettings, title, precision = 6 }: HistorgramPlotProps) {
     const plotContainer = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [enableROI] = useState(true);
@@ -104,11 +106,13 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
     const roiSliderMax = useMemo(() => Math.max(1, totalArrayElements > 0 ? totalArrayElements - 1 : 1), [totalArrayElements]);
 
     return (
-        <div className={cn("flex flex-col items-center justify-start gap-4 min-w-[70rem]", className)}>
-            <p className="text-lg text-center">{title || "Histogram"}</p>
-            <p className="text-lg text-center">Sum of All Elements: {sum}</p>
-            <p className="text-lg text-center">ROI Sum [{range[0]}-{range[1]}]: {enableROI ? roiAreaSum : 0}</p>
-            <p className="text-lg text-center">Total Array Elements: {totalArrayElements}</p>
+        <div className={cn("flex flex-col items-center justify-start min-w-[70rem]", className)}>
+                <p className="text-lg text-center font-semibold text-sky-900">{title || "Histogram"}</p>
+            <article className="flex w-full flex-col items-start justify-center pl-12 text-slate-600">
+                <p className="text-lg text-center">Sum of All Elements: {sum.toPrecision(precision)}</p>
+                <p className="text-lg text-center">ROI Sum [{range[0]}-{range[1]}]: {enableROI ? roiAreaSum.toPrecision(precision) : 0}</p>
+                <p className="text-lg text-center">Total Array Elements: {totalArrayElements}</p>
+            </article>
 
             {showPlotSettings && <HistogramPlotSettings className={classNameSettings} />}
 
@@ -121,7 +125,7 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
                                 y: arrayData,
                                 type: 'scatter',
                                 mode: 'lines',
-                                line: { color: '#38bdf8', width: 1 },
+                                line: { color: '#082f49', width: 1 },
                                 hovertemplate: 'Channel %{x}<br>Counts %{y}<extra></extra>',
                             },
                         ]}
@@ -172,7 +176,7 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
                     showSideInput={true}
                     units=""
                     shorthandUnits=""
-                    width="w-full"
+                    className="w-full"
                 />
             </div>
         </div>

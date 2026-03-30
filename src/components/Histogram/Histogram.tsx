@@ -35,8 +35,10 @@ type HistogramProps = {
     classNamePlotSettings?: string;
     /** When `true`, ignores PV props and simulates histogram data that updates every second. */
     demo?: boolean;
+    /** Number of significant figures for sum displays in the plot. Defaults to `6`. */
+    precision?: number;
 }
-export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo }: HistogramProps) {
+export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision }: HistogramProps) {
     const deviceList = useMemo(() => (demo ? [] : [arrayPV, acquirePV]), [demo, arrayPV, acquirePV]);
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
 
@@ -69,8 +71,8 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
     }, [acquirePV, handleSetValueRequest]);
 
     return (
-        <section className={cn("flex flex-col items-center justify-start gap-4 bg-white min-w-fit h-fit overflow-x-auto overflow-y-hidden", classNameContainer)}>
-            <HistogramPlot showPlotSettings={showPlotSettings} className={classNameHistogramPlot} classNameSettings={classNamePlotSettings} arrayData={arrayData} />
+        <section className={cn("flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg", classNameContainer)}>
+            <HistogramPlot showPlotSettings={showPlotSettings} className={classNameHistogramPlot} classNameSettings={classNamePlotSettings} arrayData={arrayData} precision={precision} />
             {showDeviceController && <HistogramDeviceController acquireDevice={devices[acquirePV]} handleStartAcquisition={handleStartAcquisition} handleStopAcquisition={handleStopAcquisition} className={classNameDeviceController} />}
         </section>
     )
