@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 export type ButtonProps = {
     /** Callback function triggered when button is clicked */
-    cb?: ()=>void;
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>)=>void;
     /** Text content displayed inside the button */ 
     text?: string;
     /** Disables the button and prevents user interaction when true */
@@ -15,9 +15,12 @@ export type ButtonProps = {
     className?: string;
     /** Additional CSS classes applied to the button text element */
     classNameText?: string;
+    /** Legacy callback function, use onClick instead */
+    cb?: ()=>void;
 }
 export default function Button({
     cb = () => {},
+    onClick = () => {},
     text = '',
     disabled = false,
     size='medium',
@@ -29,6 +32,7 @@ export default function Button({
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (cb)cb();
+        if (onClick) onClick(e);
     };
 
     const textSizes = {
@@ -58,7 +62,7 @@ export default function Button({
             `,
             className)
         } 
-        onClick={e => handleClick(e)}
+        onClick={handleClick}
         {...props}>
                 <p className={classNameText}>{text}</p>
         </button>

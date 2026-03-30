@@ -12,15 +12,18 @@ export type ButtonCopyToClipboardProps = {
     /** Text content that will be copied to the clipboard when button is clicked */
     copyText: string;
     /** Optional callback function triggered after successful copy operation */
-    cb?: ()=> void;
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>)=> void;
     /** Controls the size of the button icon - affects height and maintains square aspect ratio */
     size?: 'small' | 'medium' | 'large';
     /** Additional CSS classes applied to the button container */
     className?: string;
+    /** Legacy callback function, use onClick instead */
+    cb?: ()=> void;
 }
 
 export default function ButtonCopyToClipboard({
     copyText,
+    onClick,
     cb,
     size='medium',
     className,
@@ -29,6 +32,7 @@ export default function ButtonCopyToClipboard({
     const [ isCopied, setIsCopied ] = useState<boolean>(false);
     const handleCopyClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        if (onClick) onClick(e);
         navigator.clipboard.writeText(copyText)
             .then(() => {
                 setIsCopied(true);
@@ -37,7 +41,7 @@ export default function ButtonCopyToClipboard({
             .catch((err) => {
                 console.error('Failed to copy: ', err);
             });
-    }, [copyText, cb]);
+    }, [copyText, cb, onClick]);
 
     const sizes = {
         small: 'h-6',
@@ -48,7 +52,7 @@ export default function ButtonCopyToClipboard({
                 <button
                     {...props} 
                     className={cn(`${isCopied ? 'text-sky-500' : 'text-slate-400'} ${sizes[size]} aspect-square hover:text-sky-300 hover:cursor-pointer`, className)}
-                    onClick={e => handleCopyClick(e)}
+                    onClick={handleCopyClick}
                 >
                     {isCopied ? clipBoardDocumentCheck : clipBoardDocument}
                 </button>

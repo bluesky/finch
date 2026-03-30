@@ -46,7 +46,7 @@ describe('ButtonCopyToClipboard Component', () => {
     const mockWriteText = vi.mocked(navigator.clipboard.writeText);
     mockWriteText.mockResolvedValue(undefined);
     
-    render(<ButtonCopyToClipboard copyText="test" cb={mockCallback} />);
+    render(<ButtonCopyToClipboard copyText="test" onClick={mockCallback} />);
     const button = screen.getByRole('button');
     
     fireEvent.click(button);

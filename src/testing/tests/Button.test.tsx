@@ -16,7 +16,7 @@ describe('Button Component', () => {
 
   it('calls callback function when clicked', () => {
     const mockCallback = vi.fn();
-    render(<Button text="Test Button" cb={mockCallback} />);
+    render(<Button text="Test Button" onClick={mockCallback} />);
     
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -26,7 +26,7 @@ describe('Button Component', () => {
 
   it('passes event to callback function', () => {
     const mockCallback = vi.fn();
-    render(<Button text="Test Button" cb={mockCallback} />);
+    render(<Button text="Test Button" onClick={mockCallback} />);
     
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -42,7 +42,7 @@ describe('Button Component', () => {
 
   it('does not call callback when disabled and clicked', () => {
     const mockCallback = vi.fn();
-    render(<Button text="Disabled Button" cb={mockCallback} disabled={true} />);
+    render(<Button text="Disabled Button" onClick={mockCallback} disabled={true} />);
     
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -102,7 +102,7 @@ describe('Button Component', () => {
 
   it('prevents default on click', () => {
     const mockCallback = vi.fn();
-    render(<Button text="Test" cb={mockCallback} />);
+    render(<Button text="Test" onClick={mockCallback} />);
     
     const button = screen.getByRole('button');
     const clickEvent = new MouseEvent('click', { bubbles: true });

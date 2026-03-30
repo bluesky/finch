@@ -2,7 +2,7 @@ import {cn } from '@/lib/utils';
 
 export type ButtonWithIconProps = {
     /** Callback function triggered when button is clicked */
-    cb?: () => void;
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
     /** Text content displayed inside the button alongside the icon */ 
     text?: string;
     /** Additional CSS classes applied to the button component */ 
@@ -23,9 +23,12 @@ export type ButtonWithIconProps = {
     classNameText?: string;
     /** Additional CSS classes applied to the icon element */
     classNameIcon?: string;
+    /** Legacy callback function, use onClick instead */
+    cb?: () => void;
 }
 export default function ButtonWithIcon({
     cb = () => {},
+    onClick = () => {},
     text = '',
     disabled = false,
     icon,
@@ -39,7 +42,8 @@ export default function ButtonWithIcon({
 }: ButtonWithIconProps) {
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        cb();
+        if (cb) cb();
+        if (onClick) onClick(e);
     };
 
     const textSizes = {
@@ -78,7 +82,7 @@ export default function ButtonWithIcon({
                 ${textSizes[size]} 
                 ${paddingSizes[size]} 
                 rounded-lg font-medium w-fit`, className)} 
-            onClick={e => handleClick(e)}
+            onClick={handleClick}
             {...props}>
             <div className={`${spacingSizes[size]} flex justify-center items-center`}>
                 {iconPosition === 'left' ? Icon : ''}
