@@ -11,6 +11,7 @@ import { RouteItem } from '@/types/navigationRouterTypes';
 
 import { House, Table, Joystick} from "@phosphor-icons/react";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { finchIcons } from '@/assets/icons';
 
 function App() {
   const routes:RouteItem[] = [
@@ -20,7 +21,7 @@ function App() {
   ]
   return (
     <QueryClientProvider client={new QueryClient()}>
-      <HubAppLayout routes={routes} headerTitle='Finch Dev Mode'/>
+      <HubAppLayout routes={routes} headerTitle='Finch Dev Mode' headerLogoIcon={<div className="h-12 aspect-square text-sky-950">{finchIcons.finchPortraitFrameless}</div>} />
     </QueryClientProvider>
   )
 
