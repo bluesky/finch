@@ -20,7 +20,7 @@ export default function HubMainContent({routes, className, classNameInnerContain
                             key={route.path}
                             path={route.path}
                             element={
-                                <section className={cn(`${route.isBackgroundTransparent ? "bg-transparent" : "bg-white"} w-full h-full rounded-md`, cn(classNameInnerContainer, route.classNameContainer))}>
+                                <section className={cn(`${route.isBackgroundTransparent ? "bg-transparent text-white" : "bg-white"} w-full h-full rounded-md`, cn(classNameInnerContainer, route.classNameContainer))}>
                                     {route.element}
                                 </section>
                             }

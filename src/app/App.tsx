@@ -15,8 +15,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 function App() {
   const routes:RouteItem[] = [
     {element:<AboutFinchPage/>, path: "/", label: "About", icon: <House size={32}/>, isBackgroundTransparent: true},
-    {element: <AllComponentsPage />, path: '/components', label: "Test", icon: <Table size={32} />, isBackgroundTransparent: true, classNameContainer: 'bg-slate-50'},
-    {element: <SimulatedDevicePage />, path: '/simulate', label: "Play", icon: <Joystick size={32} />, isBackgroundTransparent: false},
+    {element: <AllComponentsPage />, path: '/components', label: "Test", icon: <Table size={32} />, classNameContainer: 'bg-slate-50'},
+    {element: <SimulatedDevicePage />, path: '/simulate', label: "Play", icon: <Joystick size={32} />, isBackgroundTransparent: true},
   ]
   return (
     <QueryClientProvider client={new QueryClient()}>
