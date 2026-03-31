@@ -7,7 +7,6 @@ import BeamEnergyPV from "@/components/BeamEnergy/BeamEnergyPV";
 import Hexapod from "@/components/Hexapod/Hexapod";
 import SignalMonitorPlotDevice from "@/components/SignalMonitorPlotDevice";
 import Histogram from "@/components/Histogram/Histogram";
-import CameraContainer from "@/components/Camera/CameraContainer";
 import { CubeTransparent } from "@phosphor-icons/react";
 
 

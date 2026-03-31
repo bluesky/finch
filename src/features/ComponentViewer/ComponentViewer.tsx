@@ -11,7 +11,8 @@ export type ComponentViewerProps = {
     namespace?: string;
 }
 export default function ComponentViewer({ testItems, className, namespace }: ComponentViewerProps) {
-    const initializedTestResults = useMemo(() => initializeTestResults(testItems, namespace), [ namespace]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initializedTestResults = useMemo(() => initializeTestResults(testItems, namespace), [ namespace]); //we will get infinite re renders if we don't memoize the testItems which contain devices that rapidly update
     const [ testResults, setTestResults] = useState<ComponentViewerCollection>(initializedTestResults);
     //const [ copyButtonText, setCopyButtonText ] = useState<string>('Copy Table');  
     const [ commandCopyStates, setCommandCopyStates ] = useState<Record<string, string>>({});
@@ -178,8 +179,8 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                         </button>
                     </div>
                    
-                    {/* Tiled Component */}
-                    <div className=" w-full flex items-center justify-center">
+                    {/* Component */}
+                    <div className="w-full flex items-center justify-center">
                         {testItems[currentTestKey]?.element}
                     </div>
 
