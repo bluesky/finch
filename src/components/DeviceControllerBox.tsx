@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { Lock, LockOpen, QuestionMark, Question } from "@phosphor-icons/react";
+import { Lock, Question } from "@phosphor-icons/react";
 import { Device } from "@/types/deviceControllerTypes";
 import InputNumber from "./InputNumber";
 import Button from "./Button";
