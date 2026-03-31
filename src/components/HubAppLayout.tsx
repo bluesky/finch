@@ -12,8 +12,13 @@ export type HubAppLayoutProps = {
     headerTitle?: string;
     /** Additional CSS classes applied to the header title element. */
     classNameHeaderTitle?: string;
-    /** URL of the logo image displayed in the header. */
+    /** URL of the logo image displayed in the header. Ignored when `headerLogoIcon` is provided. */
     headerLogoUrl?: string;
+    /**
+     * A React element rendered in place of the header logo image.
+     * When provided, `headerLogoUrl` is not rendered.
+     */
+    headerLogoIcon?: React.ReactElement;
     /** Additional CSS classes applied to the outer main content area. */
     classNameMainContent?: string;
     /** Additional CSS classes applied to the inner main content area. */
@@ -33,7 +38,8 @@ export default function HubAppLayout ( {
     routes,
     headerTitle,
     headerLogoUrl,
-    classNameMainContent, 
+    headerLogoIcon,
+    classNameMainContent,
     classNameMainContentInnerContainer,
     classNameHeader,
     classNameHeaderTitle,
@@ -46,15 +52,16 @@ export default function HubAppLayout ( {
 
 return (
     <div className={cn("grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen", className)} {...props}>
-        <HubSidebar 
+        <HubSidebar
             routes={routes}
-            className={classNameSidebar} 
+            className={classNameSidebar}
             classNameActiveLink={classNameSidebarActiveLink}
             classNameInactiveLink={classNameSidebarInactiveLink}
         />
-        <HubHeader 
-            title={headerTitle} 
+        <HubHeader
+            title={headerTitle}
             logoUrl={headerLogoUrl}
+            logoIcon={headerLogoIcon}
             className={classNameHeader}
             classNameTitle={classNameHeaderTitle}
         />
