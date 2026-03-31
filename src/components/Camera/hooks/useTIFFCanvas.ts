@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { getDefaultTiffUrl } from '../utils/apiClient';
 import { CanvasSizes } from '../CameraCanvas';
+import { getErrorMessage } from '@/utils/errorHandling';
 
 export type UseTIFFCanvasProps = {
     imageArrayPV?: string;
@@ -18,6 +19,7 @@ export function useTIFFCanvas({
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
     const [socketStatus, setSocketStatus] = useState('closed');
+    const [socketError, setSocketError] = useState<null | string>(null);
     const [isImageLogScale, setIsImageLogScale] = useState(true);
     const ws = useRef<null | WebSocket>(null);
     const frameCount = useRef<null | number>(null);
@@ -50,6 +52,7 @@ export function useTIFFCanvas({
             }
         }
         setSocketStatus('closed');
+        setSocketError(null);
         frameCount.current = 0;
         setFps('0');
     }, []);
@@ -79,6 +82,7 @@ export function useTIFFCanvas({
         ws.current.onopen = (_event) => {
             if (ws.current === null) return;
             setSocketStatus('Open');
+            setSocketError(null);
             frameCount.current = 0;
             startTime.current = new Date();
             // send message to websocket containing the pvs for the image and pixel size          
@@ -121,6 +125,7 @@ export function useTIFFCanvas({
                     }
                 } catch (e) {
                     console.log('Error decoding/displaying camera frame: ' + e);
+                    setSocketError('Error decoding/displaying camera frame: ' + getErrorMessage(e));
                 }
             }
         };
@@ -138,7 +143,14 @@ export function useTIFFCanvas({
         requestAnimationFrame(render);  // Start the rendering loop
 
         ws.current.onerror = (error) => {
-            console.log("WebSocket Error:", error);
+            if (error instanceof Event) {
+                const target = error.target as WebSocket;
+                console.log("WebSocket Error on URL:", target.url, {error});
+                setSocketError('WebSocket Error: Unable to connect to ' + target.url);
+            } else {
+                console.log("WebSocket Error:", {error});
+                setSocketError('WebSocket Error: ' + getErrorMessage(error));
+            }
             setSocketStatus('closed');
         };
 
@@ -166,6 +178,7 @@ export function useTIFFCanvas({
         canvasRef,
         fps,
         socketStatus,
+        socketError,
         isImageLogScale,
         sizeDict,
         startWebSocket,

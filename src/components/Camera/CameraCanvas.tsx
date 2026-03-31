@@ -21,6 +21,7 @@ export default function CameraCanvas(props: CameraCanvasProps) {
         canvasRef,
         fps,
         socketStatus,
+        socketError,
         isImageLogScale,
         sizeDict,
         startWebSocket,
@@ -52,10 +53,10 @@ export default function CameraCanvas(props: CameraCanvasProps) {
                 <div className="flex justify-center items-center w-full h-full">
                     <div className="relative group-hover:cursor-pointer w-full max-w-xs h-32">
                         <div className="group-hover:opacity-0 opacity-100 transition-opacity duration-700 flex content-center items-center justify-center flex-col absolute top-0 w-full h-full ">
-                            <p className="text-2xl text-center font-bold text-slate-700">Websocket Disconnected</p>
+                            {socketError === null && <p className="text-2xl text-center font-bold text-slate-700">Websocket Disconnected</p>}
+                            {socketError && <p className="text-sm text-center text-red-600 my-4">{socketError}</p>}
                             <div className="w-24 aspect-square text-slate-700 m-auto">{phosphorIcons.plugs}</div>
                         </div>
-
                         <div className="opacity-0 transition-opacity duration-700 group-hover:opacity-100 group/connect text-center absolute top-0 w-full h-full" onClick={startWebSocket}>
                             <p className="text-2xl font-bold text-slate-700 group-hover/connect:text-slate-900 group-hover/connect:animate-pulse">Connect?</p>
                             <div className="w-24 aspect-square text-slate-700 m-auto group-hover/connect:text-slate-900 group-hover/connect:animate-pulse">{phosphorIcons.plugsConnected}</div>

@@ -3,7 +3,7 @@ import CameraCanvasFeatures from './CameraCanvasFeatures';
 import { useTIFFCanvas } from "./hooks/useTIFFCanvas";
 
 export type CanvasSizes = 'small' | 'medium' | 'large' | 'automatic';
-export type CameraCanvasProps = {
+export type TIFFCanvasProps = {
     /** EPICS PV name for the image array data (e.g. `'13SIM1:image1:ArrayData'`). */
     imageArrayPV?: string;
     /** Map of canvas size keys to EPICS PV names used to read the image dimensions. */
@@ -16,11 +16,12 @@ export type CameraCanvasProps = {
     wsUrl?:string;
 }
 
-export default function TIFFCanvas(props: CameraCanvasProps) {
+export default function TIFFCanvas(props: TIFFCanvasProps) {
     const {
         canvasRef,
         fps,
         socketStatus,
+        socketError,
         isImageLogScale,
         sizeDict,
         startWebSocket,
@@ -52,7 +53,8 @@ export default function TIFFCanvas(props: CameraCanvasProps) {
                 <div className="flex justify-center items-center w-full h-full">
                     <div className="relative group-hover:cursor-pointer w-full max-w-xs h-32">
                         <div className="group-hover:opacity-0 opacity-100 transition-opacity duration-700 flex content-center items-center justify-center flex-col absolute top-0 w-full h-full ">
-                            <p className="text-2xl text-center font-bold text-slate-700">Websocket Disconnected</p>
+                            {socketError === null && <p className="text-2xl text-center font-bold text-slate-700">Websocket Disconnected</p>}
+                            {socketError && <p className="text-sm text-center text-red-600 my-4">{socketError}</p>}
                             <div className="w-24 aspect-square text-slate-700 m-auto">{phosphorIcons.plugs}</div>
                         </div>
 

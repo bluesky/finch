@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { getDefaultCameraUrl } from '../utils/apiClient';
 import { CanvasSizes } from '../CameraCanvas';
+import { getErrorMessage } from '@/utils/errorHandling';
 
 export type UseCameraCanvasProps = {
     imageArrayPV?: string;
@@ -21,6 +22,7 @@ export function useCameraCanvas({
     const [fps, setFps] = useState<string>('0');
     const [socketStatus, setSocketStatus] = useState('closed');
     const [isImageLogScale, setIsImageLogScale] = useState(true);
+    const [socketError, setSocketError] = useState<null | string>(null);
     const ws = useRef<null | WebSocket>(null);
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
@@ -126,6 +128,7 @@ export function useCameraCanvas({
             }
         }
         setSocketStatus('closed');
+        setSocketError(null);
         frameCount.current = 0;
         setFps('0');
     }, []);
@@ -146,13 +149,16 @@ export function useCameraCanvas({
             const url = wsUrl ? wsUrl : getDefaultCameraUrl();
             ws.current = new WebSocket(url);
         } catch (error) {
+            //This catch block only handles synchronous errors thrown during the WebSocket constructor call (invalid url, protocol), most other errors will be in the ws.onerror callback
             console.log({error});
+            setSocketError('Error creating WebSocket: ' + getErrorMessage(error));
             return;
         }
 
         ws.current.onopen = (_event) => {
             if (ws.current === null) return;
             setSocketStatus('Open');
+            setSocketError(null);
             frameCount.current = 0;
             startTime.current = new Date();
             // send message to websocket containing the pvs for the image and pixel size          
@@ -194,7 +200,8 @@ export function useCameraCanvas({
                         frameCount.current = frameCount.current + 1;
                     }
                 } catch (e) {
-                    console.log('Error decoding/displaying camera frame: ' + e);
+                    console.log('Error decoding/displaying camera frame: ' + getErrorMessage(e));
+                    setSocketError('Error decoding/displaying camera frame: ' + getErrorMessage(e));
                 }
             }
         };
@@ -212,19 +219,24 @@ export function useCameraCanvas({
         requestAnimationFrame(render);  // Start the rendering loop
 
         ws.current.onerror = (error) => {
-            console.log("WebSocket Error:", error);
+            if (error instanceof Event) {
+                const target = error.target as WebSocket;
+                console.log("WebSocket Error on URL:", target.url, {error});
+                setSocketError('WebSocket Error: Unable to connect to ' + target.url);
+            } else {
+                console.log("WebSocket Error:", {error});
+                setSocketError('WebSocket Error: ' + getErrorMessage(error));
+            }
             setSocketStatus('closed');
         };
 
         ws.current.onclose = () => {
             setSocketStatus('closed');
             frameCount.current = 0;
-            console.log("Camera Web Socket closed");
         };
     }, [wsUrl, getImageArrayPV, getSizePVs, canvasSize]);
 
     useEffect(() => {
-        console.log('running hook')
         if (!isInitialized.current) {
             isInitialized.current = true;
             startWebSocket();
@@ -241,6 +253,7 @@ export function useCameraCanvas({
         canvasRef,
         fps,
         socketStatus,
+        socketError,
         isImageLogScale,
         sizeDict,
         startWebSocket,
