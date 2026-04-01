@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
 import {
     MessageResponse,
@@ -38,6 +38,8 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         });
         return initialDevices;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);
     const wsRef = useRef<WebSocket | null>(null);
     const hasRenderedOnlyOnce = useRef(false);
 
@@ -91,7 +93,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         if (hasRenderedOnlyOnce.current) {
             //after the initial render, if the deviceNameList changes, reset the entire devices state
             const initialDevices: Devices = {};
-            deviceNameList.forEach((deviceName) => {
+            memoizedDeviceNames.forEach((deviceName) => {
                 initialDevices[deviceName] = {
                     name: deviceName,
                     value: '',
@@ -108,12 +110,12 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         } else {
             hasRenderedOnlyOnce.current = true;
         }
-    }, [deviceNameList]);
+    }, [memoizedDeviceNames]);
 
     // Initialize WebSocket connection
     useEffect(() => {
         // Don't connect if no devices to subscribe to
-        if (deviceNameList.length === 0) {
+        if (memoizedDeviceNames.length === 0) {
             // Close existing connection if devices list becomes empty
             if (wsRef.current) {
                 wsRef.current.close();
@@ -129,7 +131,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
             //console.log('WebSocket connection opened');
-            deviceNameList.forEach((deviceName) => {
+            memoizedDeviceNames.forEach((deviceName) => {
                 const subscribeMessage = {
                     action: 'subscribe',
                     pv: deviceName,
@@ -193,7 +195,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, deviceNameList, apiUrl]);
+    }, [wsUrl, memoizedDeviceNames, apiUrl]);
 
     return {
         devices,

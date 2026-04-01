@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
 import {
     MessageResponse,
@@ -16,6 +16,8 @@ import {
  * @returns Object containing device states and control functions
  */
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);  //device updates can retrigger the hook if inputs aren't memoized
     //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
@@ -23,7 +25,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
     const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_PV_WS ? `${import.meta.env.VITE_PV_WS}` : `ws://${address}:${apiPort}/api/v1/${path}`);
     const [devices, setDevices] = useState<Devices>(() => {
         const initialDevices: Devices = {};
-        deviceNameList.forEach((deviceName) => {
+        memoizedDeviceNames.forEach((deviceName) => {
             initialDevices[deviceName] = {
                 name: deviceName,
                 value: '',
@@ -91,7 +93,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         if (hasRenderedOnlyOnce.current) {
             //after the initial render, if the deviceNameList changes, reset the entire devices state
             const initialDevices: Devices = {};
-            deviceNameList.forEach((deviceName) => {
+            memoizedDeviceNames.forEach((deviceName) => {
                 initialDevices[deviceName] = {
                     name: deviceName,
                     value: '',
@@ -108,12 +110,12 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         } else {
             hasRenderedOnlyOnce.current = true;
         }
-    }, [deviceNameList]);
+    }, [memoizedDeviceNames]);
 
     // Initialize WebSocket connection
     useEffect(() => {
         // Don't connect if no devices to subscribe to
-        if (deviceNameList.length === 0) {
+        if (memoizedDeviceNames.length === 0) {
             // Close existing connection if devices list becomes empty
             if (wsRef.current) {
                 wsRef.current.close();
@@ -129,7 +131,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
             //console.log('WebSocket connection opened');
-            deviceNameList.forEach((deviceName) => {
+            memoizedDeviceNames.forEach((deviceName) => {
                 const subscribeMessage = {
                     action: 'subscribe',
                     pv: deviceName,
@@ -142,7 +144,6 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         ws.onmessage = (event) => {
             try {
                 const message: MessageResponse | ErrorResponse | ValueUpdateResponse | MetaUpdateResponse = JSON.parse(event.data);
-
                 if ('sub_type' in message && message.sub_type === 'meta') {
                     //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
                     setDevices((prevDevices) => ({
@@ -193,7 +194,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, deviceNameList, apiUrl]);
+    }, [wsUrl, memoizedDeviceNames, apiUrl]);
 
     return {
         devices,
