@@ -65,3 +65,12 @@ export { default as useOphydSocket } from './hooks/useOphydSocket';
 //TYPES
 export type { RouteItem } from './types/navigationRouterTypes';
 export type {Device, Devices } from './types/deviceControllerTypes';
+
+
+//CONTEXT PROVIDERS
+export {
+  FinchConfigProvider,
+  useOptionalFinchConfig,
+} from './app/FinchConfigProvider';
+
+export type { FinchConfig } from './app/FinchConfigProvider';

@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { useQueueServer } from '../../components/QServer/hooks/useQueueServer';
 import type { CopiedPlan } from '../../components/QServer/types/types';
-import type { GetHistoryResponse, GetQueueResponse, GetStatusResponse, QueueItem, RunningQueueItem } from '../../components/QServer/types/apiTypes';
+import type { GetHistoryResponse, GetQueueResponse, GetStatusResponse, QueueItem, RunningQueueItem } from '../../api/qServer/types';
 import type { QueryObserverResult } from '@tanstack/react-query';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
@@ -49,10 +49,9 @@ vi.mock('../../components/QServer/hooks/useQueueServer', () => ({
   useQueueServer: () => useQueueServerMock(),
 }));
 
-vi.mock('../../components/QServer/utils/apiClient', () => ({
-  getStatus: vi.fn(),
-  openWorkerEnvironment: vi.fn(),
-  setQueueServerApiUrl: vi.fn(),
+vi.mock('@/api/qServer/hooks', () => ({
+  useStatusQuery: vi.fn(() => ({ data: null, error: null })),
+  useOpenEnvironmentMutation: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
 // Mock the two QSList instances — distinguish by `type` prop for targeted clicks
@@ -94,7 +93,7 @@ vi.mock('../../components/QServer/SettingsContainer', () => ({
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
-import ContainerQServer from '../../components/QServer/ContainerQServer';
+import ContainerQServer from '../../components/QServer/QueueServer';
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 

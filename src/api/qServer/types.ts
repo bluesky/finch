@@ -198,6 +198,11 @@ export interface PostEnvironmentOpenResponse {
     msg: string;
 }
 
+export interface PostREResponse {
+    success: boolean;
+    msg: string;
+}
+
 export interface RemoveQueueItemBody {
     uid: string;
 }

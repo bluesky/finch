@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getDevicesAllowed, getPlansAllowed, postQueueItem, executeItem } from '../utils/apiClient';
-import { AllowedDevices, CopiedPlan, ParameterInputDict } from '../types/types';
-import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody } from '../types/apiTypes';
-import { AddQueueItemBody, GetDevicesAllowedResponse, GetPlansAllowedResponse } from '../types/apiTypes';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { usePlansAllowedQuery, useDevicesAllowedQuery, useAddQueueItemMutation, useExecuteQueueItemMutation } from '@/api/qServer/hooks';
+import { CopiedPlan, ParameterInputDict } from '../types/types';
+import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody, AddQueueItemBody } from '@/api/qServer/types';
 
 
 
@@ -27,57 +26,39 @@ export function useQSAddItem({
     globalMetadata = {}
 }: UseQSAddItemProps = {}) {
     // State variables
+    const plansQuery = usePlansAllowedQuery();
+    const devicesQuery = useDevicesAllowedQuery();
+    const addMutation = useAddQueueItemMutation();
+    const executeMutation = useExecuteQueueItemMutation();
+
+    const allowedPlans = useMemo(() => {
+        if (!plansQuery.data?.plans_allowed) return {};
+        return Object.keys(plansQuery.data.plans_allowed)
+            .sort()
+            .reduce((acc: Record<string, Plan>, key) => {
+                acc[key] = plansQuery.data!.plans_allowed[key];
+                return acc;
+            }, {});
+    }, [plansQuery.data]);
+
+    const allowedDevices = useMemo(() => {
+        if (!devicesQuery.data?.devices_allowed) return {};
+        return Object.keys(devicesQuery.data.devices_allowed)
+            .sort()
+            .reduce((acc: Record<string, Device>, key) => {
+                acc[key] = devicesQuery.data!.devices_allowed[key];
+                return acc;
+            }, {});
+    }, [devicesQuery.data]);
+
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [isSubmissionPopupOpen, setIsSubmissionPopupOpen] = useState<boolean>(false);
-    const [submissionResponse, setSubmissionResponse] = useState<PostItemAddResponse >({} as PostItemAddResponse);
-    const [allowedPlans, setAllowedPlans] = useState<Record<string, Plan>>({});
-    const [allowedDevices, setAllowedDevices] = useState<AllowedDevices>({});
+    const [submissionResponse, setSubmissionResponse] = useState<PostItemAddResponse>({} as PostItemAddResponse);
     const [activePlan, setActivePlan] = useState<string | null>(null);
     const [parameters, setParameters] = useState<ParameterInputDict | null>(null);
     const [body, setBody] = useState<AddQueueItemBody>(sampleBody);
     const [positionInput, setPositionInput] = useState<string>('back');
     const [resetInputsTrigger, setResetInputsTrigger] = useState<boolean>(false);
-
-    // API response handlers
-    const handlePlanResponse = (data: GetPlansAllowedResponse) => {
-        if ('success' in data) {
-            if (data.success === true) {
-                if ('plans_allowed' in data) {
-                    const sortedPlans = Object.keys(data.plans_allowed)
-                        .sort()
-                        .reduce((acc: {[key:string]: Plan}, key) => {
-                            acc[key] = data.plans_allowed[key];
-                            return acc;
-                        }, {});
-                    setAllowedPlans(sortedPlans);
-                } else {
-                    console.log('No plans_allowed key found in response object from allowed plans');
-                }
-            } else {
-                console.error('GET request to allowed plans returned success:false');
-            }
-        }
-    };
-
-    const handleDeviceResponse = (data: GetDevicesAllowedResponse) => {
-        if ('success' in data) {
-            if (data.success === true) {
-                if ('devices_allowed' in data) {
-                    const sortedDevices = Object.keys(data.devices_allowed)
-                        .sort()
-                        .reduce((acc: {[key:string]: Device}, key) => {
-                            acc[key] = data.devices_allowed[key];
-                            return acc;
-                        }, {});
-                    setAllowedDevices(sortedDevices);
-                } else {
-                    console.log('No devices_allowed key found in response object from allowed devices');
-                }
-            } else {
-                console.log('GET request to allowed devices returned success:false');
-            }
-        }
-    };
 
     // Plan and parameter management
     const updateBodyKwargs = useCallback((parameters: ParameterInputDict) => {
@@ -175,17 +156,14 @@ export function useQSAddItem({
     const submitPlan = (body: AddQueueItemBody) => {
         const allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
-            postQueueItem(body, handleSubmissionResponse);
+            addMutation.mutate(body, { onSuccess: handleSubmissionResponse });
         }
     };
 
     const executePlan = (body: ExecuteQueueItemBody) => {
         const allRequiredParametersFilled = checkRequiredParameters();
         if (allRequiredParametersFilled) {
-            const executeBody = {
-                item: body.item
-            };
-            executeItem(executeBody, handleSubmissionResponse);
+            executeMutation.mutate({ item: body.item }, { onSuccess: handleSubmissionResponse });
         }
     };
 
@@ -228,11 +206,6 @@ export function useQSAddItem({
     };
 
     // Effects
-    useEffect(() => {
-        getDevicesAllowed(handleDeviceResponse);
-        getPlansAllowed(handlePlanResponse);
-    }, []);
-
     useEffect(() => {
         if (copiedPlan !== null) {
             setIsExpanded(true);

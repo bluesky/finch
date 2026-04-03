@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { getQSConsoleUrl } from './utils/apiClient';
 import { WidgetStyleProps } from './Widget';
+import { useOphydApiUrls } from 'src/utils/apiUtils';
 import './styles/qserver.css';
 
 import dayjs from 'dayjs';
@@ -25,7 +25,8 @@ export default function QSConsole({ processConsoleMessage=() =>{} }: QSConsolePr
     const [ statusMessage, setStatusMessage ] = useState<string>('');
     const [isToggleOn, setIsToggleOn] = useState(false); //toggle UI switch for turning output on and off
     const connection = useRef<WebSocket | null>(null); //queue server WS via FastAPI
-    const wsUrl = getQSConsoleUrl();
+    const { getWsUrl } = useOphydApiUrls();
+    const wsUrl = getWsUrl('qs-console-socket'); //this comes from the ophyd api, not the queue server.
     const messageContainerRef = useRef<HTMLDivElement | null>(null);
     const hasErrorOccuredRef = useRef(false);
     const didUserTurnOffWS = useRef(false);

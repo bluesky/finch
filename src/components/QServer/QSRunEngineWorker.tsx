@@ -1,8 +1,8 @@
 import ToggleSlider from './ToggleSlider';
 import QItem from "./QItem";
 
-import { startRE } from './utils/apiClient';
-import { RunningQueueItem } from './types/apiTypes';
+import { useStartREMutation } from '@/api/qServer/hooks';
+import { RunningQueueItem } from '@/api/qServer/types';
 
 type QSRunEngineWorkerProps = {
     isREToggleOn?: boolean;
@@ -16,20 +16,23 @@ export default function QSRunEngineWorker({ isREToggleOn=false, setIsREToggleOn=
     //TO DO : the toggle switch needs to listen to the GET requests for the queue status
     //TO DO: if toggle is in up position, when cliked a popup says "Pause the RE?" If that's clicked then do a POST to /api/re/pause
     //TO DO: if toggle is in down position AND the /api/status shows {"manager_state": "paused"} then clicking toggle sends POST to /api/re/resume
-    const toggleSwitch = async () => {
+    const startREMutation = useStartREMutation();
+
+    const toggleSwitch = () => {
         if (isREToggleOn) {
             //switches from On to Off, calls the Off function
             setIsREToggleOn(false);
-       
         } else {
             //switches from Off to On, calls the On function
             setIsREToggleOn(true); //user sees that it moves
             //use setTimeout to ensure that the toggle is seen moving up before moving down during a failure so user knows it was attempted
-            setTimeout( async () => {
-                const apiCallStatus = await startRE();
-                if (!apiCallStatus) {
-                    setIsREToggleOn(false); 
-                }
+            setTimeout(() => {
+                startREMutation.mutate(undefined, {
+                    onSuccess: (data) => {
+                        if (!data.success) setIsREToggleOn(false);
+                    },
+                    onError: () => setIsREToggleOn(false),
+                });
             }, 300);
         }
     };

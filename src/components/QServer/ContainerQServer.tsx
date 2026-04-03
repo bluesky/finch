@@ -11,7 +11,7 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, openWorkerEnvironment } from "./utils/apiClient";
+import { getStatus, openWorkerEnvironment, useQServerApiConfig } from "./utils/apiClient";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
@@ -24,6 +24,7 @@ export type ContainerQServerProps = {
     className?: string;
 }
 export default function ContainerQServer({className}:ContainerQServerProps) {
+    useQServerApiConfig();
 
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
     const [ popupItem, setPopupItem ] = useState<PopupItem | null>(null);

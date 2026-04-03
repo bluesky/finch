@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from './useQServerQueries';
-import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../types/apiTypes';
+import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from '@/api/qServer/hooks';
+import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '@/api/qServer/types';
 import { GlobalMetadata, CopiedPlan } from '../types/types';
 
 export const useQueueServer = () => {

@@ -1,4 +1,4 @@
-import { useState,  useEffect, } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 import QItemPopup from "./QItemPopup";
 import SidePanel from "./SidePanel";
@@ -11,12 +11,12 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, openWorkerEnvironment } from "./utils/apiClient";
+import { useStatusQuery, useOpenEnvironmentMutation } from "@/api/qServer/hooks";
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
 import { CopiedPlan, PopupItem } from "./types/types";
-import { ArbitraryKwargs, GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
+import { ArbitraryKwargs, RunningQueueItem } from "@/api/qServer/types";
 
 import { cn } from '@/lib/utils';
 
@@ -101,19 +101,22 @@ export default function QueueServer({className}:QueueServerProps) {
         setCopiedPlan(sanitizedPlan);
     };
 
+    const { data: initialStatus } = useStatusQuery();
+    const openEnvironmentMutation = useOpenEnvironmentMutation();
+    const hasCheckedEnvironment = useRef(false);
+
     useEffect(() => {
-        //check if the re worker has opened or not with GET
-        const checkWorkerEnvironment = (res:GetStatusResponse | null) => {
-            if (res && (res.worker_environment_exists === false || res.worker_environment_state === 'closed')) {
+        if (initialStatus && !hasCheckedEnvironment.current) {
+            hasCheckedEnvironment.current = true;
+            if (initialStatus.worker_environment_exists === false || initialStatus.worker_environment_state === 'closed') {
                 console.log('RE worker environment closed, attempting to open a new worker environment');
-                openWorkerEnvironment();
+                openEnvironmentMutation.mutate();
             }
         }
-        getStatus(checkWorkerEnvironment);
-    }, [])
+    }, [initialStatus]);
 
     return (
-        <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
+        <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400 text-slate-900", className)}>
             {/* ITEM POPUP  */}
             {(isQItemPopupVisible && popupItem!==null) && (
                 <QItemPopup 

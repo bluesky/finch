@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import TextInput from "./TextInput";
 import MultiSelectInput from "./MulitSelectInput";
 import SingleSelectInput from "./SingleSelectInput";
@@ -100,7 +101,7 @@ export default function QSParameterInput( {
     //----------Functions for dictionary input -------------//
     const dictionaryInputTypeList = ['md'];
 
-    const handleDictionaryChange = (dict:{[key:string]: string}, deleteParam=false) => {
+    const handleDictionaryChange = useCallback((dict:{[key:string]: string}, deleteParam=false) => {
         setParameters(state => {
             const stateCopy = JSON.parse(JSON.stringify(state));
             stateCopy[parameterName].value = dict;
@@ -113,7 +114,7 @@ export default function QSParameterInput( {
             }
             return stateCopy;
         });
-    };
+    }, [parameterName, updateBodyKwargs, setParameters]);
 
 
     // ----to do, create a boolean input for parameters like 'snake'

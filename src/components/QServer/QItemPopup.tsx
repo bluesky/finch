@@ -1,5 +1,5 @@
-import { useState, Fragment, useEffect } from "react";
-import { useStatusQuery } from './hooks/useQServerQueries';
+import { useState, Fragment } from "react";
+import { useStatusQuery, useRemoveQueueItemMutation, usePauseREMutation, useResumeREMutation, useAbortREMutation } from '@/api/qServer/hooks';
 import QItemPopupRow from './QItemPopupRow';
 import { PopupItem, HistoryResultRow } from "./types/types";
 import DeleteResultPopup from "./DeleteResultPopup";
@@ -9,8 +9,7 @@ import ButtonWithIcon from "../ButtonWithIcon";
 import { getPlanColor, getPlanColorOpacity } from "./utils/qItemColorData";
 import { tailwindIcons } from "../../assets/icons";
 import { Pulse, Faders, Fingerprint, User, UsersThree, Pause, PlayPause, Trash } from "@phosphor-icons/react";
-import { deleteQueueItem, pauseRE, resumeRE, abortRE } from "./utils/apiClient";
-import { ArbitraryKwargs, GetStatusResponse, PostItemRemoveResponse } from "./types/apiTypes";
+import { ArbitraryKwargs, PostItemRemoveResponse } from "@/api/qServer/types";
 
 import dayjs from "dayjs";
 
@@ -27,17 +26,12 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const [areResultsVisible, setAreResultsVisible] = useState(false);
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
     const [isTracebackCopied, setIsTracebackCopied] = useState(false);
-    const [apiStatusResponse, setApiStatusResponse] = useState<GetStatusResponse | null>(null);
 
-    // Use the centralized status query from our query hooks
     const { data: statusData, error: statusError } = useStatusQuery();
-
-    // Update state when statusData changes
-    useEffect(() => {
-        if (statusData) {
-            setApiStatusResponse(statusData);
-        }
-    }, [statusData]);
+    const removeQueueItemMutation = useRemoveQueueItemMutation();
+    const pauseREMutation = usePauseREMutation();
+    const resumeREMutation = useResumeREMutation();
+    const abortREMutation = useAbortREMutation();
 
     //check if item is in the current queue or the history
     const isHistory = 'result' in popupItem;
@@ -74,7 +68,7 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     const handleConfirmDeleteClick = () => {
         setIsDeleteModeVisibile(false); //close the delete mode popup
         const body = {uid: popupItem.item_uid};
-        deleteQueueItem(body, handleDeleteResponse); //send POST, show results popup
+        removeQueueItemMutation.mutate(body, { onSuccess: handleDeleteResponse });
     };
 
     const handleCopyTracebackClick = () => {
@@ -101,8 +95,8 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
     }
 
     const handleAbortClick = async () => {
-        const success = await abortRE();
-        if (success) {
+        const data = await abortREMutation.mutateAsync();
+        if (data.success) {
             handleQItemPopupClose();
         }
     };
@@ -299,16 +293,16 @@ export default function QItemPopup( {popupItem, handleQItemPopupClose=()=>{}, is
                                             }
                                             <span className="flex justify-start items-center gap-4 mt-4">
                                                 <ButtonWithIcon 
-                                                    text={apiStatusResponse?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
-                                                    icon={apiStatusResponse?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
+                                                    text={statusData?.manager_state === "paused" ? "Resume Plan" : "Pause Plan"} 
+                                                    icon={statusData?.manager_state === "paused" ? <PlayPause size={20}/> : <Pause size={20}/>}
                                                     isSecondary={true}
                                                     styles="bg-white"
-                                                    cb={apiStatusResponse?.manager_state === "paused" ? resumeRE : pauseRE}
-                                                    disabled={apiStatusResponse?.pause_pending === true}
+                                                    cb={statusData?.manager_state === "paused" ? () => resumeREMutation.mutate() : () => pauseREMutation.mutate()}
+                                                    disabled={statusData?.pause_pending === true}
                                                 />
-                                                <p>{apiStatusResponse?.pause_pending === true ? "Pause pending..." : ""}</p>
+                                                <p>{statusData?.pause_pending === true ? "Pause pending..." : ""}</p>
 
-                                                {apiStatusResponse?.manager_state === "paused" ?
+                                                {statusData?.manager_state === "paused" ?
                                                     <ButtonWithIcon
                                                         text="Delete Plan"
                                                         icon={<Trash size={20}/>}
