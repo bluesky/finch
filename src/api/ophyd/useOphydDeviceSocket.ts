@@ -17,7 +17,8 @@ import {
  * @returns Object containing device states and control functions
  */
 export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
-    const apiUrl:string = wsUrl ?? useOphydApiUrls().getWsUrl('device-socket');
+    const configWsUrl = useOphydApiUrls().getWsUrl('device-socket');
+    const apiUrl:string = wsUrl ?? configWsUrl;
     const [devices, setDevices] = useState<OphydDevices>(() => {
         const initialDevices: OphydDevices = {};
         deviceNameList.forEach((deviceName) => {

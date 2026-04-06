@@ -28,8 +28,8 @@ export function useCameraCanvas({
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
     const isInitialized = useRef(false);
-
-    const resolvedWsUrl = wsUrl ?? useOphydApiUrls().getWsUrl(ophydSocketCameraPath);
+    const configWsUrl = useOphydApiUrls().getWsUrl(ophydSocketCameraPath);
+    const resolvedWsUrl = wsUrl ?? configWsUrl;
 
     const sizeDict: {[key:string]: number} = useMemo(() => ({
         small: 256,

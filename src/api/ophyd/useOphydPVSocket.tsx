@@ -20,7 +20,8 @@ import {
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);  //device updates can retrigger the hook if inputs aren't memoized
-    const apiUrl:string = wsUrl ?? useOphydApiUrls().getWsUrl('pv-socket');
+    const configWsUrl = useOphydApiUrls().getWsUrl('pv-socket');
+    const apiUrl:string = wsUrl ?? configWsUrl;
     const [devices, setDevices] = useState<Devices>(() => {
         const initialDevices: Devices = {};
         memoizedDeviceNames.forEach((deviceName) => {
