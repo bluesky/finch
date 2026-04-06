@@ -1,6 +1,6 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
 import useOphydSocket from "@/api/ophyd/useOphydSocket";
-import useMockSocket from "@/hooks/useMockSocket"; // Import the mock socket hook
+import useMockSocket from "@/components/ReactEDM/hooks/useMockSocket"; // Import the mock socket hook
 import { ADLParser } from "./ADLParse";
 import { parseCustomFormat } from "./ADLtoJSON";
 import { createDeviceNameArray } from "./CreateDeviceNameArray";

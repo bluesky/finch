@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
-import { deviceMessages } from './deviceMessages';
+import { deviceMessages } from '../../../hooks/deviceMessages';
 
 type MockUpdate = {
     sub_type?: 'meta';
