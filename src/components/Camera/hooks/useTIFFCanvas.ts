@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { getDefaultTiffUrl } from '../utils/apiClient';
+import { useOphydApiUrls } from '@/utils/apiUtils';
+import { ophydSocketTIFFPath } from '@/api/ophyd/socketPaths';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
-import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
-import { httpToWsUrl } from 'src/utils/urlUtils';
 
 export type UseTIFFCanvasProps = {
     imageArrayPV?: string;
@@ -28,9 +27,7 @@ export function useTIFFCanvas({
     const startTime = useRef<null | Date>(null);
     const isInitialized = useRef(false);
 
-    const config = useOptionalFinchConfig();
-    const configWsUrl = config?.finchApiUrl ? httpToWsUrl(config.finchApiUrl) + '/tiff-socket' : undefined;
-    const resolvedWsUrl = wsUrl ?? configWsUrl ?? getDefaultTiffUrl();
+    const resolvedWsUrl = wsUrl ?? useOphydApiUrls().getWsUrl(ophydSocketTIFFPath);
 
     const sizeDict: {[key:string]: number} = useMemo(() => ({
         small: 256,

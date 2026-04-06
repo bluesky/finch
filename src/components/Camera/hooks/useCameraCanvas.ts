@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { getDefaultCameraUrl } from '../utils/apiClient';
+import { useOphydApiUrls } from '@/utils/apiUtils';
+import { ophydSocketCameraPath } from '@/api/ophyd/socketPaths';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
-import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
-import { httpToWsUrl } from 'src/utils/urlUtils';
 
 export type UseCameraCanvasProps = {
     imageArrayPV?: string;
@@ -30,9 +29,7 @@ export function useCameraCanvas({
     const startTime = useRef<null | Date>(null);
     const isInitialized = useRef(false);
 
-    const config = useOptionalFinchConfig();
-    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + '/api/v1/camera-socket' : undefined;
-    const resolvedWsUrl = wsUrl ?? configWsUrl ?? getDefaultCameraUrl();
+    const resolvedWsUrl = wsUrl ?? useOphydApiUrls().getWsUrl(ophydSocketCameraPath);
 
     const sizeDict: {[key:string]: number} = useMemo(() => ({
         small: 256,
