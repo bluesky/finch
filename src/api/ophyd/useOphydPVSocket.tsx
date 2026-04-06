@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
+import { useOphydApiUrls } from '@/utils/apiUtils';
 import {
     MessageResponse,
     ErrorResponse,
     ValueUpdateResponse,
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydPVSocketTypes';
-import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
-import { httpToWsUrl } from 'src/utils/urlUtils';
+
 
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
@@ -20,12 +20,7 @@ import { httpToWsUrl } from 'src/utils/urlUtils';
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);  //device updates can retrigger the hook if inputs aren't memoized
-    const config = useOptionalFinchConfig();
-    const address = window.location.hostname;
-    const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
-    const path = 'pv-socket';
-    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + `/api/v1/${path}` : undefined;
-    const apiUrl:string = wsUrl ?? configWsUrl ?? (import.meta.env.VITE_PV_WS || `ws://${address}:${apiPort}/api/v1/${path}`);
+    const apiUrl:string = wsUrl ?? useOphydApiUrls().getWsUrl('pv-socket');
     const [devices, setDevices] = useState<Devices>(() => {
         const initialDevices: Devices = {};
         memoizedDeviceNames.forEach((deviceName) => {

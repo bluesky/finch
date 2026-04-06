@@ -1,4 +1,4 @@
-//Types for the responses and calls made to ophydSocket.py
+//Types for the responses and calls made to /api/v1/pv-socket
 
 
 //Responses

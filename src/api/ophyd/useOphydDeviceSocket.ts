@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { OphydDevices } from 'src/types/deviceControllerTypes';
+import { useOphydApiUrls } from '@/utils/apiUtils';
 import {
     MessageResponse,
     ErrorResponse,
     ValueUpdateResponse,
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydDeviceSocketTypes';
-import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
-import { httpToWsUrl } from 'src/utils/urlUtils';
 
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
@@ -18,12 +17,7 @@ import { httpToWsUrl } from 'src/utils/urlUtils';
  * @returns Object containing device states and control functions
  */
 export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
-    const config = useOptionalFinchConfig();
-    const address = window.location.hostname;
-    const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
-    const path = 'device-socket';
-    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + `/api/v1/${path}` : undefined;
-    const apiUrl:string = wsUrl ?? configWsUrl ?? (import.meta.env.VITE_OPHYD_WS || `ws://${address}:${apiPort}/api/v1/${path}`);
+    const apiUrl:string = wsUrl ?? useOphydApiUrls().getWsUrl('device-socket');
     const [devices, setDevices] = useState<OphydDevices>(() => {
         const initialDevices: OphydDevices = {};
         deviceNameList.forEach((deviceName) => {
