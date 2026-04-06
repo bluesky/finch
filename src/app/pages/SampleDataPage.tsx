@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tiled, TiledItemLinks } from "@blueskyproject/tiled";
 import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
-import { getBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
+import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
 import ExperimentExecutePlanButton from "@/components/Experiment/ExperimentExecutePlanButton";
 import ExperimentExecutePlanButtonGeneric from "@/components/Experiment/ExperimentExecutePlanButtonGeneric";
 
@@ -23,6 +23,8 @@ export default function SampleDataPage() {
     const [scanNum, setScanNum] = useState<number>(11);
     const [scanMetadata, setScanMetadata] = useState<string>('{}');
     
+    const getBlueskyRunList = useGetBlueskyRunList();
+
     const printPath = (links: TiledItemLinks) => {
         const path = getPathFromLinks(links);
         console.log("Selected Tiled path:", path);

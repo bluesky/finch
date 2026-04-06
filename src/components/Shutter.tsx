@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { CaretDown, Check } from '@phosphor-icons/react';
-import useOphydPVSocket from '../hooks/useOphydPVSocket';
+import useOphydPVSocket from '../api/ophyd/useOphydPVSocket';
 import { cn } from '@/lib/utils';
 
 type ShutterProps = {

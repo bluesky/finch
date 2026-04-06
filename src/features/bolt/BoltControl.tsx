@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import CameraContainer from '@/components/Camera/CameraContainer';
 import DeviceControllerBox from '@/components/DeviceControllerBox';
-import useOphydSocket from '@/hooks/useOphydSocket';
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 import Paper from '@/components/Paper';
 import Bento from '@/components/Bento';
 import { deviceIcons } from '@/assets/icons';

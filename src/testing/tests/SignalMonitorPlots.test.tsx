@@ -18,11 +18,11 @@ vi.mock('../../components/PlotlyScatter', () => ({
   default: (props: unknown) => ScatterMock(props as PlotlyScatterProps),
 }));
 
-vi.mock('@/hooks/useOphydPVSocket', () => ({ default: vi.fn() }));
-vi.mock('@/hooks/useOphydDeviceSocket', () => ({ default: vi.fn() }));
+vi.mock('@/api/ophyd/useOphydPVSocket', () => ({ default: vi.fn() }));
+vi.mock('@/api/ophyd/useOphydDeviceSocket', () => ({ default: vi.fn() }));
 
-import useOphydPVSocket from '@/hooks/useOphydPVSocket';
-import useOphydDeviceSocket from '@/hooks/useOphydDeviceSocket';
+import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
+import useOphydDeviceSocket from '@/api/ophyd/useOphydDeviceSocket';
 
 const makeDevice = (value: number, units = 'counts') => ({ value, units, connected: true });
 

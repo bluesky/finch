@@ -1,20 +1,40 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+
+function renderWithQueryClient(ui: ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: vi.fn(() => ({ data: [], isSuccess: true })),
+const { usePlansAllowedQueryMock, useQueueQueryMock, useExecuteQueueItemMutationMock } = vi.hoisted(() => ({
+  usePlansAllowedQueryMock: vi.fn(() => ({
+    data: { success: true, plans_allowed: { count: {}, angle_scan: {}, energy_scan: {} } },
+    isLoading: false,
+    isError: false,
+  })),
+  useQueueQueryMock: vi.fn(() => ({
+    data: { success: true, running_item: {}, items: [], plan_queue_uid: 'q1' },
+    isLoading: false,
+    isError: false,
+  })),
+  useExecuteQueueItemMutationMock: vi.fn(() => ({
+    mutate: vi.fn(),
+    isPending: false,
+  })),
 }));
 
-vi.mock('../../components/QServer/utils/apiClient', () => ({
-  getPlansAllowedPromise: vi.fn(() => Promise.resolve({ success: true, plans_allowed: { count: {}, angle_scan: {}, energy_scan: {} } })),
-  executeItemPromise: vi.fn(() => Promise.resolve({ success: true, item: { item_uid: 'test-uid' }, msg: '' })),
-  getQueuePromise: vi.fn(() => Promise.resolve({ success: true, running_item: {}, items: [], plan_queue_uid: 'q1' })),
+vi.mock('@/api/qServer/hooks', () => ({
+  usePlansAllowedQuery: usePlansAllowedQueryMock,
+  useQueueQuery: useQueueQueryMock,
+  useExecuteQueueItemMutation: useExecuteQueueItemMutationMock,
 }));
 
 vi.mock('../../components/QServer/utils/qServerApiUtils', () => ({
-  getBlueskyRunList: vi.fn(() => Promise.resolve([])),
+  useGetBlueskyRunList: vi.fn(() => vi.fn(() => Promise.resolve([]))),
 }));
 
 vi.mock('@/components/Tiled/TiledWriterScatterPlot', () => ({
@@ -58,50 +78,49 @@ import ExperimentExecutePlanButton from '../../components/Experiment/ExperimentE
 import ExperimentExecutePlanButtonGeneric from '../../components/Experiment/ExperimentExecutePlanButtonGeneric';
 import ExperimentPlanSettings from '../../components/Experiment/ExperimentPlanSettings';
 import { getSearchResults } from '@blueskyproject/tiled';
-import { getPlansAllowedPromise, getQueuePromise } from '../../components/QServer/utils/apiClient';
 import { useQSAddItem } from '../../components/QServer/hooks/useQSAddItem';
 
 // ── ExperimentAngleScan ───────────────────────────────────────────────────────
 
 describe('ExperimentAngleScan', () => {
   it('renders without crashing', () => {
-    const { container } = render(<ExperimentAngleScan />);
+    const { container } = renderWithQueryClient(<ExperimentAngleScan />);
     expect(container.firstChild).toBeInTheDocument();
   });
 
   it('shows the "Angle Scan" heading', () => {
-    render(<ExperimentAngleScan />);
+    renderWithQueryClient(<ExperimentAngleScan />);
     expect(screen.getByText('Angle Scan')).toBeInTheDocument();
   });
 
   it('renders start angle, stop angle, and num points labels', () => {
-    render(<ExperimentAngleScan />);
+    renderWithQueryClient(<ExperimentAngleScan />);
     expect(screen.getByText(/Start Angle/i)).toBeInTheDocument();
     expect(screen.getByText(/Stop Angle/i)).toBeInTheDocument();
     expect(screen.getByText(/Number of Points/i)).toBeInTheDocument();
   });
 
   it('applies className to the root element', () => {
-    const { container } = render(<ExperimentAngleScan className="my-class" />);
+    const { container } = renderWithQueryClient(<ExperimentAngleScan className="my-class" />);
     expect(container.firstChild).toHaveClass('my-class');
   });
 
   it('shows history view when History tab is clicked', () => {
-    render(<ExperimentAngleScan />);
+    renderWithQueryClient(<ExperimentAngleScan />);
     fireEvent.click(screen.getByTitle('View scan history'));
     expect(screen.getByText(/Loading/i)).toBeInTheDocument();
     expect(screen.queryByText(/Start Angle/i)).not.toBeInTheDocument();
   });
 
   it('returns to form view when Run tab is clicked', () => {
-    render(<ExperimentAngleScan />);
+    renderWithQueryClient(<ExperimentAngleScan />);
     fireEvent.click(screen.getByTitle('View scan history'));
     fireEvent.click(screen.getByTitle('Run new scan'));
     expect(screen.getByText(/Start Angle/i)).toBeInTheDocument();
   });
 
   it('shows the execute button', () => {
-    render(<ExperimentAngleScan />);
+    renderWithQueryClient(<ExperimentAngleScan />);
     expect(screen.getByTestId('plan-button')).toBeInTheDocument();
   });
 });
@@ -110,30 +129,30 @@ describe('ExperimentAngleScan', () => {
 
 describe('ExperimentEnergyScan', () => {
   it('renders without crashing', () => {
-    const { container } = render(<ExperimentEnergyScan />);
+    const { container } = renderWithQueryClient(<ExperimentEnergyScan />);
     expect(container.firstChild).toBeInTheDocument();
   });
 
   it('shows the "Energy Scan" heading', () => {
-    render(<ExperimentEnergyScan />);
+    renderWithQueryClient(<ExperimentEnergyScan />);
     expect(screen.getByText('Energy Scan')).toBeInTheDocument();
   });
 
   it('renders start energy, stop energy, and num points labels', () => {
-    render(<ExperimentEnergyScan />);
+    renderWithQueryClient(<ExperimentEnergyScan />);
     expect(screen.getByText(/Start Energy/i)).toBeInTheDocument();
     expect(screen.getByText(/Stop Energy/i)).toBeInTheDocument();
     expect(screen.getByText(/Number of Points/i)).toBeInTheDocument();
   });
 
   it('shows history view when History tab is clicked', () => {
-    render(<ExperimentEnergyScan />);
+    renderWithQueryClient(<ExperimentEnergyScan />);
     fireEvent.click(screen.getByTitle('View scan history'));
     expect(screen.getByText(/Loading/i)).toBeInTheDocument();
   });
 
   it('applies className to the root element', () => {
-    const { container } = render(<ExperimentEnergyScan className="my-class" />);
+    const { container } = renderWithQueryClient(<ExperimentEnergyScan className="my-class" />);
     expect(container.firstChild).toHaveClass('my-class');
   });
 });
@@ -201,8 +220,8 @@ describe('ExperimentExecutePlanButton', () => {
   });
 
   it('shows "Loading..." while checking plan availability', () => {
-    // Override to never resolve so we catch the loading state
-    vi.mocked(getPlansAllowedPromise).mockReturnValueOnce(new Promise(() => {}));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    usePlansAllowedQueryMock.mockReturnValueOnce({ data: null as any, isLoading: true, isError: false });
     render(<ExperimentExecutePlanButton />);
     expect(screen.getByTestId('plan-button')).toHaveTextContent('Loading...');
   });
@@ -232,15 +251,14 @@ describe('ExperimentExecutePlanButtonGeneric', () => {
     );
   });
 
-  it('shows "Queue server busy" text when queue is busy', async () => {
-    vi.mocked(getQueuePromise).mockResolvedValueOnce({
-      success: true,
-      running_item: { item_uid: 'running-1', name: 'some_plan' },
-      items: [],
-      plan_queue_uid: 'q1',
-    } as unknown as Awaited<ReturnType<typeof getQueuePromise>>);
+  it('shows "Queue server busy" text when queue is busy', () => {
+    useQueueQueryMock.mockReturnValueOnce({
+      data: { success: true, running_item: { item_uid: 'running-1', name: 'some_plan' }, items: [], plan_queue_uid: 'q1' },
+      isLoading: false,
+      isError: false,
+    });
     render(<ExperimentExecutePlanButtonGeneric planName="energy_scan" kwargs={{}} />);
-    await waitFor(() => expect(screen.getByText('Queue server busy')).toBeInTheDocument());
+    expect(screen.getByText('Queue server busy')).toBeInTheDocument();
   });
 });
 

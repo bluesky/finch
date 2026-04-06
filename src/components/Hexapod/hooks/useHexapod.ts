@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydSocket from "@/api/ophyd/useOphydSocket";
 
 import { HexapodMovePositionForm, HexapodRBVs } from "../types/hexapodTypes";
 

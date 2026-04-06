@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { getDefaultCameraUrl } from '../utils/apiClient';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
+import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
+import { httpToWsUrl } from 'src/utils/urlUtils';
 
 export type UseCameraCanvasProps = {
     imageArrayPV?: string;
@@ -27,6 +29,10 @@ export function useCameraCanvas({
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
     const isInitialized = useRef(false);
+
+    const config = useOptionalFinchConfig();
+    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + '/api/v1/camera-socket' : undefined;
+    const resolvedWsUrl = wsUrl ?? configWsUrl ?? getDefaultCameraUrl();
 
     const sizeDict: {[key:string]: number} = useMemo(() => ({
         small: 256,
@@ -146,7 +152,7 @@ export function useCameraCanvas({
         let nextFrame: null | ImageBitmap = null;
     
         try {
-            const url = wsUrl ? wsUrl : getDefaultCameraUrl();
+            const url = resolvedWsUrl;
             ws.current = new WebSocket(url);
         } catch (error) {
             //This catch block only handles synchronous errors thrown during the WebSocket constructor call (invalid url, protocol), most other errors will be in the ws.onerror callback

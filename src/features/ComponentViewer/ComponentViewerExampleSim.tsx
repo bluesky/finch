@@ -10,7 +10,7 @@ import Histogram from "@/components/Histogram/Histogram";
 import { CubeTransparent } from "@phosphor-icons/react";
 
 
-import useSimOphydPVSocket from "@/hooks/useSimOphydPVSocket";
+import useSimOphydPVSocket from "@/api/ophyd/useSimOphydPVSocket";
 const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
 
 export default function ComponentViewerExampleSim() {

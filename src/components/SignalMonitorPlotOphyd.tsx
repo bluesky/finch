@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import useOphydDeviceSocket from "@/hooks/useOphydDeviceSocket";
+import useOphydDeviceSocket from "@/api/ophyd/useOphydDeviceSocket";
 import SignalMonitorPlotDevice, { SignalMonitorPlotDeviceProps } from "./SignalMonitorPlotDevice";
 
 export type SignalMonitorPlotOphydProps = Omit<SignalMonitorPlotDeviceProps, 'device' | 'deviceLabel'> & {

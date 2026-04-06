@@ -60,7 +60,9 @@ export type { TableDeviceControllerProps } from './components/TableDeviceControl
 
 
 //HOOKS
-export { default as useOphydSocket } from './hooks/useOphydSocket';
+export { default as useOphydSocket } from './api/ophyd/useOphydSocket';
+export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
+export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocket';
 
 //TYPES
 export type { RouteItem } from './types/navigationRouterTypes';

@@ -12,7 +12,7 @@ vi.mock('../../components/InputSliderRange', () => ({
 }));
 
 const mockHandleSetValueRequest = vi.fn();
-vi.mock('@/hooks/useOphydPVSocket', () => ({
+vi.mock('@/api/ophyd/useOphydPVSocket', () => ({
     default: vi.fn(() => ({
         devices: {},
         handleSetValueRequest: mockHandleSetValueRequest,
@@ -25,7 +25,7 @@ import HistogramPlot from '../../components/Histogram/HistogramPlot';
 import HistogramPlotSettings from '../../components/Histogram/HistogramPlotSettings';
 import HistogramDeviceController from '../../components/Histogram/HistogramDeviceController';
 import Histogram from '../../components/Histogram/Histogram';
-import useOphydPVSocket from '@/hooks/useOphydPVSocket';
+import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
 import { Device } from '@/types/deviceControllerTypes';
 
 // ── HistogramPlotSettings ──────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import useSimOphydPVSocket from '@/hooks/useSimOphydPVSocket';
+import useSimOphydPVSocket from '@/api/ophyd/useSimOphydPVSocket';
 import TableDeviceController from '@/components/TableDeviceController';
 const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
 

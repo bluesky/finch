@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import useOphydDeviceSocket from "@/hooks/useOphydDeviceSocket"
+import useOphydDeviceSocket from "@/api/ophyd/useOphydDeviceSocket"
 
 
 type UseBeamEnergyOphydProps = {

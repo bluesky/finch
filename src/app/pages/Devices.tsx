@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydSocket from "@/api/ophyd/useOphydSocket";
 
 import DeviceControllerBox from "@/components/DeviceControllerBox";
 import { deviceIcons } from "@/assets/icons";

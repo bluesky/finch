@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
 import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
-import { getBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
+import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
 import TiledWriterDetImageHeatmap from "../Tiled/TiledWriterDetImageHeatmap";
 import ExperimentHistory from "./ExperimentHistory";
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
-import { PostItemAddResponse } from "../QServer/types/apiTypes";
+import { PostItemAddResponse } from "@/api/qServer/types";
 
 type ExperimentEnergyScanProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -45,6 +45,8 @@ export default function ExperimentEnergyScan({
     useEffect(() => {
         localStorage.setItem("energy_scan_user", user);
     }, [user]);
+
+    const getBlueskyRunList = useGetBlueskyRunList();
 
     // TanStack Query to poll for Bluesky run list until we get results
     const { data: runList = [] } = useQuery<string[]>({

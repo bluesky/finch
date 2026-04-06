@@ -5,7 +5,9 @@ import {
     ErrorResponse,
     ValueUpdateResponse,
     MetaUpdateResponse,
-} from 'src/types/ophydSocketTypes';
+} from '@/api/ophyd/ophydPVSocketTypes';
+import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
+import { httpToWsUrl } from 'src/utils/urlUtils';
 
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
@@ -15,17 +17,16 @@ import {
  * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
  * @returns Object containing device states and control functions
  */
-export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);  //device updates can retrigger the hook if inputs aren't memoized
-    //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
+export default function useOphydSocket(deviceNameList: string[], wsUrl?: string) {
+    const config = useOptionalFinchConfig();
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
-    const path = 'pv-socket'
-    const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_PV_WS ? `${import.meta.env.VITE_PV_WS}` : `ws://${address}:${apiPort}/api/v1/${path}`);
+    const path = 'pv-socket';
+    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + `/api/v1/${path}` : undefined;
+    const apiUrl:string = wsUrl ?? configWsUrl ?? (import.meta.env.VITE_PV_WS || `ws://${address}:${apiPort}/api/v1/${path}`);
     const [devices, setDevices] = useState<Devices>(() => {
         const initialDevices: Devices = {};
-        memoizedDeviceNames.forEach((deviceName) => {
+        deviceNameList.forEach((deviceName) => {
             initialDevices[deviceName] = {
                 name: deviceName,
                 value: '',
@@ -40,6 +41,8 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         });
         return initialDevices;
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);
     const wsRef = useRef<WebSocket | null>(null);
     const hasRenderedOnlyOnce = useRef(false);
 
@@ -144,6 +147,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         ws.onmessage = (event) => {
             try {
                 const message: MessageResponse | ErrorResponse | ValueUpdateResponse | MetaUpdateResponse = JSON.parse(event.data);
+
                 if ('sub_type' in message && message.sub_type === 'meta') {
                     //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
                     setDevices((prevDevices) => ({

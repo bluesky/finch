@@ -1,28 +1,31 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Devices } from 'src/types/deviceControllerTypes';
+import { OphydDevices } from 'src/types/deviceControllerTypes';
 import {
     MessageResponse,
     ErrorResponse,
     ValueUpdateResponse,
     MetaUpdateResponse,
-} from 'src/types/ophydSocketTypes';
+} from '@/api/ophyd/ophydDeviceSocketTypes';
+import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
+import { httpToWsUrl } from 'src/utils/urlUtils';
 
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
  * Provides real-time device state management and control functions.
  * 
- * @param deviceNameList - Array of EPICS PVs to subscribe to
+ * @param deviceNameList - Array of Ophyd device names to subscribe to
  * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
  * @returns Object containing device states and control functions
  */
-export default function useOphydSocket(deviceNameList: string[], wsUrl?: string) {
-    //user provided wsUrl takes precedence, otherwise check for env variable, then check env variable for port
+export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
+    const config = useOptionalFinchConfig();
     const address = window.location.hostname;
     const apiPort:string = (import.meta.env.VITE_OPHYD_API_PORT || `8001`);
-    const path = 'pv-socket'
-    const apiUrl:string = wsUrl ? wsUrl : (import.meta.env.VITE_PV_WS ? `${import.meta.env.VITE_PV_WS}` : `ws://${address}:${apiPort}/api/v1/${path}`);
-    const [devices, setDevices] = useState<Devices>(() => {
-        const initialDevices: Devices = {};
+    const path = 'device-socket';
+    const configWsUrl = config?.ophydApiUrl ? httpToWsUrl(config.ophydApiUrl) + `/api/v1/${path}` : undefined;
+    const apiUrl:string = wsUrl ?? configWsUrl ?? (import.meta.env.VITE_OPHYD_WS || `ws://${address}:${apiPort}/api/v1/${path}`);
+    const [devices, setDevices] = useState<OphydDevices>(() => {
+        const initialDevices: OphydDevices = {};
         deviceNameList.forEach((deviceName) => {
             initialDevices[deviceName] = {
                 name: deviceName,
@@ -31,7 +34,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
                 locked: false,
                 timestamp: 0,
                 expanded: false,
-                pv: deviceName,
+                device: deviceName,
                 read_access: false,
                 write_access: false,
             };
@@ -39,7 +42,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         return initialDevices;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]); //device updates can retrigger the hook if inputs aren't memoized
     const wsRef = useRef<WebSocket | null>(null);
     const hasRenderedOnlyOnce = useRef(false);
 
@@ -67,7 +70,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
         if (wsRef.current) {
             const setValueMessage = {
                 action: 'set',
-                pv: deviceName,
+                device: deviceName,
                 value: value,
             };
             wsRef.current.send(JSON.stringify(setValueMessage));
@@ -92,7 +95,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
     useEffect(() => {
         if (hasRenderedOnlyOnce.current) {
             //after the initial render, if the deviceNameList changes, reset the entire devices state
-            const initialDevices: Devices = {};
+            const initialDevices: OphydDevices = {};
             memoizedDeviceNames.forEach((deviceName) => {
                 initialDevices[deviceName] = {
                     name: deviceName,
@@ -101,7 +104,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
                     locked: false,
                     timestamp: 0,
                     expanded: false,
-                    pv: deviceName,
+                    device: deviceName,
                     read_access: false,
                     write_access: false,
                 };
@@ -124,17 +127,17 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
             return;
         }
 
-        //console.log('initializing WebSocket connection to', apiUrl);
+        console.log('initializing WebSocket connection to', apiUrl);
         const ws = new WebSocket(apiUrl);
         wsRef.current = ws;
 
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
-            //console.log('WebSocket connection opened');
+            console.log('WebSocket connection opened');
             memoizedDeviceNames.forEach((deviceName) => {
                 const subscribeMessage = {
                     action: 'subscribe',
-                    pv: deviceName,
+                    device: deviceName,
                 };
                 ws.send(JSON.stringify(subscribeMessage));
             });
@@ -149,8 +152,8 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
                     //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
                     setDevices((prevDevices) => ({
                         ...prevDevices,
-                        [message.pv]: {
-                            ...prevDevices[message.pv],
+                        [message.device]: {
+                            ...prevDevices[message.device],
                             ...message,
                             //connected: message.connected,
                             //units: message.units,
@@ -159,9 +162,9 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
                             
                         },
                     }));
-                } else if ('pv' in message) {
-                    //pv is in the message on regular updates to the device value
-                    const deviceName = message.pv;
+                } else if ('device' in message) {
+                    //device is in the message on regular updates to the device value
+                    const deviceName = message.device;
                     setDevices((prevDevices) => ({
                         ...prevDevices,
                         [deviceName]: {
@@ -185,7 +188,7 @@ export default function useOphydSocket(deviceNameList: string[], wsUrl?: string)
 
         // Handle WebSocket closure
         ws.onclose = () => {
-            //console.log('WebSocket connection closed');
+            console.log('WebSocket connection closed');
         };
 
         // Cleanup WebSocket connection on unmount

@@ -7,7 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import useOphydSocket from '@/hooks/useOphydSocket';
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 import * as THREE from 'three';
 
 const WS_URL = 'ws://localhost:8002/ophydSocket';

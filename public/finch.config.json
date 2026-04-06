@@ -1,0 +1,8 @@
+{
+  "tiledApiUrl": "http://localhost:8000/api/v1",
+  "tiledApiKey": "your-tiled-api-key",
+  "ophydApiUrl": "http://localhost:8001/api/v1",
+  "qServerApiUrl": "http://localhost:60610/api",
+  "qServerApiKey": "your-qserver-api-key",
+  "finchApiUrl": "http://localhost:8002"
+}

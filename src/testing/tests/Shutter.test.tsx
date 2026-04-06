@@ -4,11 +4,11 @@ import Shutter from '../../components/Shutter';
 
 const mockHandleSetValueRequest = vi.fn();
 
-vi.mock('../../hooks/useOphydPVSocket', () => ({
+vi.mock('../../api/ophyd/useOphydPVSocket', () => ({
   default: vi.fn(),
 }));
 
-import useOphydPVSocket from '../../hooks/useOphydPVSocket';
+import useOphydPVSocket from '../../api/ophyd/useOphydPVSocket';
 
 const setupDevice = (value: number | string, connected = true) => {
   vi.mocked(useOphydPVSocket).mockReturnValue({

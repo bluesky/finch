@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { getDefaultTiffUrl } from '../utils/apiClient';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
+import { useOptionalFinchConfig } from 'src/app/FinchConfigProvider';
+import { httpToWsUrl } from 'src/utils/urlUtils';
 
 export type UseTIFFCanvasProps = {
     imageArrayPV?: string;
@@ -25,6 +27,10 @@ export function useTIFFCanvas({
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
     const isInitialized = useRef(false);
+
+    const config = useOptionalFinchConfig();
+    const configWsUrl = config?.finchApiUrl ? httpToWsUrl(config.finchApiUrl) + '/tiff-socket' : undefined;
+    const resolvedWsUrl = wsUrl ?? configWsUrl ?? getDefaultTiffUrl();
 
     const sizeDict: {[key:string]: number} = useMemo(() => ({
         small: 256,
@@ -70,8 +76,7 @@ export function useTIFFCanvas({
         let nextFrame: null | ImageBitmap = null;
     
         try {
-            //if the VITE_TIFF_WS is set, use that as default url
-            const url = wsUrl ? wsUrl : getDefaultTiffUrl();
+            const url = resolvedWsUrl;
             console.log({url})
             ws.current = new WebSocket(url);
         } catch (error) {

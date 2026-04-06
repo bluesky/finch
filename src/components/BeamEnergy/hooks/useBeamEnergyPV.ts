@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import useOphydSocket from "@/hooks/useOphydSocket"
+import useOphydSocket from "@/api/ophyd/useOphydSocket"
 
 import { computeEnergyFromMonoAngle } from "@/components/BeamEnergy/utils/computeEnergyFromMonoAngle";
 import { computeMonoAngleFromEnergy } from "@/components/BeamEnergy/utils/computeMonoAngleFromEnergy";

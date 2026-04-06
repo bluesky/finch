@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useState, useEffect } from "react";
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydSocket from "@/api/ophyd/useOphydSocket";
 import useMockSocket from "@/hooks/useMockSocket"; // Import the mock socket hook
 import { ADLParser } from "./ADLParse";
 import { parseCustomFormat } from "./ADLtoJSON";

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 
 import SignalMonitorPlotOphyd from "@/components/SignalMonitorPlotOphyd";
 import DeviceControllerBox from "@/components/DeviceControllerBox";
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydSocket from "@/api/ophyd/useOphydSocket";
 import Button from "@/components/Button";
 
 import { deviceIcons } from "@/assets/icons";

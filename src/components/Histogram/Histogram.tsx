@@ -1,4 +1,4 @@
-import useOphydPVSocket from "@/hooks/useOphydPVSocket";
+import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
 import HistogramDeviceController from "./HistogramDeviceController";
 import HistogramPlot from "./HistogramPlot";
 

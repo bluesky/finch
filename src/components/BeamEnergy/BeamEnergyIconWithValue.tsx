@@ -1,4 +1,4 @@
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydSocket from "@/api/ophyd/useOphydSocket";
 import { computeEnergyFromMonoAngle } from "@/components/BeamEnergy/utils/computeEnergyFromMonoAngle";
 import { useMemo } from "react";
 import { beamlineIcons } from "@/assets/icons";

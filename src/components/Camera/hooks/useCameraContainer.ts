@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from 'react';
-import useOphydSocket from '@/hooks/useOphydSocket';
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 import { DetectorSetting } from '../types/cameraTypes';
 
 type UseCameraContainerProps = {
