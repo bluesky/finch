@@ -1,4 +1,4 @@
-import {PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from "../types/apiTypes";
+import { PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from "@/api/qServer/types";
 
 export const mockGetApiStatusResponse: GetStatusResponse = {
     "msg": "RE Manager v0.0.21",
