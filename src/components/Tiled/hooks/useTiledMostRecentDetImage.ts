@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useRef } from 'react';
+import { useTiledApiUrls } from '@/utils/apiUtils';
 
 type UseTiledMostRecentDetImageOptions = {
     /** Milliseconds between Tiled search polls. Defaults to `2000`. */
@@ -30,9 +31,12 @@ export const useTiledMostRecentDetImage = (
 ): UseTiledMostRecentDetImageReturn => {
     const { 
         pollingIntervalMs = 2000, 
-        tiledBaseUrl = 'http://localhost:8000/api/v1',
+        tiledBaseUrl,
         enabled = true 
     } = options;
+
+    const { httpBaseUrl } = useTiledApiUrls();
+    const tiledBaseUrlFinal = tiledBaseUrl || httpBaseUrl;
 
     const [enablePolling, setEnablePolling] = useState(enabled);
     const [isRunFinished, setIsRunFinished] = useState<boolean>(false);
@@ -46,7 +50,7 @@ export const useTiledMostRecentDetImage = (
         try { 
             // Get last 10 entries, sorted by most recent
             const searchResponse = await fetch(
-                `${tiledBaseUrl}/search/?sort=-&page[offset]=0&page[limit]=10`
+                `${tiledBaseUrlFinal}/search/?sort=-&page[offset]=0&page[limit]=10`
             );
 
             if (!searchResponse.ok) {
@@ -63,7 +67,7 @@ export const useTiledMostRecentDetImage = (
 
                 try {
                     const detImageResponse = await fetch(
-                        `${tiledBaseUrl}/metadata/${detImagePath}`
+                        `${tiledBaseUrlFinal}/metadata/${detImagePath}`
                     );
                     if (detImageResponse.ok) {
                         const detImageData = await detImageResponse.json();
@@ -113,7 +117,7 @@ export const useTiledMostRecentDetImage = (
         error,
         refetch: _refetch
     } = useQuery({
-        queryKey: ['tiledMostRecentDetImage', tiledBaseUrl],
+        queryKey: ['tiledMostRecentDetImage', tiledBaseUrlFinal],
         queryFn: searchForDetImage,
         refetchInterval: enablePolling ? pollingIntervalMs : false,
         refetchIntervalInBackground: true,

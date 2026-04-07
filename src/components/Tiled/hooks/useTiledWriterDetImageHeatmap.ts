@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTiledApiUrls } from '@/utils/apiUtils';
 
 type UseTiledWriterDetImageHeatmapOptions = {
     /** When `true`, disables polling because the run is already complete. Defaults to `false`. */
@@ -16,7 +17,7 @@ export function useTiledWriterDetImageHeatmap(
     const {
         isRunFinished = false,
         pollingIntervalMs = 2000,
-        tiledBaseUrl = 'http://localhost:8000/api/v1'
+        tiledBaseUrl
     } = options;
 
     const [tiledPath, setTiledPath] = useState<string | null>(null);
@@ -24,13 +25,16 @@ export function useTiledWriterDetImageHeatmap(
     const [error, setError] = useState<string | null>(null);
     const [enablePolling, setEnablePolling] = useState<boolean>(!isRunFinished);
 
+    const { httpBaseUrl } = useTiledApiUrls();
+    const tiledBaseUrlFinal = tiledBaseUrl || httpBaseUrl;
+
     const checkForDetImage = useCallback(async () => {
         try {
             setIsLoading(true);
             setError(null);
 
             // Check if the run exists and get its metadata
-            const runResponse = await fetch(`${tiledBaseUrl}/metadata/${blueskyRunId}`);
+            const runResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${blueskyRunId}`);
             
             if (!runResponse.ok) {
                 throw new Error(`Run ${blueskyRunId} not found`);
@@ -48,7 +52,7 @@ export function useTiledWriterDetImageHeatmap(
 
             // Construct path to det_image: {id}/primary/det_image
             const detImagePath = `${blueskyRunId}/primary/det_image`;
-            const detImageResponse = await fetch(`${tiledBaseUrl}/metadata/${detImagePath}`);
+            const detImageResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
 
             if (!detImageResponse.ok) {
                 throw new Error(`det_image not found at path: ${detImagePath}`);
@@ -63,7 +67,7 @@ export function useTiledWriterDetImageHeatmap(
             }
 
             //console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
-            setTiledPath(`${tiledBaseUrl}/metadata/${detImagePath}`);
+            setTiledPath(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
@@ -73,7 +77,7 @@ export function useTiledWriterDetImageHeatmap(
         } finally {
             setIsLoading(false);
         }
-    }, [blueskyRunId, tiledBaseUrl, enablePolling]);
+    }, [blueskyRunId, tiledBaseUrlFinal, enablePolling]);
 
     useEffect(() => {
         if (!blueskyRunId) {

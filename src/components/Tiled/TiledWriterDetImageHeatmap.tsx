@@ -7,7 +7,7 @@ type TiledWriterDetImageHeatmapProps = {
     blueskyRunId: string | null;
     /** When `true`, disables live polling because the run is already complete. Defaults to `true`. */
     isRunFinished?: boolean;
-    /** Base URL of the Tiled server (e.g. `'http://localhost:8000'`). */
+    /** Base URL of the Tiled server (e.g. `'http://localhost:8000/api/v1'`). */
     tiledBaseUrl?: string;
     /** Milliseconds between Tiled data refetches while the run is ongoing. */
     pollingIntervalMs?: number;
