@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export type doc = {
     title: string;
@@ -12,11 +13,13 @@ type GoogleDocProps = {
     url?: string;
     /** List of documents to show in a dropdown selector. When provided, renders a select menu and defaults to the first item (or url if given). */
     docs?: doc[];
+    /** Additional classnames */
+    className?: string;
 };
 
 const googleDocIcon = "https://img.icons8.com/?size=100&id=30464&format=png&color=000000";
 
-export default function GoogleDoc({ url, docs, ...props }: GoogleDocProps) {
+export default function GoogleDoc({ url, docs, className, ...props }: GoogleDocProps) {
     const [ selectedDocUrl, setSelectedDocUrl ] = useState<string>(url ? url : (docs && docs.length > 0 ? docs[0].url : ""));
 
     const handleDocChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -24,7 +27,7 @@ export default function GoogleDoc({ url, docs, ...props }: GoogleDocProps) {
     };
 
     return docs && docs.length > 0 ? (
-        <div className="w-full h-full flex flex-col" {...props}>
+        <div className={cn("w-full h-full flex flex-col bg-white", className)} {...props}>
             <div className="p-4 bg-gray-100 border-b border-gray-300 flex items-center gap-4">
                 <img src={googleDocIcon} alt="Google Doc" className="w-8 h-8"/>
                 <select
@@ -49,11 +52,11 @@ export default function GoogleDoc({ url, docs, ...props }: GoogleDocProps) {
             </div>
         </div>
     ) : (
-        <div className="w-full h-full flex justify-center items-center " {...props}>
+        <div className={cn("w-full h-full flex justify-center items-center bg-white", className)} {...props}>
             <iframe
                 src={url}
                 title="Google Doc Viewer"
-                className="w-full h-[90vh] border border-gray-300 shadow-lg"
+                className="w-full h-full border border-gray-300 shadow-lg"
                 allow="fullscreen"
             />
         </div>

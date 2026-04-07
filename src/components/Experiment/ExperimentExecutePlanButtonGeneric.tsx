@@ -54,7 +54,7 @@ export default function ExperimentExecutePlanButtonGeneric({
         } else if (!plansQuery.isLoading && plansQuery.data && !isPlanAvailable) {
             onError?.(`${planName} plan is not available in the allowed plans`);
         }
-    }, [plansQuery.isError, plansQuery.isLoading, isPlanAvailable, planName, onError]);
+    }, [plansQuery.isError, plansQuery.isLoading, plansQuery.data, isPlanAvailable, planName, onError]);
 
     const handleExecuteClick = () => {
         if (!isPlanAvailable || executeMutation.isPending || isQueueServerBusy) return;

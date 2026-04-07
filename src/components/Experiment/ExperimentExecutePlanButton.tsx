@@ -45,7 +45,7 @@ export default function ExperimentExecutePlanButton({
         } else if (!plansQuery.isLoading && plansQuery.data && !isCountPlanAvailable) {
             onError?.("Count plan is not available in the allowed plans");
         }
-    }, [plansQuery.isError, plansQuery.isLoading, isCountPlanAvailable, onError]);
+    }, [plansQuery.isError, plansQuery.isLoading, plansQuery.data, isCountPlanAvailable, onError]);
 
     const handleExecuteClick = () => {
         if (!isCountPlanAvailable || executeMutation.isPending) return;

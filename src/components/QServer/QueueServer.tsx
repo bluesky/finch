@@ -113,7 +113,7 @@ export default function QueueServer({className}:QueueServerProps) {
                 openEnvironmentMutation.mutate();
             }
         }
-    }, [initialStatus]);
+    }, [initialStatus, openEnvironmentMutation]);
 
     return (
         <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400 text-slate-900", className)}>

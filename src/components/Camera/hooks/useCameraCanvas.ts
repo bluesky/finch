@@ -237,7 +237,7 @@ export function useCameraCanvas({
             setSocketStatus('closed');
             frameCount.current = 0;
         };
-    }, [wsUrl, getImageArrayPV, getSizePVs, canvasSize]);
+    }, [resolvedWsUrl, getImageArrayPV, getSizePVs, canvasSize]);
 
     useEffect(() => {
         if (!isInitialized.current) {

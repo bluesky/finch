@@ -45,7 +45,6 @@ function App() {
       path: '/documentation',
       label: "Help",
       icon: <Question size={32} />,
-      isBackgroundTransparent: true
     }
   ]
   return (

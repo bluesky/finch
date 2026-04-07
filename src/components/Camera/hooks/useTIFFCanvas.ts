@@ -161,7 +161,7 @@ export function useTIFFCanvas({
             frameCount.current = 0;
             console.log("Camera Web Socket closed");
         };
-    }, [wsUrl, canvasSize, prefix]);
+    }, [resolvedWsUrl, canvasSize, prefix]);
 
     useEffect(() => {
         if (!isInitialized.current) {
