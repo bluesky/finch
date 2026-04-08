@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from "react";
 
-import SignalMonitorPlotOphyd from "@/components/SignalMonitorPlotOphyd";
+import SignalMonitorPlotPV from "@/components/SignalMonitorPlotPV";
 import DeviceControllerBox from "@/components/DeviceControllerBox";
-import useOphydSocket from "@/api/ophyd/useOphydSocket";
+import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
 import Button from "@/components/Button";
 
 import { deviceIcons } from "@/assets/icons";
@@ -35,7 +35,7 @@ export default function Beamstop(
     const beamstopXNameRBV = useMemo(()=>beamstopXName + '.RBV', [beamstopXName]);
     const beamstopYNameRBV = useMemo(()=> beamstopYName + '.RBV', [beamstopYName]);
     const deviceNameList = useMemo(()=>[beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName], [beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName]);
-    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList);
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydPVSocket(deviceNameList);
     const [ bestCurrent, setBestCurrent ] = useState<number | null>(null);
     const [bestXValue, setBestXValue] = useState<number | null>(null);
     const [bestYValue, setBestYValue] = useState<number | null>(null);
@@ -70,7 +70,7 @@ export default function Beamstop(
         <section className={`w-full h-full ${stackVertical ? 'flex-col' : 'max-w-[1200px] flex-wrap items-center justify-center'} flex`}>
             <article className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full justify-start'}   flex flex-col p-8 min-w-96`}>
                 <h3 className="text-4xl text-center">Beamstop Current: {devices[beamstopCurrentName] && devices[beamstopCurrentName].value} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units?.slice(0,3)}</h3>
-                <SignalMonitorPlotOphyd deviceName={beamstopCurrentName} className={`${stackVertical ? 'h-full' : 'h-1/2'} min-w-96`} numVisiblePoints={200} tickTextIntervalSeconds={30}/>
+                <SignalMonitorPlotPV pv={beamstopCurrentName} className={`${stackVertical ? 'h-full' : 'h-1/2'} min-w-96`} numVisiblePoints={200} tickTextIntervalSeconds={30}/>
                 { enableBestOption && 
                     <>
                         <p>Best Beamstop Current Value: {bestCurrent ? bestCurrent.toPrecision(5) : 'N/A'} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units}</p>

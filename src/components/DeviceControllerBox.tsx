@@ -49,7 +49,7 @@ export default function DeviceControllerBox({ device, deviceRBV, handleSetValueR
     if (!device) return;
 
     return (
-        <article className={cn(`w-96 border border-slate-300 shadow-lg rounded-lg flex flex-col relative bg-slate-200 text-slate-900`, className)} {...props}>
+        <article className={cn(`w-96 h-fit border border-slate-300 shadow-lg rounded-lg flex flex-col relative bg-slate-200 text-slate-900`, className)} {...props}>
             {/*Row -Icons */}
             <div className="flex justify-between px-2 py-2 flex-shrink-0">
                 {/* <div 

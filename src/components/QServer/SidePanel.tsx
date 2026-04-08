@@ -4,8 +4,7 @@ import sleepingIcon from './images/sleepingManIcon.png';
 import './styles/qserver.css';
 import './RunningIcon.css';
 import React, { Fragment, Children } from "react";
-import { HistoryItem, QueueItem } from "./types/apiTypes";
-
+import { HistoryItem, QueueItem } from "@/api/qServer/types";
 type SidePanelProps = {
     queueData: QueueItem[];
     queueHistoryData: HistoryItem[];

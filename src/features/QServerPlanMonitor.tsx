@@ -4,7 +4,7 @@ import SidePanel from "@/components/QServer/SidePanel";
 import QSList from "@/components/QServer/QSList";
 import QItemPopup from "@/components/QServer/QItemPopup";
 import QSRunEngineWorker from "@/components/QServer/QSRunEngineWorker";
-import { RunningQueueItem } from "@/components/QServer/types/apiTypes";
+import { RunningQueueItem } from "@/api/qServer/types";
 import { PopupItem } from "@/components/QServer/types/types";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +69,6 @@ export default function QServerPlanMonitor({ className = '' }: QServerPlanMonito
                 <SidePanel 
                     queueData={currentQueue?.items || []}
                     queueHistoryData={queueHistory?.items || []} 
-                    isREToggleOn={isREToggleOn} 
                     handleSidepanelExpandClick={handleSidepanelExpandClick}
                     isSidepanelExpanded={isSidepanelExpanded}
                     runEngineState={apiStatus ? apiStatus.re_state : null}

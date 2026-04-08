@@ -27,7 +27,7 @@ export default function SamplePage1 () {
         <div className="w-full h-screen">
             <Header title="Sample App With Widgets"/>
             <div className="flex ">
-                <Sidebar color="bg-slate-300" title="Sample Sidebar" collapsible={true}> 
+                <Sidebar className="bg-slate-300" title="Sample Sidebar" collapsible={true}> 
                     <SidebarItem title="With Icon" icon={icons.adjustmentsVertical} > 
                         <>
                             <InputSliderRange min={0} max={100} value={ageRange} onChange={setAgeRange} marks={[0, 25, 50, 80, 90, 100]}  units="years" shorthandUnits="yr"/>
