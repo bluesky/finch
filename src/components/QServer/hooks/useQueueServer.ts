@@ -12,10 +12,17 @@ export const useQueueServer = () => {
     const [ globalMetadata, setGlobalMetadata ] = useState<GlobalMetadata>({});
     const [ isGlobalMetadataChecked, setIsGlobalMetadataChecked ] = useState(true);
     const [ apiStatus, setApiStatus ] = useState<GetStatusResponse | null>(null);
-
-    const queueQuery = useQueueQuery();
-    const historyQuery = useQueueHistoryQuery();
-    const statusQuery = useStatusQuery();
+    
+    //poll every second to keep the UI updated
+    const queueQuery = useQueueQuery({
+        refetchInterval: 1000,
+    });
+    const historyQuery = useQueueHistoryQuery({
+        refetchInterval: 1000,
+    });
+    const statusQuery = useStatusQuery({
+        refetchInterval: 1000,
+    });
 
     const handleQueueDataResponse = (res: GetQueueResponse) => {
         try {
@@ -79,6 +86,8 @@ export const useQueueServer = () => {
     const handleApiStatusResponse = (res: GetStatusResponse | null) => {
         if (res) {
             setApiStatus(res);
+        } else {
+            setApiStatus(null);
         }
     };
 

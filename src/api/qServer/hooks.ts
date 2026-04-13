@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { useQueueServerApiUrls } from 'src/utils/apiUtils';
 import { createQServerApiClient } from './client';
 import * as requests from './requests';
@@ -7,6 +7,13 @@ import {
   AddQueueItemBody,
   ExecuteQueueItemBody,
   RemoveQueueItemBody,
+  GetQueueResponse,
+  GetHistoryResponse,
+  GetStatusResponse,
+  GetPlansAllowedResponse,
+  GetDevicesAllowedResponse,
+  GetQueueItemResponse,
+  GetRunsActiveResponse,
 } from './types';
 
 function useQServerClient() {
@@ -20,67 +27,74 @@ function useQServerClient() {
   }, [httpBaseUrl, apiKey]);
 }
 
-export function useQueueQuery() {
+export function useQueueQuery(queryOptions?: Partial<UseQueryOptions<GetQueueResponse, Error, GetQueueResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'queue'],
     queryFn: () => requests.getQueue(client),
+    ...queryOptions,
   });
 }
 
-export function useQueueHistoryQuery() {
+export function useQueueHistoryQuery(queryOptions?: Partial<UseQueryOptions<GetHistoryResponse, Error, GetHistoryResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'history'],
     queryFn: () => requests.getQueueHistory(client),
+    ...queryOptions,
   });
 }
 
-export function useStatusQuery() {
+export function useStatusQuery(queryOptions?: Partial<UseQueryOptions<GetStatusResponse, Error, GetStatusResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'status'],
     queryFn: () => requests.getStatus(client),
+    ...queryOptions,
   });
 }
 
-export function usePlansAllowedQuery() {
+export function usePlansAllowedQuery(queryOptions?: Partial<UseQueryOptions<GetPlansAllowedResponse, Error, GetPlansAllowedResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'plansAllowed'],
     queryFn: () => requests.getPlansAllowed(client),
+    ...queryOptions,
   });
 }
 
-export function useDevicesAllowedQuery() {
+export function useDevicesAllowedQuery(queryOptions?: Partial<UseQueryOptions<GetDevicesAllowedResponse, Error, GetDevicesAllowedResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'devicesAllowed'],
     queryFn: () => requests.getDevicesAllowed(client),
+    ...queryOptions,
   });
 }
 
-export function useQueueItemQuery(itemUid: string | undefined) {
+export function useQueueItemQuery(itemUid: string | undefined, queryOptions?: Partial<UseQueryOptions<GetQueueItemResponse, Error, GetQueueItemResponse, (string | undefined)[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'queueItem', itemUid],
     queryFn: () => requests.getQueueItem(client, itemUid as string),
     enabled: !!itemUid,
+    ...queryOptions,
   });
 }
 
-export function useRunsActiveQuery() {
+export function useRunsActiveQuery(queryOptions?: Partial<UseQueryOptions<GetRunsActiveResponse, Error, GetRunsActiveResponse, string[]>>) {
   const client = useQServerClient();
 
   return useQuery({
     queryKey: ['qserver', 'runsActive'],
     queryFn: () => requests.getRunsActive(client),
+    ...queryOptions,
   });
 }
 
