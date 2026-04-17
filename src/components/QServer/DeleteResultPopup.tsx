@@ -1,8 +1,7 @@
 import { Fragment } from 'react';
 import { tailwindIcons } from "../../assets/icons";
 import Button from "../Button";
-import { PostItemRemoveResponse } from './types/apiTypes';
-
+import { PostItemRemoveResponse } from '@/api/qServer/types';
 type DeleteResultPopupProps = {
     handleCloseClick: () => void;
     response: PostItemRemoveResponse | null;

@@ -3,7 +3,7 @@ import QItem from './QItem';
 import dayjs from 'dayjs';
 import './styles/qserver.css'; 
 import { PopupItem } from './types/types';
-import { HistoryItem } from './types/apiTypes';
+import { HistoryItem } from '@/api/qServer/types';
 
 type QSListProps = {
     queueData: PopupItem[] | HistoryItem[];
@@ -74,7 +74,7 @@ export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='de
                 <section className="w-full flex flex-col ">
                     <ul  className="flex flex-wrap-reverse justify-center">
                         {queueData.slice(queueData.length-visibleItems).map((item) => 
-                            <QItem type="history" item={item} label={dayjs(item?.result && item.result.time_stop * 1000).format('MM/DD hh:mm a')} key={item.item_uid} handleClick={()=>handleQItemClick(item, showDeleteButton)}/>
+                            <QItem type="history" item={item} label={('result' in item) ? dayjs(item?.result && item.result.time_stop * 1000).format('MM/DD hh:mm a') : ''} key={item.item_uid} handleClick={()=>handleQItemClick(item, showDeleteButton)}/>
                         )}
                     </ul>
                 </section>
@@ -86,7 +86,7 @@ export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='de
                 <ul className="flex flex-wrap-reverse justify-center items-end">
                     {queueData.map((item, index) => <QItem type="current" item={item} label={index.toString()} key={item.item_uid} handleClick={()=>handleQItemClick(item, true)}/>)}
                     {queueData.length < 0 ? [...new Array(0 - queueData.length)].map((item, index) => <QItem type="blank" item={item} key={index}/>) : '' }
-                    <QItem type="blank" item={false}/>
+                    <QItem type="blank" item={null}/>
                 </ul>
             </section>
         );

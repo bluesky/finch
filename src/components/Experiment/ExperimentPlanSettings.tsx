@@ -26,7 +26,7 @@ export default function ExperimentPlanSettings() {
                             resetInputsTrigger={resetInputsTrigger} 
                             copiedPlan={null} 
                             isGlobalMetadataChecked={undefined}
-                            globalMetadata={undefined} />)}
+                            globalMetadata={{}} />)}
         </div>
     );
 }

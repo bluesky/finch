@@ -11,12 +11,12 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, openWorkerEnvironment, useQServerApiConfig } from "./utils/apiClient";
+import { useOpenEnvironmentMutation } from '@/api/qServer/hooks';
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
 import { CopiedPlan, PopupItem } from "./types/types";
-import { ArbitraryKwargs, GetStatusResponse, RunningQueueItem } from "./types/apiTypes";
+import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer/types';
 
 import { cn } from '@/lib/utils';
 
@@ -24,7 +24,6 @@ export type ContainerQServerProps = {
     className?: string;
 }
 export default function ContainerQServer({className}:ContainerQServerProps) {
-    useQServerApiConfig();
 
     const [ isQItemPopupVisible, setIsQItemPopupVisible ] = useState(false);
     const [ popupItem, setPopupItem ] = useState<PopupItem | null>(null);
@@ -47,6 +46,8 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
         handleGlobalMetadataCheckboxChange,
         apiStatus
     } = useQueueServer();
+
+    const openEnvironmentMutation = useOpenEnvironmentMutation();
 
     const handleCurrentQItemClick = (item:PopupItem) => {
         setPopupItem(item);
@@ -103,15 +104,11 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
     };
 
     useEffect(() => {
-        //check if the re worker has opened or not with GET
-        const checkWorkerEnvironment = (res:GetStatusResponse | null) => {
-            if (res && (res.worker_environment_exists === false || res.worker_environment_state === 'closed')) {
-                console.log('RE worker environment closed, attempting to open a new worker environment');
-                openWorkerEnvironment();
-            }
+        if (apiStatus && (apiStatus.worker_environment_exists === false || apiStatus.worker_environment_state === 'closed')) {
+            console.log('RE worker environment closed, attempting to open a new worker environment');
+            openEnvironmentMutation.mutate();
         }
-        getStatus(checkWorkerEnvironment);
-    }, [])
+    }, [apiStatus])
 
     return (
         <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
