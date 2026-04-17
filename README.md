@@ -5,7 +5,7 @@
   
 A React component library for Bluesky beamlines. 
 
-To view components in your browser and see full documentation check out our [storybook library.](https://blueskyproject.io/finch)
+To view components in your browser and see documentation check out our growing [interactive library.](https://blueskyproject.io/finch)
 
 
 #  Installation
@@ -25,7 +25,7 @@ npm install @blueskyproject/finch
 
 You will also need the following peer dependencies if not already installed:
 ```
-npm install react@^18 react-dom@^18 react-router-dom @tanstack/react-query
+npm install react@^18 react-dom@^18 react-router^7 @tanstack/react-query @phosphor-icons/react
 ```
 
 Note Finch only supports React V16-18.
@@ -35,14 +35,14 @@ Note Finch only supports React V16-18.
 Finch components rely on three providers that must wrap your app:
 
 1. **`QueryClientProvider`** — from `@tanstack/react-query`, required for data fetching hooks used by QServer and other components.
-2. **`BrowserRouter`** — from `react-router-dom`, required for routing-based components like `HubAppLayout`.
+2. **`BrowserRouter`** — from `react-router`, required for routing-based components like `HubAppLayout`.
 3. **`FinchConfigProvider`** — from `@blueskyproject/finch`, configures backend service URLs and API keys used throughout the library.
 
 ```tsx
 // main.tsx
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FinchConfigProvider } from '@blueskyproject/finch';
 import '@blueskyproject/finch/style.css'; //<--Import this file once at the top level
@@ -107,7 +107,7 @@ VITE_TILED_API_KEY=a-really-long-key
 
 `HubAppLayout` provides a full app shell with a sidebar, header, and routed content area. Define your pages as components and pass them as a `routes` array.
 
-Icons are optional but recommended for the sidebar. Install [Phosphor Icons](https://phosphoricons.com/) for a consistent look:
+Icons are optional but recommended for the sidebar. [Phosphor Icons](https://phosphoricons.com/) are recommended for consistency with other Finch components.
 ```
 npm install @phosphor-icons/react
 ```
@@ -115,7 +115,8 @@ npm install @phosphor-icons/react
 ```tsx
 // App.tsx
 import { HubAppLayout, RouteItem } from '@blueskyproject/finch';
-import { House, Gauge, ChartLine } from '@phosphor-icons/react';
+import { HouseIcon, GaugeIcon, ChartLineIcon } from '@phosphor-icons/react';
+import { TiledLookup } from '@blueskyproject/finch';
 
 // Example pages, typically imported from src/pages
 function HomePage() {
@@ -127,7 +128,7 @@ function ControlsPage() {
 }
 
 function DataPage() {
-  return <div>Data visualization goes here.</div>;
+  return <div className="flex flex-col w-full h-full"><p>Data visualization goes here.</p> <TiledLookup /></div>;
 }
 
 function App() {
@@ -136,20 +137,20 @@ function App() {
       path: '/',
       label: 'Home',
       element: <HomePage />,
-      icon: <House size={32} />,
+      icon: <HouseIcon size={32} />,
       isBackgroundTransparent: true,
     },
     {
       path: '/controls',
       label: 'Controls',
       element: <ControlsPage />,
-      icon: <Gauge size={32} />,
+      icon: <GaugeIcon size={32} />,
     },
     {
       path: '/data',
       label: 'Data',
       element: <DataPage />,
-      icon: <ChartLine size={32} />,
+      icon: <ChartLineIcon size={32} />,
     },
   ];
 

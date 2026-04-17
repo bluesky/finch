@@ -39,7 +39,7 @@ export default function BeamEnergyPV({pv="bl531_xps1:mono_angle_deg", title="Bea
         device
     } = useBeamEnergyPV({pv, thetaOffsetDeg, wsUrl, demo});
     return (
-        <section className={cn("flex flex-col w-64 h-72 bg-slate-200 rounded-lg shadow-lg p-4 min-w-[26rem] relative", className)}>
+        <section className={cn("flex flex-col w-64 h-72 bg-slate-200 text-slate-700 rounded-lg shadow-lg p-4 min-w-[26rem] relative", className)}>
             <BeamEnergyHeader title={title} pv={pv} showController={showController} showPlot={showPlot} showAbout={showAbout} isLocked={isLocked} handleToggleLock={handleToggleLock} handleToggleController={handleToggleController} handleTogglePlot={handleTogglePlot} handleToggleAbout={handleToggleAbout} />
             <BeamEnergyTitleIcon title={title} pv={device.name} showIcon={!showAbout && !showPlot}/>
             {!showAbout && !showPlot && <BeamEnergyCurrentValue currentValueDegrees={currentValueDegrees} currentValueEV={currentValueEV} />}

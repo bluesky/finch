@@ -171,7 +171,7 @@ export default function PlotlyHeatmapTiled({
   }, [enablePolling, url, shape, userHasMovedSlider, pollingIntervalMs]);
 
   return (
-    <section className={cn(`flex flex-col items-center gap-4 max-h-full max-w-full p-2 rounded-md shadow-md ${!url ? 'border border-white opacity-70' : ''} ${error ? "border-slate-400 border bg-slate-500" : "bg-white"}  ${sizeClassMap[size]}`, className)}>
+    <section className={cn(`flex flex-col items-center gap-4 max-h-full max-w-full p-2 rounded-md shadow-md text-slate-700 ${!url ? 'border border-white opacity-70' : ''} ${error ? "border-slate-400 border bg-slate-500" : "bg-white"}  ${sizeClassMap[size]}`, className)}>
       {(error || !url) && 
         <div className="flex flex-col">
           <h2 className="text-5xl font-medium text-center mt-24">Tiled Heatmap Display</h2>

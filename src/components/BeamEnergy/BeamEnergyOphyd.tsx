@@ -36,7 +36,7 @@ export default function BeamEnergyOphyd({deviceName="mono_energy", title="Beam E
         device
     } = useBeamEnergyOphyd({deviceName, wsUrl});
     return (
-        <section className={cn("flex flex-col w-64 h-72 bg-slate-200 rounded-lg shadow-lg p-4 min-w-[26rem] relative", className)}>
+        <section className={cn("flex flex-col w-64 h-72 bg-slate-200 text-slate-700 rounded-lg shadow-lg p-4 min-w-[26rem] relative", className)}>
             <BeamEnergyHeader title={title} pv={device.name} showController={showController} showPlot={showPlot} showAbout={showAbout} isLocked={isLocked} handleToggleLock={handleToggleLock} handleToggleController={handleToggleController} handleTogglePlot={handleTogglePlot} handleToggleAbout={handleToggleAbout} />
             <BeamEnergyTitleIcon title={title} pv={device.name} showIcon={!showAbout && !showPlot}/>
             {!showAbout && !showPlot && <BeamEnergyCurrentValue  currentValueEV={currentValueEV} />}

@@ -69,7 +69,7 @@ const PlotlyScatter = React.memo(function PlotlyScatter({
   }, []);
 
   return (
-    <div className={cn('max-h-full h-96 rounded-lg overflow-hidden', className)} ref={plotContainer} {...props}>
+    <div className={cn('max-h-full h-96 rounded-lg overflow-hidden text-slate-700', className)} ref={plotContainer} {...props}>
       <Plot
         data={data}
         layout={{

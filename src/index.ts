@@ -17,6 +17,12 @@ export type { InputSliderProps } from './components/InputSlider';
 export { default as TiledLookup } from './components/Tiled/Tiled';
 export type { TiledProps } from './components/Tiled/Tiled';
 
+export { default as TiledHeatmapSelector } from './features/TiledHeatmapSelector';
+export type { TiledHeatmapSelectorProps } from './features/TiledHeatmapSelector';
+
+export { default as Beamstop } from './features/Beamstop';
+export type { BeamstopProps } from './features/Beamstop';
+
 export { default as HubAppLayout } from './components/HubAppLayout';
 export type { HubAppLayoutProps } from './components/HubAppLayout';
 
@@ -109,6 +115,12 @@ export type { ControllerRelativeMoveProps } from './components/ControllerRelativ
 export { default as PlotlyHeatmapTiled } from './components/PlotlyHeatmapTiled';
 
 export { default as BeamVisSynoptic } from './components/BeamVisSynoptic';
+
+export { default as ComponentViewer } from './features/ComponentViewer/ComponentViewer';
+export type { ComponentViewerProps } from './features/ComponentViewer/ComponentViewer';
+export { default as ComponentViewerExampleSim } from './features/ComponentViewer/ComponentViewerExampleSim';
+export { default as ComponentViewerExampleReal } from './features/ComponentViewer/ComponentViewerExampleReal';
+
 
 // TABS
 export { TabsGroup } from './components/Tabs/TabsGroup';

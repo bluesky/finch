@@ -71,7 +71,7 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
     }, [acquirePV, handleSetValueRequest]);
 
     return (
-        <section className={cn("flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg", classNameContainer)}>
+        <section className={cn("flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 text-slate-700 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg", classNameContainer)}>
             <HistogramPlot showPlotSettings={showPlotSettings} className={classNameHistogramPlot} classNameSettings={classNamePlotSettings} arrayData={arrayData} precision={precision} />
             {showDeviceController && <HistogramDeviceController acquireDevice={devices[acquirePV]} handleStartAcquisition={handleStartAcquisition} handleStopAcquisition={handleStopAcquisition} className={classNameDeviceController} />}
         </section>
