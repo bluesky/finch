@@ -25,7 +25,7 @@ npm install @blueskyproject/finch
 
 You will also need the following peer dependencies if not already installed:
 ```
-npm install react@^18 react-dom@^18 react-router^7 @tanstack/react-query @phosphor-icons/react
+npm install react@^18 react-dom@^18 react-router^7 @tanstack/react-query
 ```
 
 Note Finch only supports React V16-18.
@@ -117,6 +117,7 @@ npm install @phosphor-icons/react
 import { HubAppLayout, RouteItem } from '@blueskyproject/finch';
 import { HouseIcon, GaugeIcon, ChartLineIcon } from '@phosphor-icons/react';
 import { TiledLookup } from '@blueskyproject/finch';
+import { BeamEnergyPV, Hexapod, Histogram, Bento } from '@blueskyproject/finch';
 
 // Example pages, typically imported from src/pages
 function HomePage() {
@@ -124,11 +125,26 @@ function HomePage() {
 }
 
 function ControlsPage() {
-  return <div>Device controls go here.</div>;
+  return (
+    <div>
+      <h2>Device Controls</h2>
+      <Bento>
+
+        <BeamEnergyPV pv="fake mirror" demo={true} />
+        <Hexapod prefix="fake hexapod" demo={true} />
+        <Histogram arrayPV="fake array" acquirePV="fake acquire" demo={true} />
+    </Bento>
+    </div>
+  );
 }
 
 function DataPage() {
-  return <div className="flex flex-col w-full h-full"><p>Data visualization goes here.</p> <TiledLookup /></div>;
+  return (
+    <div className="flex flex-col w-full h-full">
+      <p>Data visualization goes here.</p> 
+      <TiledLookup backgroundClassName='text-slate-700'/>
+    </div>
+  );
 }
 
 function App() {
@@ -145,12 +161,14 @@ function App() {
       label: 'Controls',
       element: <ControlsPage />,
       icon: <GaugeIcon size={32} />,
+      isBackgroundTransparent: true,
     },
     {
       path: '/data',
       label: 'Data',
       element: <DataPage />,
       icon: <ChartLineIcon size={32} />,
+      isBackgroundTransparent: true,
     },
   ];
 
@@ -170,7 +188,7 @@ Each route entry supports:
 - `label` — text shown in the sidebar navigation
 - `element` — the React component to render for that route
 - `icon` — optional React element shown next to the label in the sidebar
-- `isBackgroundTransparent` — when `true`, renders the page with a transparent background and white text (suitable for hero/landing pages)
+- `isBackgroundTransparent` — when `true`, renders the page with a transparent background and white text as a default (good for separate components on the same page)
 - `classNameContainer` — additional CSS classes for the page container
 
 
