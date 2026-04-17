@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import HubSidebar from '../../components/HubSidebar';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
