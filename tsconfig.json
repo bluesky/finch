@@ -36,5 +36,7 @@
     "dist",
     "src/components/BeamVis/**/*",
     "src/**/BeamVis/**/*",
-    "**/*BeamVis*/**/*"
+    "**/*BeamVis*/**/*",
+    "src/stories/**/*",
+    "src/testing/**/*"
   ]}

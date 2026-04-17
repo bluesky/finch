@@ -108,7 +108,7 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
             console.log('RE worker environment closed, attempting to open a new worker environment');
             openEnvironmentMutation.mutate();
         }
-    }, [apiStatus])
+    }, [apiStatus, openEnvironmentMutation]);
 
     return (
         <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>

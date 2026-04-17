@@ -88,6 +88,9 @@ export function FinchConfigProvider({
         console.info(`Cleaned ${key}: "${value}" → "${cleanedValue}"`);
       }
     });
+
+    //Log final cleaned config for debugging
+    console.debug('Final cleaned Finch config:', cleaned);
     
     return cleaned;
   }, [config]);
