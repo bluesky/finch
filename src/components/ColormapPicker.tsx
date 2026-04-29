@@ -1,16 +1,6 @@
 import { cn } from "@/lib/utils";
 import { COLORMAPS, type ColormapDef } from "./colormaps";
 
-/**
- * A palette-style colormap selector. Renders a scrollable list of gradient swatches
- * and calls `onChange` with the selected colormap's `id` string.
- *
- * This component is renderer-agnostic — the `id` values from `COLORMAPS` do not
- * necessarily match the colorscale names expected by a specific renderer. When using
- * with Plotly, for example, you will need to map the id to the corresponding Plotly
- * colorscale name (e.g. `'gray'` → `'Greys'`, `'rdbu'` → `'RdBu'`), and filter the
- * `colormaps` prop to only include entries your renderer supports.
- */
 export type ColormapPickerProps = {
   /** The id of the currently selected colormap */
   value: string;
@@ -26,6 +16,16 @@ export type ColormapPickerProps = {
   className?: string;
 };
 
+/**
+ * A palette-style colormap selector. Renders a scrollable list of gradient swatches
+ * and calls `onChange` with the selected colormap's `id` string.
+ *
+ * This component is renderer-agnostic — the `id` values from `COLORMAPS` do not
+ * necessarily match the colorscale names expected by a specific renderer. When using
+ * with Plotly, for example, you will need to map the id to the corresponding Plotly
+ * colorscale name (e.g. `'gray'` → `'Greys'`, `'rdbu'` → `'RdBu'`), and filter the
+ * `colormaps` prop to only include entries your renderer supports.
+ */
 export default function ColormapPicker({
   value,
   onChange,
