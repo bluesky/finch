@@ -5,6 +5,7 @@ import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
 import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
 import TiledWriterDetImageHeatmap from "../Tiled/TiledWriterDetImageHeatmap";
 import ExperimentHistory from "./ExperimentHistory";
+import { cn } from "@/lib/utils";
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
 import { PostItemAddResponse } from "@/api/qServer/types";
@@ -27,20 +28,13 @@ export default function ExperimentEnergyScan({
     tiledBaseUrl
 }: ExperimentEnergyScanProps) {
     // Energy scan form state
-    const [user, setUser] = useState<string>("");
-    const [startEnergy, setStartEnergy] = useState<number>(7000);
-    const [stopEnergy, setStopEnergy] = useState<number>(7500);
-    const [numPoints, setNumPoints] = useState<number>(10);
+    const [user, setUser] = useState<string>(localStorage.getItem("energy_scan_user") ?? "");
+    const [startEnergy, setStartEnergy] = useState<number | "">(7000);
+    const [stopEnergy, setStopEnergy] = useState<number | "">(7500);
+    const [numPoints, setNumPoints] = useState<number | "">(10);
     const [executedItemUid, setExecutedItemUid] = useState<string>("");
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
     const [blueskyRunId, setBlueskyRunId] = useState<string>("");
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem("energy_scan_user");
-        if (storedUser) {
-            setUser(storedUser);
-        }
-    }, []);
 
     useEffect(() => {
         localStorage.setItem("energy_scan_user", user);
@@ -70,6 +64,13 @@ export default function ExperimentEnergyScan({
     // Get the first run ID when available
     const pollRunId = runList && runList.length > 0 ? runList[0] : "";
     
+    const startEnergyNumber = typeof startEnergy === 'number' ? startEnergy : 0;
+    const stopEnergyNumber = typeof stopEnergy === 'number' ? stopEnergy : 0;
+    const numPointsNumber = typeof numPoints === 'number' ? numPoints : 0;
+    const stepSizeLabel = numPointsNumber > 1
+        ? ((stopEnergyNumber - startEnergyNumber) / (numPointsNumber - 1)).toFixed(1)
+        : '0';
+    
     // Update blueskyRunId when polling returns new run
     useEffect(() => {
         if (pollRunId) {
@@ -79,15 +80,18 @@ export default function ExperimentEnergyScan({
 
     // Energy scan form handlers
     const handleStartEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setStartEnergy(Number(e.target.value));
+        const value = e.target.value;
+        setStartEnergy(value === '' ? '' : Number(value));
     };
 
     const handleStopEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setStopEnergy(Number(e.target.value));
+        const value = e.target.value;
+        setStopEnergy(value === '' ? '' : Number(value));
     };
 
     const handleNumPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNumPoints(Number(e.target.value));
+        const value = e.target.value;
+        setNumPoints(value === '' ? '' : Number(value));
     };
 
     const handleSuccess = async (response: PostItemAddResponse) => {
@@ -108,7 +112,7 @@ export default function ExperimentEnergyScan({
     };
 
     return (
-        <div className={className}>
+        <div className={cn('text-slate-700', className)}>
             <h2 className="text-xl font-bold mb-4 text-white">Energy Scan</h2>
             
             <div className="bg-gray-50 p-4 rounded-lg space-y-4 h-fit">
@@ -205,9 +209,9 @@ export default function ExperimentEnergyScan({
                                         kwargs={{
                                             detectors: ["det", "diode"],
                                             motor: "mono_energy",
-                                            start: startEnergy,
-                                            stop: stopEnergy,
-                                            num: numPoints,
+                                            start: typeof startEnergy === 'number' ? startEnergy : 0,
+                                            stop: typeof stopEnergy === 'number' ? stopEnergy : 0,
+                                            num: typeof numPoints === 'number' ? numPoints : 0,
                                             md: {exact_plan_name: "energy_scan", user: user}
                                         }}
                                         onSuccess={handleSuccess}
@@ -217,7 +221,7 @@ export default function ExperimentEnergyScan({
                                 
                                 <div className="text-xs text-gray-600 mt-2 mx-auto w-fit">
                                     <p>Scan Range: {startEnergy} - {stopEnergy} eV</p>
-                                    <p>Step Size: {numPoints > 1 ? ((stopEnergy - startEnergy) / (numPoints - 1)).toFixed(1) : 0} eV</p>
+                                    <p>Step Size: {stepSizeLabel} eV</p>
                                 </div>
                             </>
                         ) : (
