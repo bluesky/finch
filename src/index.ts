@@ -13,6 +13,11 @@ export type { ButtonCopyToClipboardProps } from './components/ButtonCopyToClipbo
 export { default as InputSlider } from './components/InputSlider';
 export type { InputSliderProps } from './components/InputSlider';
 
+export { default as ColormapPicker } from './components/ColormapPicker';
+export type { ColormapPickerProps } from './components/ColormapPicker';
+export { COLORMAPS } from './components/colormaps';
+export type { ColormapDef } from './components/colormaps';
+
 // re-export the NPM Tiled component and its props type so its available natively in finch
 export { default as TiledLookup } from './components/Tiled/Tiled';
 export type { TiledProps } from './components/Tiled/Tiled';
