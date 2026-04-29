@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { cn } from "@/lib/utils";
 
 export type InputSliderProps = {
   /** Slider label */
@@ -21,14 +21,10 @@ export type InputSliderProps = {
   step?: number;
   /** Should the input bar be filled up with blue color up to the thumb? */
   showFill?: boolean
-  /**Tailwind ClassName */
-  width?: `w-${string}`
-  /** How big should the text and tick marks be? */
-  size?: 'small' | 'medium' | 'large'
   /** A function that is called with the newest value */
   onChange?: (value: number) => void;
   /** Tailwind ClassNames applied to parent container */
-  styles?: string;
+  className?: string;
 };
 
 export default function InputSlider({
@@ -41,31 +37,27 @@ export default function InputSlider({
   marks,
   step=1,
   showFill=false,
-  size='medium',
-  width='w-full',
   showSideInput=true,
-  onChange,
-  styles = "",
+  onChange = () => {},
+  className = "",
   ...props
 }: InputSliderProps) {
-    //todo: remove this
-    const [currentValue, setCurrentValue] = useState(value);
 
-    //todo: create thumb styles with a few different options, no way to control thumb style without direct CSS
-    const thumbStyleCSS = ``;
+    //todo: create thumb className with a few different options, no way to control thumb style without direct CSS
+    const _thumbStyleCSS = ``;
 
-    //todo: create slider styles with a few different options, no way to control all aspects of slider style without direct CSS
-    const sliderStyleCSS = ``;
+    //todo: create slider className with a few different options, no way to control all aspects of slider style without direct CSS
+    const _sliderStyleCSS = ``;
 
     //todo: implement
-    const tickMarkSizes = {
+    const _tickMarkSizes = {
         small: '',
         medium: '',
         large: ''
     };
 
     //todo: implement
-    const thumbInputSizes = {
+    const _thumbInputSizes = {
         small: '',
         medium: '',
         large: ''
@@ -77,8 +69,7 @@ export default function InputSlider({
     const handleInputChange = (newValue: number) => {
         if (newValue < min) newValue = min;
         if (newValue > max) newValue = max;
-        setCurrentValue(newValue);
-        if (onChange) onChange(newValue);
+        onChange(newValue);
     };
 
     const handleDrag = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,16 +78,16 @@ export default function InputSlider({
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        var newValue = Number(e.target.value);
+        const newValue = Number(e.target.value);
         handleInputChange(newValue);
     };
 
-    if (marks) {
-        for ( let i = 0; i < marks?.length; i++) {
-            let val = marks[i];
-            let cssStyle = `calc(${((val - min) / (max - min)) * 100}% + ${(-((val - min) / (max - min))*8) + thumbWidth/2}px)`
-        }
-    }
+    // if (marks) {
+    //     for ( let i = 0; i < marks?.length; i++) {
+    //         const val = marks[i];
+    //         const _cssStyle = `calc(${((val - min) / (max - min)) * 100}% + ${(-((val - min) / (max - min))*8) + thumbWidth/2}px)`
+    //     }
+    // }
 
     type TickMarkProps = {
         mark: number,
@@ -117,12 +108,12 @@ export default function InputSlider({
         return `calc(${((mark - min) / (max - min)) * 100}% + ${(-((mark - min) / (max - min))*thumbWidth) + thumbWidth/2}px)`;
     };
 
-    const isIndexFirstOrLast = (array:Number[], index: number): boolean => {
+    const isIndexFirstOrLast = (array:number[], index: number): boolean => {
         return (array.length - 1 === index || index === 0) ? true : false;
     };
 
     return (
-        <div className={`flex items-center pt-4 pb-4 pr-2 min-h-12 group ${width} ${styles}`} {...props}>
+        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group min-w-96 w-full`, className)} {...props}>
             {/** Optional Label on Left of Slider*/}
             {label && <label className="font-medium text-gray-700 w-fit pr-2">{label}</label>}
 

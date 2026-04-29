@@ -92,7 +92,7 @@ To use the `HubAppLayout` component, the entire app should be wrapped in a react
 ```js
 //main.tsx
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router'
 import './app/index.css'
 import App from './app/App'
 

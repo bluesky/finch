@@ -2,31 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import QItem from './QItem';
 import dayjs from 'dayjs';
 import './styles/qserver.css'; 
+import { PopupItem } from './types/types';
+import { HistoryItem } from '@/api/qServer/types';
 
 type QSListProps = {
-    queueData: any[];
-    handleQItemClick: (arg: any, showDeleteButton: boolean) => void;
+    queueData: PopupItem[] | HistoryItem[];
+    handleQItemClick: (arg: PopupItem | HistoryItem, showDeleteButton: boolean) => void;
     type: 'default' | 'history' | 'short';
 };
 export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='default' }: QSListProps) {
     const defaultVisibleHistoryItems = 20;
     const [visibleItems, setVisibleItems] = useState(defaultVisibleHistoryItems); // Start with 10 items
-    const [ listWidth, setListWidth ] = useState<number>(0);
     const listRef = useRef<HTMLDivElement | null>(null);
-
-    const loadMoreItems = () => {
-        setVisibleItems((prev) => prev + defaultVisibleHistoryItems);
-    };
-
-    const handleScroll = () => {
-        if (listRef.current) {
-            const { scrollTop, scrollHeight, clientHeight } = listRef.current;
-            console.log({scrollTop, scrollHeight, clientHeight})
-            if (scrollTop + clientHeight >= scrollHeight - 20) {
-                loadMoreItems();
-            }
-        }
-    };
 
     useEffect(() => {
         const scrollToTop = () => {
@@ -44,18 +31,31 @@ export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='de
     }, [queueData]);
 
     useEffect(() => {
+        const loadMoreItems = () => {
+            setVisibleItems((prev) => prev + defaultVisibleHistoryItems);
+        };
+        const handleScroll = () => {
+            if (listRef.current) {
+                const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+                console.log({scrollTop, scrollHeight, clientHeight})
+                if (scrollTop + clientHeight >= scrollHeight - 20) {
+                    loadMoreItems();
+                }
+            }
+        };
+        const ref = listRef.current;
         if (type === 'history') {
             if (listRef.current) {
                 listRef.current.addEventListener('scroll', handleScroll);
             }
         }
         return () => {
-            if (listRef.current) {
+            if (ref) {
                 console.log('removing scroll event listener')
-                listRef.current.removeEventListener('scroll', handleScroll);
+                ref.removeEventListener('scroll', handleScroll);
             }
         };
-    }, [])
+    }, [type]);
 
     if (type === 'default') {
         return (
@@ -73,8 +73,8 @@ export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='de
             <div ref={listRef} className="flex-grow overflow-auto scrollbar-always-visible mx-1 mb-1">
                 <section className="w-full flex flex-col ">
                     <ul  className="flex flex-wrap-reverse justify-center">
-                        {queueData.slice(queueData.length-visibleItems).map((item, index) => 
-                            <QItem type="history" item={item} label={dayjs(item.result.time_stop * 1000).format('MM/DD hh:mm a')} key={item.item_uid} handleClick={()=>handleQItemClick(item, showDeleteButton)}/>
+                        {queueData.slice(queueData.length-visibleItems).map((item) => 
+                            <QItem type="history" item={item} label={('result' in item) ? dayjs(item?.result && item.result.time_stop * 1000).format('MM/DD hh:mm a') : ''} key={item.item_uid} handleClick={()=>handleQItemClick(item, showDeleteButton)}/>
                         )}
                     </ul>
                 </section>
@@ -86,7 +86,7 @@ export default function QSList({ queueData=[], handleQItemClick=()=>{}, type='de
                 <ul className="flex flex-wrap-reverse justify-center items-end">
                     {queueData.map((item, index) => <QItem type="current" item={item} label={index.toString()} key={item.item_uid} handleClick={()=>handleQItemClick(item, true)}/>)}
                     {queueData.length < 0 ? [...new Array(0 - queueData.length)].map((item, index) => <QItem type="blank" item={item} key={index}/>) : '' }
-                    <QItem type="blank" item={false}/>
+                    <QItem type="blank" item={null}/>
                 </ul>
             </section>
         );

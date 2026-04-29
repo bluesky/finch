@@ -1,17 +1,18 @@
 {
   "name": "@blueskyproject/finch",
   "private": false,
-  "version": "0.1.3",
+  "version": "0.1.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "lint": "eslint .",
+    "lint": "eslint src .storybook",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
-    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build"
+    "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build",
+    "test": "vitest"
   },
   "files": [
     "dist"
@@ -29,18 +30,20 @@
   "main": "./dist/finch.umd.js",
   "module": "./dist/finch.es.js",
   "dependencies": {
-    "@blueskyproject/tiled": "^0.0.14",
+    "@blueskyproject/tiled": "^0.0.27",
     "@phosphor-icons/react": "^2.1.7",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-popover": "^1.1.14",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
     "@storybook/addons": "^7.6.17",
     "@storybook/theming": "^8.6.14",
+    "@tanstack/react-query": "^5.90.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.487.0",
-    "react-router-dom": "^6.30.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.178.0"
@@ -48,7 +51,7 @@
   "peerDependencies": {
     "react": ">16.8.x",
     "react-dom": ">16.8.x",
-    "react-router": "^6.30.0"
+    "react-router": "^7"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.3",
@@ -59,6 +62,9 @@
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/d3-shape": "^3.1.7",
     "@types/node": "^22.14.0",
     "@types/react": "^18.3.17",
@@ -74,6 +80,8 @@
     "eslint-plugin-storybook": "^0.11.2",
     "gh-pages": "^6.3.0",
     "globals": "^15.13.0",
+    "happy-dom": "^20.8.3",
+    "jsdom": "^28.1.0",
     "msw": "^2.8.4",
     "msw-storybook-addon": "^2.0.4",
     "postcss": "^8.4.49",
@@ -87,7 +95,8 @@
     "typescript-eslint": "^8.18.1",
     "vite": "^6.0.3",
     "vite-plugin-dts": "^4.5.0",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.18"
   },
   "repository": {
     "type": "git",

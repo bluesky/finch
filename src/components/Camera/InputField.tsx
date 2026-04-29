@@ -4,28 +4,26 @@ import InputFloat from "./InputFloat";
 import InputInteger from "./InputInteger";
 import InputString from "./InputString";
 
-import { DetectorInput, CameraSettingsState } from "./types/cameraTypes";
+import { DetectorInput } from "./types/cameraTypes";
 import { Devices } from "@/types/deviceControllerTypes";
 
 type InputFieldProps = {
+    /** Callback invoked with the full PV name and new value when the user submits a change. */
     onSubmit: (pv: string, value: string | number | boolean) => void;
+    /** Full EPICS PV name for this input (e.g. `'13SIM1:cam1:AcquireTime'`). */
     pv: string;
+    /** Descriptor for the input field: suffix, display label, type, and optional min/max/enums. */
     input: DetectorInput;
+    /** Map of full PV names to live device objects used to determine connection state and current value. */
     cameraSettingsPVs: Devices;
 };
 export default function InputField ({onSubmit=()=>{}, pv='', input={suffix: "Example", label: "Example", type: 'integer', min:0, max:5}, cameraSettingsPVs}: InputFieldProps) {
 
-    //check if the input is an enum..
-    let isEnum = false;
-    
     //create custom wrapper around submit function so we can correctly pass in the pv.
     //pv is determined in this component but not passed to children as a direct prop
     //This decouples the child component from needing the PV
-    
+
     const isPVConnected = pv in cameraSettingsPVs ? cameraSettingsPVs[pv].connected : false;
-    if (isPVConnected && 'enum_strs' in cameraSettingsPVs[pv] && cameraSettingsPVs[pv].enum_strs && typeof cameraSettingsPVs[pv].value === 'number') {
-        isEnum = true;
-    }
     
     const handleSubmitWithPV = (newValue: string | number | boolean) => {
         if (isPVConnected && 'enum_strs' in cameraSettingsPVs[pv] && cameraSettingsPVs[pv].enum_strs && typeof cameraSettingsPVs[pv].value === 'number') {

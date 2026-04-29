@@ -163,7 +163,7 @@ function RelatedDisp({
   return (
     <div
       ref={containerRef}
-      className={"w-1/2 flex w-full max-w-64"}
+      className={"flex w-full max-w-64"}
       style={style}
     >
       <div className={`flex flex-col w-full`} onClick={handleInputClick}>

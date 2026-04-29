@@ -1,16 +1,26 @@
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Plot, { PlotParams } from 'react-plotly.js';
+import { LayoutAxis } from 'plotly.js';
 import { cn } from '@/lib/utils';
 
 export type PlotlyScatterProps = {
+  /** Plotly trace array to render. Defaults to a sample line+marker dataset. */
   data: PlotParams['data'];
+  /** Plot title displayed above the chart. */
   title?: string;
+  /** Label for the x axis. Increases bottom margin when set. */
   xAxisTitle?: string;
+  /** Label for the y axis. Increases left margin when set. */
   yAxisTitle?: string;
+  /** Fixed [min, max] range for the x axis. When omitted Plotly auto-scales. */
   xAxisRange?: [number, number];
+  /** Fixed [min, max] range for the y axis. When omitted Plotly auto-scales. */
   yAxisRange?: [number, number];
-  xAxisLayout?: {[key: string]: any};
-  yAxisLayout?: {[key: string]: any};
+  /** Additional Plotly xaxis layout overrides merged on top of defaults. */
+  xAxisLayout?: Partial<LayoutAxis>;
+  /** Additional Plotly yaxis layout overrides merged on top of defaults. */
+  yAxisLayout?: Partial<LayoutAxis>;
+  /** Additional CSS classes applied to the root container div. */
   className?: string;
 };
 
@@ -26,10 +36,10 @@ const sampleData: PlotParams['data'] = [
 
 const titleFont = {
   size: 16,
-  color: '#7f7f7f'
+  color: '#082f49'
 }
 
-export default function PlotlyScatter({
+const PlotlyScatter = React.memo(function PlotlyScatter({
   data = sampleData,
   title,
   xAxisTitle,
@@ -39,6 +49,7 @@ export default function PlotlyScatter({
   xAxisLayout,
   yAxisLayout,
   className,
+  ...props
 }: PlotlyScatterProps) {
   const plotContainer = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -58,11 +69,13 @@ export default function PlotlyScatter({
   }, []);
 
   return (
-    <div className={cn('pb-4 max-h-full', className)} ref={plotContainer}>
+    <div className={cn('max-h-full h-96 rounded-lg overflow-hidden text-slate-700', className)} ref={plotContainer} {...props}>
       <Plot
         data={data}
         layout={{
           title: title,
+          plot_bgcolor: '#E2E8F0',
+          paper_bgcolor: '#E2E8F0',
           xaxis: { 
             title: {
               text: xAxisTitle,
@@ -93,4 +106,6 @@ export default function PlotlyScatter({
       />
     </div>
   );
-}
+});
+
+export default PlotlyScatter;

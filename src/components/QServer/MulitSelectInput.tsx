@@ -12,7 +12,6 @@ type MultiSelectInputProps = {
     allowedDevices: AllowedDevices;
     description: string | undefined;
     required: boolean;
-    styles?: string;
 };
 export default function MultiSelectInput(
     {
@@ -24,7 +23,6 @@ export default function MultiSelectInput(
         allowedDevices, 
         description='', 
         required=false, 
-        styles=''
     }: MultiSelectInputProps) {
     const [inputValue, setInputValue] = useState('');
     const [availableItems, setAvailableItems] = useState(Object.keys(allowedDevices));

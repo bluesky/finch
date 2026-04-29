@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 
 import CameraContainer from '@/components/Camera/CameraContainer';
 import DeviceControllerBox from '@/components/DeviceControllerBox';
-import useOphydSocket from '@/hooks/useOphydSocket';
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 import Paper from '@/components/Paper';
 import Bento from '@/components/Bento';
 import { deviceIcons } from '@/assets/icons';
 
 export default function BoltControl() {
     const deviceNameList = useMemo(()=>['IOC:m1', 'IOC:m2'], []);
-    const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } = useOphydSocket(deviceNameList);
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList);
 
     return (
         <Bento>
@@ -30,7 +30,7 @@ export default function BoltControl() {
                 />
             </div>
             <Paper title="Camera" size="grow">
-                <CameraContainer prefix="Basler5472" enableControlPanel={true} enableSettings={true} canvasSize="medium" customSetup={true}/>
+                <CameraContainer prefix="Basler5472" enableControlPanel={true} enableSettings={true} canvasSize="medium"/>
             </Paper>
         </Bento>
 

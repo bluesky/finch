@@ -1,22 +1,24 @@
 import { tailwindIcons, customIcons } from "../../assets/icons";
+import pausedRunningIcon from './images/pausedRunningIcon.png';
+import sleepingIcon from './images/sleepingManIcon.png';
 import './styles/qserver.css';
 import './RunningIcon.css';
 import React, { Fragment, Children } from "react";
-
+import { HistoryItem, QueueItem } from "@/api/qServer/types";
 type SidePanelProps = {
-    queueData: any[];
-    queueHistoryData: any[];
-    isREToggleOn: boolean;
+    queueData: QueueItem[];
+    queueHistoryData: HistoryItem[];
     handleSidepanelExpandClick: (isExpanded: boolean) => void;
     isSidepanelExpanded: boolean;
+    runEngineState?: string | null;
     children: React.ReactNode;
 };
 export default function SidePanel({
     queueData=[],
     queueHistoryData=[], 
-    isREToggleOn=false,
     handleSidepanelExpandClick=()=>{},
     isSidepanelExpanded=false,
+    runEngineState,
     children
 }: SidePanelProps) {
 
@@ -59,10 +61,16 @@ export default function SidePanel({
                     <span className="flex justify-center items-center relative w-full">
                         <span className="absolute left-2 flex">
                             <div className="aspect-square w-10 fill-slate-600">
-                                {isREToggleOn ? 
+                                {runEngineState === 'running' ? 
                                     <div className="running-icon"></div> 
                                     : 
-                                    customIcons.waitingRoom 
+                                    runEngineState === 'paused' ?
+                                        <img src={pausedRunningIcon} alt="Paused Icon" className="w-8 h-auto opacity-70 animate-pulse"/>
+                                        :
+                                        runEngineState === null ?
+                                        <img src={sleepingIcon} alt="Idle Icon" className="w-12 h-auto opacity-70"/>
+                                        :
+                                        customIcons.waitingRoom 
                                 }
                                 
                             </div>

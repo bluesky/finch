@@ -7,10 +7,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
-import useOphydSocket from '@/hooks/useOphydSocket';
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 import * as THREE from 'three';
 
-const WS_URL = 'ws://192.168.10.155:8002/ophydSocket';
+const WS_URL = 'ws://localhost:8002/ophydSocket';
 const PV_LIST = [
   'bl531_xps2:sample_x_mm.RBV',
   'bl531_xps2:sample_y_mm.RBV',
@@ -94,7 +94,7 @@ const SynopticView: React.FC<SynopticViewProps> = ({ nodes, edges, motionState }
         // place label above for top row, below otherwise
         const labelY = isTopRow ? -30 : 35;
         // const device = deviceMap.get(n.label);
-        const isSample = n.id === 'sample-mount';
+        const _isSample = n.id === 'sample-mount';
         const isMoving = motionState.isMoving && motionState.objectId === n.id;
         const currentStatusColor = isMoving ? statusColor['moving'] : statusColor[n.status];
 

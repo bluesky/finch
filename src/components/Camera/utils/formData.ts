@@ -1,4 +1,3 @@
-const selector = "selector";
 const type = {
     enum: "enum",
     float: "float",

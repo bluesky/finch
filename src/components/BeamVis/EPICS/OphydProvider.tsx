@@ -7,7 +7,7 @@ export const OphydProvider = ({ children }: { children: ReactNode}) => {
   const subscribedPVs = useRef<Set<string>>(new Set());
 
 
-  const sendMsg = (msg: Object) => {
+  const sendMsg = (msg: object) => {
     if (socket.current?.readyState === WebSocket.OPEN) {
       socket.current.send(JSON.stringify(msg));
       console.log('[EPICS][Ophyd] sent: ', msg);
@@ -27,9 +27,9 @@ export const OphydProvider = ({ children }: { children: ReactNode}) => {
     }
     socket.current.onmessage = ({data}) => {
       console.log('[EPICS][Ophyd] recv', data);
-      let msg: any;
+      let msg: { pv?: string; value?: number };
       try {
-        msg = JSON.parse(data);
+        msg = JSON.parse(data) as { pv?: string; value?: number };
       } catch {
         return;
       }

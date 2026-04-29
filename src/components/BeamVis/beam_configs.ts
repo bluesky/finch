@@ -14,8 +14,8 @@ export interface BeamlineDefinition {
   /** Layout information for the control panel */
   controlLayout: {
     common?: { camera?: boolean; beam?: boolean; shutter?: boolean };
-    stages?: any[];
-    sample?: any;
+    stages?: Array<{ id: string; type: string }>;
+    sample?: unknown;
     // Additional layout properties can be added here.
   };
   /** The display name for the beamline */

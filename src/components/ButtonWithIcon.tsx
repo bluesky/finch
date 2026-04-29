@@ -1,44 +1,49 @@
+import {cn } from '@/lib/utils';
+
 export type ButtonWithIconProps = {
-    /** callback function on click */
-    cb?: () => void;
-    /** text inside button */ 
+    /** Callback function triggered when button is clicked */
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    /** Text content displayed inside the button alongside the icon */ 
     text?: string;
-    /** Tailwind ClassName */
-    bgColor?: `bg-${string}`; 
-    /** Tailwind ClassName */
-    hoverBgColor?: `hover:bg-${string}`;
-    /** Tailwind ClassName */
-    textColor?: `text-${string}`;
-    /** Extra Tailwind ClassNames applied to button component */ 
+    /** Additional CSS classes applied to the button component */ 
     styles?: string; 
-    /** Boolean that prevents the user from clicking or causing hover effects when true */
+    /** Disables the button and prevents user interaction when true */
     disabled?: boolean;
-    /** any valid JSX element, best used with SVG to allow text color property to apply  */
+    /** JSX element displayed as an icon - works best with SVG elements for proper styling  */
     icon: JSX.Element; 
-    /** Is the icon on the left or right of the text? */
+    /** Controls whether the icon appears on the left or right side of the text */
     iconPosition?: 'left' | 'right';
-    /** How large is the button */
-    size?: 'small' | 'medium' | 'large'
-    /** Should the button style default to hollow color with black text? */
-    isSecondary?: boolean 
+    /** Controls the overall size of the button - affects text size, icon size, and padding */
+    size?: 'small' | 'medium' | 'large';
+    /** Changes button style to transparent background with border and black text when true */
+    isSecondary?: boolean; 
+    /** Additional CSS classes applied to the button container */
+    className?: string;
+    /** Additional CSS classes applied to the button text element */
+    classNameText?: string;
+    /** Additional CSS classes applied to the icon element */
+    classNameIcon?: string;
+    /** Legacy callback function, use onClick instead */
+    cb?: () => void;
 }
 export default function ButtonWithIcon({
     cb = () => {},
+    onClick = () => {},
     text = '',
-    bgColor = 'bg-sky-500',
-    hoverBgColor = 'hover:bg-sky-600',
-    textColor = 'text-white',
-    styles = '',
     disabled = false,
     icon,
     iconPosition = 'left',
     size='medium',
     isSecondary,
+    className,
+    classNameText,
+    classNameIcon,
     ...props
 }: ButtonWithIconProps) {
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        cb();
+        if (cb) cb();
+        if (onClick) onClick(e);
     };
 
     const textSizes = {
@@ -63,30 +68,25 @@ export default function ButtonWithIcon({
         small: 'space-x-1',
         medium: 'space-x-2',
         large: 'space-x-4'
-    }
+    };
 
-    const secondaryBgColor = 'bg-transparent';
-    const secondaryHoverBgColor = 'hover:bg-slate-100';
-    const secondaryTextColor = 'text-black';
-
-    const Icon = <div className={`${iconSizes[size]} ${isSecondary ? secondaryTextColor : textColor} aspect-square `}>{icon}</div>;
+    const Icon = <div className={cn(`${iconSizes[size]} ${isSecondary ? 'text-black' : 'text-white'} aspect-square `, classNameIcon)}>{icon}</div>;
 
 
     return (
         <button 
             disabled={disabled} 
-            className={`
-                ${isSecondary ? `${secondaryBgColor} ${secondaryTextColor} border` : `${bgColor} ${textColor}`}
-                ${disabled ? '' : (isSecondary ? secondaryHoverBgColor : hoverBgColor)} 
+            className={cn(`
+                ${isSecondary ? `bg-white/50 hover:bg-slate-200 text-black border` : `bg-sky-500 hover:bg-sky-600 text-white`}
+                ${disabled && 'hover:cursor-not-allowed'} 
                 ${textSizes[size]} 
                 ${paddingSizes[size]} 
-                rounded-lg hover:cursor-pointer font-medium w-fit
-                ${styles}`} 
-            onClick={e => handleClick(e)}
+                rounded-lg font-medium w-fit`, className)} 
+            onClick={handleClick}
             {...props}>
-            <div className={`${spacingSizes[size]} flex justify-center`}>
+            <div className={`${spacingSizes[size]} flex justify-center items-center`}>
                 {iconPosition === 'left' ? Icon : ''}
-                <p>{text}</p>
+                <p className={classNameText}>{text}</p>
                 {iconPosition === 'right' ? Icon : ''}
             </div>
         </button>

@@ -1,10 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
 
-import SignalMonitorPlot from "@/components/SignalMonitorPlot";
+import SignalMonitorPlotPV from "@/components/SignalMonitorPlotPV";
 import DeviceControllerBox from "@/components/DeviceControllerBox";
-import useOphydSocket from "@/hooks/useOphydSocket";
+import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
 import Button from "@/components/Button";
-import BeamEnergy from "@/components/BeamEnergy";
 
 import { deviceIcons } from "@/assets/icons";
 
@@ -36,7 +35,7 @@ export default function Beamstop(
     const beamstopXNameRBV = useMemo(()=>beamstopXName + '.RBV', [beamstopXName]);
     const beamstopYNameRBV = useMemo(()=> beamstopYName + '.RBV', [beamstopYName]);
     const deviceNameList = useMemo(()=>[beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName], [beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName]);
-    const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } = useOphydSocket(deviceNameList);
+    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydPVSocket(deviceNameList);
     const [ bestCurrent, setBestCurrent ] = useState<number | null>(null);
     const [bestXValue, setBestXValue] = useState<number | null>(null);
     const [bestYValue, setBestYValue] = useState<number | null>(null);
@@ -66,12 +65,12 @@ export default function Beamstop(
                 }
             }
         }
-    }, [devices]);
+    }, [devices, beamstopCurrentName, beamstopXName, beamstopYName, bestCurrent]);
     return (
-        <section className={`w-full h-full ${stackVertical ? 'flex-col' : 'max-w-[1200px]'} flex max-h-[800px] relative`}>
-            <article className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full'}  bg-white flex flex-col p-8`}>
+        <section className={`w-full h-full ${stackVertical ? 'flex-col' : 'max-w-[1200px] flex-wrap items-center justify-center'} flex`}>
+            <article className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full justify-start'}   flex flex-col p-8 min-w-96`}>
                 <h3 className="text-4xl text-center">Beamstop Current: {devices[beamstopCurrentName] && devices[beamstopCurrentName].value} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units?.slice(0,3)}</h3>
-                <SignalMonitorPlot pv={beamstopCurrentName} className={stackVertical ? 'h-full' : 'h-1/2'} numVisiblePoints={200} tickTextIntervalSeconds={30}/>
+                <SignalMonitorPlotPV pv={beamstopCurrentName} className={`${stackVertical ? 'h-full' : 'h-1/2'} min-w-96`} numVisiblePoints={200} tickTextIntervalSeconds={30}/>
                 { enableBestOption && 
                     <>
                         <p>Best Beamstop Current Value: {bestCurrent ? bestCurrent.toPrecision(5) : 'N/A'} {devices[beamstopCurrentName] && devices[beamstopCurrentName].units}</p>
@@ -83,7 +82,7 @@ export default function Beamstop(
                     </>
                 }
             </article>
-            <article className={`${stackVertical ? 'w-full pt-4 max-h-1/2 flex flex-row justify-center gap-8' : 'w-1/2 h-full flex flex-col items-center justify-between'} `}>
+            <article className={`${stackVertical ? 'w-full pt-4 max-h-1/2 flex flex-row justify-center gap-8' : 'w-1/2 h-full flex flex-col items-center justify-between gap-6'} `}>
                 <DeviceControllerBox title={beamstopXTitle} svgIcon={beamstopXIcon} device={devices[beamstopXName]} deviceRBV={devices[beamstopXNameRBV]} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest}/>
                 <DeviceControllerBox title={beamstopYTitle} svgIcon={beamstopYIcon} device={devices[beamstopYName]} deviceRBV={devices[beamstopYNameRBV]} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest}/>
             </article>

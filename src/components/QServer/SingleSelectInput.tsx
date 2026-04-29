@@ -1,18 +1,18 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { tailwindIcons } from '../../assets/icons';
 import { Tooltip } from 'react-tooltip';
-import { ParameterInput, AllowedDevices } from './types/types';
+import { AllowedDevices } from './types/types';
+import { cn } from '@/lib/utils';
 
 type SingleSelectInputProps = {
     label: string;
     isItemInArray: (item: string) => boolean;
     addItem: (item: string) => void;
-    clearItem: () => void;
     allowedDevices: AllowedDevices;
     description?: string;
     required: boolean;
-    styles?: string;
+    className?: string;
     value: string;
 };
 export default function SingleSelectInput(
@@ -20,11 +20,10 @@ export default function SingleSelectInput(
         label='', 
         isItemInArray, 
         addItem=()=>{}, 
-        clearItem=()=>{}, 
         allowedDevices, 
         description='', 
         required=false, 
-        styles='', 
+        className='', 
         value
     }: SingleSelectInputProps) {
     const [inputValue, setInputValue] = useState('');
@@ -48,18 +47,6 @@ export default function SingleSelectInput(
         }
     };
 
-
-
-    //only used for optional, not yet implemented
-    const handleDeleteClick = (e:MouseEvent) => {
-        console.log({e})
-        e.preventDefault();
-        clearItem();
-        setAvailableItems(Object.keys(allowedDevices));
-    };
-
-
-
     const handleClickOutside = (event:MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
             setDropdownVisible(false);
@@ -75,7 +62,7 @@ export default function SingleSelectInput(
     }, []);
 
     return (
-        <div ref={containerRef} className="relative w-5/12 max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit">
+        <div ref={containerRef} className={cn("relative w-5/12 max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit", className)}>
             <p id={label+'ParamInputTooltip'} className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300">{`${label} ${required ? '(required)' : '(optional)'}`}</p>
             <Tooltip anchorSelect={'#' + label + 'ParamInputTooltip'} children={<p className="whitespace-pre-wrap">{description}</p>} place="top" variant="info" style={{'maxWidth' : "500px", 'height': 'fit-content'}} delayShow={400}/> 
             <div className={` flex rounded p-2 hover:cursor-pointer`} onClick={handleInputClick}>

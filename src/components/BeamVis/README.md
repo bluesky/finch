@@ -52,7 +52,7 @@ const pvList = useMemo(() => [
 ], []);
 
 const { devices, handleSetValueRequest } =
-    useOphydSocket('ws://192.168.10.155:8002/ophydSocket', pvList);
+    useOphydSocket('ws://localhost:8002/ophydSocket', pvList);
 ```
 
 * **Change the Endpoint:** Edit the URL string in the `useOphydSocket` hook call.

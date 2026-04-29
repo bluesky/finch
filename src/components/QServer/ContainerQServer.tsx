@@ -11,12 +11,12 @@ import QSRunEngineWorker from "./QSRunEngineWorker";
 
 import { tailwindIcons } from "src/assets/icons";
 
-import { getStatus, getQueueItem, openWorkerEnvironment } from "./utils/apiClient";
+import { useOpenEnvironmentMutation } from '@/api/qServer/hooks';
 
 import { useQueueServer } from "./hooks/useQueueServer";
 
-import { CopiedPlan, ParameterInput, PopupItem } from "./types/types";
-import { GetStatusResponse } from "./types/apiTypes";
+import { CopiedPlan, PopupItem } from "./types/types";
+import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer/types';
 
 import { cn } from '@/lib/utils';
 
@@ -43,15 +43,23 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
         updateGlobalMetadata,
         removeDuplicateMetadata,
         isGlobalMetadataChecked,
-        handleGlobalMetadataCheckboxChange
+        handleGlobalMetadataCheckboxChange,
+        apiStatus
     } = useQueueServer();
 
-    //create a handleCurrentQitemClick and handleHisotryQItemClick
+    const openEnvironmentMutation = useOpenEnvironmentMutation();
+
     const handleCurrentQItemClick = (item:PopupItem) => {
         setPopupItem(item);
         setIsItemDeleteButtonVisible(true);
         setIsQItemPopupVisible(true);
     };
+
+    const handleRunEngineItemClick = (runningItem: RunningQueueItem) => {
+        setPopupItem(runningItem );
+        setIsItemDeleteButtonVisible(false);
+        setIsQItemPopupVisible(true);
+    }
 
     const handleHistoryQItemClick = (item:PopupItem) => {
         setPopupItem(item);
@@ -83,31 +91,27 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
  * @param {object} kwargs - Object of format {key1: value1, key2: value2, ...}
  * // The values may be string, array, or objects
  */
-    const handleCopyItemClick = (name:string='', kwargs:{[key:string]:any}) => {
+    const handleCopyItemClick = (name:string='', kwargs:ArbitraryKwargs) => {
         //Copy over the selected item (including kwargs) to QSAddItem
         //Note that 'kwargs' effectively become 'parameters' for the plan object.
         //The backend API calls must use 'kwargs' keyword in JSON requests, the frontend names these as 'parameters' to be more user-friendly.
-        var plan = {
+        const plan = {
             name: name,
             parameters: kwargs //'kwargs' become 'parameters'
         };
-        var sanitizedPlan = removeDuplicateMetadata(plan);
+        const sanitizedPlan = removeDuplicateMetadata(plan);
         setCopiedPlan(sanitizedPlan);
     };
 
     useEffect(() => {
-        //check if the re worker has opened or not with GET
-        const checkWorkerEnvironment = (res:GetStatusResponse) => {
-            if (res.worker_environment_exists === false || res.worker_environment_state === 'closed') {
-                console.log('RE worker environment closed, attempting to open a new worker environment');
-                openWorkerEnvironment();
-            }
+        if (apiStatus && (apiStatus.worker_environment_exists === false || apiStatus.worker_environment_state === 'closed')) {
+            console.log('RE worker environment closed, attempting to open a new worker environment');
+            openEnvironmentMutation.mutate();
         }
-        getStatus(checkWorkerEnvironment);
-    }, [])
+    }, [apiStatus, openEnvironmentMutation]);
 
     return (
-        <main className={cn("max-w-screen-3xl w-full min-w-[52rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
+        <main className={cn("max-w-screen-3xl w-full min-w-[72rem] h-full min-h-[50rem] m-auto flex rounded-md relative bg-slate-400 border border-slate-400", className)}>
             {/* ITEM POPUP  */}
             {(isQItemPopupVisible && popupItem!==null) && (
                 <QItemPopup 
@@ -115,33 +119,25 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
                     popupItem={popupItem} 
                     isItemDeleteButtonVisible={isItemDeleteButtonVisible} 
                     handleCopyItemClick={handleCopyItemClick} 
+                    isItemRunning={popupItem.item_uid === runningItem?.item_uid}
                 />
             )} 
-            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full`}>
+            <div className={`${isSidepanelExpanded ? 'w-4/5' : 'w-1/5 '}  flex-shrink-0 transition-all duration-300 ease-in-out bg-slate-200 rounded-md shadow-md drop-shadow h-full min-w-56`}>
                 <SidePanel 
                     queueData={currentQueue?.items || []}
                     queueHistoryData={queueHistory?.items || []} 
-                    isREToggleOn={isREToggleOn} 
                     handleSidepanelExpandClick={handleSidepanelExpandClick}
                     isSidepanelExpanded={isSidepanelExpanded}
+                    runEngineState={apiStatus ? apiStatus.re_state : null}
                 >
-                    <QSList type="short" queueData={currentQueue?.items || []} handleQItemClick={handleCurrentQItemClick}/>
-                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn}/>
+                    <QSList type="short" queueData={currentQueue?.items as PopupItem[] || []} handleQItemClick={handleCurrentQItemClick}/>
+                    <QSRunEngineWorker runningItem={runningItem} isREToggleOn={isREToggleOn} setIsREToggleOn={setIsREToggleOn} handleItemClick={handleRunEngineItemClick}/>
                     <QSList type="history" queueData={queueHistory?.items || []} handleQItemClick={handleHistoryQItemClick}/>
                 </SidePanel>
             </div>
 
             <div className="flex-grow  rounded-md">
                 <MainPanel minimizeAllWidgets={minimizeAllWidgets} expandPanel={handleSidepanelExpandClick}>
-                    <SettingsContainer 
-                        title="Settings" 
-                        icon={tailwindIcons.cog} 
-                        expandedHeight="h-1/2" 
-                        defaultHeight="h-1/4" 
-                        maxHeight="max-h-[30rem]" 
-                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
-                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
-                        updateGlobalMetadata={updateGlobalMetadata}/>
                     <QSAddItem 
                         title="Add Item" 
                         icon={tailwindIcons.plus} 
@@ -154,9 +150,18 @@ export default function ContainerQServer({className}:ContainerQServerProps) {
                     <QSConsole 
                         title="Console Output" 
                         icon={tailwindIcons.commandLine} 
-                        expandedHeight="h-3/4" 
-                        defaultHeight="h-[22%]" 
+                        expandedHeight="h-full" 
+                        defaultHeight="h-1/2" 
                         processConsoleMessage={processConsoleMessage}/> 
+                    <SettingsContainer 
+                        title="Settings" 
+                        icon={tailwindIcons.cog} 
+                        expandedHeight="h-1/2" 
+                        defaultHeight="h-1/5" 
+                        maxHeight="max-h-[30rem]" 
+                        isGlobalMetadataChecked={isGlobalMetadataChecked} 
+                        handleGlobalMetadataCheckboxChange={handleGlobalMetadataCheckboxChange} 
+                        updateGlobalMetadata={updateGlobalMetadata}/>
                 </MainPanel>
             </div>
         </main>

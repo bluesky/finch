@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tooltip } from "react-tooltip";
-import { CopiedPlan } from "./types/types";
+import { CopiedPlan, GlobalMetadata, ParameterInput } from "./types/types";
 
 type InputField = {
     key: string;
@@ -21,12 +21,12 @@ type DictionaryInputProps = {
     resetInputsTrigger: boolean;
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked: boolean;
-    globalMetadata: {[key: string]: any};
+    globalMetadata: GlobalMetadata;
 };
 
 //hardcode the number of possible key value input pairs
 //this does not allow the user to add more, but better controls the UI
-var inputDictDefault = {
+const inputDictDefault = {
     input1: {
         key: '',
         val: '',
@@ -48,12 +48,12 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
     const [inputDict, setInputDict] = useState<InputDict>(inputDictDefault);
 
 
-    const copyDictionary = (dict: {[key:string]: any}) => {
-        if (JSON.stringify(dict) !== '{}') {
-            var inputKeys = Object.keys(inputDictDefault);
-            var i = 0;
-            var newDict = JSON.parse(JSON.stringify(inputDictDefault));
-            for (var key in dict) {
+    const copyDictionary = (dict: ParameterInput | null) => {
+        if (dict) {
+            const inputKeys = Object.keys(inputDictDefault);
+            let i = 0;
+            const newDict = JSON.parse(JSON.stringify(inputDictDefault));
+            for (const key in dict) {
                 newDict[inputKeys[i]].key = key;
                 newDict[inputKeys[i]].val = dict[key];
                 i++;
@@ -69,7 +69,7 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
     const createJSON = (nestedObject: InputDict): Record<string, string> => {
         //transform the nested inputDict used for the form
         //into a JSON object before sending into callback
-        var JSONObject:Record<string, string> = {};
+        const JSONObject:Record<string, string> = {};
         for (const key in nestedObject) {
             if (nestedObject[key].key !== '') {
                 JSONObject[nestedObject[key].key] = nestedObject[key].val;
@@ -78,23 +78,23 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
         return JSONObject;
     };
 
-    const handleChange = (inputNum:string, type:string, newValue:any, state:InputDict) => {
+    const handleChange = (inputNum:string, type:string, newValue:string, state:InputDict) => {
         //if key is empty but value is not, invalid object
         //console.log('handleChange')
 
         //var stateCopy = '';
-        var dictionary = {};
-        var deleteParam = false;
+        let dictionary = {};
+        let deleteParam = false;
 
         //remove the nested cb inside the setState function
-        var stateCopy = JSON.parse(JSON.stringify(state));
+        const stateCopy = JSON.parse(JSON.stringify(state));
             
         stateCopy[inputNum][type] = newValue;
         if (stateCopy[inputNum].key === '' && stateCopy[inputNum].val !== '') {
             //warn that we need a key entered for the value.
             stateCopy[inputNum].msg = 'Provide a key';
             //wipe the value in the parameter state with callback to prevent submission of invalid JSON
-            var wipedDictionary = JSON.parse(JSON.stringify(stateCopy));
+            const wipedDictionary = JSON.parse(JSON.stringify(stateCopy));
             wipedDictionary[inputNum].val = '';
             wipedDictionary[inputNum].key = '';
             dictionary = createJSON(wipedDictionary);
@@ -115,17 +115,17 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
     useEffect(() => {
         if (copiedPlan) {
             if ('md' in copiedPlan.parameters) {
-                copyDictionary(copiedPlan.parameters.md);
+                copyDictionary(copiedPlan.parameters.md as ParameterInput);
             } else {
-                copyDictionary({});
+                copyDictionary(null);
             }
         }
     }, [copiedPlan]);
 
     useEffect(() => {
-        var inputDictionary:Record<string, string> = {};
+        const inputDictionary:Record<string, string> = {};
         //loop through inputs and add anything that's valid JSON
-        for (var key in inputDict) {
+        for (const key in inputDict) {
             if (inputDict[key].key !== '') {
                 inputDictionary[inputDict[key].key] = inputDict[key].val;
             }
@@ -137,7 +137,7 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
         } else {
             cb(inputDictionary);
         }
-    }, [isGlobalMetadataChecked, globalMetadata])
+    }, [isGlobalMetadataChecked, globalMetadata, cb, inputDict])
 
 
     return (
@@ -153,13 +153,12 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
                     </li>
 
                     {isGlobalMetadataChecked ? 
-                        Object.keys(globalMetadata).map(key => {
-                            const item = globalMetadata[key];
+                        Object.entries(globalMetadata).map(([key, value]) => {
                             return (
                                 <li key={key} className="flex text-center w-full relative hover:cursor-not-allowed">
                                     <p className="border-slate-400 w-5/12 border mx-2 my-1 text-center bg-slate-100 text-slate-600">{key}</p>
                                     <p className="w-1/12">:</p>
-                                    <p className="w-5/12 border border-slate-400 mx-2 my-1 text-center hover:cursor-not-allowed bg-slate-100 text-slate-600">{globalMetadata[key]}</p>
+                                    <p className="w-5/12 border border-slate-400 mx-2 my-1 text-center hover:cursor-not-allowed bg-slate-100 text-slate-600">{String(value)}</p>
                                 </li>
                             )
                         }) 
@@ -167,8 +166,7 @@ export default function DictionaryInput({ cb, label='', required=true, descripti
                         ''
                     }
 
-                    {Object.keys(inputDict).map(key => {
-                        const item = inputDict[key];
+                    {Object.entries(inputDict).map(([key, item]) => {
                         return (
                             <li key={key} className="flex text-center w-full relative">
                                 {item.msg.length > 0 ? <p className="text-red-500 text-xs text-left absolute left-5 top-2">{item.msg}</p> : ''}

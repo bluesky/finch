@@ -176,7 +176,7 @@ export default function ReactEDMContent({
       <TabsGroup value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           {tabs.map((tab) => (
-            <div key={tab.id} className="flex items-center">
+            <div key={tab.id} className="flex items-center text-slate-700">
               <Tab
                 value={tab.id}
                 removeTab={removeTab}

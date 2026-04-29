@@ -1,13 +1,13 @@
 import { useState, Fragment } from 'react';
 import { tailwindIcons } from "../../assets/icons";
-//import Button from '../library/Button';
 import Button from '../Button';
+import { PostItemAddResponse, QueueItem } from '@/api/qServer/types';
 
 type SubmissionResultPopupProps = {
     cb: (success:boolean) => void;
-    response: any;
+    response: PostItemAddResponse;
 };
-export default function SubmissionResultPopup( { cb=()=>{}, response={} }: SubmissionResultPopupProps) {
+export default function SubmissionResultPopup( { cb=()=>{}, response }: SubmissionResultPopupProps) {
     const [isTextCopied, setIsTextCopied] = useState(false);
 
     const closePopup = (success=true) => {
@@ -16,8 +16,9 @@ export default function SubmissionResultPopup( { cb=()=>{}, response={} }: Submi
     };
 
     const handleCopyClick = () => {
-        if (response.item && response.item.item_uid) {
-            navigator.clipboard.writeText(response.item.item_uid)
+        const itemUid = (response.item as QueueItem)?.item_uid;
+        if (itemUid) {
+            navigator.clipboard.writeText(itemUid)
                 .then(() => {
                     setIsTextCopied(true);
                 })
@@ -34,7 +35,7 @@ export default function SubmissionResultPopup( { cb=()=>{}, response={} }: Submi
             <p className="text-lg font-semibold text-sky-900">Success</p>
             <p>{response.item.item_type} type: {response.item.name}</p>
             <div className="flex items-center">
-                <p>Item UID: {response.item.item_uid}</p>
+                <p>Item UID: {(response.item as QueueItem)?.item_uid}</p>
                 <div className={`${isTextCopied ? "text-green-500 hover:text-green-400" : "hover:text-black"} hover:cursor-pointer w-10 aspect-square pl-1`} onClick={handleCopyClick}>
                     {isTextCopied ? tailwindIcons.clipBoardDocumentCheck : tailwindIcons.clipBoardDocument}
                 </div>

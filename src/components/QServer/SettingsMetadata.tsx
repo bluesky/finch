@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Checkbox from "./Checkbox";
+import { GlobalMetadata } from "./types/types";
 
 
 type InputDict = {
@@ -26,14 +27,14 @@ const inputDictDefault: InputDict = {
 type SettingsMetadataProps = {  
     isGlobalMetadataChecked: boolean;
     handleGlobalMetadataCheckboxChange: (isChecked:boolean) => void;
-    updateGlobalMetadata: (newGlobalMetadata: any) => void;
+    updateGlobalMetadata: (newGlobalMetadata: GlobalMetadata) => void;
 };
 export default function SettingsMetadata({isGlobalMetadataChecked=false, handleGlobalMetadataCheckboxChange=()=>{}, updateGlobalMetadata=()=>{}}: SettingsMetadataProps) {
 
     const [inputDict, setInputDict] = useState<InputDict>(inputDictDefault);
 
-    const handleChange = (inputNum: string, type: string, newValue: any) => {
-        let stateCopy = JSON.parse(JSON.stringify(inputDict));
+    const handleChange = (inputNum: string, type: string, newValue: string) => {
+        const stateCopy = JSON.parse(JSON.stringify(inputDict));
         let dictionary = {};
         stateCopy[inputNum][type] = newValue;
 

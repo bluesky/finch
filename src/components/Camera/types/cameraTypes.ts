@@ -1,6 +1,3 @@
-import { ValueUpdateResponse, MetaUpdateResponse } from "@/types/ophydSocketTypes";
-
-
 export interface DetectorSetting {
     title: string;
     icon: null | JSX.Element;
@@ -29,14 +26,7 @@ export interface NumberProperties {
     max: number;
 }
 
-export interface IntegerProperties extends NumberProperties {
-}
-
-export interface FloatProperties extends NumberProperties {
-}
-
-
-export type DetectorProperties = EnumProperties | NumberProperties | IntegerProperties | FloatProperties;
+export type DetectorProperties = EnumProperties | NumberProperties;
 
 export interface CameraSettingsState {
     [key: string]: {

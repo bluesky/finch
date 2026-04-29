@@ -1,42 +1,71 @@
 import './App.css';
-import About from './pages/About';
-import ContainerQServer from '@/components/QServer/ContainerQServer';
-import HubAppLayout from '@/components/HubAppLayout';
-import BL531Control from './pages/BL531Control';
-import TiledHeatmapSelector from '@/features/TiledHeatmapSelector';
-import CameraPage from './pages/Camera';
-import Beamstop from '@/features/Beamstop';
-import { deviceIcons } from "@/assets/icons";
 import '@blueskyproject/tiled/style.css';
 
+import { FinchConfigProvider } from './FinchConfigProvider';
+import AboutFinchPage from './pages/AboutFinchPage';
+import AllComponentsPage from './pages/AllComponentsPage';
+import TestPage from './pages/TestPage';
+import Documentation from './pages/Documentation';
+
+import HubAppLayout from '@/components/HubAppLayout';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-import { House, Joystick, StackPlus, ImageSquare, Camera  } from "@phosphor-icons/react";
+import { House, Table, TestTube, Question } from "@phosphor-icons/react";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { finchIcons } from '@/assets/icons';
+
+const queryClient = new QueryClient();
 
 function App() {
   const routes:RouteItem[] = [
-    {element:<About/>, path: "/", label: "About", icon: <House size={32} />},
     {
-      element:
-        <Beamstop stackVertical={false} enableBestOption={true} beamstopXTitle="Beamstop - X" beamstopYTitle="Beamstop - Y" beamstopCurrentName="bl201-beamstop:current" beamstopXName="bl531_xps2:beamstop_x_mm" beamstopYName="bl531_xps2:beamstop_y_mm" /> ,
-      path: "/beamstop", 
-      label: "Beamstop", 
-      icon: deviceIcons.beamstopX
+      element:<AboutFinchPage/>, 
+      path: "/", 
+      label: "About", 
+      icon: <House size={32}/>, 
+      isBackgroundTransparent: true
     },
-    {element:<BL531Control/>, path: "/control", label: "Sample", icon: <Joystick size={32} />},
-    {element:<ContainerQServer className="m-8 h-[calc(100%-4rem)] w-[calc(100%-4rem)] bg-white/50"/>, path: "/qserver", label: "Q Server", icon: <StackPlus size={32} />},
     {
-      element:
-        <TiledHeatmapSelector />,
-      path: "/data", 
-      label: "Data", 
-      icon: <ImageSquare size={32} />
+      element: <AllComponentsPage />, 
+      path: '/components', 
+      label: "Review", 
+      icon: <Table size={32} />, 
+      classNameContainer: 'bg-slate-50'
     },
-    {element: <CameraPage/>, path: '/camera', label: "Camera", icon: <Camera size={32} />}
+    {
+      element: <TestPage />, 
+      path: '/test', 
+      label: "Test", 
+      icon: <TestTube size={32} />, 
+      isBackgroundTransparent: true
+    },
+    {
+      element: <Documentation />,
+      path: '/documentation',
+      label: "Help",
+      icon: <Question size={32} />,
+    }
   ]
   return (
-    <HubAppLayout routes={routes}/>
+    <FinchConfigProvider
+      config={{
+        tiledApiUrl: import.meta.env.VITE_TILED_API_URL,
+        tiledApiKey: import.meta.env.VITE_TILED_API_KEY,
+        ophydApiUrl: import.meta.env.VITE_OPHYD_API_URL,
+        qServerApiUrl: import.meta.env.VITE_QSERVER_API_URL,
+        qServerApiKey: import.meta.env.VITE_QSERVER_API_KEY,
+        finchApiUrl: import.meta.env.VITE_FINCH_API_URL,
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <HubAppLayout 
+          routes={routes} 
+          headerTitle='Finch Dev Mode' 
+          headerLogoIcon={<div className="h-12 aspect-square text-sky-950">{finchIcons.finchPortraitFrameless}</div>} 
+        />
+      </QueryClientProvider>
+    </FinchConfigProvider>
   )
 
 }

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
 import HubAppLayout from '@/components/HubAppLayout';
 import Paper from '@/components/Paper';
 import { House, Joystick, StackPlus, ImageSquare  } from "@phosphor-icons/react";
@@ -170,12 +169,12 @@ export const CustomClasses: Story = {
         routes: routes,
         headerTitle: 'Styled Sidebar and Main Content',
         headerLogoUrl: 'https://img.icons8.com/?size=100&id=59484&format=png&color=000000',
-        sidebarClassName: 'bg-red-100',
-        sidebarActiveLinkClassName: 'bg-red-500',
-        sidebarInactiveLinkClassName: 'text-red-500 hover:bg-purple-300 hover:text-slate-900',
-        mainContentClassName: 'bg-red-300',
-        headerClassName: 'bg-red-200',
-        headerTitleClassName: 'text-red-900',
+        classNameSidebar: 'bg-red-100',
+        classNameSidebarActiveLink: 'bg-red-500',
+        classNameSidebarInactiveLink: 'text-red-500 hover:bg-purple-300 hover:text-slate-900',
+        classNameMainContent: 'bg-red-300',
+        classNameHeader: 'bg-red-200',
+        classNameHeaderTitle: 'text-red-900',
         className: 'w-full h-full'
     }
 }

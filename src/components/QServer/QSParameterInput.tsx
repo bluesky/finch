@@ -1,12 +1,11 @@
+import { useCallback } from 'react';
 import TextInput from "./TextInput";
 import MultiSelectInput from "./MulitSelectInput";
 import SingleSelectInput from "./SingleSelectInput";
 import DictionaryInput from "./DictionaryInput";
-import { Device } from "./types/apiTypes";
-import { ParameterInput, ParameterInputDict, Plan, CopiedPlan, AllowedDevices } from "./types/types";
+import { ParameterInput, ParameterInputDict, CopiedPlan, AllowedDevices, GlobalMetadata } from "./types/types";
 
 type QSParameterInputProps = {
-    cb?: (arg0: any) => void;
     allowedDevices: AllowedDevices;
     param: ParameterInput;
     parameter: ParameterInput;
@@ -14,30 +13,22 @@ type QSParameterInputProps = {
     updateBodyKwargs?: (arg0: ParameterInputDict) => void;
     parameters: ParameterInputDict;
     setParameters: React.Dispatch<React.SetStateAction<ParameterInputDict | null>>;
-    styles?: string;
     resetInputsTrigger: boolean;
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
-    globalMetadata: any;
+    globalMetadata: GlobalMetadata;
 };
 export default function QSParameterInput( {
-    cb=()=>{}, 
     allowedDevices, 
     parameter, 
     parameterName='',
     updateBodyKwargs=()=>{}, 
     setParameters, 
-    styles='', 
     resetInputsTrigger=false, 
     copiedPlan=null, 
     isGlobalMetadataChecked=false, 
     globalMetadata={}}: QSParameterInputProps) {
     //to do: refactor to remove parameterName and change param to a string
-
-    const stringParameterList = [];
-    const booleanParameterList = ['snake', 'backstep', 'take_pre_data'];
-    const integerParameterList = ['num', 'nth'];
-    const arrayParameterList = ['positions'];
 
     //-----Functions for MultiSelectInput ---------------
     const isItemInArray = (item:string) => {
@@ -50,7 +41,7 @@ export default function QSParameterInput( {
 
     const addItem = (item:string) => {
         setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
+            const stateCopy = JSON.parse(JSON.stringify(state));
             const newSelectedItems = [...stateCopy[parameterName].value, item];
             stateCopy[parameterName].value = newSelectedItems;
             updateBodyKwargs(stateCopy); //change body state under 'review'
@@ -58,9 +49,9 @@ export default function QSParameterInput( {
         });
     };
 
-    const removeItem = (item:String) => {
+    const removeItem = (item:string) => {
         setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
+            const stateCopy = JSON.parse(JSON.stringify(state));
             const newSelectedItems = stateCopy[parameterName].value.filter((i:string) => i !== item);
             stateCopy[parameterName].value = newSelectedItems;
             updateBodyKwargs(stateCopy); //change body state under 'review'
@@ -73,7 +64,7 @@ export default function QSParameterInput( {
         //todo: verify if a 'number' could even be sent. using 'number' due to the handleChange in TextInput.tsx for ts
 
         setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
+            const stateCopy = JSON.parse(JSON.stringify(state));
             stateCopy[parameterName].value = value;
             updateBodyKwargs(stateCopy);
             return stateCopy;
@@ -99,7 +90,7 @@ export default function QSParameterInput( {
     }
     const replaceItem = (item:string) => {
         setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
+            const stateCopy = JSON.parse(JSON.stringify(state));
             const newSelectedItem = item;
             stateCopy[parameterName].value = newSelectedItem;
             updateBodyKwargs(stateCopy); //change body state under 'review'
@@ -107,25 +98,15 @@ export default function QSParameterInput( {
         });
     };
 
-    const clearItem = () => {
-        setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
-            stateCopy[parameterName].value = '';
-            updateBodyKwargs(stateCopy); //change body state under 'review'
-            return stateCopy;
-        }); 
-    };
-
-
     //----------Functions for dictionary input -------------//
     const dictionaryInputTypeList = ['md'];
 
-    const handleDictionaryChange = (dict:{[key:string]: string}, deleteParam=false) => {
+    const handleDictionaryChange = useCallback((dict:{[key:string]: string}, deleteParam=false) => {
         setParameters(state => {
-            var stateCopy = JSON.parse(JSON.stringify(state));
+            const stateCopy = JSON.parse(JSON.stringify(state));
             stateCopy[parameterName].value = dict;
             if (deleteParam) {
-                var removedBodyParams = JSON.parse(JSON.stringify(state));
+                const removedBodyParams = JSON.parse(JSON.stringify(state));
                 delete removedBodyParams[parameterName];
                 updateBodyKwargs(removedBodyParams);
             } else {
@@ -133,7 +114,7 @@ export default function QSParameterInput( {
             }
             return stateCopy;
         });
-    };
+    }, [parameterName, updateBodyKwargs, setParameters]);
 
 
     // ----to do, create a boolean input for parameters like 'snake'
@@ -154,7 +135,6 @@ export default function QSParameterInput( {
                 required={parameter.required} 
                 isItemInArray={isItemInArray} 
                 addItem={replaceItem} 
-                clearItem={clearItem} 
                 value={parameter.value} 
                 label={parameterName} 
                 allowedDevices={allowedDevices} 

@@ -37,7 +37,7 @@ export function createRADIUSStage(cfg: StageConfig): THREE.Object3D {
    * @param {boolean} locked - True to lock the object; false to unlock.
    */
   const setLock = (object: THREE.Object3D, locked: boolean): void => {
-    object.traverse((child: any) => {
+    object.traverse((child: THREE.Object3D) => {
       if (child.isMesh) {
         child.castShadow = true;
         child.receiveShadow = true;

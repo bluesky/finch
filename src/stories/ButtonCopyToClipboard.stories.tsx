@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
-import ButtonCopy from '../components/Button';
 import ButtonCopyToClipboard from '../components/ButtonCopyToClipboard';
 
 const meta = {

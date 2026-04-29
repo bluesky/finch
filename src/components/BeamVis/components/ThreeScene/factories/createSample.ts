@@ -39,7 +39,7 @@ export function createSample(cfg: SampleConfig): THREE.Object3D {
         cfg.meshUrl ?? 'beam_vis/assets/bananas.fbx',
         (fbx) => {
           fbx.scale.set(0.02, 0.02, 0.02);
-          fbx.traverse((child: any) => {
+          fbx.traverse((child: THREE.Object3D) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = true;
@@ -59,7 +59,7 @@ export function createSample(cfg: SampleConfig): THREE.Object3D {
         cfg.meshUrl ?? 'beam_vis/assets/al-1795-0875.obj',
         (obj) => {
           obj.scale.set(0.01,0.01,0.01);
-          obj.traverse((child: any) => {
+          obj.traverse((child: THREE.Object3D) => {
             if (child.isMesh) {
               child.castShadow = true;
               child.receiveShadow = true;
