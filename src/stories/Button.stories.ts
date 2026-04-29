@@ -49,3 +49,10 @@ export const Small: Story = {
     size: 'small'
   },
 };
+
+export const Active: Story = {
+  args: {
+    text: 'active',
+    active: true,
+  },
+};

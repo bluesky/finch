@@ -10,7 +10,9 @@ export type ButtonProps = {
     /** Controls the size of the button - affects text size and padding */
     size?: 'small' | 'medium' | 'large'
     /** Changes button style to transparent background with border and black text when true */
-    isSecondary?: boolean 
+    isSecondary?: boolean
+    /** Renders the button in a pressed/active state */
+    active?: boolean
     /** Additional CSS classes applied to the button container */
     className?: string;
     /** Additional CSS classes applied to the button text element */
@@ -25,6 +27,7 @@ export default function Button({
     disabled = false,
     size='medium',
     isSecondary,
+    active,
     className,
     classNameText,
     ...props
@@ -54,14 +57,14 @@ export default function Button({
         className={
             cn(
             `
-                rounded-xl  font-medium w-fit
-                ${isSecondary ? `bg-transparent hover:bg-slate-100 text-black border` : `bg-sky-500 text-white`}
-                ${disabled ? 'hover:cursor-not-allowed' : `${(isSecondary ? `secondaryHoverBgColor` : 'hover:bg-sky-600')} hover:cursor-pointer`} 
-                ${textSizes[size]} 
-                ${paddingSizes[size]} 
+                rounded-xl font-medium w-fit
+                ${active ? 'bg-sky-700 text-white' : isSecondary ? `bg-transparent hover:bg-slate-100 text-black border` : `bg-sky-500 text-white`}
+                ${disabled ? 'hover:cursor-not-allowed' : `${active ? 'hover:bg-sky-800' : isSecondary ? 'secondaryHoverBgColor' : 'hover:bg-sky-600'} hover:cursor-pointer`}
+                ${textSizes[size]}
+                ${paddingSizes[size]}
             `,
             className)
-        } 
+        }
         onClick={handleClick}
         {...props}>
                 <p className={classNameText}>{text}</p>

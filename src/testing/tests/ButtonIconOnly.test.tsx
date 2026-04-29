@@ -139,12 +139,36 @@ describe('ButtonIconOnly Component', () => {
 
   it('maintains icon aspect ratio and positioning', () => {
     render(<ButtonIconOnly icon={<TestIcon />} />);
-    
+
     const button = screen.getByRole('button');
     const iconSpan = screen.getByTestId('test-icon').parentElement;
-    
+
     // Check that icon is properly contained within button
     expect(button).toContainElement(iconSpan);
     expect(iconSpan?.tagName).toBe('SPAN');
+  });
+
+  it('applies active styling when active is true', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} active={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-700', 'border-sky-700', 'border', 'hover:bg-sky-800');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-white');
+  });
+
+  it('applies white icon color when active', () => {
+    render(<ButtonIconOnly icon={<TestIcon />} active={true} />);
+
+    const iconSpan = screen.getByTestId('test-icon').parentElement;
+    expect(iconSpan).toHaveClass('text-white');
+    expect(iconSpan).not.toHaveClass('text-black');
+  });
+
+  it('active overrides isSecondary styling', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} active={true} isSecondary={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-700');
+    expect(button).not.toHaveClass('bg-white', 'border-slate-300');
   });
 });

@@ -123,7 +123,31 @@ describe('Button Component', () => {
   it('passes through additional props', () => {
     render(<Button text="Test" data-testid="custom-button" aria-label="Custom Label" />);
     const button = screen.getByTestId('custom-button');
-    
+
     expect(button).toHaveAttribute('aria-label', 'Custom Label');
+  });
+
+  it('applies active styling when active is true', () => {
+    const { container } = render(<Button text="Active" active={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-700', 'text-white');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-transparent');
+  });
+
+  it('applies active hover styling when active is true', () => {
+    const { container } = render(<Button text="Active" active={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('hover:bg-sky-800');
+    expect(button).not.toHaveClass('hover:bg-sky-600');
+  });
+
+  it('active overrides isSecondary styling', () => {
+    const { container } = render(<Button text="Active Secondary" active={true} isSecondary={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-700', 'text-white');
+    expect(button).not.toHaveClass('bg-transparent', 'text-black');
   });
 });
