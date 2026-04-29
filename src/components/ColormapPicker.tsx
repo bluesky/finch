@@ -32,8 +32,8 @@ export default function ColormapPicker({
           className={cn(
             "w-full flex items-center gap-2 px-2 py-1.5 rounded border text-xs hover:cursor-pointer",
             value === c.id
-              ? "border-primary bg-primary/10"
-              : "border-border hover:bg-muted"
+              ? "border-sky-700 bg-sky-50"
+              : "border-slate-200 hover:bg-slate-50"
           )}
         >
           <span className="font-mono text-[11px] text-muted-foreground w-14 text-left shrink-0">

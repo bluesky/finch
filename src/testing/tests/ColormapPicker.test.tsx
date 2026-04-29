@@ -28,8 +28,19 @@ describe('ColormapPicker', () => {
     const buttons = screen.getAllByRole('button');
     const magmaButton = buttons.find(b => b.textContent?.includes('Magma'));
     const viridisButton = buttons.find(b => b.textContent?.includes('Viridis'));
-    expect(magmaButton).toHaveClass('border-primary');
-    expect(viridisButton).not.toHaveClass('border-primary');
+    expect(magmaButton).toHaveClass('border-sky-700', 'bg-sky-50');
+    expect(viridisButton).not.toHaveClass('border-sky-700');
+  });
+
+  it('updates active styles when value prop changes', () => {
+    const { rerender } = render(<ColormapPicker value="magma" onChange={vi.fn()} />);
+    const buttons = () => screen.getAllByRole('button');
+    expect(buttons().find(b => b.textContent?.includes('Magma'))).toHaveClass('border-sky-700');
+    expect(buttons().find(b => b.textContent?.includes('Viridis'))).not.toHaveClass('border-sky-700');
+
+    rerender(<ColormapPicker value="viridis" onChange={vi.fn()} />);
+    expect(buttons().find(b => b.textContent?.includes('Viridis'))).toHaveClass('border-sky-700');
+    expect(buttons().find(b => b.textContent?.includes('Magma'))).not.toHaveClass('border-sky-700');
   });
 
   it('renders only the colormaps passed via the colormaps prop', () => {
