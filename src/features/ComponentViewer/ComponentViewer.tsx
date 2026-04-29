@@ -104,7 +104,7 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
     }
 
     return (
-        <div className={cn("w-full lg:w-3/4 max-w-6xl", className)}>
+        <div className={cn("w-full lg:w-3/4 max-w-6xl m-auto", className)}>
             {/* <h1 className="text-2xl text-center mb-4 text-sky-700">Component Test Page</h1> */}
             {/* A summary table that shows the test results, including id, name, passing status, and optional comment */}
             <table className="max-w-full m-auto border-collapse border border-gray-200 text-sm bg-white">
