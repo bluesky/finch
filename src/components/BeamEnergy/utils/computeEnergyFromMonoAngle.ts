@@ -12,7 +12,10 @@ export function computeEnergyFromMonoAngle(mono_deg_input: number, mono_offset_d
     // Convert input angle to radians after subtracting offset
     const theta_rad: number = ((mono_deg_input - (mono_offset_deg ?? default_mono_offset_deg)) * Math.PI) / 180;
 
-
+    // Prevent division by zero - sin(theta) should never be zero for valid angles
+    if (Math.abs(Math.sin(theta_rad)) < 1e-10) {
+        throw new Error(`Invalid monochromator angle: ${mono_deg_input}° results in theta_rad ≈ 0, causing division by zero`);
+    }
 
     // Energy in eV using Bragg's law
     const energy_eV: number = (h_m2kgps * c_mps * e_eV) / (2 * a_Si111_m * Math.sin(theta_rad));
