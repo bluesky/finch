@@ -127,27 +127,35 @@ describe('Button Component', () => {
     expect(button).toHaveAttribute('aria-label', 'Custom Label');
   });
 
-  it('applies active styling when active is true', () => {
-    const { container } = render(<Button text="Active" active={true} />);
+  it('applies primary styling when not active and not secondary', () => {
+    const { container } = render(<Button text="Primary" />);
     const button = container.firstChild;
 
-    expect(button).toHaveClass('bg-sky-700', 'text-white');
-    expect(button).not.toHaveClass('bg-sky-500', 'bg-transparent');
+    expect(button).toHaveClass('bg-sky-500', 'text-white', 'hover:bg-sky-600');
+    expect(button).not.toHaveClass('bg-sky-700', 'bg-transparent', 'bg-slate-200');
   });
 
-  it('applies active hover styling when active is true', () => {
-    const { container } = render(<Button text="Active" active={true} />);
+  it('applies primary active styling when active is true', () => {
+    const { container } = render(<Button text="Primary Active" active={true} />);
     const button = container.firstChild;
 
-    expect(button).toHaveClass('hover:bg-sky-800');
-    expect(button).not.toHaveClass('hover:bg-sky-600');
+    expect(button).toHaveClass('bg-sky-700', 'text-white', 'hover:bg-sky-800');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-transparent', 'bg-slate-200');
   });
 
-  it('active overrides isSecondary styling', () => {
-    const { container } = render(<Button text="Active Secondary" active={true} isSecondary={true} />);
+  it('applies secondary styling when isSecondary is true and not active', () => {
+    const { container } = render(<Button text="Secondary" isSecondary={true} />);
     const button = container.firstChild;
 
-    expect(button).toHaveClass('bg-sky-700', 'text-white');
-    expect(button).not.toHaveClass('bg-transparent', 'text-black');
+    expect(button).toHaveClass('bg-transparent', 'text-black', 'border', 'hover:bg-slate-100');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-sky-700', 'bg-slate-200');
+  });
+
+  it('applies secondary active styling when both active and isSecondary are true', () => {
+    const { container } = render(<Button text="Secondary Active" active={true} isSecondary={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-slate-200', 'text-black', 'border', 'hover:bg-slate-300');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-sky-700', 'bg-transparent');
   });
 });

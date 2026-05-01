@@ -42,6 +42,14 @@ export const Active: Story = {
     },
 };
 
+export const ActiveSecondary: Story = {
+    args: {
+        icon: <StarIcon />,
+        active: true,
+        isSecondary: true,
+    },
+};
+
 export const Disabled: Story = {
     args: {
         icon: <StarIcon />,

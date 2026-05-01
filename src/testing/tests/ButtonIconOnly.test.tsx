@@ -148,27 +148,67 @@ describe('ButtonIconOnly Component', () => {
     expect(iconSpan?.tagName).toBe('SPAN');
   });
 
-  it('applies active styling when active is true', () => {
+  it('applies primary styling when not active and not secondary', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-500', 'hover:bg-sky-600');
+    expect(button).not.toHaveClass('bg-sky-700', 'bg-white', 'bg-slate-200');
+  });
+
+  it('applies primary active styling when active is true', () => {
     const { container } = render(<ButtonIconOnly icon={<TestIcon />} active={true} />);
     const button = container.firstChild;
 
     expect(button).toHaveClass('bg-sky-700', 'border-sky-700', 'border', 'hover:bg-sky-800');
-    expect(button).not.toHaveClass('bg-sky-500', 'bg-white');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-white', 'bg-slate-200');
   });
 
-  it('applies white icon color when active', () => {
-    render(<ButtonIconOnly icon={<TestIcon />} active={true} />);
+  it('applies secondary styling when isSecondary is true and not active', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} isSecondary={true} />);
+    const button = container.firstChild;
 
+    expect(button).toHaveClass('bg-white', 'border-slate-300', 'border', 'hover:bg-slate-100');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-sky-700', 'bg-slate-200');
+  });
+
+  it('applies secondary active styling when both active and isSecondary are true', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} active={true} isSecondary={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-slate-200', 'border-slate-300', 'border', 'hover:bg-slate-300');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-sky-700', 'bg-white');
+  });
+
+  it('applies white icon color for primary variants', () => {
+    render(<ButtonIconOnly icon={<TestIcon />} />);
     const iconSpan = screen.getByTestId('test-icon').parentElement;
     expect(iconSpan).toHaveClass('text-white');
     expect(iconSpan).not.toHaveClass('text-black');
   });
 
-  it('active overrides isSecondary styling', () => {
-    const { container } = render(<ButtonIconOnly icon={<TestIcon />} active={true} isSecondary={true} />);
-    const button = container.firstChild;
+  it('applies black icon color for secondary variants', () => {
+    render(<ButtonIconOnly icon={<TestIcon />} isSecondary={true} />);
+    const iconSpan = screen.getByTestId('test-icon').parentElement;
+    expect(iconSpan).toHaveClass('text-black');
+    expect(iconSpan).not.toHaveClass('text-white');
+  });
 
-    expect(button).toHaveClass('bg-sky-700');
-    expect(button).not.toHaveClass('bg-white', 'border-slate-300');
+  it('sets aria-pressed when active is true', () => {
+    render(<ButtonIconOnly icon={<TestIcon />} active={true} />);
+    const button = screen.getByRole('button');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('does not set aria-pressed when active is not provided', () => {
+    render(<ButtonIconOnly icon={<TestIcon />} />);
+    const button = screen.getByRole('button');
+    expect(button).not.toHaveAttribute('aria-pressed');
+  });
+
+  it('applies disabled styling when disabled is true', () => {
+    const { container } = render(<ButtonIconOnly icon={<TestIcon />} disabled={true} />);
+    const button = container.firstChild;
+    expect(button).toHaveClass('opacity-50', 'cursor-not-allowed');
   });
 });

@@ -56,3 +56,18 @@ export const Active: Story = {
     active: true,
   },
 };
+
+export const ActiveSecondary: Story = {
+  args: {
+    text: 'active secondary',
+    active: true,
+    isSecondary: true,
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    text: 'disabled',
+    disabled: true,
+  },
+};

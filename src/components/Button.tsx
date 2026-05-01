@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 export type ButtonProps = {
     /** Callback function triggered when button is clicked */
     onClick?: (event: React.MouseEvent<HTMLButtonElement>)=>void;
-    /** Text content displayed inside the button */ 
+    /** Text content displayed inside the button */
     text?: string;
     /** Disables the button and prevents user interaction when true */
     disabled?: boolean;
@@ -20,6 +20,21 @@ export type ButtonProps = {
     /** Legacy callback function, use onClick instead */
     cb?: ()=>void;
 }
+
+const buttonVariants = {
+    primary: 'bg-sky-500 text-white hover:bg-sky-600',
+    primaryActive: 'bg-sky-700 text-white hover:bg-sky-800',
+    secondary: 'bg-transparent hover:bg-slate-100 text-black border',
+    secondaryActive: 'bg-slate-200 text-black border hover:bg-slate-300',
+};
+
+const getButtonClasses = (active: boolean | undefined, isSecondary: boolean | undefined) => {
+    if (active && isSecondary) return buttonVariants.secondaryActive;
+    if (active) return buttonVariants.primaryActive;
+    if (isSecondary) return buttonVariants.secondary;
+    return buttonVariants.primary;
+};
+
 export default function Button({
     cb = () => {},
     onClick = () => {},
@@ -50,16 +65,16 @@ export default function Button({
         large: 'px-6 py-3',
     };
 
-
     return (
-        <button 
-        disabled={disabled} 
+        <button
+        aria-pressed={active}
+        disabled={disabled}
         className={
             cn(
             `
                 rounded-xl font-medium w-fit
-                ${active ? 'bg-sky-700 text-white' : isSecondary ? `bg-transparent hover:bg-slate-100 text-black border` : `bg-sky-500 text-white`}
-                ${disabled ? 'hover:cursor-not-allowed' : `${active ? 'hover:bg-sky-800' : isSecondary ? 'secondaryHoverBgColor' : 'hover:bg-sky-600'} hover:cursor-pointer`}
+                ${getButtonClasses(active, isSecondary)}
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 ${textSizes[size]}
                 ${paddingSizes[size]}
             `,
