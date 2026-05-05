@@ -64,6 +64,14 @@ export const Disabled: Story = {
     },
 };
 
+export const CustomColors: Story = {
+    args: {
+        text: 'Custom Colors',
+        className: 'bg-orange-500 hover:bg-orange-600 text-white',
+        icon: <FlaskIcon />,
+    },
+};
+
 export const Large: Story = {
     args: {
         size: 'large',

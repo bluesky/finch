@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 type ButtonIconOnlyProps = {
     /** JSX element displayed as the button content - typically an SVG icon */
     icon: React.ReactNode;
-    /** Additional CSS classes applied to the button container */
+    /** Additional CSS classes applied to the button container. To override colors, pass Tailwind classes (e.g. `bg-orange-500 hover:bg-orange-600`). */
     className?: string;
     /** Additional CSS classes applied to the icon element */
     classNameIcon?: string;

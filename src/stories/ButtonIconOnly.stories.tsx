@@ -56,3 +56,10 @@ export const Disabled: Story = {
         disabled: true,
     },
 };
+
+export const CustomColors: Story = {
+    args: {
+        icon: <StarIcon />,
+        className: 'bg-orange-500 hover:bg-orange-600',
+    },
+};

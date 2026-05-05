@@ -13,7 +13,7 @@ export type ButtonProps = {
     isSecondary?: boolean
     /** Renders the button in a pressed/active state */
     active?: boolean
-    /** Additional CSS classes applied to the button container */
+    /** Additional CSS classes applied to the button container. To override colors, pass Tailwind classes (e.g. `bg-orange-500 hover:bg-orange-600 text-white`). */
     className?: string;
     /** Additional CSS classes applied to the button text element */
     classNameText?: string;

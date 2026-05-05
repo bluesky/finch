@@ -71,3 +71,10 @@ export const Disabled: Story = {
     disabled: true,
   },
 };
+
+export const CustomColors: Story = {
+  args: {
+    text: 'custom colors',
+    className: 'bg-orange-500 hover:bg-orange-600 text-white',
+  },
+};
