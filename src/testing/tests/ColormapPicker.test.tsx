@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import ColormapPicker from '../../components/ColormapPicker';
-import { COLORMAPS } from '../../components/colormaps';
+import ColormapPicker from '../../components/ColormapPicker/ColormapPicker';
+import { COLORMAPS } from '../../components/ColormapPicker/colormaps';
 
 describe('ColormapPicker', () => {
   it('renders without crashing', () => {
@@ -11,8 +11,17 @@ describe('ColormapPicker', () => {
 
   it('renders a button for each colormap in the default set', () => {
     render(<ColormapPicker value="viridis" onChange={vi.fn()} />);
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('radio');
     expect(buttons).toHaveLength(COLORMAPS.length);
+  });
+
+  it('has radiogroup role with aria-label and marks the selected item as checked', () => {
+    render(<ColormapPicker value="magma" onChange={vi.fn()} />);
+    expect(screen.getByRole('radiogroup', { name: 'Colormap' })).toBeInTheDocument();
+    const magma = screen.getByRole('radio', { name: /magma/i });
+    const viridis = screen.getByRole('radio', { name: /viridis/i });
+    expect(magma).toHaveAttribute('aria-checked', 'true');
+    expect(viridis).toHaveAttribute('aria-checked', 'false');
   });
 
   it('calls onChange with the correct id when a button is clicked', () => {
@@ -25,7 +34,7 @@ describe('ColormapPicker', () => {
 
   it('applies active styles to the selected colormap button', () => {
     render(<ColormapPicker value="magma" onChange={vi.fn()} />);
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('radio');
     const magmaButton = buttons.find(b => b.textContent?.includes('Magma'));
     const viridisButton = buttons.find(b => b.textContent?.includes('Viridis'));
     expect(magmaButton).toHaveClass('border-sky-700', 'bg-sky-50');
@@ -34,7 +43,7 @@ describe('ColormapPicker', () => {
 
   it('updates active styles when value prop changes', () => {
     const { rerender } = render(<ColormapPicker value="magma" onChange={vi.fn()} />);
-    const buttons = () => screen.getAllByRole('button');
+    const buttons = () => screen.getAllByRole('radio');
     expect(buttons().find(b => b.textContent?.includes('Magma'))).toHaveClass('border-sky-700');
     expect(buttons().find(b => b.textContent?.includes('Viridis'))).not.toHaveClass('border-sky-700');
 
@@ -49,7 +58,7 @@ describe('ColormapPicker', () => {
       { id: 'bw',       label: 'B+W',      stops: '#000000,#ffffff' },
     ];
     render(<ColormapPicker value="bw" onChange={vi.fn()} colormaps={custom} />);
-    const buttons = screen.getAllByRole('button');
+    const buttons = screen.getAllByRole('radio');
     expect(buttons).toHaveLength(2);
     expect(screen.getByText('Red-Blue')).toBeInTheDocument();
     expect(screen.getByText('B+W')).toBeInTheDocument();
@@ -63,9 +72,9 @@ describe('ColormapPicker', () => {
     expect(container.firstChild).toHaveClass('test-class');
   });
 
-  it('applies the maxHeight prop to the container', () => {
+  it('constrains height and scrolls when max-h class is passed via className', () => {
     const { container } = render(
-      <ColormapPicker value="viridis" onChange={vi.fn()} maxHeight="max-h-40" />
+      <ColormapPicker value="viridis" onChange={vi.fn()} className="max-h-40" />
     );
     expect(container.firstChild).toHaveClass('max-h-40', 'overflow-y-auto');
   });

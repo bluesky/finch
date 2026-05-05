@@ -8,11 +8,10 @@ export type ColormapPickerProps = {
   onChange: (id: string) => void;
   /** Override the list of available colormaps; defaults to the built-in set.
    *  The default list is exported as COLORMAPS and can be filtered:
-   *  `colormaps={COLORMAPS.filter(c => ['viridis', 'magma'].includes(c.id))}` */
+   *  `colormaps={COLORMAPS.filter(c => ['viridis', 'magma'].includes(c.id))}`
+   *  See the ColormapPicker Storybook docs for how to define a custom colormap. */
   colormaps?: ColormapDef[];
-  /** Tailwind max-height class to enable scrolling, e.g. "max-h-48" or "max-h-[200px]" */
-  maxHeight?: string;
-  /** Additional CSS classes applied to the container */
+  /** Additional CSS classes applied to the container (e.g. "max-h-48" to constrain height and enable scroll) */
   className?: string;
 };
 
@@ -21,32 +20,32 @@ export type ColormapPickerProps = {
  * and calls `onChange` with the selected colormap's `id` string.
  *
  * This component is renderer-agnostic — the `id` values from `COLORMAPS` do not
- * necessarily match the colorscale names expected by a specific renderer. When using
- * with Plotly, for example, you will need to map the id to the corresponding Plotly
- * colorscale name (e.g. `'gray'` → `'Greys'`, `'rdbu'` → `'RdBu'`), and filter the
- * `colormaps` prop to only include entries your renderer supports.
+ * necessarily match the colorscale names expected by a specific renderer. For Plotly,
+ * use `COLORMAPSPLOTLY` instead: its `id` values are the exact strings Plotly expects
+ * for its `colorscale` prop, so the selected value can be passed through directly.
  */
 export default function ColormapPicker({
   value,
   onChange,
   colormaps = COLORMAPS,
-  maxHeight,
   className,
 }: ColormapPickerProps) {
   return (
-    <div className={cn("px-3 py-3 space-y-1.5 overflow-y-auto", maxHeight, className)}>
+    <div role="radiogroup" aria-label="Colormap" className={cn("px-3 py-3 space-y-1.5 overflow-y-auto w-52 min-w-40", className)}>
       {colormaps.map((c) => (
         <button
           key={c.id}
+          role="radio"
+          aria-checked={value === c.id}
           onClick={() => onChange(c.id)}
           className={cn(
-            "w-full flex items-center gap-2 px-2 py-1.5 rounded border text-xs hover:cursor-pointer",
+            "w-full flex items-center gap-2 px-2 py-1.5 rounded border hover:cursor-pointer",
             value === c.id
               ? "border-sky-700 bg-sky-50"
               : "border-slate-200 hover:bg-slate-50"
           )}
         >
-          <span className="font-mono text-[11px] text-muted-foreground w-14 text-left shrink-0">
+          <span className="font-mono text-xs text-muted-foreground w-14 text-left shrink-0 truncate">
             {c.label}
           </span>
           <span
