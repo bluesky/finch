@@ -23,9 +23,49 @@ export type ButtonWithIconProps = {
     classNameText?: string;
     /** Additional CSS classes applied to the icon element */
     classNameIcon?: string;
+    /** Renders the button in a pressed/active state */
+    active?: boolean;
     /** Legacy callback function, use onClick instead */
     cb?: () => void;
 }
+const buttonVariants = {
+    primary: 'bg-sky-500 hover:bg-sky-600 text-white',
+    primaryActive: 'bg-sky-700 text-white hover:bg-sky-800',
+    secondary: 'bg-white/50 hover:bg-slate-200 text-black border',
+    secondaryActive: 'bg-slate-200 text-black border hover:bg-slate-300',
+};
+
+const getButtonClasses = (active: boolean | undefined, isSecondary: boolean | undefined) => {
+    if (active && isSecondary) return buttonVariants.secondaryActive;
+    if (active) return buttonVariants.primaryActive;
+    if (isSecondary) return buttonVariants.secondary;
+    return buttonVariants.primary;
+};
+
+const textSizes = {
+    small: 'text-sm',
+    medium: 'text-md',
+    large: 'text-2xl'
+};
+
+const iconSizes = {
+    small: 'w-4',
+    medium: 'w-6',
+    large: 'w-8'
+};
+
+const paddingSizes = {
+    small: 'px-3 py-1',
+    medium: 'px-3 py-2',
+    large: 'px-6 py-3',
+};
+
+const spacingSizes = {
+    small: 'space-x-1',
+    medium: 'space-x-2',
+    large: 'space-x-4'
+};
+
 export default function ButtonWithIcon({
     cb = () => {},
     onClick = () => {},
@@ -35,6 +75,7 @@ export default function ButtonWithIcon({
     iconPosition = 'left',
     size='medium',
     isSecondary,
+    active,
     className,
     classNameText,
     classNameIcon,
@@ -46,41 +87,18 @@ export default function ButtonWithIcon({
         if (onClick) onClick(e);
     };
 
-    const textSizes = {
-        small: 'text-sm',
-        medium: 'text-md',
-        large: 'text-2xl'
-    };
-
-    const iconSizes = {
-        small: 'w-4',
-        medium: 'w-6',
-        large: 'w-8'
-    };
-
-    const paddingSizes = {
-        small: 'px-3 py-1',
-        medium: 'px-3 py-2',
-        large: 'px-6 py-3',
-    };
-
-    const spacingSizes = {
-        small: 'space-x-1',
-        medium: 'space-x-2',
-        large: 'space-x-4'
-    };
-
     const Icon = <div className={cn(`${iconSizes[size]} ${isSecondary ? 'text-black' : 'text-white'} aspect-square `, classNameIcon)}>{icon}</div>;
 
 
     return (
-        <button 
-            disabled={disabled} 
+        <button
+            aria-pressed={active}
+            disabled={disabled}
             className={cn(`
-                ${isSecondary ? `bg-white/50 hover:bg-slate-200 text-black border` : `bg-sky-500 hover:bg-sky-600 text-white`}
-                ${disabled && 'hover:cursor-not-allowed'} 
-                ${textSizes[size]} 
-                ${paddingSizes[size]} 
+                ${getButtonClasses(active, isSecondary)}
+                ${disabled && 'hover:cursor-not-allowed'}
+                ${textSizes[size]}
+                ${paddingSizes[size]}
                 rounded-lg font-medium w-fit`, className)} 
             onClick={handleClick}
             {...props}>

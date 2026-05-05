@@ -105,8 +105,34 @@ describe('ButtonWithIcon Component', () => {
   it('applies primary styling by default', () => {
     const { container } = render(<ButtonWithIcon text="Primary" icon={<TestIcon />} />);
     const button = container.firstChild;
-    
+
     expect(button).toHaveClass('bg-sky-500', 'text-white');
+  });
+
+  it('applies primary active styling when active is true', () => {
+    const { container } = render(<ButtonWithIcon text="Primary Active" icon={<TestIcon />} active={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-sky-700', 'text-white', 'hover:bg-sky-800');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-slate-200');
+  });
+
+  it('applies secondary active styling when both active and isSecondary are true', () => {
+    const { container } = render(<ButtonWithIcon text="Secondary Active" icon={<TestIcon />} active={true} isSecondary={true} />);
+    const button = container.firstChild;
+
+    expect(button).toHaveClass('bg-slate-200', 'text-black', 'border', 'hover:bg-slate-300');
+    expect(button).not.toHaveClass('bg-sky-500', 'bg-sky-700', 'bg-white/50');
+  });
+
+  it('sets aria-pressed when active is true', () => {
+    render(<ButtonWithIcon text="Active" icon={<TestIcon />} active={true} />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('sets aria-pressed to false when active is false', () => {
+    render(<ButtonWithIcon text="Inactive" icon={<TestIcon />} active={false} />);
+    expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('applies secondary icon styling when isSecondary is true', () => {

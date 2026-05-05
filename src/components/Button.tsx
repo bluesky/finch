@@ -35,6 +35,18 @@ const getButtonClasses = (active: boolean | undefined, isSecondary: boolean | un
     return buttonVariants.primary;
 };
 
+const textSizes = {
+    small: 'text-sm',
+    medium: 'text-md',
+    large: 'text-2xl'
+};
+
+const paddingSizes = {
+    small: 'px-3 py-1',
+    medium: 'px-3 py-2',
+    large: 'px-6 py-3',
+};
+
 export default function Button({
     cb = () => {},
     onClick = () => {},
@@ -51,18 +63,6 @@ export default function Button({
         e.preventDefault();
         if (cb)cb();
         if (onClick) onClick(e);
-    };
-
-    const textSizes = {
-        small: 'text-sm',
-        medium: 'text-md',
-        large: 'text-2xl'
-    };
-
-    const paddingSizes = {
-        small: 'px-3 py-1',
-        medium: 'px-3 py-2',
-        large: 'px-6 py-3',
     };
 
     return (
