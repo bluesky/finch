@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import useOphydDeviceSocket from "@/api/ophyd/useOphydDeviceSocket"
 
 
-type UseBeamEnergyOphydProps = {
+export type UseBeamEnergyOphydProps = {
     deviceName?: string;
     wsUrl?: string;
 }
@@ -12,8 +12,7 @@ type UseBeamEnergyOphydProps = {
  * Utilizes ophyd socket for device communication and retrieves monochromator angle PV.
  * 
  * @param props - Configuration options for the beam energy hook
- * @param props.pv - PV name for the monochromator angle (default: 'bl531_xps1:mono_angle_deg')
- * @param props.thetaOffsetDeg - Angle offset in degrees to account for mechanical offsets (default: 12.787)
+ * @param props.deviceName - Name of the ophyd device (default: "mono")
  * @param props.wsUrl - Optional WebSocket URL for device communication
  * @returns Object containing beam energy value and related device data
  */

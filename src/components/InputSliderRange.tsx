@@ -41,7 +41,7 @@ export default function InputSliderRange({
   step=1,
   allowValueOverlap=false,
   showSideInput=true,
-  onChange,
+  onChange = () => {},
   isDisabled=false,
   className = "",
   ...props
@@ -88,7 +88,7 @@ export default function InputSliderRange({
             }
         }
         setCurrentValue(newRange);
-        if (onChange) onChange(newRange);
+        onChange(newRange);
     };
 
     const handleDrag = (index: 0 | 1, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,7 +152,7 @@ export default function InputSliderRange({
     };
 
     return (
-        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group w-full`, className)} {...props}>
+        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group w-full min-w-96`, className)} {...props}>
             {/** Optional Label on Left of Slider*/}
             {label && <label className="font-medium text-gray-700 w-fit pr-2">{label}</label>}
 

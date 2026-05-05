@@ -29,3 +29,10 @@ export const Primary: Story = {
   },
 };
 
+export const CustomColors: Story = {
+  args: {
+    copyText: 'you copied me',
+    className: 'text-orange-500 hover:text-orange-300',
+  },
+};
+
