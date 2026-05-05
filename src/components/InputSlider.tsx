@@ -38,7 +38,7 @@ export default function InputSlider({
   step=1,
   showFill=false,
   showSideInput=true,
-  onChange,
+  onChange = () => {},
   className = "",
   ...props
 }: InputSliderProps) {
@@ -69,7 +69,7 @@ export default function InputSlider({
     const handleInputChange = (newValue: number) => {
         if (newValue < min) newValue = min;
         if (newValue > max) newValue = max;
-        if (onChange) onChange(newValue);
+        onChange(newValue);
     };
 
     const handleDrag = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +113,7 @@ export default function InputSlider({
     };
 
     return (
-        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group w-full`, className)} {...props}>
+        <div className={cn(`flex items-center pt-4 pb-4 pr-2 min-h-12 group min-w-96 w-full`, className)} {...props}>
             {/** Optional Label on Left of Slider*/}
             {label && <label className="font-medium text-gray-700 w-fit pr-2">{label}</label>}
 

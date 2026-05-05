@@ -8,6 +8,7 @@ import ExperimentHistory from "./ExperimentHistory";
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
 import { PostItemAddResponse } from "@/api/qServer/types";
+import { cn } from "@/lib/utils";
 
 type ExperimentAngleScanProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -27,23 +28,16 @@ export default function ExperimentAngleScan({
     tiledBaseUrl
 }: ExperimentAngleScanProps) {
     // Angle scan form state
-    const [user, setUser] = useState<string>("");
-    const [startAngle, setStartAngle] = useState<number>(-2);
-    const [stopAngle, setStopAngle] = useState<number>(2);
-    const [numPoints, setNumPoints] = useState<number>(5);
+    const [user, setUser] = useState<string>(localStorage.getItem("angle_scan_user") ?? "");
+    const [startAngle, setStartAngle] = useState<number | "">(-2);
+    const [stopAngle, setStopAngle] = useState<number | "">(2);
+    const [numPoints, setNumPoints] = useState<number | "">(5);
     const [executedItemUid, setExecutedItemUid] = useState<string>("");
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
     const [blueskyRunId, setBlueskyRunId] = useState<string>("");
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("energy_scan_user");
-        if (storedUser) {
-            setUser(storedUser);
-        }
-    }, []);
-
-    useEffect(() => {
-        localStorage.setItem("energy_scan_user", user);
+        localStorage.setItem("angle_scan_user", user);
     }, [user]);
 
     const getBlueskyRunList = useGetBlueskyRunList();
@@ -69,6 +63,13 @@ export default function ExperimentAngleScan({
 
     // Get the first run ID when available
     const pollRunId = runList && runList.length > 0 ? runList[0] : "";
+
+    const startAngleNumber = typeof startAngle === 'number' ? startAngle : 0;
+    const stopAngleNumber = typeof stopAngle === 'number' ? stopAngle : 0;
+    const numPointsNumber = typeof numPoints === 'number' ? numPoints : 0;
+    const stepSizeLabel = numPointsNumber > 1
+        ? ((stopAngleNumber - startAngleNumber) / (numPointsNumber - 1)).toFixed(2)
+        : '0';
     
     // Update blueskyRunId when polling returns new run
     useEffect(() => {
@@ -79,15 +80,18 @@ export default function ExperimentAngleScan({
 
     // Angle scan form handlers
     const handleStartAngleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setStartAngle(Number(e.target.value));
+        const value = e.target.value;
+        setStartAngle(value === '' ? '' : Number(value));
     };
 
     const handleStopAngleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setStopAngle(Number(e.target.value));
+        const value = e.target.value;
+        setStopAngle(value === '' ? '' : Number(value));
     };
 
     const handleNumPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setNumPoints(Number(e.target.value));
+        const value = e.target.value;
+        setNumPoints(value === '' ? '' : Number(value));
     };
 
     const handleSuccess = async (response: PostItemAddResponse) => {
@@ -108,7 +112,7 @@ export default function ExperimentAngleScan({
     };
 
     return (
-        <div className={className}>
+        <div className={cn('text-slate-700', className)}>
             <h2 className="text-xl font-bold mb-4 text-white">Angle Scan</h2>
             
             <div className="bg-gray-50 p-4 rounded-lg space-y-4 h-fit">
@@ -217,7 +221,7 @@ export default function ExperimentAngleScan({
                                 
                                 <div className="text-xs text-gray-600 mt-2 mx-auto w-fit">
                                     <p>Angle Range: {startAngle}° - {stopAngle}°</p>
-                                    <p>Step Size: {numPoints > 1 ? ((stopAngle - startAngle) / (numPoints - 1)).toFixed(2) : 0}°</p>
+                                    <p>Step Size: {stepSizeLabel}°</p>
                                 </div>
                             </>
                         ) : (
