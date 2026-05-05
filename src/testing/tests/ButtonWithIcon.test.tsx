@@ -135,6 +135,11 @@ describe('ButtonWithIcon Component', () => {
     expect(screen.getByRole('button')).toHaveAttribute('aria-pressed', 'false');
   });
 
+  it('does not set aria-pressed when active is not provided', () => {
+    render(<ButtonWithIcon text="Default" icon={<TestIcon />} />);
+    expect(screen.getByRole('button')).not.toHaveAttribute('aria-pressed');
+  });
+
   it('applies secondary icon styling when isSecondary is true', () => {
     render(<ButtonWithIcon text="Secondary" icon={<TestIcon />} isSecondary={true} />);
     

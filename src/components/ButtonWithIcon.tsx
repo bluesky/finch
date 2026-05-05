@@ -96,7 +96,7 @@ export default function ButtonWithIcon({
             disabled={disabled}
             className={cn(`
                 ${getButtonClasses(active, isSecondary)}
-                ${disabled && 'hover:cursor-not-allowed'}
+                ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 ${textSizes[size]}
                 ${paddingSizes[size]}
                 rounded-lg font-medium w-fit`, className)} 
