@@ -72,6 +72,14 @@ describe('ColormapPicker', () => {
     expect(container.firstChild).toHaveClass('test-class');
   });
 
+  it('applies truncate to label spans to prevent overflow into the gradient swatch', () => {
+    render(<ColormapPicker value="viridis" onChange={vi.fn()} />);
+    const labelSpans = screen.getAllByRole('radio').map(
+      btn => btn.querySelector('span')
+    );
+    labelSpans.forEach(span => expect(span).toHaveClass('truncate'));
+  });
+
   it('constrains height and scrolls when max-h class is passed via className', () => {
     const { container } = render(
       <ColormapPicker value="viridis" onChange={vi.fn()} className="max-h-40" />

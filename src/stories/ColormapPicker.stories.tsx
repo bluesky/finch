@@ -90,6 +90,26 @@ export const PlotlyColormaps: Story = {
     },
 };
 
+export const LongLabels: Story = {
+    render: renderWithState,
+    parameters: {
+        docs: {
+            description: {
+                story: 'Labels that exceed the fixed `w-14` span are clipped with a trailing ellipsis (`truncate`). The gradient swatch is never obscured.',
+            },
+        },
+    },
+    args: {
+        value: 'short',
+        className: 'w-56',
+        colormaps: [
+            { id: 'short',     label: 'Short',                    stops: '#440154,#fde725' },
+            { id: 'medium',    label: 'Medium Length',            stops: '#0d0887,#f0f921' },
+            { id: 'very-long', label: 'A Very Long Colormap Name', stops: '#000004,#fde0dd' },
+        ],
+    },
+};
+
 export const CustomColormaps: Story = {
     render: renderWithState,
     parameters: {
