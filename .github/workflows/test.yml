@@ -119,22 +119,22 @@ jobs:
             
             const lintStep = steps.find(step => step.name === 'Run linting');
             const buildStep = steps.find(step => step.name === 'Run type checking and build');
-            const testStep = steps.find(step => step.name === 'Run all tests');
-            
+            const testSuitesStep = steps.find(step => step.name === 'Run specific test suites');
+
             const lintStatus = lintStep ? (lintStep.conclusion === 'success' ? '✅' : '❌') : '❓';
             const buildStatus = buildStep ? (buildStep.conclusion === 'success' ? '✅' : '❌') : '❓';
-            const testStepStatus = testStep ? (testStep.conclusion === 'success' ? '✅' : '❌') : '❓';
-            
-            const lintText = lintStep ? 
-              (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') : 
+            const testStepStatus = testSuitesStep ? (testSuitesStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+
+            const lintText = lintStep ?
+              (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') :
               'ESLint status unknown';
-              
-            const buildText = buildStep ? 
-              (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') : 
+
+            const buildText = buildStep ?
+              (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') :
               'Build status unknown';
-              
-            const testText = testStep ? 
-              (testStep.conclusion === 'success' ? 'All tests passed' : 'Some tests failed') : 
+
+            const testText = testSuitesStep ?
+              (testSuitesStep.conclusion === 'success' ? 'All tests passed' : 'Some tests failed') :
               'Test status unknown';
             
             const commentBody = [
