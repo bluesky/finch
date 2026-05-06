@@ -6,18 +6,23 @@ import FinchConstruction from "./assets/finchConstruction.png";
 import FinchCommunication from "./assets/finchCommunication.png";
 import github from "./assets/github.svg";
 import blueskyLogo from "./assets/blueskyLogo.png"
+import { StorybookVersion } from '../components/StorybookVersion';
+
 
 
 
 <Meta title="About" />
 <div className="mainContainer">
-  <aside className="cornerAbsolute hideOnMobile">
+  <aside className="cornerAbsoluteLeft hideOnMobile">
     <a href="https://github.com/bluesky/finch" target="_blank" rel="noopener noreferrer" className="cornerImage">
       <img src={github} alt="github logo"  />
     </a>
     <a href="https://blueskyproject.io/" target="_blank" rel="noopener noreferrer" className="cornerImage blueskyCloudSize">
       <img src={blueskyLogo} alt="bluesky cloud logo"  />
     </a>
+  </aside>
+  <aside className="cornerAbsoluteRight greyText">
+    <StorybookVersion />
   </aside>
   <img src={FinchConstruction} alt="bird logo" className="banner" />
   <p>[Finch UI](https://github.com/bluesky/finch) is a set of web components for beamline controls, analysis, and data acquisition. It relies on [Bluesky](https://blueskyproject.io/) for backend services that integrate with your beamline. Our primary goal is to make it easier to provide Bluesky functionality to end users through convenient web browser interfaces.</p>
@@ -31,7 +36,7 @@ import blueskyLogo from "./assets/blueskyLogo.png"
   <section className=""> 
     <h2 className="">Compatibility</h2>
     <img src={FinchCompatibility} alt="various ui logos" className="banner " />
-    <p>For React developers that want to use another external component library (MUI, ChakraUI, Mantine, etc) there should be no major compatibility issues when loading in a Finch component. While Finch does provide layout templates, a global Finch wrapper around your app is not required to use individual components. </p>
+    <p>For React developers that want to use another external component library (MUI, ChakraUI, Mantine, etc) there should be no major compatibility issues when loading in a Finch component.</p>
     <p>Components come styled with Tailwind base classes, which generally don’t conflict with existing style names from popular UI component libraries. </p>
   </section>
 </div>
@@ -64,11 +69,24 @@ import blueskyLogo from "./assets/blueskyLogo.png"
     position: relative;
   }
 
-  .cornerAbsolute {
+  .cornerAbsoluteLeft {
     position: fixed;
     top: 0;
     left: 0;
     padding-left: 2rem;
+    padding-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cornerAbsoluteRight {
+    position: fixed;
+    top: 0;
+    right: 0;
+    padding-right: 2rem;
     padding-top: 2rem;
     display: flex;
     flex-direction: column;
@@ -90,6 +108,10 @@ import blueskyLogo from "./assets/blueskyLogo.png"
 
   .blueskyCloudSize {
     width: 2.5rem;
+  }
+
+  .greyText {
+    color: #9c9695;
   }
 
   section {
