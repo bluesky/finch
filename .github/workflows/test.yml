@@ -35,11 +35,6 @@ jobs:
         run: npm run build
         continue-on-error: false
 
-      - name: Run all tests
-        run: npm run test:run
-        env:
-          CI: true
-
       - name: Run specific test suites
         run: |
           echo "Running individual test suites for better visibility..."

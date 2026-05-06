@@ -17,13 +17,13 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function renderWithState(args: ColormapPickerProps) {
+function RenderWithState(args: ColormapPickerProps) {
     const [value, setValue] = useState(args.value);
     return <ColormapPicker {...args} value={value} onChange={setValue} />;
 }
 
 export const Default: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     args: {
         value: 'viridis',
         className: 'w-56',
@@ -31,7 +31,7 @@ export const Default: Story = {
 };
 
 export const GraySelected: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     args: {
         value: 'gray',
         className: 'w-56',
@@ -39,7 +39,7 @@ export const GraySelected: Story = {
 };
 
 export const Scrollable: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     args: {
         value: 'viridis',
         className: 'w-56 max-h-40',
@@ -47,7 +47,7 @@ export const Scrollable: Story = {
 };
 
 export const FilteredColormaps: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     parameters: {
         docs: {
             description: {
@@ -75,7 +75,7 @@ import { ColormapPicker, COLORMAPS } from '@blueskyproject/finch';
 };
 
 export const PlotlyColormaps: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     parameters: {
         docs: {
             description: {
@@ -91,7 +91,7 @@ export const PlotlyColormaps: Story = {
 };
 
 export const LongLabels: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     parameters: {
         docs: {
             description: {
@@ -111,7 +111,7 @@ export const LongLabels: Story = {
 };
 
 export const CustomColormaps: Story = {
-    render: renderWithState,
+    render: RenderWithState,
     parameters: {
         docs: {
             description: {
