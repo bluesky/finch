@@ -12,7 +12,8 @@
     "build-storybook": "storybook build",
     "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
     "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "files": [
     "dist"
