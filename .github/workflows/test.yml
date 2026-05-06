@@ -4,11 +4,16 @@ on:
   pull_request:
     branches: [main, staging]
   push:
-    branches: [main, staging]
+    branches: [staging]
 
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    permissions:
+        contents: read
+        issues: write
+        pull-requests: write
 
     strategy:
       matrix:
@@ -152,7 +157,7 @@ jobs:
               `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,
               `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
               ``,
-              `**Test Environment:** Node.js 18.x & 20.x`,
+              `**Test Environment:** Node.js 20.x`,
               `**Linting:** ${lintStatus} ${lintText}`,
               `**Type Checking:** ${buildStatus} ${buildText}`,
               `**Build:** ${buildStatus} Production build successful`,
