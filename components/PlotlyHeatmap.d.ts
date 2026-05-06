@@ -11,10 +11,6 @@ export type PlotlyHeatmapProps = {
     colorScale?: 'Viridis' | 'YlOrRd' | 'Cividis' | 'Hot' | 'Electric' | 'Plasma';
     /** Adjust the height of the plot. ex) a factor of 2 makes each row in the array take up 2 pixels */
     verticalScaleFactor?: number;
-    /** Tailwind ClassName, width of the plot container */
-    width?: `w-${string}`;
-    /** Tailwind ClassName, height of the plot container */
-    height?: `h-${string}`;
     /** Should tick marks show up? */
     showTicks?: boolean;
     /** Spacing between tick marks along data  */
@@ -25,10 +21,14 @@ export type PlotlyHeatmapProps = {
     lockPlotWidthHeightToInputArray?: boolean;
     /** Should the color scale show up? it will take up some space to the right of the plot */
     showScale?: boolean;
+    /** Enable log scale slider control */
+    enableLogScale?: boolean;
+    /** Flip y axis */
+    flipYAxis?: boolean;
+    /** Additional CSS classes applied to the root container. */
+    className?: string;
+    /** Additional CSS classes applied to the optional controller panel. */
+    classNameControls?: string;
 };
-export default function PlotlyHeatmap({ array, //2d array [[1, 2, 3], [2, 2 1]]
-title, xAxisTitle, yAxisTitle, colorScale, //plotly compatible colorScale
-verticalScaleFactor, // Adjusts the height of the plot. ex) A factor of 2 makes each row in the array take up 2 pixels
-width, height, showTicks, tickStep, showScale, lockPlotHeightToParent, //locks the height of the plot to the height of the container, should not be set to True if lockPlotWidthHeightToInputArray is on
-lockPlotWidthHeightToInputArray, }: PlotlyHeatmapProps): import("react/jsx-runtime").JSX.Element;
+export default function PlotlyHeatmap({ array, title, xAxisTitle, yAxisTitle, colorScale, verticalScaleFactor, showTicks, tickStep, showScale, lockPlotHeightToParent, lockPlotWidthHeightToInputArray, enableLogScale, flipYAxis, className, classNameControls, ...props }: PlotlyHeatmapProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=PlotlyHeatmap.d.ts.map

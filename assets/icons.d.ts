@@ -65,6 +65,9 @@ declare const deviceIcons: {
     beamstopY: import("react/jsx-runtime").JSX.Element;
     sampleHolderX: import("react/jsx-runtime").JSX.Element;
     sampleHolderY: import("react/jsx-runtime").JSX.Element;
+    monoRotation: import("react/jsx-runtime").JSX.Element;
+    monoVertical: import("react/jsx-runtime").JSX.Element;
+    monoLargeNoArrows: import("react/jsx-runtime").JSX.Element;
 };
 declare const controllerIcons: {
     leftArrowMinus: import("react/jsx-runtime").JSX.Element;
@@ -73,5 +76,12 @@ declare const controllerIcons: {
 declare const beamlineIcons: {
     mono: import("react/jsx-runtime").JSX.Element;
 };
-export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons, beamlineIcons };
+declare const finchIcons: {
+    finchOutline: import("react/jsx-runtime").JSX.Element;
+    finchOutlineThick: import("react/jsx-runtime").JSX.Element;
+    finchPortrait: import("react/jsx-runtime").JSX.Element;
+    finchPortraitTeal: import("react/jsx-runtime").JSX.Element;
+    finchPortraitFrameless: import("react/jsx-runtime").JSX.Element;
+};
+export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons, beamlineIcons, finchIcons };
 //# sourceMappingURL=icons.d.ts.map

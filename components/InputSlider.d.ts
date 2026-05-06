@@ -19,14 +19,10 @@ export type InputSliderProps = {
     step?: number;
     /** Should the input bar be filled up with blue color up to the thumb? */
     showFill?: boolean;
-    /**Tailwind ClassName */
-    width?: `w-${string}`;
-    /** How big should the text and tick marks be? */
-    size?: 'small' | 'medium' | 'large';
     /** A function that is called with the newest value */
     onChange?: (value: number) => void;
     /** Tailwind ClassNames applied to parent container */
-    styles?: string;
+    className?: string;
 };
-export default function InputSlider({ label, min, max, value, units, shorthandUnits, marks, step, showFill, size, width, showSideInput, onChange, styles, ...props }: InputSliderProps): import("react/jsx-runtime").JSX.Element;
+export default function InputSlider({ label, min, max, value, units, shorthandUnits, marks, step, showFill, showSideInput, onChange, className, ...props }: InputSliderProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=InputSlider.d.ts.map

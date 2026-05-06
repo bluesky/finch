@@ -1,4 +1,6 @@
-import { PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse } from '../types/apiTypes';
+import { PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from '../../../api/qServer/types';
+export declare const mockGetApiStatusResponse: GetStatusResponse;
+export declare const mockGetRunsActiveResponse: GetRunsActiveResponse;
 export declare const mockGetDevicesAllowedResponse: GetDevicesAllowedResponse;
 export declare const mockGetPlansAllowedResponse: GetPlansAllowedResponse;
 export declare const mockGetQueueItemResponse: {
@@ -47,36 +49,8 @@ export declare const mockAddItemSuccessArgsResponse: {
 };
 export declare const mockAddItemFailResponse: PostItemAddResponse;
 export declare const mockExecuteItemResponse: PostItemExecuteResponse;
-export declare const sampleQueueData: {
-    name: string;
-    args: string[][];
-    kwargs: {
-        num: number;
-        delay: number;
-    };
-    item_type: string;
-    user: string;
-    user_group: string;
-    item_uid: string;
-}[];
-export declare const mockGetQueueResponse: {
-    success: boolean;
-    msg: string;
-    items: {
-        name: string;
-        args: string[][];
-        kwargs: {
-            num: number;
-            delay: number;
-        };
-        item_type: string;
-        user: string;
-        user_group: string;
-        item_uid: string;
-    }[];
-    plan_queue_uid: string;
-    running_item: {};
-};
+export declare const sampleQueueData: QueueItem[];
+export declare const mockGetQueueResponse: GetQueueResponse;
 export declare const mockGetHistoryResponse: GetHistoryResponse;
 export declare const mockGetStatusResponse: GetStatusResponse;
 export declare const mockEnvironmentOpenResponse: PostEnvironmentOpenResponse;

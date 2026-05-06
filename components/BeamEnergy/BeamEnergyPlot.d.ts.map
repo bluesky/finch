@@ -1,0 +1,1 @@
+{"version":3,"file":"BeamEnergyPlot.d.ts","sourceRoot":"","sources":["../../../src/components/BeamEnergy/BeamEnergyPlot.tsx"],"names":[],"mappings":"AAEA,KAAK,mBAAmB,GAAG;IACvB,iFAAiF;IACjF,cAAc,CAAC,EAAE,MAAM,CAAC;IACxB,4DAA4D;IAC5D,KAAK,CAAC,EAAE,MAAM,CAAC;CAClB,CAAA;AAED,MAAM,CAAC,OAAO,UAAU,cAAc,CAAC,EAAE,cAAc,EAAE,KAAK,EAAE,MAAsB,EAAE,EAAE,mBAAmB,2CAU5G"}

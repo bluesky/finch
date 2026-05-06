@@ -6,19 +6,15 @@ type SidebarItemProps = {
     title?: string;
     /** any valid JSX, but SVG works best for color attribute */
     icon?: JSX.Element;
-    /** Tailwind ClassName for height, the width auto matches the height */
-    iconHeight?: `h-${string}`;
-    /** Tailwind ClassName */
-    titleColor?: `text-${string}`;
     /** Tailwind ClassNames */
-    containerStyles?: string;
+    className?: string;
     /** Tailwind ClassNames */
-    iconStyles?: string;
+    classNameIcon?: string;
     /** Tailwind ClassNames */
-    titleStyles?: string;
+    classNameTitle?: string;
     /** Tailwind ClassNames */
-    childrenStyles?: string;
+    classNameChildren?: string;
 };
-export default function SidebarItem({ children, title, icon, iconHeight, titleColor, containerStyles, iconStyles, titleStyles, childrenStyles, ...props }: SidebarItemProps): import("react/jsx-runtime").JSX.Element;
+export default function SidebarItem({ children, title, icon, className, classNameIcon, classNameTitle, classNameChildren, ...props }: SidebarItemProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=SidebarItem.d.ts.map

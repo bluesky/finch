@@ -1,0 +1,1 @@
+{"version":3,"file":"QueueServer.d.ts","sourceRoot":"","sources":["../../../src/components/QServer/QueueServer.tsx"],"names":[],"mappings":"AAsBA,MAAM,MAAM,gBAAgB,GAAG;IAC3B,SAAS,CAAC,EAAE,MAAM,CAAC;CACtB,CAAA;AACD,MAAM,CAAC,OAAO,UAAU,WAAW,CAAC,EAAC,SAAS,EAAC,EAAC,gBAAgB,2CAoJ/D"}

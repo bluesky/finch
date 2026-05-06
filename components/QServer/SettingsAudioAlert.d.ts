@@ -1,4 +1,2 @@
-type SettingsAudioAlertProps = {};
-export default function SettingsAudioAlert({}: SettingsAudioAlertProps): import("react/jsx-runtime").JSX.Element;
-export {};
+export default function SettingsAudioAlert(): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=SettingsAudioAlert.d.ts.map

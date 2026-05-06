@@ -1,4 +1,4 @@
-import { CopiedPlan } from './types/types';
+import { CopiedPlan, GlobalMetadata } from './types/types';
 type DictionaryInputProps = {
     cb: (dict: {
         [key: string]: string;
@@ -10,9 +10,7 @@ type DictionaryInputProps = {
     resetInputsTrigger: boolean;
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked: boolean;
-    globalMetadata: {
-        [key: string]: any;
-    };
+    globalMetadata: GlobalMetadata;
 };
 export default function DictionaryInput({ cb, label, required, description, styles, resetInputsTrigger, copiedPlan, isGlobalMetadataChecked, globalMetadata }: DictionaryInputProps): import("react/jsx-runtime").JSX.Element;
 export {};

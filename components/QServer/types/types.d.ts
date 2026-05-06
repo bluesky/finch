@@ -1,15 +1,5 @@
-import { Parameter, Device, QueueItem } from './apiTypes';
-export interface PopupItem extends QueueItem {
-    result?: {
-        exit_status: string;
-        time_start: number;
-        time_stop: number;
-        run_uids: string[];
-        scan_ids: string[];
-        traceback: string;
-        msg: string;
-    };
-}
+import { Parameter, Device, QueueItem, HistoryItem, RunningQueueItem, ArbitraryKwargs } from '../../../api/qServer/types';
+export type PopupItem = QueueItem | HistoryItem | RunningQueueItem;
 export interface HistoryResultRow {
     name: string;
     icon: JSX.Element;
@@ -17,7 +7,7 @@ export interface HistoryResultRow {
 }
 export type Plan = {
     name: string;
-    kwargs: Record<string, any>;
+    kwargs: Record<string, unknown>;
     item_type: string;
 };
 export interface PlanInput {
@@ -27,19 +17,20 @@ export interface PlanInput {
 export interface ParameterInput extends Parameter {
     value: string | string[];
     required: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 export interface ParameterInputDict {
     [key: string]: ParameterInput;
 }
+export type BaseParameterDict = Record<string, ParameterInput | unknown>;
 export interface CopiedPlan {
     name: string;
-    parameters: ParameterInputDict;
+    parameters: ArbitraryKwargs;
 }
 export interface AllowedDevices {
     [key: string]: Device;
 }
 export interface GlobalMetadata {
-    [key: string]: any;
+    [key: string]: string;
 }
 //# sourceMappingURL=types.d.ts.map

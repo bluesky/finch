@@ -1,4 +1,2 @@
-type CameraCustomSetupProps = {};
-export default function CameraCustomSetup({}: CameraCustomSetupProps): import("react/jsx-runtime").JSX.Element;
-export {};
+export default function CameraCustomSetup(): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=CameraCustomSetup.d.ts.map

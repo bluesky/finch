@@ -1,26 +1,30 @@
 export type ButtonWithIconProps = {
-    /** callback function on click */
-    cb?: () => void;
-    /** text inside button */
+    /** Callback function triggered when button is clicked */
+    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    /** Text content displayed inside the button alongside the icon */
     text?: string;
-    /** Tailwind ClassName */
-    bgColor?: `bg-${string}`;
-    /** Tailwind ClassName */
-    hoverBgColor?: `hover:bg-${string}`;
-    /** Tailwind ClassName */
-    textColor?: `text-${string}`;
-    /** Extra Tailwind ClassNames applied to button component */
+    /** Additional CSS classes applied to the button component */
     styles?: string;
-    /** Boolean that prevents the user from clicking or causing hover effects when true */
+    /** Disables the button and prevents user interaction when true */
     disabled?: boolean;
-    /** any valid JSX element, best used with SVG to allow text color property to apply  */
+    /** JSX element displayed as an icon - works best with SVG elements for proper styling  */
     icon: JSX.Element;
-    /** Is the icon on the left or right of the text? */
+    /** Controls whether the icon appears on the left or right side of the text */
     iconPosition?: 'left' | 'right';
-    /** How large is the button */
+    /** Controls the overall size of the button - affects text size, icon size, and padding */
     size?: 'small' | 'medium' | 'large';
-    /** Should the button style default to hollow color with black text? */
+    /** Changes button style to transparent background with border and black text when true */
     isSecondary?: boolean;
+    /** Additional CSS classes applied to the button container. To override colors, pass Tailwind classes (e.g. `bg-orange-500 hover:bg-orange-600 text-white`). */
+    className?: string;
+    /** Additional CSS classes applied to the button text element */
+    classNameText?: string;
+    /** Additional CSS classes applied to the icon element */
+    classNameIcon?: string;
+    /** Renders the button in a pressed/active state */
+    active?: boolean;
+    /** Legacy callback function, use onClick instead */
+    cb?: () => void;
 };
-export default function ButtonWithIcon({ cb, text, bgColor, hoverBgColor, textColor, styles, disabled, icon, iconPosition, size, isSecondary, ...props }: ButtonWithIconProps): import("react/jsx-runtime").JSX.Element;
+export default function ButtonWithIcon({ cb, onClick, text, disabled, icon, iconPosition, size, isSecondary, active, className, classNameText, classNameIcon, ...props }: ButtonWithIconProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=ButtonWithIcon.d.ts.map

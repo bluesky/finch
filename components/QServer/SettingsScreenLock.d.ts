@@ -1,4 +1,2 @@
-type SettingsScreenLockProps = {};
-export default function SettingsScreenLock({}: SettingsScreenLockProps): import("react/jsx-runtime").JSX.Element;
-export {};
+export default function SettingsScreenLock(): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=SettingsScreenLock.d.ts.map

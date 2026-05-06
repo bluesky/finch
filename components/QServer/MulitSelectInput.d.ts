@@ -8,8 +8,7 @@ type MultiSelectInputProps = {
     allowedDevices: AllowedDevices;
     description: string | undefined;
     required: boolean;
-    styles?: string;
 };
-export default function MultiSelectInput({ label, isItemInArray, addItem, removeItem, selectedItems, allowedDevices, description, required, styles }: MultiSelectInputProps): import("react/jsx-runtime").JSX.Element;
+export default function MultiSelectInput({ label, isItemInArray, addItem, removeItem, selectedItems, allowedDevices, description, required, }: MultiSelectInputProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=MulitSelectInput.d.ts.map
