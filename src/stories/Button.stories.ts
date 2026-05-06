@@ -49,3 +49,32 @@ export const Small: Story = {
     size: 'small'
   },
 };
+
+export const Active: Story = {
+  args: {
+    text: 'active',
+    active: true,
+  },
+};
+
+export const ActiveSecondary: Story = {
+  args: {
+    text: 'active secondary',
+    active: true,
+    isSecondary: true,
+  },
+};
+
+export const Disabled: Story = {
+  args: {
+    text: 'disabled',
+    disabled: true,
+  },
+};
+
+export const CustomColors: Story = {
+  args: {
+    text: 'custom colors',
+    className: 'bg-orange-500 hover:bg-orange-600 text-white',
+  },
+};

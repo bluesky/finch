@@ -15,7 +15,7 @@ export type ButtonCopyToClipboardProps = {
     onClick?: (event: React.MouseEvent<HTMLButtonElement>)=> void;
     /** Controls the size of the button icon - affects height and maintains square aspect ratio */
     size?: 'small' | 'medium' | 'large';
-    /** Additional CSS classes applied to the button container */
+    /** Additional CSS classes applied to the button container. To override the icon color, pass Tailwind text classes (e.g. `text-orange-500 hover:text-orange-300`). */
     className?: string;
     /** Legacy callback function, use onClick instead */
     cb?: ()=> void;

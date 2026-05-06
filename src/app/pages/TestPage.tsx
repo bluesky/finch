@@ -1,9 +1,6 @@
 import DeviceControllerBox from "@/components/DeviceControllerBox";
 import SignalMonitorPlotDevice from "@/components/SignalMonitorPlotDevice";
 import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
-import QueueServer from "@/components/QServer/QueueServer";
-import TiledWrapper from "@/components/Tiled/Tiled";
-import { Tiled } from "@blueskyproject/tiled";
 export default function TestPage() {
     const {devices, handleSetValueRequest, toggleDeviceLock} = useOphydPVSocket(['IOC:m1', 'IOC:m1.RBV']);
     return (
@@ -11,7 +8,5 @@ export default function TestPage() {
             <DeviceControllerBox device={devices['IOC:m1']} deviceRBV={devices['IOC:m1.RBV']} handleLockClick={toggleDeviceLock} handleSetValueRequest={handleSetValueRequest} />
             <SignalMonitorPlotDevice device={devices['IOC:m1.RBV']} />
         </div>
-        // <QueueServer />
-        // <TiledWrapper />
     );
 }

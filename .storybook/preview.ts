@@ -1,5 +1,7 @@
 import type { Preview } from "@storybook/react";
 import "../tailwind.css";
+const version = import.meta.env.STORYBOOK_FINCH_VERSION;
+console.log(`Finch UI version ${version}`);
 const preview: Preview = {
   parameters: {
     controls: {
@@ -10,6 +12,7 @@ const preview: Preview = {
     },
     options: {
       storySort: {
+        method: 'alphabetical',
         order: [
           "About",
           "Documentation", [

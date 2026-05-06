@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
-import InputSliderRange from '../components/InputSliderRange';
+import InputSliderRange, { type InputSliderRangeProps } from '../components/InputSliderRange';
 
 const meta = {
     title: 'General Components/InputSliderRange',
@@ -16,7 +16,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function InteractiveInputSliderRange(args: any) {
+function InteractiveInputSliderRange(args: InputSliderRangeProps) {
     const [value, setValue] = useState(args.value);
 
     return (

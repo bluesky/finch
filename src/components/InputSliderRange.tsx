@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-type InputSliderRangeProps = {
+export type InputSliderRangeProps = {
   /** Slider label */
   label?: string;
   /** Lowest possible value */

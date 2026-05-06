@@ -2,7 +2,7 @@ import { createElement, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
-import InputSlider from '../components/InputSlider';
+import InputSlider, { type InputSliderProps } from '../components/InputSlider';
 
 const meta = {
     title: 'General Components/InputSlider',
@@ -16,7 +16,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function InteractiveInputSlider(args: any) {
+function InteractiveInputSlider(args: InputSliderProps) {
     const [value, setValue] = useState(args.value);
 
     return createElement(InputSlider, {
