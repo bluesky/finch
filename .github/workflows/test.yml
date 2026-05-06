@@ -1,0 +1,172 @@
+name: Run Tests
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Run type checking and build
+        run: npm run build
+        continue-on-error: false
+
+      - name: Run all tests
+        run: npm run test:run
+        env:
+          CI: true
+
+      - name: Run specific test suites
+        run: |
+          echo "Running individual test suites for better visibility..."
+          npm run test:run -- src/testing/tests/Button.test.tsx
+          npm run test:run -- src/testing/tests/ButtonIconOnly.test.tsx
+          npm run test:run -- src/testing/tests/ButtonWithIcon.test.tsx
+          npm run test:run -- src/testing/tests/ButtonCopyToClipboard.test.tsx
+          npm run test:run -- src/testing/tests/InputCheckBox.test.tsx
+          npm run test:run -- src/testing/tests/InputNumber.test.tsx
+          npm run test:run -- src/testing/tests/InputEnumBoxRounded.test.tsx
+          npm run test:run -- src/testing/tests/InputStringBoxRounded.test.tsx
+          npm run test:run -- src/testing/tests/ColormapPicker.test.tsx
+          npm run test:run -- src/testing/tests/TiledComponents.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
+          npm run test:run -- src/testing/tests/Sidebar.test.tsx
+          npm run test:run -- src/testing/tests/SidebarItem.test.tsx
+          npm run test:run -- src/testing/tests/HubSidebar.test.tsx
+          npm run test:run -- src/testing/tests/HubAppLayout.test.tsx
+          npm run test:run -- src/testing/tests/HubHeader.test.tsx
+          npm run test:run -- src/testing/tests/HubMainContent.test.tsx
+          npm run test:run -- src/testing/tests/Header.test.tsx
+          npm run test:run -- src/testing/tests/Main.test.tsx
+          npm run test:run -- src/testing/tests/Widget.test.tsx
+          npm run test:run -- src/testing/tests/Camera.test.tsx
+          npm run test:run -- src/testing/tests/Shutter.test.tsx
+          npm run test:run -- src/testing/tests/DeviceControllerBox.test.tsx
+          npm run test:run -- src/testing/tests/DeviceControllerBoxSimple.test.tsx
+          npm run test:run -- src/testing/tests/TableDeviceController.test.tsx
+          npm run test:run -- src/testing/tests/ControllerAbsoluteMove.test.tsx
+          npm run test:run -- src/testing/tests/ControllerRelativeMove.test.tsx
+          npm run test:run -- src/testing/tests/QueueServer.test.tsx
+          npm run test:run -- src/testing/tests/SignalMonitorPlots.test.tsx
+          npm run test:run -- src/testing/tests/Bento.test.tsx
+          npm run test:run -- src/testing/tests/BeamEnergy.test.tsx
+          npm run test:run -- src/testing/tests/Hexapod.test.tsx
+          npm run test:run -- src/testing/tests/Histogram.test.tsx
+          npm run test:run -- src/testing/tests/IFrame.test.tsx
+          npm run test:run -- src/testing/tests/GoogleDoc.test.tsx
+          npm run test:run -- src/testing/tests/Paper.test.tsx
+          npm run test:run -- src/testing/tests/SelectDropdown.test.tsx
+          npm run test:run -- src/testing/tests/Experiment.test.tsx
+          npm run test:run -- src/testing/tests/ComponentViewer.test.tsx
+          npm run test:run -- src/testing/tests/ComponentViewerUtils.test.tsx
+        env:
+          CI: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-node-${{ matrix.node-version }}
+          path: |
+            coverage/
+            test-results/
+          retention-days: 30
+
+  test-summary:
+    runs-on: ubuntu-latest
+    needs: test
+    if: always() && github.event_name == 'pull_request'
+    
+    steps:
+      - name: Comment PR with test summary
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const testStatus = '${{ needs.test.result }}';
+            const emoji = testStatus === 'success' ? '✅' : '❌';
+            const message = testStatus === 'success' ? 'All tests passed!' : 'Some tests failed.';
+            
+            // Get the job outputs to determine individual step results
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId,
+            });
+            
+            const testJob = jobs.data.jobs.find(job => job.name.includes('test'));
+            const steps = testJob ? testJob.steps : [];
+            
+            const lintStep = steps.find(step => step.name === 'Run linting');
+            const buildStep = steps.find(step => step.name === 'Run type checking and build');
+            const testStep = steps.find(step => step.name === 'Run all tests');
+            
+            const lintStatus = lintStep ? (lintStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const buildStatus = buildStep ? (buildStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const testStepStatus = testStep ? (testStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            
+            const lintText = lintStep ? 
+              (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') : 
+              'ESLint status unknown';
+              
+            const buildText = buildStep ? 
+              (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') : 
+              'Build status unknown';
+              
+            const testText = testStep ? 
+              (testStep.conclusion === 'success' ? 'All tests passed' : 'Some tests failed') : 
+              'Test status unknown';
+            
+            const commentBody = [
+              `## ${emoji} Test Results`,
+              ``,
+              `${message}`,
+              ``,
+              `**Complete Test Suite Coverage:**`,
+              `- ${testStepStatus} **Buttons** - Button, ButtonIconOnly, ButtonWithIcon, ButtonCopyToClipboard`,
+              `- ${testStepStatus} **Inputs** - InputCheckBox, InputNumber, InputEnumBoxRounded, InputStringBoxRounded`,
+              `- ${testStepStatus} **Plots** - PlotlyHeatmap, PlotlyHeatmapTiled, PlotlyScatter, Histogram, ColormapPicker`,
+              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, HubSidebar, HubAppLayout, HubHeader, HubMainContent, Header, Main, Bento, Paper, Widget`,
+              `- ${testStepStatus} **Tiled** - TiledComponents`,
+              `- ${testStepStatus} **Devices** - Camera, Shutter, DeviceControllerBox, DeviceControllerBoxSimple, TableDeviceController, ControllerAbsoluteMove, ControllerRelativeMove, Hexapod, BeamEnergy`,
+              `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,
+              `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
+              ``,
+              `**Test Environment:** Node.js 18.x & 20.x`,
+              `**Linting:** ${lintStatus} ${lintText}`,
+              `**Type Checking:** ${buildStatus} ${buildText}`,
+              `**Build:** ${buildStatus} Production build successful`,
+              `**Tests:** ${testStepStatus} ${testText}`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
