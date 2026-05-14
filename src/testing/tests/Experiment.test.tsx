@@ -233,8 +233,9 @@ describe('ExperimentExecutePlanButton', () => {
     });
 
     it('shows "Loading..." while checking plan availability', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         usePlansAllowedQueryMock.mockReturnValueOnce({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data: null as any,
             isLoading: true,
             isError: false,

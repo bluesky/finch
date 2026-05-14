@@ -1,5 +1,5 @@
 //Temporary file used for types, this is to be replaced by the types exported in the <Tiled /> component once available
-
+/* eslint-disable @typescript-eslint/no-explicit-any*/
 /** A single Tiled node path entry with its data structure family. */
 export type PathItem = {
     /** Tiled node identifier / path segment. */
@@ -280,21 +280,21 @@ export type TiledTableData = TiledTableRow[];
 /** Full dataset returned by a Tiled structured array fetch. */
 export type TiledStructuredArrayData = TiledStructuredArrayRow[];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<ArrayStructure> => {
     return item.attributes.structure_family === 'array';
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isTableStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<TableStructure> => {
     return item.attributes.structure_family === 'table';
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isContainerStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<ContainerStructure> => {
@@ -304,21 +304,21 @@ export const isContainerStructure = (
     );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isAwkwardStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<AwkwardStructure> => {
     return item.attributes.structure_family === 'awkward';
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isSparseStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<SparseStructure> => {
     return item.attributes.structure_family === 'sparse';
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isStructuredArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<StructuredArrayStructure> => {
@@ -328,7 +328,7 @@ export const isStructuredArrayStructure = (
     );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export const isXArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<XArrayStructure> => {
@@ -357,7 +357,7 @@ export type TiledAuthProvider = {
     };
     /** Message shown to the user after successful authentication. */
     confirmation_message: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     [key: string]: any;
 };
 
@@ -402,7 +402,7 @@ export type TiledInfoResponse = {
     };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export function isValidTiledInfoResponse(data: any): data is TiledInfoResponse {
     return (
         data &&

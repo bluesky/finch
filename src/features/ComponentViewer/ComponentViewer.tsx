@@ -11,9 +11,9 @@ export type ComponentViewerProps = {
     namespace?: string;
 };
 export default function ComponentViewer({ testItems, className, namespace }: ComponentViewerProps) {
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     const initializedTestResults = useMemo(
         () => initializeTestResults(testItems, namespace),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         [namespace],
     ); //we will get infinite re renders if we don't memoize the testItems which contain devices that rapidly update
     const [testResults, setTestResults] =

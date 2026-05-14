@@ -7,8 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src .storybook",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "eslint src .storybook --fix",
+    "format": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,tsx}\"",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
@@ -113,11 +114,6 @@
   "homepage": "https://github.com/bluesky/finch#readme",
   "author": "Seij De Leon",
   "license": "BSD-3-Clause",
-  "eslintConfig": {
-    "extends": [
-      "plugin:storybook/recommended"
-    ]
-  },
   "msw": {
     "workerDirectory": [
       "public"
