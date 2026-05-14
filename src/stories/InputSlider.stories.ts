@@ -10,7 +10,7 @@ const meta = {
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',
-    }
+    },
 } satisfies Meta<typeof InputSlider>;
 
 export default meta;
@@ -36,9 +36,9 @@ export const Default: Story = {
         max: 100,
         value: 4,
         label: 'Age',
-        units: 'years'
-    }
-}
+        units: 'years',
+    },
+};
 
 export const WithFillBar: Story = {
     render: (args) => createElement(InteractiveInputSlider, args),
@@ -49,8 +49,8 @@ export const WithFillBar: Story = {
         onChange: fn(),
         label: 'Age',
         showFill: true,
-    }
-}
+    },
+};
 
 export const WithCustomTicks: Story = {
     render: (args) => createElement(InteractiveInputSlider, args),
@@ -59,9 +59,9 @@ export const WithCustomTicks: Story = {
         max: 100,
         value: 4,
         onChange: fn(),
-        marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    }
-}
+        marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    },
+};
 
 export const WithTickLabels: Story = {
     render: (args) => createElement(InteractiveInputSlider, args),
@@ -71,9 +71,9 @@ export const WithTickLabels: Story = {
         value: 4,
         onChange: fn(),
         marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-        shorthandUnits: 'yr'
-    }
-}
+        shorthandUnits: 'yr',
+    },
+};
 
 export const WithoutLabel: Story = {
     render: (args) => createElement(InteractiveInputSlider, args),
@@ -82,8 +82,8 @@ export const WithoutLabel: Story = {
         max: 100,
         value: 4,
         onChange: fn(),
-    }
-}
+    },
+};
 
 export const WithoutLabelOrInput: Story = {
     render: (args) => createElement(InteractiveInputSlider, args),
@@ -92,7 +92,6 @@ export const WithoutLabelOrInput: Story = {
         max: 100,
         value: 4,
         onChange: fn(),
-        showSideInput: false
-    }
-}
-
+        showSideInput: false,
+    },
+};

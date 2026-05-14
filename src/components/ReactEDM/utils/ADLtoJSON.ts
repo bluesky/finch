@@ -3,7 +3,7 @@ export interface CustomFormatObject {
 }
 
 export function parseCustomFormat(input: string): CustomFormatObject[] {
-    const lines = input.split('\n').filter(line => line.trim() !== '');
+    const lines = input.split('\n').filter((line) => line.trim() !== '');
     let index = 0;
 
     function removeQuotes(str: string): string {
@@ -30,9 +30,9 @@ export function parseCustomFormat(input: string): CustomFormatObject[] {
                     const result: Record<string, string> = {};
 
                     // Split by comma and process each key-value pair
-                    value.split(',').forEach(pair => {
+                    value.split(',').forEach((pair) => {
                         const trimmedPair = pair.trim();
-                        const cleanPair=trimmedPair.replace(/"/g, '');
+                        const cleanPair = trimmedPair.replace(/"/g, '');
                         const equalIndex = cleanPair.indexOf('=');
 
                         if (equalIndex > 0) {
@@ -43,14 +43,13 @@ export function parseCustomFormat(input: string): CustomFormatObject[] {
                     });
 
                     obj[cleanKey] = result;
-                    index++
-
-                }
-                else {
-                    obj[cleanKey] = value.startsWith('"') ? value.slice(1, -1) : Number(value) || value;
+                    index++;
+                } else {
+                    obj[cleanKey] = value.startsWith('"')
+                        ? value.slice(1, -1)
+                        : Number(value) || value;
                     index++;
                 }
-
             }
 
             // handles nested objects
@@ -78,13 +77,10 @@ export function parseCustomFormat(input: string): CustomFormatObject[] {
                         }
                     }
                     obj[key] = childArr;
-                }
-
-                else {
+                } else {
                     obj[key] = parseObject(); // Recurse
                 }
-            }
-            else {
+            } else {
                 index++; // default case for weird lines
             }
         }

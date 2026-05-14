@@ -1,29 +1,38 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { usePlansAllowedQuery, useDevicesAllowedQuery, useAddQueueItemMutation, useExecuteQueueItemMutation } from '@/api/qServer/hooks';
+import {
+    usePlansAllowedQuery,
+    useDevicesAllowedQuery,
+    useAddQueueItemMutation,
+    useExecuteQueueItemMutation,
+} from '@/api/qServer/hooks';
 import { CopiedPlan, ParameterInputDict } from '../types/types';
-import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody, AddQueueItemBody } from '@/api/qServer/types';
-
-
+import {
+    Plan,
+    Device,
+    PostItemAddResponse,
+    ExecuteQueueItemBody,
+    AddQueueItemBody,
+} from '@/api/qServer/types';
 
 const sampleBody = {
     item: {
-        'name': '',
-        'kwargs': {},
-        'item_type': 'plan' as const
+        name: '',
+        kwargs: {},
+        item_type: 'plan' as const,
     },
-    pos: 'back'
+    pos: 'back',
 };
 
 interface UseQSAddItemProps {
     copiedPlan?: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
-    globalMetadata?: {[key: string]: unknown};
+    globalMetadata?: { [key: string]: unknown };
 }
 
 export function useQSAddItem({
     copiedPlan = null,
     isGlobalMetadataChecked = false,
-    globalMetadata = {}
+    globalMetadata = {},
 }: UseQSAddItemProps = {}) {
     // State variables
     const plansQuery = usePlansAllowedQuery();
@@ -53,7 +62,9 @@ export function useQSAddItem({
 
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
     const [isSubmissionPopupOpen, setIsSubmissionPopupOpen] = useState<boolean>(false);
-    const [submissionResponse, setSubmissionResponse] = useState<PostItemAddResponse>({} as PostItemAddResponse);
+    const [submissionResponse, setSubmissionResponse] = useState<PostItemAddResponse>(
+        {} as PostItemAddResponse,
+    );
     const [activePlan, setActivePlan] = useState<string | null>(null);
     const [parameters, setParameters] = useState<ParameterInputDict | null>(null);
     const [body, setBody] = useState<AddQueueItemBody>(sampleBody);
@@ -61,68 +72,90 @@ export function useQSAddItem({
     const [resetInputsTrigger, setResetInputsTrigger] = useState<boolean>(false);
 
     // Plan and parameter management
-    const updateBodyKwargs = useCallback((parameters: ParameterInputDict) => {
-        const parametersCopy = JSON.parse(JSON.stringify(parameters));
+    const updateBodyKwargs = useCallback(
+        (parameters: ParameterInputDict) => {
+            const parametersCopy = JSON.parse(JSON.stringify(parameters));
 
-        if (isGlobalMetadataChecked) {
-            if (globalMetadata) {
-                if (!('md' in parametersCopy)) {
-                    parametersCopy.md = {};
-                }
-                parametersCopy.md.value = {...globalMetadata, ...parametersCopy.md.value};
-            }
-        }
-
-        setBody(state => {
-            const stateCopy = JSON.parse(JSON.stringify(state));
-            const newKwargs: Record<string, unknown> = {};
-
-            for (const key in parametersCopy) {
-                const val = parametersCopy[key].value;
-                if (val === '' || (Array.isArray(val) && val.length === 0)) {
-                    // value is empty, do not add to kwargs
-                } else {
-                    newKwargs[key] = parametersCopy[key].value;
+            if (isGlobalMetadataChecked) {
+                if (globalMetadata) {
+                    if (!('md' in parametersCopy)) {
+                        parametersCopy.md = {};
+                    }
+                    parametersCopy.md.value = { ...globalMetadata, ...parametersCopy.md.value };
                 }
             }
 
-            stateCopy.item.kwargs = newKwargs;
-            return stateCopy;
-        });
-    }, [isGlobalMetadataChecked, globalMetadata]);
+            setBody((state) => {
+                const stateCopy = JSON.parse(JSON.stringify(state));
+                const newKwargs: Record<string, unknown> = {};
 
-    const initializeParameters = useCallback((plan = '', parameters?: Record<string, unknown>) => {
-        const tempParameters: ParameterInputDict = {};
-        const multiSelectParamList = ['detectors'];
-        const requiredParamList = ['detectors', 'detector', 'motor', 'target_field', 'signal', 'npts', 'x_motor', 'start', 'stop'];
+                for (const key in parametersCopy) {
+                    const val = parametersCopy[key].value;
+                    if (val === '' || (Array.isArray(val) && val.length === 0)) {
+                        // value is empty, do not add to kwargs
+                    } else {
+                        newKwargs[key] = parametersCopy[key].value;
+                    }
+                }
 
-        for (const param of allowedPlans[plan].parameters) {
-            const defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
-            const isRequiredByDefinition = (param.description && param.description.toLowerCase().trim().startsWith("req"));
-            tempParameters[param.name] = {...param, value: defaultValue, required: requiredParamList.includes(param.name) || isRequiredByDefinition === true};
-        }
+                stateCopy.item.kwargs = newKwargs;
+                return stateCopy;
+            });
+        },
+        [isGlobalMetadataChecked, globalMetadata],
+    );
 
-        if (parameters !== undefined) {
-            for (const key in parameters) {
-                tempParameters[key].value = parameters[key] as string | string[];
+    const initializeParameters = useCallback(
+        (plan = '', parameters?: Record<string, unknown>) => {
+            const tempParameters: ParameterInputDict = {};
+            const multiSelectParamList = ['detectors'];
+            const requiredParamList = [
+                'detectors',
+                'detector',
+                'motor',
+                'target_field',
+                'signal',
+                'npts',
+                'x_motor',
+                'start',
+                'stop',
+            ];
+
+            for (const param of allowedPlans[plan].parameters) {
+                const defaultValue = multiSelectParamList.includes(param.name) ? [] : '';
+                const isRequiredByDefinition =
+                    param.description && param.description.toLowerCase().trim().startsWith('req');
+                tempParameters[param.name] = {
+                    ...param,
+                    value: defaultValue,
+                    required:
+                        requiredParamList.includes(param.name) || isRequiredByDefinition === true,
+                };
             }
-        }
 
-        setParameters(tempParameters);
-        updateBodyKwargs(tempParameters);
-    }, [allowedPlans, updateBodyKwargs]);
+            if (parameters !== undefined) {
+                for (const key in parameters) {
+                    tempParameters[key].value = parameters[key] as string | string[];
+                }
+            }
+
+            setParameters(tempParameters);
+            updateBodyKwargs(tempParameters);
+        },
+        [allowedPlans, updateBodyKwargs],
+    );
 
     const handlePlanSelect = (plan: string) => {
         if (activePlan !== plan) {
             setActivePlan(plan);
             initializeParameters(plan);
             updateBodyName(plan);
-            setResetInputsTrigger(prev => !prev);
+            setResetInputsTrigger((prev) => !prev);
         }
     };
 
     const updateBodyName = (name: string) => {
-        setBody(state => {
+        setBody((state) => {
             const stateCopy = state;
             stateCopy.item.name = name;
             return stateCopy;
@@ -175,7 +208,7 @@ export function useQSAddItem({
     const handleParameterRefreshClick = (activePlan: string | null) => {
         if (typeof activePlan === 'string') {
             initializeParameters(activePlan);
-            setResetInputsTrigger(prev => !prev);
+            setResetInputsTrigger((prev) => !prev);
         }
     };
 
@@ -197,7 +230,7 @@ export function useQSAddItem({
             }
         }
 
-        setBody(state => {
+        setBody((state) => {
             const stateCopy = state;
             stateCopy.pos = sanitizedVal;
             return stateCopy;

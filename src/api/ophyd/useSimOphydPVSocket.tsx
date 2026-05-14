@@ -77,18 +77,21 @@ export default function useSimOphydPVSocket(deviceNameList: string[], _wsUrl?: s
         }));
     }, []);
 
-    const handleSetValueRequest = useCallback((deviceName: string, value: string | number | boolean) => {
-        // For animated signals ignore set requests; for motors apply immediately
-        if (deviceName === 'sineSignal' || deviceName === 'noisySignal') return;
-        setDevices((prev) => ({
-            ...prev,
-            [deviceName]: {
-                ...prev[deviceName],
-                value,
-                timestamp: Date.now(),
-            },
-        }));
-    }, []);
+    const handleSetValueRequest = useCallback(
+        (deviceName: string, value: string | number | boolean) => {
+            // For animated signals ignore set requests; for motors apply immediately
+            if (deviceName === 'sineSignal' || deviceName === 'noisySignal') return;
+            setDevices((prev) => ({
+                ...prev,
+                [deviceName]: {
+                    ...prev[deviceName],
+                    value,
+                    timestamp: Date.now(),
+                },
+            }));
+        },
+        [],
+    );
 
     const toggleExpand = useCallback((deviceName: string) => {
         setDevices((prev) => ({

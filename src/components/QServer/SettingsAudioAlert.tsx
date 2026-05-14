@@ -1,5 +1,3 @@
 export default function SettingsAudioAlert() {
-    return (
-        <div>Audio Alert Settings Coming Soon</div>
-    )
+    return <div>Audio Alert Settings Coming Soon</div>;
 }

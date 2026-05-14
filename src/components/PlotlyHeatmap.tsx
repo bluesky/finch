@@ -4,40 +4,40 @@ import { cn } from '@/lib/utils';
 
 export type PlotlyHeatmapProps = {
     /** A nested array displayed top-down */
-    array: number[][],
+    array: number[][];
     /** The plot title */
-    title?: string,
+    title?: string;
     /** x axis title, adds padding to bottom */
-    xAxisTitle?: string,
+    xAxisTitle?: string;
     /** y axis title, adds padding to left */
-    yAxisTitle?: string,
+    yAxisTitle?: string;
     /** Plotly specific colorscales */
-    colorScale?: 'Viridis' | 'YlOrRd' | 'Cividis' | 'Hot' | 'Electric' | 'Plasma',
+    colorScale?: 'Viridis' | 'YlOrRd' | 'Cividis' | 'Hot' | 'Electric' | 'Plasma';
     /** Adjust the height of the plot. ex) a factor of 2 makes each row in the array take up 2 pixels */
-    verticalScaleFactor?: number,
+    verticalScaleFactor?: number;
     /** Should tick marks show up? */
-    showTicks?: boolean,
+    showTicks?: boolean;
     /** Spacing between tick marks along data  */
-    tickStep?: number,
+    tickStep?: number;
     /** Should the visual plot be locked to the height of the parent container? */
-    lockPlotHeightToParent?: boolean,
+    lockPlotHeightToParent?: boolean;
     /** Should each data point be locked in to an exact pixel? Don't use this with 'lockPlotHeightToParent' */
-    lockPlotWidthHeightToInputArray?: boolean,
+    lockPlotWidthHeightToInputArray?: boolean;
     /** Should the color scale show up? it will take up some space to the right of the plot */
-    showScale?: boolean,
+    showScale?: boolean;
     /** Enable log scale slider control */
-    enableLogScale?: boolean,
+    enableLogScale?: boolean;
     /** Flip y axis */
-    flipYAxis?: boolean
+    flipYAxis?: boolean;
     /** Additional CSS classes applied to the root container. */
     className?: string;
     /** Additional CSS classes applied to the optional controller panel. */
     classNameControls?: string;
-}
+};
 
 //TODO: there are some issues with the display when zooming out
 export default function PlotlyHeatmap({
-    array, 
+    array,
     title = '',
     xAxisTitle = '',
     yAxisTitle = '',
@@ -46,8 +46,8 @@ export default function PlotlyHeatmap({
     showTicks = false,
     tickStep = 100,
     showScale = true,
-    lockPlotHeightToParent=false,
-    lockPlotWidthHeightToInputArray=false,
+    lockPlotHeightToParent = false,
+    lockPlotWidthHeightToInputArray = false,
     enableLogScale = false,
     flipYAxis = true,
     className,
@@ -77,19 +77,19 @@ export default function PlotlyHeatmap({
 
         if (scaleType === 'log') {
             // Apply log transformation with a base that increases with slider value
-            const logBase = 1 + (debouncedScale / 10); // Base ranges from 1.1 to 2.0
-            
-            return array.map(row => 
-                row.map(value => {
+            const logBase = 1 + debouncedScale / 10; // Base ranges from 1.1 to 2.0
+
+            return array.map((row) =>
+                row.map((value) => {
                     // Add small epsilon to avoid log(0), then apply log transformation
                     const safeValue = Math.max(value, 0.001);
                     return Math.log(safeValue) / Math.log(logBase);
-                })
+                }),
             );
         } else {
             // Apply gamma correction
             const gamma = 0.1 + (debouncedScale / 10) * 2.9; // Gamma ranges from 0.1 to 3.0
-            
+
             // Find max value efficiently without spread operator
             let maxValue = 0;
             for (const row of array) {
@@ -99,14 +99,14 @@ export default function PlotlyHeatmap({
                     }
                 }
             }
-            
-            return array.map(row =>
-                row.map(value => {
+
+            return array.map((row) =>
+                row.map((value) => {
                     // Normalize to 0-1, apply gamma, then scale back
                     const normalized = maxValue > 0 ? value / maxValue : 0;
                     const gammaCorrected = Math.pow(normalized, gamma);
                     return gammaCorrected * maxValue;
-                })
+                }),
             );
         }
     }, [array, debouncedScale, enableLogScale, scaleType]);
@@ -140,13 +140,18 @@ export default function PlotlyHeatmap({
     return (
         <>
             {enableLogScale && (
-                <div className={cn("flex items-center justify-center gap-2 p-2 rounded-t-md mb-1", classNameControls)}>
+                <div
+                    className={cn(
+                        'flex items-center justify-center gap-2 p-2 rounded-t-md mb-1',
+                        classNameControls,
+                    )}
+                >
                     <div className="flex items-center gap-2 ">
                         <button
                             onClick={() => handleScaleTypeChange('log')}
                             className={`px-2 py-1 text-xs font-medium  ${
-                                scaleType === 'log' 
-                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default' 
+                                scaleType === 'log'
+                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default'
                                     : 'text-slate-400 hover:text-sky-800'
                             }`}
                         >
@@ -155,8 +160,8 @@ export default function PlotlyHeatmap({
                         <button
                             onClick={() => handleScaleTypeChange('gamma')}
                             className={`px-2 py-1 text-xs font-medium ${
-                                scaleType === 'gamma' 
-                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default' 
+                                scaleType === 'gamma'
+                                    ? 'text-sky-800 border-b border-b-sky-800 hover:cursor-default'
                                     : 'text-slate-400 hover:text-sky-800'
                             }`}
                         >
@@ -182,7 +187,11 @@ export default function PlotlyHeatmap({
                     </div>
                 </div>
             )}
-            <div className={cn(`h-full w-full rounded-b-md flex relative`, className)} ref={plotContainer} {...props}>
+            <div
+                className={cn(`h-full w-full rounded-b-md flex relative`, className)}
+                ref={plotContainer}
+                {...props}
+            >
                 <div className="flex-1 flex flex-col">
                     <Plot
                         data={[
@@ -193,7 +202,7 @@ export default function PlotlyHeatmap({
                                 zmin: 0,
                                 zmax: 255,
                                 showscale: showScale,
-                            }
+                            },
                         ]}
                         layout={{
                             title: {
@@ -203,27 +212,33 @@ export default function PlotlyHeatmap({
                                 title: xAxisTitle,
                                 automargin: false,
                                 showticklabels: showTicks,
-                                showgrid: showTicks
+                                showgrid: showTicks,
 
                                 //scaleanchor: "y", // Ensure squares remain proportional
                             },
                             yaxis: {
                                 title: yAxisTitle,
-                                range: [-0.5, array.length-0.5], // Dynamically adjust y-axis range
+                                range: [-0.5, array.length - 0.5], // Dynamically adjust y-axis range
                                 autorange: flipYAxis ? 'reversed' : false,
                                 automargin: false,
                                 tickmode: showTicks ? 'linear' : undefined, // tick marks should only appear when
                                 tick0: 0, // Starting tick
                                 dtick: showTicks ? tickStep : 10000, // Tick step,
                                 showticklabels: showTicks,
-                                showgrid: showTicks
+                                showgrid: showTicks,
                             },
                             autosize: true,
-                            width: lockPlotWidthHeightToInputArray ? Math.min(dimensions.width, array[0].length) : dimensions.width,
-                            height: lockPlotWidthHeightToInputArray ? Math.min(dimensions.height, array.length) : lockPlotHeightToParent ? dimensions.height : dynamicHeight,
-                
+                            width: lockPlotWidthHeightToInputArray
+                                ? Math.min(dimensions.width, array[0].length)
+                                : dimensions.width,
+                            height: lockPlotWidthHeightToInputArray
+                                ? Math.min(dimensions.height, array.length)
+                                : lockPlotHeightToParent
+                                  ? dimensions.height
+                                  : dynamicHeight,
+
                             margin: {
-                                l: (showTicks || yAxisTitle) ? 50 : 0,
+                                l: showTicks || yAxisTitle ? 50 : 0,
                                 r: 0,
                                 t: 0,
                                 b: xAxisTitle ? 40 : 0,

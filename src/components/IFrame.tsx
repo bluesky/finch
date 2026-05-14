@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import useResizeObserver from "@/hooks/useResizeObserver";
-import { useEffect, useState } from "react";
+import { cn } from '@/lib/utils';
+import useResizeObserver from '@/hooks/useResizeObserver';
+import { useEffect, useState } from 'react';
 
 export type IFrameProps = {
     /** URL of the page to embed. Omitting it renders a placeholder. */
@@ -27,7 +27,7 @@ export default function IFrame({
     isSizeResponsive = false,
     addBackground = true,
     className,
-    title = "",
+    title = '',
     url,
     timeoutMs = 4000,
     ...props
@@ -62,11 +62,11 @@ export default function IFrame({
             ref={containerRef}
             className={cn(
                 `
-                ${isSizeResponsive ? "w-full h-full min-h-0 flex-grow" : "w-fit h-fit"} 
-                ${addBackground ? "p-6 bg-stone-400/50 flex items-center justify-center rounded-sm" : "p-0"} 
+                ${isSizeResponsive ? 'w-full h-full min-h-0 flex-grow' : 'w-fit h-fit'} 
+                ${addBackground ? 'p-6 bg-stone-400/50 flex items-center justify-center rounded-sm' : 'p-0'} 
                 m-auto shadow-lg
                 `,
-                className
+                className,
             )}
             {...props}
         >
@@ -101,8 +101,8 @@ export default function IFrame({
                         height={iframeHeight}
                         onLoad={() => setLoaded(true)}
                         className={cn(
-                            "transition-opacity duration-200",
-                            loaded ? "opacity-100" : "opacity-0"
+                            'transition-opacity duration-200',
+                            loaded ? 'opacity-100' : 'opacity-0',
                         )}
                     />
                     {/* Error */}
@@ -131,7 +131,6 @@ export default function IFrame({
                             </div>
                         </div>
                     )}
-
                 </div>
             )}
         </section>

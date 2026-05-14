@@ -18,7 +18,6 @@ type MockMessageData = {
 
 type MockMessageWrapper = { data: MockMessageData };
 
-
 export default function useMockOphydSocket(deviceNameList: string[]) {
     const [devices, setDevices] = useState<Devices>({});
 
@@ -53,7 +52,9 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
         // Process each device in the mock data
         Object.keys(deviceMessages).forEach((key) => {
             const deviceName = key;
-            const messages = deviceMessages[key as keyof typeof deviceMessages] as MockMessageWrapper[];
+            const messages = deviceMessages[
+                key as keyof typeof deviceMessages
+            ] as MockMessageWrapper[];
 
             // Only process if this device is in our deviceNameList
             if (!deviceNameList.includes(deviceName)) return;
@@ -103,39 +104,39 @@ export default function useMockOphydSocket(deviceNameList: string[]) {
         });
     }, [deviceNameList]);
     const handleSetValueRequest = (deviceName: string, value: string | number | boolean) => {
-    console.log(`Mock setting device "${deviceName}" to value:`, value);
-    
-    setDevices((prevDevices) => {
-        // Check if the device exists
-        if (!prevDevices[deviceName]) {
-            console.warn(`Device "${deviceName}" not found`);
-            return prevDevices;
-        }
+        console.log(`Mock setting device "${deviceName}" to value:`, value);
 
-        const currentTimestamp = Date.now() / 1000; // Convert to seconds to match EPICS timestamp format
-        const updatedDevices = { ...prevDevices };
+        setDevices((prevDevices) => {
+            // Check if the device exists
+            if (!prevDevices[deviceName]) {
+                console.warn(`Device "${deviceName}" not found`);
+                return prevDevices;
+            }
 
-        // Update the main device with the new value and timestamp
-        updatedDevices[deviceName] = {
-            ...prevDevices[deviceName],
-            value: value,
-            timestamp: currentTimestamp,
-        };
+            const currentTimestamp = Date.now() / 1000; // Convert to seconds to match EPICS timestamp format
+            const updatedDevices = { ...prevDevices };
 
-        // Check if there's a corresponding RBV device and update it too
-        const rbvDeviceName = `${deviceName}_RBV`;
-        if (updatedDevices[rbvDeviceName]) {
-            console.log(`Also updating RBV device "${rbvDeviceName}" to value:`, value);
-            updatedDevices[rbvDeviceName] = {
-                ...updatedDevices[rbvDeviceName],
+            // Update the main device with the new value and timestamp
+            updatedDevices[deviceName] = {
+                ...prevDevices[deviceName],
                 value: value,
                 timestamp: currentTimestamp,
             };
-        }
 
-        return updatedDevices;
-    });
-};
+            // Check if there's a corresponding RBV device and update it too
+            const rbvDeviceName = `${deviceName}_RBV`;
+            if (updatedDevices[rbvDeviceName]) {
+                console.log(`Also updating RBV device "${rbvDeviceName}" to value:`, value);
+                updatedDevices[rbvDeviceName] = {
+                    ...updatedDevices[rbvDeviceName],
+                    value: value,
+                    timestamp: currentTimestamp,
+                };
+            }
+
+            return updatedDevices;
+        });
+    };
     return {
         devices,
         handleSetValueRequest,

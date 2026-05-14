@@ -20,7 +20,7 @@ export type Breadcrumb = {
     iconStyle?: string;
     /** Callback invoked when the breadcrumb is clicked. */
     onClick?: () => void;
-}
+};
 
 /** Slider state used for image slice / frame selection controls. */
 export type Slider = {
@@ -34,13 +34,12 @@ export type Slider = {
     value: number;
 };
 
-
 export type Paths = PathItem[];
 
 // Example of a predefined paths array
 export const pathsSample: Paths = [
-    { id: 'structured_data', structure: "container" },
-    { id: 'big_image', structure: "array" },
+    { id: 'structured_data', structure: 'container' },
+    { id: 'big_image', structure: 'array' },
 ];
 
 /** Top-level response shape returned by the Tiled search API for list queries. */
@@ -57,7 +56,7 @@ export interface TiledSearchResult {
     meta: {
         count: number;
     };
-};
+}
 
 /** Top-level response shape returned by the Tiled metadata API for a single node. */
 export interface TiledSearchMetadataResult {
@@ -92,7 +91,7 @@ export interface TiledSearchItem<StructureType> {
     id: string; // Identifier for the item
     attributes: {
         ancestors: string[]; // Array of ancestor IDs
-        structure_family: "array" | "table" | "container" | "awkward" | "sparse" | "composite"; // Enum for structure families
+        structure_family: 'array' | 'table' | 'container' | 'awkward' | 'sparse' | 'composite'; // Enum for structure families
         specs: Spec[]; // Optional specs
         metadata: TiledMetadata; // Metadata with optional Bluesky fields and arbitrary JSON
         structure: StructureType;
@@ -104,8 +103,13 @@ export interface TiledSearchItem<StructureType> {
     meta: unknown | null; // Optional metadata
 }
 
-
-export type TiledStructures = ArrayStructure | StructuredArrayStructure | TableStructure | ContainerStructure | AwkwardStructure | SparseStructure
+export type TiledStructures =
+    | ArrayStructure
+    | StructuredArrayStructure
+    | TableStructure
+    | ContainerStructure
+    | AwkwardStructure
+    | SparseStructure;
 
 /** Tiled spec tag attached to a node (e.g. `{ name: 'xarray_data_var', version: null }`). */
 export interface Spec {
@@ -161,7 +165,6 @@ export interface StructuredArrayField {
     };
     shape: number[] | null;
 }
-
 
 /** Tiled structure descriptor for a tabular (Arrow/Parquet) node. */
 export interface TableStructure {
@@ -278,54 +281,75 @@ export type TiledTableData = TiledTableRow[];
 export type TiledStructuredArrayData = TiledStructuredArrayRow[];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isArrayStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<ArrayStructure> => {
+export const isArrayStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<ArrayStructure> => {
     return item.attributes.structure_family === 'array';
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isTableStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<TableStructure> => {
+export const isTableStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<TableStructure> => {
     return item.attributes.structure_family === 'table';
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isContainerStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<ContainerStructure> => {
-    return (item.attributes.structure_family === 'container' || item.attributes.structure_family === 'composite');
+export const isContainerStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<ContainerStructure> => {
+    return (
+        item.attributes.structure_family === 'container' ||
+        item.attributes.structure_family === 'composite'
+    );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isAwkwardStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<AwkwardStructure> => {
+export const isAwkwardStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<AwkwardStructure> => {
     return item.attributes.structure_family === 'awkward';
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isSparseStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<SparseStructure> => {
+export const isSparseStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<SparseStructure> => {
     return item.attributes.structure_family === 'sparse';
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isStructuredArrayStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<StructuredArrayStructure> => {
-    return item.attributes.structure_family === 'array' && 
-           'fields' in item.attributes.structure.data_type;
+export const isStructuredArrayStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<StructuredArrayStructure> => {
+    return (
+        item.attributes.structure_family === 'array' &&
+        'fields' in item.attributes.structure.data_type
+    );
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const isXArrayStructure = (item: TiledSearchItem<any>): item is TiledSearchItem<XArrayStructure> => {
-    return item.attributes.structure_family === 'array' && 
-           item.attributes.specs.some(spec => 
-               spec.name === 'xarray_coord' || 
-               spec.name === 'xarray_data_var' || 
-               spec.name.startsWith('xarray_')
-           ) &&
-           item.attributes.structure.dims !== null;
+export const isXArrayStructure = (
+    item: TiledSearchItem<any>,
+): item is TiledSearchItem<XArrayStructure> => {
+    return (
+        item.attributes.structure_family === 'array' &&
+        item.attributes.specs.some(
+            (spec) =>
+                spec.name === 'xarray_coord' ||
+                spec.name === 'xarray_data_var' ||
+                spec.name.startsWith('xarray_'),
+        ) &&
+        item.attributes.structure.dims !== null
+    );
 };
-
 
 /** Authentication provider descriptor returned in the Tiled `/api/v1/` info response. */
 export type TiledAuthProvider = {
     /** Provider name (e.g. `'toy'`, `'orcid'`). */
     provider: string;
     /** Authentication mode the provider uses. */
-    mode: "password" | "external" | "token" | "internal";
+    mode: 'password' | 'external' | 'token' | 'internal';
     links: {
         /** URL of the provider's authentication endpoint. */
         auth_endpoint: string;
@@ -380,320 +404,192 @@ export type TiledInfoResponse = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isValidTiledInfoResponse(data: any): data is TiledInfoResponse {
-    return data &&
-           typeof data.api_version === 'number' &&
-           typeof data.library_version === 'string' &&
-           data.formats &&
-           data.aliases;
+    return (
+        data &&
+        typeof data.api_version === 'number' &&
+        typeof data.library_version === 'string' &&
+        data.formats &&
+        data.aliases
+    );
 }
 
-
 export const sampleTiledInfoResponse: TiledInfoResponse = {
-    "api_version": 0,
-    "library_version": "0.1.dev2523+g6314f1d.d20250507",
-    "formats": {
-        "container": [
-            "application/x-hdf5",
-            "application/json"
+    api_version: 0,
+    library_version: '0.1.dev2523+g6314f1d.d20250507',
+    formats: {
+        container: ['application/x-hdf5', 'application/json'],
+        array: [
+            'application/octet-stream',
+            'application/json',
+            'text/csv',
+            'text/x-comma-separated-values',
+            'text/plain',
+            'image/png',
+            'image/tiff',
+            'text/html',
         ],
-        "array": [
-            "application/octet-stream",
-            "application/json",
-            "text/csv",
-            "text/x-comma-separated-values",
-            "text/plain",
-            "image/png",
-            "image/tiff",
-            "text/html"
+        awkward: [
+            'application/zip',
+            'application/json',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
         ],
-        "awkward": [
-            "application/zip",
-            "application/json",
-            "application/vnd.apache.arrow.file",
-            "application/x-parquet"
+        table: [
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/x-comma-separated-values',
+            'text/plain',
+            'text/html',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/json',
+            'application/json-seq',
+            'application/x-hdf5',
         ],
-        "table": [
-            "application/vnd.apache.arrow.file",
-            "application/x-parquet",
-            "text/csv",
-            "text/x-comma-separated-values",
-            "text/plain",
-            "text/html",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/json",
-            "application/json-seq",
-            "application/x-hdf5"
+        sparse: [
+            'application/x-hdf5',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/plain',
+            'text/html',
+            'application/json',
         ],
-        "sparse": [
-            "application/x-hdf5",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/vnd.apache.arrow.file",
-            "application/x-parquet",
-            "text/csv",
-            "text/plain",
-            "text/html",
-            "application/json"
+        xarray_dataset: [
+            'application/netcdf',
+            'application/x-netcdf',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/comma-separated-values',
+            'text/plain',
+            'text/html',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/json',
+            'application/x-hdf5',
         ],
-        "xarray_dataset": [
-            "application/netcdf",
-            "application/x-netcdf",
-            "application/vnd.apache.arrow.file",
-            "application/x-parquet",
-            "text/csv",
-            "text/comma-separated-values",
-            "text/plain",
-            "text/html",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            "application/json",
-            "application/x-hdf5"
-        ]
     },
-    "aliases": {
-        "container": {
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/json": [
-                "json"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
+    aliases: {
+        container: {
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/json': ['json'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
         },
-        "array": {
-            "application/json": [
-                "json"
-            ],
-            "text/csv": [
-                "csv"
-            ],
-            "image/png": [
-                "png"
-            ],
-            "image/tiff": [
-                "tiff",
-                "tif"
-            ],
-            "text/html": [
-                "html",
-                "htm"
-            ],
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
+        array: {
+            'application/json': ['json'],
+            'text/csv': ['csv'],
+            'image/png': ['png'],
+            'image/tiff': ['tiff', 'tif'],
+            'text/html': ['html', 'htm'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
         },
-        "awkward": {
-            "application/zip": [
-                "zip"
-            ],
-            "application/json": [
-                "json"
-            ],
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
+        awkward: {
+            'application/zip': ['zip'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
         },
-        "table": {
-            "text/csv": [
-                "csv"
-            ],
-            "text/html": [
-                "html",
-                "htm"
-            ],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-                "xlsx"
-            ],
-            "application/json": [
-                "json"
-            ],
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
+        table: {
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
         },
-        "sparse": {
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-                "xlsx"
-            ],
-            "text/csv": [
-                "csv"
-            ],
-            "text/html": [
-                "html",
-                "htm"
-            ],
-            "application/json": [
-                "json"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
+        sparse: {
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/json': ['json'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
         },
-        "xarray_dataset": {
-            "application/x-netcdf": [
-                "cdf",
-                "nc"
-            ],
-            "text/csv": [
-                "csv"
-            ],
-            "text/html": [
-                "html",
-                "htm"
-            ],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-                "xlsx"
-            ],
-            "application/json": [
-                "json"
-            ],
-            "application/x-hdf5": [
-                "h5",
-                "hdf5"
-            ],
-            "application/x-parquet": [
-                "parquet"
-            ],
-            "application/vnd.apache.arrow.file": [
-                "arrow",
-                "feather"
-            ],
-            "application/netcdf": [
-                "nc"
-            ],
-            "text/plain": [
-                "text",
-                "txt"
-            ]
-        }
+        xarray_dataset: {
+            'application/x-netcdf': ['cdf', 'nc'],
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
     },
-    "queries": [
-        "fulltext",
-        "lookup",
-        "keys_filter",
-        "regex",
-        "eq",
-        "noteq",
-        "comparison",
-        "contains",
-        "in",
-        "notin",
-        "specs",
-        "structure_family"
+    queries: [
+        'fulltext',
+        'lookup',
+        'keys_filter',
+        'regex',
+        'eq',
+        'noteq',
+        'comparison',
+        'contains',
+        'in',
+        'notin',
+        'specs',
+        'structure_family',
     ],
-    "authentication": {
-        "required": true,
-        "providers": [
+    authentication: {
+        required: true,
+        providers: [
             {
-                "provider": "toy",
-                "mode": "password",
-                "links": {
-                    "auth_endpoint": "http://localhost:8000/api/v1/auth/provider/toy/token"
+                provider: 'toy',
+                mode: 'password',
+                links: {
+                    auth_endpoint: 'http://localhost:8000/api/v1/auth/provider/toy/token',
                 },
-                "confirmation_message": "You have logged in as {id}."
+                confirmation_message: 'You have logged in as {id}.',
             },
             {
-                "provider": "orcid",
-                "mode": "external",
-                "links": {
-                    "auth_endpoint": "http://localhost:8000/api/v1/auth/provider/orcid/authorize"
+                provider: 'orcid',
+                mode: 'external',
+                links: {
+                    auth_endpoint: 'http://localhost:8000/api/v1/auth/provider/orcid/authorize',
                 },
-                "confirmation_message": "You have logged in with ORCID as {id}."
-            }
+                confirmation_message: 'You have logged in with ORCID as {id}.',
+            },
         ],
-        "links": {
-            "whoami": "http://localhost:8000/api/v1/auth/whoami",
-            "apikey": "http://localhost:8000/api/v1/auth/apikey",
-            "refresh_session": "http://localhost:8000/api/v1/auth/session/refresh",
-            "revoke_session": "http://localhost:8000/api/v1/auth/session/revoke/{session_id}",
-            "logout": "http://localhost:8000/api/v1/auth/logout"
-        }
+        links: {
+            whoami: 'http://localhost:8000/api/v1/auth/whoami',
+            apikey: 'http://localhost:8000/api/v1/auth/apikey',
+            refresh_session: 'http://localhost:8000/api/v1/auth/session/refresh',
+            revoke_session: 'http://localhost:8000/api/v1/auth/session/revoke/{session_id}',
+            logout: 'http://localhost:8000/api/v1/auth/logout',
+        },
     },
-    "links": {
-        "self": "http://localhost:8000/api/v1",
-        "documentation": "http://localhost:8000/api/v1/docs"
+    links: {
+        self: 'http://localhost:8000/api/v1',
+        documentation: 'http://localhost:8000/api/v1/docs',
     },
-    "meta": {
-        "root_path": "/api"
-    }
+    meta: {
+        root_path: '/api',
+    },
 };
 
 /** JSON response from a Tiled table partition fetch, keyed by column name. */
 export type TiledTableJSONResponse = {
     [column: string]: number[];
-}
+};
 
 /** Full response shape from the Tiled metadata endpoint for a Bluesky run container node. */
 export type TiledBlueskyPlanMetadataResponse = {

@@ -9,14 +9,14 @@ type SidebarItemProps = {
     /** any valid JSX, but SVG works best for color attribute */
     icon?: JSX.Element;
     /** Tailwind ClassNames */
-    className?: string
+    className?: string;
     /** Tailwind ClassNames */
-    classNameIcon?: string
+    classNameIcon?: string;
     /** Tailwind ClassNames */
-    classNameTitle?: string
+    classNameTitle?: string;
     /** Tailwind ClassNames */
-    classNameChildren?: string
-}
+    classNameChildren?: string;
+};
 export default function SidebarItem({
     children,
     title,
@@ -29,13 +29,20 @@ export default function SidebarItem({
 }: SidebarItemProps) {
     return (
         <div className={className} {...props}>
-            <h2 className={cn(`text-sky-900 font-medium text-xl flex justify-start items-end`, classNameTitle)}>
-                {icon && <div className={cn(`text-sky-900 h-8 aspect-square mr-2`, classNameIcon)}>{icon}</div>}
+            <h2
+                className={cn(
+                    `text-sky-900 font-medium text-xl flex justify-start items-end`,
+                    classNameTitle,
+                )}
+            >
+                {icon && (
+                    <div className={cn(`text-sky-900 h-8 aspect-square mr-2`, classNameIcon)}>
+                        {icon}
+                    </div>
+                )}
                 {title}
             </h2>
-            <div className={cn(`text-slate-900 px-2`, classNameChildren)}>
-                {children}  
-            </div>
+            <div className={cn(`text-slate-900 px-2`, classNameChildren)}>{children}</div>
         </div>
-    )
+    );
 }

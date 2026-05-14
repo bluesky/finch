@@ -1,5 +1,5 @@
-import { useState, ChangeEvent } from "react";
-import { cn } from "@/lib/utils"
+import { useState, ChangeEvent } from 'react';
+import { cn } from '@/lib/utils';
 
 type InputNumberProps = {
     /** Label displayed beside the input. */
@@ -13,9 +13,9 @@ type InputNumberProps = {
     /** When true, renders the warningMessage below the input in red. */
     isWarningVisible?: boolean;
     /** Minimum allowed value. Shows an out-of-bounds message if violated. */
-    min?:number;
+    min?: number;
     /** Maximum allowed value. Shows an out-of-bounds message if violated. */
-    max?:number;
+    max?: number;
     /** Called when the user presses Enter, provided the value is within bounds. Receives the current value or null. */
     handleEnter?: (input: number | null) => void;
     /** Additional CSS classes applied to the root label element. */
@@ -28,7 +28,21 @@ type InputNumberProps = {
     name?: string;
 };
 
-export default function InputNumber({ label, onChange, warningMessage, isWarningVisible, min, max, handleEnter, labelPosition='left', className, classNameInput, disabled=false, name, ...props }: InputNumberProps) {
+export default function InputNumber({
+    label,
+    onChange,
+    warningMessage,
+    isWarningVisible,
+    min,
+    max,
+    handleEnter,
+    labelPosition = 'left',
+    className,
+    classNameInput,
+    disabled = false,
+    name,
+    ...props
+}: InputNumberProps) {
     const [value, setValue] = useState<number | null>(null);
     const [isValueInBounds, setIsValueInBounds] = useState(true);
 
@@ -38,7 +52,10 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
         setValue(numericValue);
         if (onChange) onChange(numericValue);
         if (numericValue !== null) {
-            setIsValueInBounds((min === undefined || numericValue >= min) && (max === undefined || numericValue <= max));
+            setIsValueInBounds(
+                (min === undefined || numericValue >= min) &&
+                    (max === undefined || numericValue <= max),
+            );
         }
     };
 
@@ -48,22 +65,28 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
                 if (handleEnter) handleEnter(value);
             }
         }
-    }
+    };
 
     return (
-        <label className={cn(`${labelPosition === 'right' && 'flex-row-reverse'} w-full max-w-[60rem] flex justify-between relative`, className)} {...props}>
-            {label && <span className='mx-1 font-light'>{label}</span>}
+        <label
+            className={cn(
+                `${labelPosition === 'right' && 'flex-row-reverse'} w-full max-w-[60rem] flex justify-between relative`,
+                className,
+            )}
+            {...props}
+        >
+            {label && <span className="mx-1 font-light">{label}</span>}
             <input
                 name={name ? name : 'input-number'}
-                type="number" 
+                type="number"
                 value={value === null ? '' : value}
-                className={
-                    cn(
-                        `w-full max-w-96 border pl-2 pr-2 min-h-6 appearance-none bg-white
+                className={cn(
+                    `w-full max-w-96 border pl-2 pr-2 min-h-6 appearance-none bg-white
                         ${isWarningVisible ? 'border-red-500' : 'border-slate-300'}
                         ${disabled && 'hover:cursor-not-allowed'}
                         `,
-                         classNameInput)}
+                    classNameInput,
+                )}
                 onChange={handleChange}
                 onKeyDown={handleEnterKey}
                 disabled={disabled}
@@ -72,7 +95,9 @@ export default function InputNumber({ label, onChange, warningMessage, isWarning
                 <p className="absolute left-0 -bottom-4 text-xs text-red-500">{warningMessage}</p>
             )}
             {!isValueInBounds && (
-                <p className="absolute left-0 -bottom-4 text-xs text-red-500">Value out of bounds</p>
+                <p className="absolute left-0 -bottom-4 text-xs text-red-500">
+                    Value out of bounds
+                </p>
             )}
         </label>
     );

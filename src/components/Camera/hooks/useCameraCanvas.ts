@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/utils/errorHandling';
 
 export type UseCameraCanvasProps = {
     imageArrayPV?: string;
-    sizePVs?: {[key:string]: string};
+    sizePVs?: { [key: string]: string };
     canvasSize?: CanvasSizes;
     prefix?: string;
     wsUrl?: string;
@@ -17,7 +17,7 @@ export function useCameraCanvas({
     sizePVs = {},
     canvasSize = 'medium',
     prefix = '',
-    wsUrl
+    wsUrl,
 }: UseCameraCanvasProps) {
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
@@ -31,33 +31,42 @@ export function useCameraCanvas({
     const configWsUrl = useOphydApiUrls().getWsUrl(ophydSocketCameraPath);
     const resolvedWsUrl = wsUrl ?? configWsUrl;
 
-    const sizeDict: {[key:string]: number} = useMemo(() => ({
-        small: 256,
-        medium: 512,
-        large: 1024,
-        automatic: 512
-    }), []);
+    const sizeDict: { [key: string]: number } = useMemo(
+        () => ({
+            small: 256,
+            medium: 512,
+            large: 1024,
+            automatic: 512,
+        }),
+        [],
+    );
 
     const defaultImageSuffix = 'image1:ArrayData';
     const defaultImagePV = '13SIM1:image1:ArrayData';
-    
-    const defaultSizeSuffixes = useMemo(() => ({
-        startX: "cam1:MinX",
-        startY: "cam1:MinY",
-        sizeX: "cam1:SizeX",
-        sizeY: "cam1:SizeY",
-        colorMode: "cam1:ColorMode",
-        dataType: "cam1:DataType"
-    }), []);
-    
-    const defaultSizePVs = useMemo(() => ({
-        startX: "13SIM1:cam1:MinX",
-        startY: "13SIM1:cam1:MinY",
-        sizeX: "13SIM1:cam1:SizeX",
-        sizeY: "13SIM1:cam1:SizeY",
-        colorMode: "13SIM1:cam1:ColorMode",
-        dataType: "13SIM1:cam1:DataType"
-    }), []);
+
+    const defaultSizeSuffixes = useMemo(
+        () => ({
+            startX: 'cam1:MinX',
+            startY: 'cam1:MinY',
+            sizeX: 'cam1:SizeX',
+            sizeY: 'cam1:SizeY',
+            colorMode: 'cam1:ColorMode',
+            dataType: 'cam1:DataType',
+        }),
+        [],
+    );
+
+    const defaultSizePVs = useMemo(
+        () => ({
+            startX: '13SIM1:cam1:MinX',
+            startY: '13SIM1:cam1:MinY',
+            sizeX: '13SIM1:cam1:SizeX',
+            sizeY: '13SIM1:cam1:SizeY',
+            colorMode: '13SIM1:cam1:ColorMode',
+            dataType: '13SIM1:cam1:DataType',
+        }),
+        [],
+    );
 
     const getImageArrayPV = useCallback(() => {
         // Return imageArrayPV if it was specified
@@ -75,22 +84,29 @@ export function useCameraCanvas({
         }
     }, [imageArrayPV, prefix]);
 
-    const doesObjectStructureMatch = useCallback((obj1: {[key:string]: string | string[]}, obj2: {[key:string]: string | string[]}) => {
-        if (typeof obj1 !== "object" || typeof obj2 !== "object") return false;
-        if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
-        try {
-            for (const key in obj1) {
-                const val1 = obj1[key];
-                const val2 = obj2[key];
-                if (typeof val1 !== typeof val2) return false;
-                if (typeof val1 === 'string' && (val1.length < 1 || val2.length < 1)) return false;
+    const doesObjectStructureMatch = useCallback(
+        (
+            obj1: { [key: string]: string | string[] },
+            obj2: { [key: string]: string | string[] },
+        ) => {
+            if (typeof obj1 !== 'object' || typeof obj2 !== 'object') return false;
+            if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
+            try {
+                for (const key in obj1) {
+                    const val1 = obj1[key];
+                    const val2 = obj2[key];
+                    if (typeof val1 !== typeof val2) return false;
+                    if (typeof val1 === 'string' && (val1.length < 1 || val2.length < 1))
+                        return false;
+                }
+            } catch {
+                return false;
             }
-        } catch {
-            return false;
-        }
-        // all tests passed
-        return true;
-    }, []);
+            // all tests passed
+            return true;
+        },
+        [],
+    );
 
     const getSizePVs = useCallback(() => {
         // Return sizePVs if it was specified & contains all necessary keys matching the default
@@ -99,9 +115,10 @@ export function useCameraCanvas({
         } else {
             // Return object with concatenated values with user provided prefix and default suffixes
             if (prefix.length > 0) {
-                const tempSizePVs: {[key:string]: string} = {};
+                const tempSizePVs: { [key: string]: string } = {};
                 for (const key in defaultSizeSuffixes) {
-                    const concatenatedPV = prefix + ':' + defaultSizeSuffixes[key as keyof typeof defaultSizeSuffixes];
+                    const concatenatedPV =
+                        prefix + ':' + defaultSizeSuffixes[key as keyof typeof defaultSizeSuffixes];
                     tempSizePVs[key] = concatenatedPV;
                 }
                 return tempSizePVs;
@@ -126,7 +143,7 @@ export function useCameraCanvas({
             try {
                 ws.current.close();
             } catch (error) {
-                console.log({error});
+                console.log({ error });
                 return;
             }
         }
@@ -141,19 +158,19 @@ export function useCameraCanvas({
         if (ws.current !== null) {
             ws.current.close();
         }
-       
+
         const canvas = canvasRef.current;
         const context = canvas.getContext('2d');
 
         let isFrameReady = false;
         let nextFrame: null | ImageBitmap = null;
-    
+
         try {
             const url = resolvedWsUrl;
             ws.current = new WebSocket(url);
         } catch (error) {
             //This catch block only handles synchronous errors thrown during the WebSocket constructor call (invalid url, protocol), most other errors will be in the ws.onerror callback
-            console.log({error});
+            console.log({ error });
             setSocketError('Error creating WebSocket: ' + getErrorMessage(error));
             return;
         }
@@ -164,14 +181,14 @@ export function useCameraCanvas({
             setSocketError(null);
             frameCount.current = 0;
             startTime.current = new Date();
-            // send message to websocket containing the pvs for the image and pixel size          
-            const wsMessage = {imageArray_PV: getImageArrayPV(), ...getSizePVs()};
+            // send message to websocket containing the pvs for the image and pixel size
+            const wsMessage = { imageArray_PV: getImageArrayPV(), ...getSizePVs() };
             ws.current.send(JSON.stringify(wsMessage));
         };
-    
+
         ws.current.onmessage = async function (event) {
             if (canvasRef.current === null) return;
-            if (typeof event.data === "string") {
+            if (typeof event.data === 'string') {
                 const message = JSON.parse(event.data);
                 if ('logNormalization' in message) {
                     setIsImageLogScale(message['logNormalization']);
@@ -189,15 +206,19 @@ export function useCameraCanvas({
                     const blob = new Blob([event.data], { type: 'image/jpeg' });
                     const imageBitmap = await createImageBitmap(blob);
                     nextFrame = imageBitmap;
-                    isFrameReady = true;  // Mark frame as ready
+                    isFrameReady = true; // Mark frame as ready
                     if (startTime.current !== null && frameCount.current !== null) {
                         const currentTime = new Date();
-                        let totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                        let totalDurationSeconds =
+                            startTime.current &&
+                            currentTime.getTime() / 1000 - startTime.current.getTime() / 1000;
                         if (totalDurationSeconds > 5) {
                             // reset the total duration so we can get an accurate fps.
                             startTime.current = new Date();
                             frameCount.current = 0;
-                            totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                            totalDurationSeconds =
+                                startTime.current &&
+                                currentTime.getTime() / 1000 - startTime.current.getTime() / 1000;
                         }
                         setFps(((frameCount.current + 1) / totalDurationSeconds).toPrecision(3));
                         frameCount.current = frameCount.current + 1;
@@ -208,7 +229,7 @@ export function useCameraCanvas({
                 }
             }
         };
-    
+
         // Rendering loop with requestAnimationFrame
         const render = () => {
             if (isFrameReady && context && nextFrame) {
@@ -218,16 +239,16 @@ export function useCameraCanvas({
             }
             requestAnimationFrame(render);
         };
-    
-        requestAnimationFrame(render);  // Start the rendering loop
+
+        requestAnimationFrame(render); // Start the rendering loop
 
         ws.current.onerror = (error) => {
             if (error instanceof Event) {
                 const target = error.target as WebSocket;
-                console.log("WebSocket Error on URL:", target.url, {error});
+                console.log('WebSocket Error on URL:', target.url, { error });
                 setSocketError('WebSocket Error: Unable to connect to ' + target.url);
             } else {
-                console.log("WebSocket Error:", {error});
+                console.log('WebSocket Error:', { error });
                 setSocketError('WebSocket Error: ' + getErrorMessage(error));
             }
             setSocketStatus('closed');
@@ -249,7 +270,7 @@ export function useCameraCanvas({
                 ws.current.close();
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // Empty dependency array for initialization only
 
     return {
@@ -261,6 +282,6 @@ export function useCameraCanvas({
         sizeDict,
         startWebSocket,
         closeWebSocket,
-        toggleLogScale
+        toggleLogScale,
     };
 }

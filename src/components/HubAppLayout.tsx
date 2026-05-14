@@ -1,9 +1,9 @@
-import HubHeader from "@/components/HubHeader";
-import HubMainContent from "@/components/HubMainContent";
-import HubSidebar from "@/components/HubSidebar";
-import { cn } from "@/lib/utils";
+import HubHeader from '@/components/HubHeader';
+import HubMainContent from '@/components/HubMainContent';
+import HubSidebar from '@/components/HubSidebar';
+import { cn } from '@/lib/utils';
 
-import { RouteItem } from "@/types/navigationRouterTypes";
+import { RouteItem } from '@/types/navigationRouterTypes';
 
 export type HubAppLayoutProps = {
     /** Route definitions used to populate the sidebar navigation and render the main content area. */
@@ -33,8 +33,8 @@ export type HubAppLayoutProps = {
     classNameSidebarInactiveLink?: string;
     /** Additional CSS classes applied to the root layout element. */
     className?: string;
-    }
-export default function HubAppLayout ( {
+};
+export default function HubAppLayout({
     routes,
     headerTitle,
     headerLogoUrl,
@@ -48,28 +48,33 @@ export default function HubAppLayout ( {
     classNameSidebarInactiveLink,
     className,
     ...props
-  }: HubAppLayoutProps) {
-
-return (
-    <div className={cn("grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen", className)} {...props}>
-        <HubSidebar
-            routes={routes}
-            className={classNameSidebar}
-            classNameActiveLink={classNameSidebarActiveLink}
-            classNameInactiveLink={classNameSidebarInactiveLink}
-        />
-        <HubHeader
-            title={headerTitle}
-            logoUrl={headerLogoUrl}
-            logoIcon={headerLogoIcon}
-            className={classNameHeader}
-            classNameTitle={classNameHeaderTitle}
-        />
-        <HubMainContent 
-            routes={routes}
-            className={cn("h-[calc(100vh-4rem)]", classNameMainContent)} 
-            classNameInnerContainer={classNameMainContentInnerContainer}
-        />
-    </div>
-)
-  }
+}: HubAppLayoutProps) {
+    return (
+        <div
+            className={cn(
+                'grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen',
+                className,
+            )}
+            {...props}
+        >
+            <HubSidebar
+                routes={routes}
+                className={classNameSidebar}
+                classNameActiveLink={classNameSidebarActiveLink}
+                classNameInactiveLink={classNameSidebarInactiveLink}
+            />
+            <HubHeader
+                title={headerTitle}
+                logoUrl={headerLogoUrl}
+                logoIcon={headerLogoIcon}
+                className={classNameHeader}
+                classNameTitle={classNameHeaderTitle}
+            />
+            <HubMainContent
+                routes={routes}
+                className={cn('h-[calc(100vh-4rem)]', classNameMainContent)}
+                classNameInnerContainer={classNameMainContentInnerContainer}
+            />
+        </div>
+    );
+}

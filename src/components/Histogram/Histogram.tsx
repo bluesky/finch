@@ -1,9 +1,9 @@
-import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
-import HistogramDeviceController from "./HistogramDeviceController";
-import HistogramPlot from "./HistogramPlot";
+import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
+import HistogramDeviceController from './HistogramDeviceController';
+import HistogramPlot from './HistogramPlot';
 
-import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cn } from '@/lib/utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEMO_SIZE = 2048;
 
@@ -37,9 +37,23 @@ type HistogramProps = {
     demo?: boolean;
     /** Number of significant figures for sum displays in the plot. Defaults to `6`. */
     precision?: number;
-}
-export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision }: HistogramProps) {
-    const deviceList = useMemo(() => (demo ? [] : [arrayPV, acquirePV]), [demo, arrayPV, acquirePV]);
+};
+export default function Histogram({
+    arrayPV,
+    acquirePV,
+    showDeviceController,
+    showPlotSettings,
+    classNameContainer,
+    classNameDeviceController,
+    classNameHistogramPlot,
+    classNamePlotSettings,
+    demo,
+    precision,
+}: HistogramProps) {
+    const deviceList = useMemo(
+        () => (demo ? [] : [arrayPV, acquirePV]),
+        [demo, arrayPV, acquirePV],
+    );
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
 
     const baseRef = useRef<number[]>(generateDemoBase());
@@ -48,7 +62,9 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
     useEffect(() => {
         if (!demo) return;
         const id = setInterval(() => {
-            setDemoData(baseRef.current.map(v => Math.max(0, v + (Math.random() - 0.5) * v * 0.05)));
+            setDemoData(
+                baseRef.current.map((v) => Math.max(0, v + (Math.random() - 0.5) * v * 0.05)),
+            );
         }, 1000);
         return () => clearInterval(id);
     }, [demo]);
@@ -59,7 +75,9 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
         if (!Array.isArray(value)) {
             return null;
         }
-        return value.filter((item): item is number => typeof item === 'number' && Number.isFinite(item));
+        return value.filter(
+            (item): item is number => typeof item === 'number' && Number.isFinite(item),
+        );
     }, [demo, demoData, arrayPV, devices]);
 
     const handleStartAcquisition = useCallback(() => {
@@ -71,9 +89,27 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
     }, [acquirePV, handleSetValueRequest]);
 
     return (
-        <section className={cn("flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 text-slate-700 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg", classNameContainer)}>
-            <HistogramPlot showPlotSettings={showPlotSettings} className={classNameHistogramPlot} classNameSettings={classNamePlotSettings} arrayData={arrayData} precision={precision} />
-            {showDeviceController && <HistogramDeviceController acquireDevice={devices[acquirePV]} handleStartAcquisition={handleStartAcquisition} handleStopAcquisition={handleStopAcquisition} className={classNameDeviceController} />}
+        <section
+            className={cn(
+                'flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 text-slate-700 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg',
+                classNameContainer,
+            )}
+        >
+            <HistogramPlot
+                showPlotSettings={showPlotSettings}
+                className={classNameHistogramPlot}
+                classNameSettings={classNamePlotSettings}
+                arrayData={arrayData}
+                precision={precision}
+            />
+            {showDeviceController && (
+                <HistogramDeviceController
+                    acquireDevice={devices[acquirePV]}
+                    handleStartAcquisition={handleStartAcquisition}
+                    handleStopAcquisition={handleStopAcquisition}
+                    className={classNameDeviceController}
+                />
+            )}
         </section>
-    )
+    );
 }

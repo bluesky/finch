@@ -1,4 +1,4 @@
-import { Device } from "@/types/deviceControllerTypes";
+import { Device } from '@/types/deviceControllerTypes';
 
 export type HexapodMovePositionForm = {
     tx: number | undefined;
@@ -16,4 +16,4 @@ export type HexapodRBVs = {
     rx: Device;
     ry: Device;
     rz: Device;
-}
+};

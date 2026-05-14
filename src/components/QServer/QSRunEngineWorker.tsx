@@ -1,5 +1,5 @@
 import ToggleSlider from './ToggleSlider';
-import QItem from "./QItem";
+import QItem from './QItem';
 
 import { useStartREMutation } from '@/api/qServer/hooks';
 import { RunningQueueItem } from '@/api/qServer/types';
@@ -10,7 +10,12 @@ type QSRunEngineWorkerProps = {
     runningItem: RunningQueueItem | null;
     handleItemClick?: (item: RunningQueueItem) => void;
 };
-export default function QSRunEngineWorker({ isREToggleOn=false, setIsREToggleOn=()=>{}, runningItem, handleItemClick }: QSRunEngineWorkerProps) {
+export default function QSRunEngineWorker({
+    isREToggleOn = false,
+    setIsREToggleOn = () => {},
+    runningItem,
+    handleItemClick,
+}: QSRunEngineWorkerProps) {
     //const [ isREToggleOn, setIsREToggleOn ] = useState(false);
 
     //TO DO : the toggle switch needs to listen to the GET requests for the queue status
@@ -45,8 +50,12 @@ export default function QSRunEngineWorker({ isREToggleOn=false, setIsREToggleOn=
 
     return (
         <div className="flex justify-center items-center w-full relative">
-            <QItem item={runningItem} type={runningItem ? 'current' : 'blank'} handleClick={handleRunningItemClick}/>
-            <ToggleSlider isToggleOn={isREToggleOn} handleToggleClick={toggleSwitch}/>
+            <QItem
+                item={runningItem}
+                type={runningItem ? 'current' : 'blank'}
+                handleClick={handleRunningItemClick}
+            />
+            <ToggleSlider isToggleOn={isREToggleOn} handleToggleClick={toggleSwitch} />
         </div>
-    )
+    );
 }

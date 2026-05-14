@@ -48,8 +48,8 @@ export type { CameraContainerProps } from './components/Camera/CameraContainer';
 export { default as CameraCanvas } from './components/Camera/CameraCanvas';
 export type { CameraCanvasProps } from './components/Camera/CameraCanvas';
 
-export {default as Widget} from './components/Widget';
-export type {WidgetProps} from './components/Widget';
+export { default as Widget } from './components/Widget';
+export type { WidgetProps } from './components/Widget';
 
 export { default as PlotlyHeatmap } from './components/PlotlyHeatmap';
 export type { PlotlyHeatmapProps } from './components/PlotlyHeatmap';
@@ -126,7 +126,6 @@ export type { ComponentViewerProps } from './features/ComponentViewer/ComponentV
 export { default as ComponentViewerExampleSim } from './features/ComponentViewer/ComponentViewerExampleSim';
 export { default as ComponentViewerExampleReal } from './features/ComponentViewer/ComponentViewerExampleReal';
 
-
 // TABS
 export { TabsGroup } from './components/Tabs/TabsGroup';
 export { TabsList } from './components/Tabs/TabsList';
@@ -200,7 +199,6 @@ export type { ReactEDMProps } from './components/ReactEDM/ReactEDM';
 export { default as QueueServer } from './components/QServer/QueueServer';
 export type { QueueServerProps } from './components/QServer/QueueServer';
 
-
 //HOOKS
 export { default as useOphydSocket } from './api/ophyd/useOphydSocket';
 export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
@@ -212,10 +210,10 @@ export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMos
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
 export * as OphydPVSocketTypes from './api/ophyd/ophydPVSocketTypes';
 export {
-  ophydSocketTIFFPath,
-  ophydSocketCameraPath,
-  ophydSocketDevicePath,
-  ophydSocketPVPath,
+    ophydSocketTIFFPath,
+    ophydSocketCameraPath,
+    ophydSocketDevicePath,
+    ophydSocketPVPath,
 } from './api/ophyd/socketPaths';
 
 // QSERVER API
@@ -225,111 +223,107 @@ export type { QServerApiConfig } from './api/qServer/client';
 export * as QServerRequests from './api/qServer/requests';
 
 export {
-  useQueueQuery,
-  useQueueHistoryQuery,
-  useStatusQuery,
-  usePlansAllowedQuery,
-  useDevicesAllowedQuery,
-  useQueueItemQuery,
-  useRunsActiveQuery,
-  useAddQueueItemMutation,
-  useExecuteQueueItemMutation,
-  useRemoveQueueItemMutation,
-  useOpenEnvironmentMutation,
-  useStartREMutation,
-  usePauseREMutation,
-  useResumeREMutation,
-  useAbortREMutation,
+    useQueueQuery,
+    useQueueHistoryQuery,
+    useStatusQuery,
+    usePlansAllowedQuery,
+    useDevicesAllowedQuery,
+    useQueueItemQuery,
+    useRunsActiveQuery,
+    useAddQueueItemMutation,
+    useExecuteQueueItemMutation,
+    useRemoveQueueItemMutation,
+    useOpenEnvironmentMutation,
+    useStartREMutation,
+    usePauseREMutation,
+    useResumeREMutation,
+    useAbortREMutation,
 } from './api/qServer/hooks';
 
 export type {
-  GetStatusResponse,
-  GetQueueResponse,
-  GetHistoryResponse,
-  GetPlansAllowedResponse,
-  GetDevicesAllowedResponse,
-  GetQueueItemResponse,
-  GetRunsActiveResponse,
-  PostItemAddResponse,
-  PostItemExecuteResponse,
-  PostItemRemoveResponse,
-  PostEnvironmentOpenResponse,
-  PostREResponse,
-  BaseQueueItem,
-  QueueItem,
-  FailedQueueItem,
-  RunningQueueItem,
-  HistoryItem,
-  ArbitraryKwargs,
-  MetadataKwarg,
-  AddQueueItemBody,
-  ExecuteQueueItemBody,
-  RemoveQueueItemBody,
-  RunsActiveListItem,
-  Component,
-  Device as QServerDevice,
-  Parameter,
-  Plan,
-  Result,
+    GetStatusResponse,
+    GetQueueResponse,
+    GetHistoryResponse,
+    GetPlansAllowedResponse,
+    GetDevicesAllowedResponse,
+    GetQueueItemResponse,
+    GetRunsActiveResponse,
+    PostItemAddResponse,
+    PostItemExecuteResponse,
+    PostItemRemoveResponse,
+    PostEnvironmentOpenResponse,
+    PostREResponse,
+    BaseQueueItem,
+    QueueItem,
+    FailedQueueItem,
+    RunningQueueItem,
+    HistoryItem,
+    ArbitraryKwargs,
+    MetadataKwarg,
+    AddQueueItemBody,
+    ExecuteQueueItemBody,
+    RemoveQueueItemBody,
+    RunsActiveListItem,
+    Component,
+    Device as QServerDevice,
+    Parameter,
+    Plan,
+    Result,
 } from './api/qServer/types';
 
 //TYPES
 export type { RouteItem } from './types/navigationRouterTypes';
-export type {Device, Devices } from './types/deviceControllerTypes';
-
+export type { Device, Devices } from './types/deviceControllerTypes';
 
 //CONTEXT PROVIDERS
-export {
-  FinchConfigProvider,
-  useOptionalFinchConfig,
-} from './app/FinchConfigProvider';
+export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 
 // Tiled API namespace - groups all Tiled functionality under a clear namespace
 import * as TiledAPI from '@blueskyproject/tiled';
 
 export const Tiled = {
-  // Path management
-  setInitialPath: TiledAPI.setInitialPath,
-  getInitialPath: TiledAPI.getInitialPath,
-  
-  // Authentication and server configuration
-  setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
-  getDefaultUrl: TiledAPI.getDefaultTiledUrl,
-  setBearerToken: TiledAPI.setBearerToken,
-  getServerInfo: TiledAPI.getServerInfo,
-  loginWithPassword: TiledAPI.loginUserWithNamePassword,
-  
-  // Search and data retrieval
-  getSearchResults: TiledAPI.getSearchResults,
-  getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
-  getItemMetadata: TiledAPI.getItemMetadata,
-  getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
-  getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
-  getTableDataAsJson: TiledAPI.getTableDataAsJson,
-  getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
-  getStructuredArrayData: TiledAPI.getStructuredArrayData,
-  getXArrayData: TiledAPI.getXArrayData,
-  
-  // Comprehensive search functions
-  searchBySpecs: TiledAPI.searchBySpecs,
-  searchByFulltext: TiledAPI.searchByFulltext,
-  searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
-  searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
-  searchByRegex: TiledAPI.searchByRegex,
-  searchByStructureFamily: TiledAPI.searchByStructureFamily,
-  
-  // Image handling
-  generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
-  getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
-  
-  // Configuration and state management
-  setReverseSort: TiledAPI.setReverseSort,
-  resetGlobalState: TiledAPI.resetGlobalState,
-  
-  // Type guards
-  isArrayStructure: TiledAPI.isArrayStructure,
-  isTableStructure: TiledAPI.isTableStructure,
-  isContainerStructure: TiledAPI.isContainerStructure,
+    // Path management
+    setInitialPath: TiledAPI.setInitialPath,
+    getInitialPath: TiledAPI.getInitialPath,
+
+    // Authentication and server configuration
+    setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
+    getDefaultUrl: TiledAPI.getDefaultTiledUrl,
+    setBearerToken: TiledAPI.setBearerToken,
+    getServerInfo: TiledAPI.getServerInfo,
+    loginWithPassword: TiledAPI.loginUserWithNamePassword,
+
+    // Search and data retrieval
+    getSearchResults: TiledAPI.getSearchResults,
+    getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
+    getItemMetadata: TiledAPI.getItemMetadata,
+    getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
+    getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
+    getTableDataAsJson: TiledAPI.getTableDataAsJson,
+    getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
+    getStructuredArrayData: TiledAPI.getStructuredArrayData,
+    getXArrayData: TiledAPI.getXArrayData,
+
+    // Comprehensive search functions
+    searchBySpecs: TiledAPI.searchBySpecs,
+    searchByFulltext: TiledAPI.searchByFulltext,
+    searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
+    searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
+    searchByRegex: TiledAPI.searchByRegex,
+    searchByStructureFamily: TiledAPI.searchByStructureFamily,
+
+    // Image handling
+    generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
+    getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
+
+    // Configuration and state management
+    setReverseSort: TiledAPI.setReverseSort,
+    resetGlobalState: TiledAPI.resetGlobalState,
+
+    // Type guards
+    isArrayStructure: TiledAPI.isArrayStructure,
+    isTableStructure: TiledAPI.isTableStructure,
+    isContainerStructure: TiledAPI.isContainerStructure,
 };
 
 export type { FinchConfig } from './app/FinchConfigProvider';

@@ -3,7 +3,7 @@ import { tailwindIcons } from '../../assets/icons';
 import { Tooltip } from 'react-tooltip';
 import { AllowedDevices } from './types/types';
 
-type MultiSelectInputProps = { 
+type MultiSelectInputProps = {
     label: string;
     isItemInArray: (item: string) => boolean;
     addItem: (item: string) => void;
@@ -13,17 +13,16 @@ type MultiSelectInputProps = {
     description: string | undefined;
     required: boolean;
 };
-export default function MultiSelectInput(
-    {
-        label='', 
-        isItemInArray,
-        addItem=()=>{}, 
-        removeItem=()=>{}, 
-        selectedItems=[], 
-        allowedDevices, 
-        description='', 
-        required=false, 
-    }: MultiSelectInputProps) {
+export default function MultiSelectInput({
+    label = '',
+    isItemInArray,
+    addItem = () => {},
+    removeItem = () => {},
+    selectedItems = [],
+    allowedDevices,
+    description = '',
+    required = false,
+}: MultiSelectInputProps) {
     const [inputValue, setInputValue] = useState('');
     const [availableItems, setAvailableItems] = useState(Object.keys(allowedDevices));
     const [dropdownVisible, setDropdownVisible] = useState(false);
@@ -36,10 +35,10 @@ export default function MultiSelectInput(
         setDropdownVisible(true);
     };
 
-    const handleItemClick = (item:string) => {
+    const handleItemClick = (item: string) => {
         //TODO: refactor this to take an arg that does not close dropdown if we came from an 'enter' key
 
-        if (!isItemInArray(item)) { 
+        if (!isItemInArray(item)) {
             addItem(item);
             setAvailableItems(availableItems.filter((i) => i !== item));
             setInputValue('');
@@ -47,14 +46,10 @@ export default function MultiSelectInput(
         }
     };
 
-
-
     const handleRemoveItem = (item: string) => {
         removeItem(item);
         setAvailableItems([...availableItems, item]);
     };
-
-
 
     const handleClickOutside = (event: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -65,7 +60,9 @@ export default function MultiSelectInput(
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            const matchingItem = availableItems.find((item) => item.toLowerCase() === inputValue.toLowerCase());
+            const matchingItem = availableItems.find(
+                (item) => item.toLowerCase() === inputValue.toLowerCase(),
+            );
             if (matchingItem) {
                 handleItemClick(matchingItem);
             } else {
@@ -82,14 +79,29 @@ export default function MultiSelectInput(
         };
     }, []);
 
-
     return (
-        <div ref={containerRef} className="relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit">
-            <p id={label + 'ParamInputTooltip'} className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300">{`${label} ${required ? '(required)' : '(optional)'}`}</p> 
-            <Tooltip anchorSelect={'#' + label + 'ParamInputTooltip'} children={<p className="whitespace-pre-wrap">{description}</p>} place="top" variant="info" style={{'maxWidth' : "500px", 'height': 'fit-content'}} delayShow={400}/>
+        <div
+            ref={containerRef}
+            className="relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit"
+        >
+            <p
+                id={label + 'ParamInputTooltip'}
+                className="text-sm pl-4 text-gray-500 border-b border-dashed border-slate-300"
+            >{`${label} ${required ? '(required)' : '(optional)'}`}</p>
+            <Tooltip
+                anchorSelect={'#' + label + 'ParamInputTooltip'}
+                children={<p className="whitespace-pre-wrap">{description}</p>}
+                place="top"
+                variant="info"
+                style={{ maxWidth: '500px', height: 'fit-content' }}
+                delayShow={400}
+            />
             <div className="flex flex-wrap justify-around rounded p-2">
-                {selectedItems.map((item) => ( 
-                    <div key={item} className="flex items-center bg-[#DCEAF1] text-sky-900 pl-2 pr-1 py-1 m-1 rounded">
+                {selectedItems.map((item) => (
+                    <div
+                        key={item}
+                        className="flex items-center bg-[#DCEAF1] text-sky-900 pl-2 pr-1 py-1 m-1 rounded"
+                    >
                         <span>{item}</span>
                         <button
                             onClick={() => handleRemoveItem(item)}
@@ -126,4 +138,3 @@ export default function MultiSelectInput(
         </div>
     );
 }
-

@@ -8,20 +8,19 @@ import {
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydPVSocketTypes';
 
-
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
  * Provides real-time device state management and control functions.
- * 
+ *
  * @param deviceNameList - Array of EPICS PVs to subscribe to
  * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
  * @returns Object containing device states and control functions
  */
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);  //device updates can retrigger the hook if inputs aren't memoized
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]); //device updates can retrigger the hook if inputs aren't memoized
     const configWsUrl = useOphydApiUrls().getWsUrl('pv-socket');
-    const apiUrl:string = wsUrl ?? configWsUrl;
+    const apiUrl: string = wsUrl ?? configWsUrl;
     const [devices, setDevices] = useState<Devices>(() => {
         const initialDevices: Devices = {};
         memoizedDeviceNames.forEach((deviceName) => {
@@ -62,16 +61,19 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
      * @param deviceName - The name/identifier of the device to update
      * @param value - The new value to set for the device (string, number, or boolean)
      */
-    const handleSetValueRequest = useCallback((deviceName: string, value: string | number | boolean) => {
-        if (wsRef.current) {
-            const setValueMessage = {
-                action: 'set',
-                pv: deviceName,
-                value: value,
-            };
-            wsRef.current.send(JSON.stringify(setValueMessage));
-        }
-    }, []);
+    const handleSetValueRequest = useCallback(
+        (deviceName: string, value: string | number | boolean) => {
+            if (wsRef.current) {
+                const setValueMessage = {
+                    action: 'set',
+                    pv: deviceName,
+                    value: value,
+                };
+                wsRef.current.send(JSON.stringify(setValueMessage));
+            }
+        },
+        [],
+    );
 
     /**
      * Toggles the expanded state of a device in the UI.
@@ -142,7 +144,11 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         // Handle incoming WebSocket messages
         ws.onmessage = (event) => {
             try {
-                const message: MessageResponse | ErrorResponse | ValueUpdateResponse | MetaUpdateResponse = JSON.parse(event.data);
+                const message:
+                    | MessageResponse
+                    | ErrorResponse
+                    | ValueUpdateResponse
+                    | MetaUpdateResponse = JSON.parse(event.data);
                 if ('sub_type' in message && message.sub_type === 'meta') {
                     //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
                     setDevices((prevDevices) => ({
@@ -154,7 +160,6 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                             //units: message.units,
                             min: message.lower_ctrl_limit,
                             max: message.upper_ctrl_limit,
-                            
                         },
                     }));
                 } else if ('pv' in message) {
@@ -164,7 +169,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                         ...prevDevices,
                         [deviceName]: {
                             ...prevDevices[deviceName],
-                            ...message, 
+                            ...message,
                         },
                     }));
                 }

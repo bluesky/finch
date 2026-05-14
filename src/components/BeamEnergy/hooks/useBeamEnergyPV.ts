@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-import useOphydSocket from "@/api/ophyd/useOphydSocket"
+import useOphydSocket from '@/api/ophyd/useOphydSocket';
 
-import { computeEnergyFromMonoAngle } from "@/components/BeamEnergy/utils/computeEnergyFromMonoAngle";
-import { computeMonoAngleFromEnergy } from "@/components/BeamEnergy/utils/computeMonoAngleFromEnergy";
-import { Device } from "@/types/deviceControllerTypes";
+import { computeEnergyFromMonoAngle } from '@/components/BeamEnergy/utils/computeEnergyFromMonoAngle';
+import { computeMonoAngleFromEnergy } from '@/components/BeamEnergy/utils/computeMonoAngleFromEnergy';
+import { Device } from '@/types/deviceControllerTypes';
 
 const DEMO_DEFAULT_EV = 3000;
 const DEMO_UPDATE_INTERVAL_MS = 200; // 5 updates per second
-const DEMO_MS_PER_EV = 1;            // 1 ms per eV → 1 s per 1000 eV
+const DEMO_MS_PER_EV = 1; // 1 ms per eV → 1 s per 1000 eV
 
 type UseBeamEnergyPVProps = {
     pv?: string;
@@ -16,7 +16,7 @@ type UseBeamEnergyPVProps = {
     wsUrl?: string;
     /** When true, skips the WebSocket connection and holds the angle at the 3000 eV position until a move command is issued. */
     demo?: boolean;
-}
+};
 /**
  * Custom hook for managing beam energy calculation based on monochromator angle.
  * Utilizes ophyd socket for device communication and retrieves monochromator angle PV.
@@ -29,12 +29,17 @@ type UseBeamEnergyPVProps = {
  * @returns Object containing beam energy value and related device data
  */
 export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
-    const { pv = "bl531_xps1:mono_angle_deg", thetaOffsetDeg = 12.787, wsUrl, demo = false } = props;
+    const {
+        pv = 'bl531_xps1:mono_angle_deg',
+        thetaOffsetDeg = 12.787,
+        wsUrl,
+        demo = false,
+    } = props;
 
-    const [ showController, setShowController ] = useState(true);
-    const [ showPlot, setShowPlot ] = useState(false);
-    const [ showAbout, setShowAbout ] = useState(false);
-    const [ isLocked, setIsLocked ] = useState(false);
+    const [showController, setShowController] = useState(true);
+    const [showPlot, setShowPlot] = useState(false);
+    const [showAbout, setShowAbout] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
 
     // Demo-mode simulated angle: starts at 3000 eV, only changes on move commands.
     // A ref shadows the state so the move interval always reads the latest value without stale closures.
@@ -51,7 +56,12 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
     const moveParamsRef = useRef({ startAngle: 0, targetAngle: 0, startTime: 0, durationMs: 0 });
 
     // Clean up any running move on unmount.
-    useEffect(() => () => { if (moveIntervalRef.current) clearInterval(moveIntervalRef.current); }, []);
+    useEffect(
+        () => () => {
+            if (moveIntervalRef.current) clearInterval(moveIntervalRef.current);
+        },
+        [],
+    );
 
     const startDemoMove = (targetAngleDeg: number) => {
         if (moveIntervalRef.current) clearInterval(moveIntervalRef.current);
@@ -66,7 +76,12 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
             return;
         }
 
-        moveParamsRef.current = { startAngle, targetAngle: targetAngleDeg, startTime: Date.now(), durationMs };
+        moveParamsRef.current = {
+            startAngle,
+            targetAngle: targetAngleDeg,
+            startTime: Date.now(),
+            durationMs,
+        };
 
         moveIntervalRef.current = setInterval(() => {
             const { startAngle, targetAngle, startTime, durationMs } = moveParamsRef.current;
@@ -80,19 +95,33 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
     };
 
     const pvReadback = useMemo(() => `${pv}.RBV`, [pv]);
-    const deviceList = useMemo(() => demo ? [] : [pv, pvReadback], [pv, pvReadback, demo]);
+    const deviceList = useMemo(() => (demo ? [] : [pv, pvReadback]), [pv, pvReadback, demo]);
     const { devices, handleSetValueRequest } = useOphydSocket(deviceList, wsUrl);
 
     // Only capture a new timestamp when the angle actually changes.
     const simTimestamp = useMemo(() => Date.now() / 1000, []);
 
     const device: Device | undefined = demo
-        ? { pv, value: simAngleDeg, timestamp: simTimestamp, connected: true, read_access: true, write_access: true, name: pv, locked: false, expanded: false }
+        ? {
+              pv,
+              value: simAngleDeg,
+              timestamp: simTimestamp,
+              connected: true,
+              read_access: true,
+              write_access: true,
+              name: pv,
+              locked: false,
+              expanded: false,
+          }
         : devices[pvReadback];
 
     const currentValueDegrees = demo
         ? simAngleDeg
-        : (device ? (device.value !== "" ? device.value as number : NaN) : NaN);
+        : device
+          ? device.value !== ''
+              ? (device.value as number)
+              : NaN
+          : NaN;
 
     const currentValueEV = useMemo(() => {
         if (isNaN(currentValueDegrees)) {
@@ -140,8 +169,7 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
         } else {
             console.log('Cannot stop monochromator move: current value is NaN');
         }
-    }
-
+    };
 
     const handleToggleController = () => {
         if (showAbout && showController) {
@@ -190,5 +218,5 @@ export default function useBeamEnergyPV(props: UseBeamEnergyPVProps = {}) {
         handleToggleAbout,
         isLocked,
         handleToggleLock,
-    }
+    };
 }

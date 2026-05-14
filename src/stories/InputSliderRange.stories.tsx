@@ -10,7 +10,7 @@ const meta = {
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',
-    }
+    },
 } satisfies Meta<typeof InputSliderRange>;
 
 export default meta;
@@ -39,9 +39,9 @@ export const Default: Story = {
         value: [20, 50],
         onChange: fn(),
         label: 'Age',
-        units: 'years'
-    }
-}
+        units: 'years',
+    },
+};
 
 export const WithCustomTicks: Story = {
     render: (args) => <InteractiveInputSliderRange {...args} />,
@@ -50,9 +50,9 @@ export const WithCustomTicks: Story = {
         max: 100,
         value: [20, 50],
         onChange: fn(),
-        marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    }
-}
+        marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    },
+};
 
 export const WithTickLabels: Story = {
     render: (args) => <InteractiveInputSliderRange {...args} />,
@@ -62,9 +62,9 @@ export const WithTickLabels: Story = {
         value: [20, 50],
         onChange: fn(),
         marks: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
-        shorthandUnits: 'yr'
-    }
-}
+        shorthandUnits: 'yr',
+    },
+};
 
 export const WithoutLabel: Story = {
     render: (args) => <InteractiveInputSliderRange {...args} />,
@@ -73,8 +73,8 @@ export const WithoutLabel: Story = {
         max: 100,
         value: [20, 50],
         onChange: fn(),
-    }
-}
+    },
+};
 
 export const WithoutLabelOrInput: Story = {
     render: (args) => <InteractiveInputSliderRange {...args} />,
@@ -83,7 +83,6 @@ export const WithoutLabelOrInput: Story = {
         max: 100,
         value: [20, 50],
         onChange: fn(),
-        showSideInput: false
-    }
-}
-
+        showSideInput: false,
+    },
+};

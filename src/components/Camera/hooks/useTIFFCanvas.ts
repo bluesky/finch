@@ -6,7 +6,7 @@ import { getErrorMessage } from '@/utils/errorHandling';
 
 export type UseTIFFCanvasProps = {
     imageArrayPV?: string;
-    sizePVs?: {[key:string]: string};
+    sizePVs?: { [key: string]: string };
     canvasSize?: CanvasSizes;
     prefix?: string;
     wsUrl?: string;
@@ -15,7 +15,7 @@ export type UseTIFFCanvasProps = {
 export function useTIFFCanvas({
     canvasSize = 'medium',
     prefix = '13PIL1',
-    wsUrl
+    wsUrl,
 }: UseTIFFCanvasProps) {
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
@@ -29,12 +29,15 @@ export function useTIFFCanvas({
     const configWsUrl = useOphydApiUrls().getWsUrl(ophydSocketTIFFPath);
     const resolvedWsUrl = wsUrl ?? configWsUrl;
 
-    const sizeDict: {[key:string]: number} = useMemo(() => ({
-        small: 256,
-        medium: 512,
-        large: 1024,
-        automatic: 512
-    }), []);
+    const sizeDict: { [key: string]: number } = useMemo(
+        () => ({
+            small: 256,
+            medium: 512,
+            large: 1024,
+            automatic: 512,
+        }),
+        [],
+    );
 
     const toggleLogScale = useCallback(() => {
         const newLogScale = !isImageLogScale;
@@ -50,7 +53,7 @@ export function useTIFFCanvas({
             try {
                 ws.current.close();
             } catch (error) {
-                console.log({error});
+                console.log({ error });
                 return;
             }
         }
@@ -65,19 +68,19 @@ export function useTIFFCanvas({
         if (ws.current !== null) {
             ws.current.close();
         }
-       
+
         const canvas = canvasRef.current;
         const context = canvas.getContext('2d');
 
         let isFrameReady = false;
         let nextFrame: null | ImageBitmap = null;
-    
+
         try {
             const url = resolvedWsUrl;
-            console.log({url})
+            console.log({ url });
             ws.current = new WebSocket(url);
         } catch (error) {
-            console.log({error});
+            console.log({ error });
             return;
         }
 
@@ -87,14 +90,14 @@ export function useTIFFCanvas({
             setSocketError(null);
             frameCount.current = 0;
             startTime.current = new Date();
-            // send message to websocket containing the pvs for the image and pixel size          
-            const wsMessage = {prefix: prefix};
+            // send message to websocket containing the pvs for the image and pixel size
+            const wsMessage = { prefix: prefix };
             ws.current.send(JSON.stringify(wsMessage));
         };
-    
+
         ws.current.onmessage = async function (event) {
             if (canvasRef.current === null) return;
-            if (typeof event.data === "string") {
+            if (typeof event.data === 'string') {
                 const message = JSON.parse(event.data);
                 if ('logNormalization' in message) {
                     setIsImageLogScale(message['logNormalization']);
@@ -112,15 +115,19 @@ export function useTIFFCanvas({
                     const blob = new Blob([event.data], { type: 'image/jpeg' });
                     const imageBitmap = await createImageBitmap(blob);
                     nextFrame = imageBitmap;
-                    isFrameReady = true;  // Mark frame as ready
+                    isFrameReady = true; // Mark frame as ready
                     if (startTime.current !== null && frameCount.current !== null) {
                         const currentTime = new Date();
-                        let totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                        let totalDurationSeconds =
+                            startTime.current &&
+                            currentTime.getTime() / 1000 - startTime.current.getTime() / 1000;
                         if (totalDurationSeconds > 5) {
                             // reset the total duration so we can get an accurate fps.
                             startTime.current = new Date();
                             frameCount.current = 0;
-                            totalDurationSeconds = startTime.current && currentTime.getTime()/1000 - startTime.current.getTime()/1000;
+                            totalDurationSeconds =
+                                startTime.current &&
+                                currentTime.getTime() / 1000 - startTime.current.getTime() / 1000;
                         }
                         setFps(((frameCount.current + 1) / totalDurationSeconds).toPrecision(3));
                         frameCount.current = frameCount.current + 1;
@@ -131,7 +138,7 @@ export function useTIFFCanvas({
                 }
             }
         };
-    
+
         // Rendering loop with requestAnimationFrame
         const render = () => {
             if (isFrameReady && context && nextFrame) {
@@ -141,16 +148,16 @@ export function useTIFFCanvas({
             }
             requestAnimationFrame(render);
         };
-    
-        requestAnimationFrame(render);  // Start the rendering loop
+
+        requestAnimationFrame(render); // Start the rendering loop
 
         ws.current.onerror = (error) => {
             if (error instanceof Event) {
                 const target = error.target as WebSocket;
-                console.log("WebSocket Error on URL:", target.url, {error});
+                console.log('WebSocket Error on URL:', target.url, { error });
                 setSocketError('WebSocket Error: Unable to connect to ' + target.url);
             } else {
-                console.log("WebSocket Error:", {error});
+                console.log('WebSocket Error:', { error });
                 setSocketError('WebSocket Error: ' + getErrorMessage(error));
             }
             setSocketStatus('closed');
@@ -159,7 +166,7 @@ export function useTIFFCanvas({
         ws.current.onclose = () => {
             setSocketStatus('closed');
             frameCount.current = 0;
-            console.log("Camera Web Socket closed");
+            console.log('Camera Web Socket closed');
         };
     }, [resolvedWsUrl, canvasSize, prefix]);
 
@@ -173,7 +180,7 @@ export function useTIFFCanvas({
                 ws.current.close();
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); //we only want this to run on mount/unmount, not when a user forces a re-render by stopping the websocket or toggling log scale
 
     return {
@@ -185,6 +192,6 @@ export function useTIFFCanvas({
         sizeDict,
         startWebSocket,
         closeWebSocket,
-        toggleLogScale
+        toggleLogScale,
     };
 }

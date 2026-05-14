@@ -53,7 +53,7 @@ describe('HistogramDeviceController', () => {
                 acquireDevice={undefined as unknown as Device}
                 handleStartAcquisition={noop}
                 handleStopAcquisition={noop}
-            />
+            />,
         );
         expect(container.firstChild).toBeInTheDocument();
     });
@@ -65,7 +65,7 @@ describe('HistogramDeviceController', () => {
                 handleStartAcquisition={noop}
                 handleStopAcquisition={noop}
                 className="my-controller"
-            />
+            />,
         );
         expect(container.firstChild).toHaveClass('my-controller');
     });
@@ -129,7 +129,7 @@ describe('Histogram', () => {
 
     it('renders without crashing in demo mode', () => {
         const { container } = render(
-            <Histogram arrayPV="test:array" acquirePV="test:acquire" demo />
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" demo />,
         );
         expect(container.firstChild).toBeInTheDocument();
     });
@@ -147,7 +147,7 @@ describe('Histogram', () => {
 
     it('renders device controller when showDeviceController is true', () => {
         render(
-            <Histogram arrayPV="test:array" acquirePV="test:acquire" demo showDeviceController />
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" demo showDeviceController />,
         );
         expect(screen.getByText('Title')).toBeInTheDocument();
     });
@@ -174,7 +174,9 @@ describe('Histogram', () => {
     it('updates demo data after 1 second', async () => {
         vi.useFakeTimers();
         render(<Histogram arrayPV="" acquirePV="" demo />);
-        await act(async () => { vi.advanceTimersByTime(1000); });
+        await act(async () => {
+            vi.advanceTimersByTime(1000);
+        });
         expect(screen.getByTestId('plotly-plot')).toBeInTheDocument();
         vi.useRealTimers();
     });

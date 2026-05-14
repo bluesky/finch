@@ -1,30 +1,38 @@
-import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
+import { useState, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
-import { TestItemCollection, ComponentViewerCollection } from "./types";
-import { initializeTestResults, writeTestResultsToLocalStorage } from "./utils";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { TestItemCollection, ComponentViewerCollection } from './types';
+import { initializeTestResults, writeTestResultsToLocalStorage } from './utils';
+import { CaretLeft, CaretRight } from '@phosphor-icons/react';
 
 export type ComponentViewerProps = {
     testItems: TestItemCollection;
     className?: string;
     namespace?: string;
-}
+};
 export default function ComponentViewer({ testItems, className, namespace }: ComponentViewerProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const initializedTestResults = useMemo(() => initializeTestResults(testItems, namespace), [ namespace]); //we will get infinite re renders if we don't memoize the testItems which contain devices that rapidly update
-    const [ testResults, setTestResults] = useState<ComponentViewerCollection>(initializedTestResults);
-    //const [ copyButtonText, setCopyButtonText ] = useState<string>('Copy Table');  
-    const [ commandCopyStates, setCommandCopyStates ] = useState<Record<string, string>>({});
-    const [ currentTestIndex, setCurrentTestIndex ] = useState<number>(0);
-    
+    const initializedTestResults = useMemo(
+        () => initializeTestResults(testItems, namespace),
+        [namespace],
+    ); //we will get infinite re renders if we don't memoize the testItems which contain devices that rapidly update
+    const [testResults, setTestResults] =
+        useState<ComponentViewerCollection>(initializedTestResults);
+    //const [ copyButtonText, setCopyButtonText ] = useState<string>('Copy Table');
+    const [commandCopyStates, setCommandCopyStates] = useState<Record<string, string>>({});
+    const [currentTestIndex, setCurrentTestIndex] = useState<number>(0);
+
     const testKeys = Object.keys(testItems);
     const currentTestKey = testKeys[currentTestIndex];
     const currentTest = currentTestKey ? testResults[currentTestKey] : null;
 
-    const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>, id: string, comment: string) => {
+    const handleCommentChange = (
+        e: React.ChangeEvent<HTMLTextAreaElement>,
+        id: string,
+        comment: string,
+    ) => {
         e.preventDefault();
-        setTestResults(prevResults => {
+        setTestResults((prevResults) => {
             const updatedResults = { ...prevResults };
             if (updatedResults[id]) {
                 updatedResults[id] = { ...updatedResults[id], comment };
@@ -32,19 +40,25 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
             writeTestResultsToLocalStorage(updatedResults, namespace);
             return updatedResults;
         });
-    }
+    };
 
-    const handleStatusToggle = (e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>, id: string) => {
+    const handleStatusToggle = (
+        e: React.ChangeEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>,
+        id: string,
+    ) => {
         e.preventDefault();
-        setTestResults(prevResults => {
+        setTestResults((prevResults) => {
             const updatedResults = { ...prevResults };
             if (updatedResults[id]) {
-                updatedResults[id] = { ...updatedResults[id], isPassing: !updatedResults[id].isPassing };
+                updatedResults[id] = {
+                    ...updatedResults[id],
+                    isPassing: !updatedResults[id].isPassing,
+                };
             }
             writeTestResultsToLocalStorage(updatedResults, namespace);
             return updatedResults;
         });
-    }
+    };
 
     // const resetTestResults = () => {
     //     const blankTestResults: ComponentViewerCollection = {};
@@ -71,40 +85,41 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
     //             }, 1000);
     //         })
     //         .catch(err => alert('Failed to copy test results: ' + err));
-    // }   
+    // }
 
     const handleCopyCommand = (key: string, command: string) => {
-        navigator.clipboard.writeText(command)
+        navigator.clipboard
+            .writeText(command)
             .then(() => {
-                setCommandCopyStates(prev => ({ ...prev, [key]: 'Copied' }));
+                setCommandCopyStates((prev) => ({ ...prev, [key]: 'Copied' }));
                 setTimeout(() => {
-                    setCommandCopyStates(prev => ({ ...prev, [key]: 'Copy' }));
+                    setCommandCopyStates((prev) => ({ ...prev, [key]: 'Copy' }));
                 }, 1000);
             })
-            .catch(err => alert('Failed to copy command: ' + err));
-    }
+            .catch((err) => alert('Failed to copy command: ' + err));
+    };
 
     const handleTestChange = (newIndex: number) => {
         // Reset API client global state before switching tests
         setCurrentTestIndex(newIndex);
         //clear the tiled_csrf cookie to prevent auth issues when switching between tests that require different authentication states
         document.cookie = 'tiled_csrf=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    }
+    };
 
     const nextTest = () => {
         if (currentTestIndex < testKeys.length - 1) {
             handleTestChange(currentTestIndex + 1);
         }
-    }
+    };
 
     const prevTest = () => {
         if (currentTestIndex > 0) {
             handleTestChange(currentTestIndex - 1);
         }
-    }
+    };
 
     return (
-        <div className={cn("w-full lg:w-3/4 max-w-6xl m-auto", className)}>
+        <div className={cn('w-full lg:w-3/4 max-w-6xl m-auto', className)}>
             {/* <h1 className="text-2xl text-center mb-4 text-sky-700">Component Test Page</h1> */}
             {/* A summary table that shows the test results, including id, name, passing status, and optional comment */}
             <table className="max-w-full m-auto border-collapse border border-gray-200 text-sm bg-white">
@@ -121,7 +136,7 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                         const result = testResults[key];
                         const isSelected = index === currentTestIndex;
                         return (
-                            <tr 
+                            <tr
                                 key={key}
                                 onClick={() => handleTestChange(index)}
                                 className={`cursor-pointer hover:bg-blue-100 transition-colors ${
@@ -136,7 +151,7 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                                     ) : (
                                         <span className="text-red-500 ">✗</span>
                                     )}
-                                </td> 
+                                </td>
                                 <td className="border border-gray-200 p-1">{result.comment}</td>
                             </tr>
                         );
@@ -157,7 +172,9 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
             {/* Current Test Display */}
             {currentTest && (
                 <div className="mt-8 max-w-fit m-auto" key={currentTest.name}>
-                    <h2 className="text-xl mb-2 font-light text-center">{currentTestKey}: {currentTest.name}</h2>
+                    <h2 className="text-xl mb-2 font-light text-center">
+                        {currentTestKey}: {currentTest.name}
+                    </h2>
                     {/* Carousel Navigation */}
                     <div className="flex items-center space-x-4 justify-center w-full">
                         <button
@@ -178,12 +195,11 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                             <CaretRight className="inline ml-1" />
                         </button>
                     </div>
-                   
+
                     {/* Component */}
                     <div className="w-full flex items-center justify-center">
                         {testItems[currentTestKey]?.element}
                     </div>
-
 
                     {/* Test Pass/Fail slider */}
                     <div className="flex items-center justify-between py-4 mt-8">
@@ -197,8 +213,12 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                                         checked={currentTest.isPassing}
                                         onChange={(e) => handleStatusToggle(e, currentTestKey)}
                                     />
-                                    <div className={`w-11 h-6 rounded-full transition-colors ${currentTest.isPassing ? 'bg-green-500' : 'bg-red-500'}`}>
-                                        <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${currentTest.isPassing ? 'translate-x-5' : 'translate-x-0'} mt-0.5 ml-0.5`}></div>
+                                    <div
+                                        className={`w-11 h-6 rounded-full transition-colors ${currentTest.isPassing ? 'bg-green-500' : 'bg-red-500'}`}
+                                    >
+                                        <div
+                                            className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${currentTest.isPassing ? 'translate-x-5' : 'translate-x-0'} mt-0.5 ml-0.5`}
+                                        ></div>
                                     </div>
                                 </label>
                                 <span className="text-sm">Passing</span>
@@ -208,7 +228,7 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
 
                     {/* Comment Section */}
                     <div className="mb-6">
-                        <textarea 
+                        <textarea
                             className="w-full h-24 resize-none border border-gray-300 rounded p-3 align-top"
                             value={currentTest.comment || ''}
                             onChange={(e) => handleCommentChange(e, currentTestKey, e.target.value)}
@@ -224,7 +244,9 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                                     {currentTest.command}
                                 </code>
                                 <button
-                                    onClick={() => handleCopyCommand(currentTestKey, currentTest.command!)}
+                                    onClick={() =>
+                                        handleCopyCommand(currentTestKey, currentTest.command!)
+                                    }
                                     className="px-3 py-2 bg-gray-500 text-white text-sm rounded hover:bg-gray-600 transition-colors whitespace-nowrap"
                                 >
                                     {commandCopyStates[currentTestKey] || 'Copy'}
@@ -236,17 +258,33 @@ export default function ComponentViewer({ testItems, className, namespace }: Com
                     {/* Display info if available */}
                     {currentTest.info && (
                         <div className="mb-4 max-w-5xl">
-                            <p className="text-gray-600 text-sm text-wrap w-fit">Info: {currentTest.info}{currentTest.link && (
-                                <> <a className="text-blue-500 underline" href={currentTest.link} target="_blank" rel="noopener noreferrer">here</a></>
-                            )}</p>
+                            <p className="text-gray-600 text-sm text-wrap w-fit">
+                                Info: {currentTest.info}
+                                {currentTest.link && (
+                                    <>
+                                        {' '}
+                                        <a
+                                            className="text-blue-500 underline"
+                                            href={currentTest.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            here
+                                        </a>
+                                    </>
+                                )}
+                            </p>
                         </div>
                     )}
-                        
-                   {/* Issues */}
-                   <p className="text-sm text-gray-500">Having issues? If the component id starts with 'real' then you will need a backend running and configured... Otherwise it could be an issue with the component itself!</p>
+
+                    {/* Issues */}
+                    <p className="text-sm text-gray-500">
+                        Having issues? If the component id starts with 'real' then you will need a
+                        backend running and configured... Otherwise it could be an issue with the
+                        component itself!
+                    </p>
                 </div>
             )}
-
         </div>
-    )
+    );
 }
