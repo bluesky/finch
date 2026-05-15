@@ -28,7 +28,15 @@ jobs:
         run: npm ci
 
       - name: Run linting
-        run: npm run lint
+        run: |
+          npm run lint 2>&1 | tee lint-output.txt
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Run formatting check
+        run: |
+          npm run format 2>&1 | tee format-output.txt
+          exit ${PIPESTATUS[0]}
         continue-on-error: true
 
       - name: Run type checking and build
@@ -91,6 +99,8 @@ jobs:
           path: |
             coverage/
             test-results/
+            lint-output.txt
+            format-output.txt
           retention-days: 30
 
   test-summary:
@@ -99,10 +109,32 @@ jobs:
     if: always() && github.event_name == 'pull_request'
     
     steps:
+      - name: Download test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-node-20.x
+        continue-on-error: true
+
       - name: Comment PR with test summary
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
+
+            let lintOutput = '';
+            try {
+              lintOutput = fs.readFileSync('lint-output.txt', 'utf8').trim();
+            } catch (e) {
+              // lint output not available
+            }
+
+            let formatOutput = '';
+            try {
+              formatOutput = fs.readFileSync('format-output.txt', 'utf8').trim();
+            } catch (e) {
+              // format output not available
+            }
+
             const testStatus = '${{ needs.test.result }}';
             const emoji = testStatus === 'success' ? '✅' : '❌';
             const message = testStatus === 'success' ? 'All tests passed!' : 'Some tests failed.';
@@ -118,16 +150,38 @@ jobs:
             const steps = testJob ? testJob.steps : [];
             
             const lintStep = steps.find(step => step.name === 'Run linting');
+            const formatStep = steps.find(step => step.name === 'Run formatting check');
             const buildStep = steps.find(step => step.name === 'Run type checking and build');
             const testSuitesStep = steps.find(step => step.name === 'Run specific test suites');
 
             const lintStatus = lintStep ? (lintStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const formatStatus = formatStep ? (formatStep.conclusion === 'success' ? '✅' : '❌') : '❓';
             const buildStatus = buildStep ? (buildStep.conclusion === 'success' ? '✅' : '❌') : '❓';
             const testStepStatus = testSuitesStep ? (testSuitesStep.conclusion === 'success' ? '✅' : '❌') : '❓';
 
             const lintText = lintStep ?
               (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') :
               'ESLint status unknown';
+
+            let lintSection = '';
+            if (lintOutput && lintStep && lintStep.conclusion !== 'success') {
+              const truncated = lintOutput.length > 3000
+                ? lintOutput.substring(0, 3000) + '\n...(output truncated)'
+                : lintOutput;
+              lintSection = `\n\n<details>\n<summary>ESLint Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
+
+            const formatText = formatStep ?
+              (formatStep.conclusion === 'success' ? 'Prettier passed' : 'Prettier failed') :
+              'Formatting status unknown';
+
+            let formatSection = '';
+            if (formatOutput && formatStep && formatStep.conclusion !== 'success') {
+              const truncated = formatOutput.length > 3000
+                ? formatOutput.substring(0, 3000) + '\n...(output truncated)'
+                : formatOutput;
+              formatSection = `\n\n<details>\n<summary>Prettier Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
 
             const buildText = buildStep ?
               (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') :
@@ -153,7 +207,8 @@ jobs:
               `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
               ``,
               `**Test Environment:** Node.js 20.x`,
-              `**Linting:** ${lintStatus} ${lintText}`,
+              `**Linting:** ${lintStatus} ${lintText}${lintSection}`,
+              `**Formatting:** ${formatStatus} ${formatText}${formatSection}`,
               `**Type Checking:** ${buildStatus} ${buildText}`,
               `**Build:** ${buildStatus} Production build successful`,
               `**Tests:** ${testStepStatus} ${testText}`
