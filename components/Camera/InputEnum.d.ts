@@ -8,6 +8,6 @@ type InputEnumProps = {
     /** When `true`, prevents interaction and renders the control in a disabled style. */
     isDisabled?: boolean;
 };
-export default function InputEnum({ label, enums, onSubmit, isDisabled }: InputEnumProps): import("react/jsx-runtime").JSX.Element;
+export default function InputEnum({ label, enums, onSubmit, isDisabled, }: InputEnumProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputEnum.d.ts.map

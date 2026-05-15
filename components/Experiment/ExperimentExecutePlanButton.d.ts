@@ -19,6 +19,6 @@ type ExperimentExecutePlanButtonProps = {
     /** Callback invoked when plan availability check or execution fails. */
     onError?: (error: string) => void;
 };
-export default function ExperimentExecutePlanButton({ detectors, num, delay, md, disabled, className, onSuccess, onError }: ExperimentExecutePlanButtonProps): import("react/jsx-runtime").JSX.Element;
+export default function ExperimentExecutePlanButton({ detectors, num, delay, md, disabled, className, onSuccess, onError, }: ExperimentExecutePlanButtonProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ExperimentExecutePlanButton.d.ts.map

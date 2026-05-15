@@ -20,6 +20,6 @@ type HistogramProps = {
     /** Number of significant figures for sum displays in the plot. Defaults to `6`. */
     precision?: number;
 };
-export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision }: HistogramProps): import("react/jsx-runtime").JSX.Element;
+export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision, }: HistogramProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Histogram.d.ts.map

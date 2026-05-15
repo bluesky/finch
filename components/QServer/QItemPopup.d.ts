@@ -7,6 +7,6 @@ type QItemPopupProps = {
     handleCopyItemClick?: (name: string, kwargs: ArbitraryKwargs) => void;
     isItemRunning?: boolean;
 };
-export default function QItemPopup({ popupItem, handleQItemPopupClose, isItemDeleteButtonVisible, handleCopyItemClick, isItemRunning }: QItemPopupProps): import("react/jsx-runtime").JSX.Element;
+export default function QItemPopup({ popupItem, handleQItemPopupClose, isItemDeleteButtonVisible, handleCopyItemClick, isItemRunning, }: QItemPopupProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=QItemPopup.d.ts.map

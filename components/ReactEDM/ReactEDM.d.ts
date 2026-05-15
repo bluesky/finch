@@ -6,5 +6,5 @@ export type ReactEDMProps = {
     mock?: boolean;
     variant?: string;
 };
-export default function ReactEDM({ className, fileName, P, R, mock, variant }: ReactEDMProps): import("react/jsx-runtime").JSX.Element;
+export default function ReactEDM({ className, fileName, P, R, mock, variant, }: ReactEDMProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=ReactEDM.d.ts.map

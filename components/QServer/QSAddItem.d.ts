@@ -5,6 +5,6 @@ type QsAddItemProps = WidgetStyleProps & {
     isGlobalMetadataChecked?: boolean;
     globalMetadata?: GlobalMetadata;
 };
-export default function QSAddItem({ copiedPlan, isGlobalMetadataChecked, globalMetadata }: QsAddItemProps): import("react/jsx-runtime").JSX.Element;
+export default function QSAddItem({ copiedPlan, isGlobalMetadataChecked, globalMetadata, }: QsAddItemProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=QSAddItem.d.ts.map

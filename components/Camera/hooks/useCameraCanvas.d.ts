@@ -8,7 +8,7 @@ export type UseCameraCanvasProps = {
     prefix?: string;
     wsUrl?: string;
 };
-export declare function useCameraCanvas({ imageArrayPV, sizePVs, canvasSize, prefix, wsUrl }: UseCameraCanvasProps): {
+export declare function useCameraCanvas({ imageArrayPV, sizePVs, canvasSize, prefix, wsUrl, }: UseCameraCanvasProps): {
     canvasRef: import('../../../../node_modules/react').MutableRefObject<HTMLCanvasElement | null>;
     fps: string;
     socketStatus: string;

@@ -9,6 +9,6 @@ type ExperimentEnergyScanProps = {
     /** The url for the Tiled server */
     tiledBaseUrl?: string;
 };
-export default function ExperimentEnergyScan({ className, onSuccess, onError, tiledBaseUrl }: ExperimentEnergyScanProps): import("react/jsx-runtime").JSX.Element;
+export default function ExperimentEnergyScan({ className, onSuccess, onError, tiledBaseUrl, }: ExperimentEnergyScanProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ExperimentEnergyScan.d.ts.map

@@ -9,6 +9,6 @@ interface ScalableContainerProps {
     sensitivity?: number;
     onScaleChange?: (scale: number) => void;
 }
-export default function ScalableContainer({ children, className, initialScale, minScale, maxScale, onScaleReset, sensitivity, onScaleChange }: ScalableContainerProps): import("react/jsx-runtime").JSX.Element;
+export default function ScalableContainer({ children, className, initialScale, minScale, maxScale, onScaleReset, sensitivity, onScaleChange, }: ScalableContainerProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ScalableContainer.d.ts.map

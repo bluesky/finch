@@ -14,6 +14,6 @@ type TiledWriterDetImageHeatmapProps = {
     /** Controls the pixel dimensions of the rendered heatmap. Defaults to `'medium'`. */
     size?: 'small' | 'medium' | 'large';
 };
-export default function TiledWriterDetImageHeatmap({ blueskyRunId, isRunFinished, tiledBaseUrl, pollingIntervalMs, className, plotClassName, size }: TiledWriterDetImageHeatmapProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledWriterDetImageHeatmap({ blueskyRunId, isRunFinished, tiledBaseUrl, pollingIntervalMs, className, plotClassName, size, }: TiledWriterDetImageHeatmapProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledWriterDetImageHeatmap.d.ts.map

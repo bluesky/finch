@@ -5,5 +5,5 @@ export type BeamEnergyTitleIconProps = {
     pv: string;
     showIcon?: boolean;
 };
-export default function BeamEnergyTitleIcon({ title, pv, showIcon }: BeamEnergyTitleIconProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyTitleIcon({ title, pv, showIcon, }: BeamEnergyTitleIconProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=BeamEnergyTitleIcon.d.ts.map

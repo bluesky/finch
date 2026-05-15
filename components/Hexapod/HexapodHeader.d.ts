@@ -18,6 +18,6 @@ type HexapodHeaderProps = {
     /** Callback to toggle the about panel visibility. */
     onClickAbout?: () => void;
 };
-export default function HexapodHeader({ prefix, showController, showPlot, showAbout, isLocked, onClickLock, onClickController, onClickPlot, onClickAbout }: HexapodHeaderProps): import("react/jsx-runtime").JSX.Element;
+export default function HexapodHeader({ prefix, showController, showPlot, showAbout, isLocked, onClickLock, onClickController, onClickPlot, onClickAbout, }: HexapodHeaderProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=HexapodHeader.d.ts.map

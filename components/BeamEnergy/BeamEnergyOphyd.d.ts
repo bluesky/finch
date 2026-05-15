@@ -10,5 +10,5 @@ export type BeamEnergyOphydProps = {
     /** Additional CSS class names to apply to the component. */
     className?: string;
 };
-export default function BeamEnergyOphyd({ deviceName, title, thetaOffsetDeg: _thetaOffsetDeg, wsUrl, className }: BeamEnergyOphydProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyOphyd({ deviceName, title, thetaOffsetDeg: _thetaOffsetDeg, wsUrl, className, }: BeamEnergyOphydProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=BeamEnergyOphyd.d.ts.map

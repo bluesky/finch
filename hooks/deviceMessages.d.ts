@@ -1,5 +1,5 @@
 export declare const deviceMessages: {
-    "13SIM1:cam1:PortName_RBV": ({
+    '13SIM1:cam1:PortName_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -148,7 +148,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumExposures": ({
+    '13SIM1:cam1:NumExposures': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -297,7 +297,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:FirmwareVersion_RBV": ({
+    '13SIM1:cam1:FirmwareVersion_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -446,7 +446,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterStatus_RBV": ({
+    '13SIM1:cam1:ShutterStatus_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -626,7 +626,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:BinX": ({
+    '13SIM1:cam1:BinX': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -806,7 +806,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:BinY": ({
+    '13SIM1:cam1:BinY': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -955,7 +955,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:Model_RBV": ({
+    '13SIM1:cam1:Model_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1104,7 +1104,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NDAttributesStatus": ({
+    '13SIM1:cam1:NDAttributesStatus': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1253,7 +1253,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SerialNumber_RBV": ({
+    '13SIM1:cam1:SerialNumber_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1433,7 +1433,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AsynIO.CNCT": ({
+    '13SIM1:cam1:AsynIO.CNCT': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1582,7 +1582,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:Manufacturer_RBV": ({
+    '13SIM1:cam1:Manufacturer_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1731,7 +1731,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ADCoreVersion_RBV": ({
+    '13SIM1:cam1:ADCoreVersion_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -1911,7 +1911,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterControl": ({
+    '13SIM1:cam1:ShutterControl': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2091,7 +2091,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterMode": ({
+    '13SIM1:cam1:ShutterMode': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2240,7 +2240,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SDKVersion_RBV": ({
+    '13SIM1:cam1:SDKVersion_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2389,7 +2389,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NDAttributesMacros": ({
+    '13SIM1:cam1:NDAttributesMacros': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2489,7 +2489,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterCloseDelay": ({
+    '13SIM1:cam1:ShutterCloseDelay': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2669,7 +2669,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterOpenDelay": ({
+    '13SIM1:cam1:ShutterOpenDelay': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -2849,7 +2849,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ShutterStatusEPICS_RBV": ({
+    '13SIM1:cam1:ShutterStatusEPICS_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3029,7 +3029,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NDAttributesFile": ({
+    '13SIM1:cam1:NDAttributesFile': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3178,7 +3178,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MinY": ({
+    '13SIM1:cam1:MinY': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3327,7 +3327,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MinX": ({
+    '13SIM1:cam1:MinX': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3476,7 +3476,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:DriverVersion_RBV": ({
+    '13SIM1:cam1:DriverVersion_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3625,7 +3625,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SizeY_RBV": ({
+    '13SIM1:cam1:SizeY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3805,7 +3805,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SizeX_RBV": ({
+    '13SIM1:cam1:SizeX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -3954,7 +3954,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SizeY": ({
+    '13SIM1:cam1:SizeY': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4103,7 +4103,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MinY_RBV": ({
+    '13SIM1:cam1:MinY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4252,7 +4252,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArraySize_RBV": ({
+    '13SIM1:cam1:ArraySize_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4432,7 +4432,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:SizeX": ({
+    '13SIM1:cam1:SizeX': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4581,7 +4581,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MaxSizeX_RBV": ({
+    '13SIM1:cam1:MaxSizeX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4730,7 +4730,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MaxSizeY_RBV": ({
+    '13SIM1:cam1:MaxSizeY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -4879,7 +4879,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:BinY_RBV": ({
+    '13SIM1:cam1:BinY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5028,7 +5028,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AcquireTime": ({
+    '13SIM1:cam1:AcquireTime': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5208,7 +5208,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:MinX_RBV": ({
+    '13SIM1:cam1:MinX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5357,7 +5357,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:BinX_RBV": ({
+    '13SIM1:cam1:BinX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5506,7 +5506,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:Gain": ({
+    '13SIM1:cam1:Gain': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5655,7 +5655,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:Gain_RBV": ({
+    '13SIM1:cam1:Gain_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5835,7 +5835,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ReverseY_RBV": ({
+    '13SIM1:cam1:ReverseY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -5984,7 +5984,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ReverseX_RBV": ({
+    '13SIM1:cam1:ReverseX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6164,7 +6164,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ReverseX": ({
+    '13SIM1:cam1:ReverseX': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6344,7 +6344,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArraySizeX_RBV": ({
+    '13SIM1:cam1:ArraySizeX_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6493,7 +6493,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:DataType": ({
+    '13SIM1:cam1:DataType': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6642,7 +6642,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ColorMode_RBV": ({
+    '13SIM1:cam1:ColorMode_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6822,7 +6822,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArraySizeY_RBV": ({
+    '13SIM1:cam1:ArraySizeY_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -6971,7 +6971,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:DataType_RBV": ({
+    '13SIM1:cam1:DataType_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7151,7 +7151,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ReverseY": ({
+    '13SIM1:cam1:ReverseY': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7331,7 +7331,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ColorMode": ({
+    '13SIM1:cam1:ColorMode': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7480,7 +7480,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AcquireTime_RBV": ({
+    '13SIM1:cam1:AcquireTime_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7629,7 +7629,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AcquirePeriod": ({
+    '13SIM1:cam1:AcquirePeriod': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7778,7 +7778,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AcquirePeriod_RBV": ({
+    '13SIM1:cam1:AcquirePeriod_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -7958,7 +7958,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumImages_RBV": ({
+    '13SIM1:cam1:NumImages_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8107,7 +8107,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumImagesCounter_RBV": ({
+    '13SIM1:cam1:NumImagesCounter_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8287,7 +8287,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumImages": ({
+    '13SIM1:cam1:NumImages': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8436,7 +8436,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumExposures_RBV": ({
+    '13SIM1:cam1:NumExposures_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8585,7 +8585,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:Acquire": ({
+    '13SIM1:cam1:Acquire': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8734,7 +8734,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:DetectorState_RBV": ({
+    '13SIM1:cam1:DetectorState_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -8883,7 +8883,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:TimeRemaining_RBV": ({
+    '13SIM1:cam1:TimeRemaining_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9032,7 +9032,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArrayCallbacks": ({
+    '13SIM1:cam1:ArrayCallbacks': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9181,7 +9181,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArrayCallbacks_RBV": ({
+    '13SIM1:cam1:ArrayCallbacks_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9361,7 +9361,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ImageMode": ({
+    '13SIM1:cam1:ImageMode': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9541,7 +9541,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ImageMode_RBV": ({
+    '13SIM1:cam1:ImageMode_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9721,7 +9721,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArrayCounter": ({
+    '13SIM1:cam1:ArrayCounter': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -9870,7 +9870,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArrayCounter_RBV": ({
+    '13SIM1:cam1:ArrayCounter_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10050,7 +10050,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:ArrayRate_RBV": ({
+    '13SIM1:cam1:ArrayRate_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10199,7 +10199,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:TriggerMode_RBV": ({
+    '13SIM1:cam1:TriggerMode_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10348,7 +10348,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:StatusMessage_RBV": ({
+    '13SIM1:cam1:StatusMessage_RBV': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10448,7 +10448,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:NumQueuedArrays": ({
+    '13SIM1:cam1:NumQueuedArrays': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10628,7 +10628,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:TriggerMode": ({
+    '13SIM1:cam1:TriggerMode': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10808,7 +10808,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:WaitForPlugins": ({
+    '13SIM1:cam1:WaitForPlugins': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -10957,7 +10957,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:AcquireBusy": ({
+    '13SIM1:cam1:AcquireBusy': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11106,7 +11106,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolAllocBuffers": ({
+    '13SIM1:cam1:PoolAllocBuffers': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11255,7 +11255,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolFreeBuffers": ({
+    '13SIM1:cam1:PoolFreeBuffers': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11435,7 +11435,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolUsedMem.SCAN": ({
+    '13SIM1:cam1:PoolUsedMem.SCAN': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11615,7 +11615,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolUsedMem": ({
+    '13SIM1:cam1:PoolUsedMem': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11764,7 +11764,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolUsedBuffers": ({
+    '13SIM1:cam1:PoolUsedBuffers': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -11913,7 +11913,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:PoolMaxMem": ({
+    '13SIM1:cam1:PoolMaxMem': ({
         timestamp: string;
         sessionId: string;
         data: {
@@ -12062,7 +12062,7 @@ export declare const deviceMessages: {
         };
         label: string;
     })[];
-    "13SIM1:cam1:EmptyFreeList": ({
+    '13SIM1:cam1:EmptyFreeList': ({
         timestamp: string;
         sessionId: string;
         data: {

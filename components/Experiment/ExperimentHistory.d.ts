@@ -19,6 +19,6 @@ type ExperimentHistoryProps = {
     /** The Tiled item ID to pre-select on first render when `enablePersistentSelection` is true. */
     initialSelectedItemId?: string;
 };
-export default function ExperimentHistory({ planName, className, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit, onItemClick, enablePersistentSelection, initialSelectedItemId }: ExperimentHistoryProps): import("react/jsx-runtime").JSX.Element;
+export default function ExperimentHistory({ planName, className, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit, onItemClick, enablePersistentSelection, initialSelectedItemId, }: ExperimentHistoryProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ExperimentHistory.d.ts.map

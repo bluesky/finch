@@ -24,6 +24,6 @@ type CameraSettingsProps = {
     /** Additional Tailwind class names applied to the settings panel container. */
     styles?: string;
 };
-export default function CameraSettings({ enableSettings, settings, prefix, cameraSettingsPVs, onSubmit, styles }: CameraSettingsProps): import("react/jsx-runtime").JSX.Element;
+export default function CameraSettings({ enableSettings, settings, prefix, cameraSettingsPVs, onSubmit, styles, }: CameraSettingsProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=CameraSettings.d.ts.map

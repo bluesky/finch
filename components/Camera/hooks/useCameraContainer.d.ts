@@ -5,7 +5,7 @@ type UseCameraContainerProps = {
     enableControlPanel: boolean;
     cameraControlWsUrl?: string;
 };
-export declare function useCameraContainer({ prefix, settings, enableControlPanel, cameraControlWsUrl }: UseCameraContainerProps): {
+export declare function useCameraContainer({ prefix, settings, enableControlPanel, cameraControlWsUrl, }: UseCameraContainerProps): {
     handleSetValueRequest: (deviceName: string, value: string | number | boolean) => void;
     devices: import('../../..').Devices;
     startAcquire: () => void;

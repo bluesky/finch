@@ -76,7 +76,7 @@ export interface TiledSearchItem<StructureType> {
     id: string;
     attributes: {
         ancestors: string[];
-        structure_family: "array" | "table" | "container" | "awkward" | "sparse" | "composite";
+        structure_family: 'array' | 'table' | 'container' | 'awkward' | 'sparse' | 'composite';
         specs: Spec[];
         metadata: TiledMetadata;
         structure: StructureType;
@@ -251,7 +251,7 @@ export type TiledAuthProvider = {
     /** Provider name (e.g. `'toy'`, `'orcid'`). */
     provider: string;
     /** Authentication mode the provider uses. */
-    mode: "password" | "external" | "token" | "internal";
+    mode: 'password' | 'external' | 'token' | 'internal';
     links: {
         /** URL of the provider's authentication endpoint. */
         auth_endpoint: string;

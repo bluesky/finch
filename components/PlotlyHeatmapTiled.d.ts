@@ -10,5 +10,5 @@ export type PlotlyHeatmapProps = {
     /** Interval in milliseconds between polling requests. Defaults to 2000. */
     pollingIntervalMs?: number;
 };
-export default function PlotlyHeatmapTiled({ url, className, size, enablePolling, pollingIntervalMs }: PlotlyHeatmapProps): import("react/jsx-runtime").JSX.Element;
+export default function PlotlyHeatmapTiled({ url, className, size, enablePolling, pollingIntervalMs, }: PlotlyHeatmapProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=PlotlyHeatmapTiled.d.ts.map

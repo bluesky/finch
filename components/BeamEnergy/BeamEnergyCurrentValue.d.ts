@@ -4,6 +4,6 @@ type BeamEnergyCurrentValueProps = {
     /** Current beam energy in electron-volts. When NaN or undefined, displays 'N/A'. */
     currentValueEV?: number;
 };
-export default function BeamEnergyCurrentValue({ currentValueDegrees, currentValueEV }: BeamEnergyCurrentValueProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyCurrentValue({ currentValueDegrees, currentValueEV, }: BeamEnergyCurrentValueProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=BeamEnergyCurrentValue.d.ts.map

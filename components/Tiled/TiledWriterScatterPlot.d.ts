@@ -19,6 +19,6 @@ type TiledWriterScatterPlotProps = {
     /** When `true`, renders a status/error text line above the plot. Defaults to `true`. */
     showStatusText?: boolean;
 };
-export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, pollingIntervalMs, className, plotClassName, showStatusText }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, pollingIntervalMs, className, plotClassName, showStatusText, }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledWriterScatterPlot.d.ts.map

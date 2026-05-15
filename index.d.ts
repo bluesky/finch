@@ -144,7 +144,7 @@ export { useQueueQuery, useQueueHistoryQuery, useStatusQuery, usePlansAllowedQue
 export type { GetStatusResponse, GetQueueResponse, GetHistoryResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetQueueItemResponse, GetRunsActiveResponse, PostItemAddResponse, PostItemExecuteResponse, PostItemRemoveResponse, PostEnvironmentOpenResponse, PostREResponse, BaseQueueItem, QueueItem, FailedQueueItem, RunningQueueItem, HistoryItem, ArbitraryKwargs, MetadataKwarg, AddQueueItemBody, ExecuteQueueItemBody, RemoveQueueItemBody, RunsActiveListItem, Component, Device as QServerDevice, Parameter, Plan, Result, } from './api/qServer/types';
 export type { RouteItem } from './types/navigationRouterTypes';
 export type { Device, Devices } from './types/deviceControllerTypes';
-export { FinchConfigProvider, useOptionalFinchConfig, } from './app/FinchConfigProvider';
+export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 import * as TiledAPI from '@blueskyproject/tiled';
 export declare const Tiled: {
     setInitialPath: (path: string | null) => string | null;

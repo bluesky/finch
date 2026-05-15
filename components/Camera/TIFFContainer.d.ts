@@ -26,5 +26,5 @@ export type TIFFContainerProps = {
     /** WebSocket URL for the camera control PV subscription. Falls back to the application default when omitted. */
     cameraControlWsUrl?: string;
 };
-export default function TIFFContainer({ prefix, imageArrayPV, settings, enableControlPanel, enableSettings, canvasSize, sizePVs, cameraImageWsUrl, cameraControlWsUrl }: TIFFContainerProps): import("react/jsx-runtime").JSX.Element;
+export default function TIFFContainer({ prefix, imageArrayPV, settings, enableControlPanel, enableSettings, canvasSize, sizePVs, cameraImageWsUrl, cameraControlWsUrl, }: TIFFContainerProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=TIFFContainer.d.ts.map

@@ -7,7 +7,7 @@ interface UseQSAddItemProps {
         [key: string]: unknown;
     };
 }
-export declare function useQSAddItem({ copiedPlan, isGlobalMetadataChecked, globalMetadata }?: UseQSAddItemProps): {
+export declare function useQSAddItem({ copiedPlan, isGlobalMetadataChecked, globalMetadata, }?: UseQSAddItemProps): {
     isExpanded: boolean;
     isSubmissionPopupOpen: boolean;
     submissionResponse: PostItemAddResponse;

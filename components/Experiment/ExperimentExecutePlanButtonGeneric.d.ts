@@ -23,6 +23,6 @@ type ExperimentExecutePlanButtonGenericProps = {
  * @param onSuccess - Callback for successful plan execution
  * @param onError - Callback for plan execution errors
  */
-export default function ExperimentExecutePlanButtonGeneric({ planName, kwargs, disabled, className, onSuccess, onError }: ExperimentExecutePlanButtonGenericProps): import("react/jsx-runtime").JSX.Element;
+export default function ExperimentExecutePlanButtonGeneric({ planName, kwargs, disabled, className, onSuccess, onError, }: ExperimentExecutePlanButtonGenericProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ExperimentExecutePlanButtonGeneric.d.ts.map

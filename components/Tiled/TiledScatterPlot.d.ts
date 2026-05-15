@@ -17,6 +17,6 @@ type TiledScatterPlotProps = {
     /** Additional class names applied to the `PlotlyScatter` element. */
     plotClassName?: string;
 };
-export default function TiledScatterPlot({ tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, className, plotClassName }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledScatterPlot({ tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, className, plotClassName, }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledScatterPlot.d.ts.map

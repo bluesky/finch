@@ -9,6 +9,6 @@ type HexapodControllerProps = {
     /** When true, disables all form inputs and prevents move commands. */
     isLocked?: boolean;
 };
-export default function HexapodController({ hexapodRBVs, onStartClick, onStopClick, isLocked }: HexapodControllerProps): import("react/jsx-runtime").JSX.Element;
+export default function HexapodController({ hexapodRBVs, onStartClick, onStopClick, isLocked, }: HexapodControllerProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=HexapodController.d.ts.map

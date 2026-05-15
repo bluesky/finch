@@ -83,5 +83,5 @@ declare const finchIcons: {
     finchPortraitTeal: import("react/jsx-runtime").JSX.Element;
     finchPortraitFrameless: import("react/jsx-runtime").JSX.Element;
 };
-export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons, beamlineIcons, finchIcons };
+export { tailwindIcons, phosphorIcons, customIcons, deviceIcons, controllerIcons, beamlineIcons, finchIcons, };
 //# sourceMappingURL=icons.d.ts.map

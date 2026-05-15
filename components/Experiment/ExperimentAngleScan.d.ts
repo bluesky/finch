@@ -9,6 +9,6 @@ type ExperimentAngleScanProps = {
     /** The base Tiled url */
     tiledBaseUrl?: string;
 };
-export default function ExperimentAngleScan({ className, onSuccess, onError, tiledBaseUrl }: ExperimentAngleScanProps): import("react/jsx-runtime").JSX.Element;
+export default function ExperimentAngleScan({ className, onSuccess, onError, tiledBaseUrl, }: ExperimentAngleScanProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=ExperimentAngleScan.d.ts.map

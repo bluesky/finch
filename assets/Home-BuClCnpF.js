@@ -1,4 +1,4 @@
-import{j as e}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as o}from"./index-DI2gBlDf.js";import"./blocks-BK1wHqae.js";import{ap as r,aq as s}from"./index-BY9EoK9s.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe--iV3fO1C.js";import"../sb-preview/runtime.js";import"./index-D2Z_7ghQ.js";import"./index-fNjTmf9T.js";import"./index-CXQShRbs.js";import"./index-DrFu-skq.js";const i=`# ReactEDM
+import{j as e}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as o}from"./index-DI2gBlDf.js";import"./blocks-CoWxY6zj.js";import{ap as r,aq as s}from"./index-CjFvyhHE.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-CW3Po1VZ.js";import"../sb-preview/runtime.js";import"./index-D2Z_7ghQ.js";import"./index-fNjTmf9T.js";import"./index-CXQShRbs.js";import"./index-DrFu-skq.js";const i=`# ReactEDM
 
 ReactEDM, or React Extensible Dispaly Manager, is a react component for displaying control screens in the browser. Currently, it supports the BOB file format from [CSS Phoebus](https://controlssoftware.sns.ornl.gov/css_phoebus/) and ADL files from [MEDM](https://epics.anl.gov/extensions/medm/index.php).
 

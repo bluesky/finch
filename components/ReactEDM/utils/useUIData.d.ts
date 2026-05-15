@@ -14,5 +14,5 @@ export interface UseUIDataReturn {
     devices: any;
     onSubmitSettings: (deviceName: string, value: any) => void;
 }
-export declare function useUIData({ fileName, children, mock, args, }: UseUIDataOptions): UseUIDataReturn;
+export declare function useUIData({ fileName, children, mock, args }: UseUIDataOptions): UseUIDataReturn;
 //# sourceMappingURL=useUIData.d.ts.map

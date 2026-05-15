@@ -26,5 +26,5 @@ export type CameraContainerProps = {
     /** WebSocket URL for the camera control PV subscription. Falls back to the application default when omitted. */
     cameraControlWsUrl?: string;
 };
-export default function CameraContainer({ prefix, imageArrayPV, settings, enableControlPanel, enableSettings, canvasSize, sizePVs, cameraImageWsUrl, cameraControlWsUrl }: CameraContainerProps): import("react/jsx-runtime").JSX.Element;
+export default function CameraContainer({ prefix, imageArrayPV, settings, enableControlPanel, enableSettings, canvasSize, sizePVs, cameraImageWsUrl, cameraControlWsUrl, }: CameraContainerProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=CameraContainer.d.ts.map

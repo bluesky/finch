@@ -12,6 +12,6 @@ type DictionaryInputProps = {
     isGlobalMetadataChecked: boolean;
     globalMetadata: GlobalMetadata;
 };
-export default function DictionaryInput({ cb, label, required, description, styles, resetInputsTrigger, copiedPlan, isGlobalMetadataChecked, globalMetadata }: DictionaryInputProps): import("react/jsx-runtime").JSX.Element;
+export default function DictionaryInput({ cb, label, required, description, styles, resetInputsTrigger, copiedPlan, isGlobalMetadataChecked, globalMetadata, }: DictionaryInputProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=DictionaryInput.d.ts.map

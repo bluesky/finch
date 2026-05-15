@@ -6,6 +6,6 @@ type InputIntegerProps = {
     /** When `true`, prevents interaction and renders the input in a disabled style. */
     isDisabled?: boolean;
 };
-export default function InputInteger({ label, onSubmit, isDisabled }: InputIntegerProps): import("react/jsx-runtime").JSX.Element;
+export default function InputInteger({ label, onSubmit, isDisabled, }: InputIntegerProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputInteger.d.ts.map

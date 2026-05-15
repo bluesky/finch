@@ -10,6 +10,6 @@ type BeamEnergyControllerProps = {
     /** When true, disables all controls and dims the controller UI. */
     isLocked?: boolean;
 };
-export default function BeamEnergyController({ currentValueDegrees: _currentValueDegrees, onAbsoluteMove, onRelativeMove, onStop, isLocked }: BeamEnergyControllerProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyController({ currentValueDegrees: _currentValueDegrees, onAbsoluteMove, onRelativeMove, onStop, isLocked, }: BeamEnergyControllerProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=BeamEnergyController.d.ts.map

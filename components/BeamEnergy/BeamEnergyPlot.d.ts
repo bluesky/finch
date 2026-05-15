@@ -4,6 +4,6 @@ type BeamEnergyPlotProps = {
     /** Label shown on the x-axis. Defaults to 'Beam Energy'. */
     label?: string;
 };
-export default function BeamEnergyPlot({ currentValueEV, label: _label }: BeamEnergyPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyPlot({ currentValueEV, label: _label, }: BeamEnergyPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=BeamEnergyPlot.d.ts.map

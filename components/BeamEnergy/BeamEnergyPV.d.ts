@@ -12,5 +12,5 @@ export type BeamEnergyProps = {
     /** Additional CSS class names to apply to the component. */
     className?: string;
 };
-export default function BeamEnergyPV({ pv, title, thetaOffsetDeg, wsUrl, demo, className }: BeamEnergyProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyPV({ pv, title, thetaOffsetDeg, wsUrl, demo, className, }: BeamEnergyProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=BeamEnergyPV.d.ts.map

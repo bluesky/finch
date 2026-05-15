@@ -12,5 +12,5 @@ export type CameraCanvasFeaturesProps = {
     /** EPICS PV prefix for the detector. Forwarded to the drawing hook for annotation persistence. */
     prefix?: string;
 };
-export default function CameraCanvasFeatures({ socketStatus, isImageLogScale, onToggleConnection, onToggleLogScale, canvasSize, prefix }: CameraCanvasFeaturesProps): import("react/jsx-runtime").JSX.Element;
+export default function CameraCanvasFeatures({ socketStatus, isImageLogScale, onToggleConnection, onToggleLogScale, canvasSize, prefix, }: CameraCanvasFeaturesProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=CameraCanvasFeatures.d.ts.map

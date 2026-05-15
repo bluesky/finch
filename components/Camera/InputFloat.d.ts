@@ -6,6 +6,6 @@ type InputFloatProps = {
     /** When `true`, prevents interaction and renders the input in a disabled style. */
     isDisabled?: boolean;
 };
-export default function InputFloat({ label, onSubmit, isDisabled }: InputFloatProps): import("react/jsx-runtime").JSX.Element;
+export default function InputFloat({ label, onSubmit, isDisabled, }: InputFloatProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputFloat.d.ts.map

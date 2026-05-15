@@ -9,6 +9,6 @@ type SingleSelectInputProps = {
     className?: string;
     value: string;
 };
-export default function SingleSelectInput({ label, isItemInArray, addItem, allowedDevices, description, required, className, value }: SingleSelectInputProps): import("react/jsx-runtime").JSX.Element;
+export default function SingleSelectInput({ label, isItemInArray, addItem, allowedDevices, description, required, className, value, }: SingleSelectInputProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=SingleSelectInput.d.ts.map

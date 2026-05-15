@@ -11,7 +11,7 @@ export type UseBeamEnergyOphydProps = {
  * @param props.wsUrl - Optional WebSocket URL for device communication
  * @returns Object containing beam energy value and related device data
  */
-export default function useBeamEnergyOphyd({ deviceName, wsUrl }: UseBeamEnergyOphydProps): {
+export default function useBeamEnergyOphyd({ deviceName, wsUrl, }: UseBeamEnergyOphydProps): {
     currentValueEV: number;
     device: import('../../../types/deviceControllerTypes').OphydDevice;
     handleAbsoluteMove: (targetEnergy: number) => void;

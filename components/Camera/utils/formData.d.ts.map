@@ -1,1 +1,1 @@
-{"version":3,"file":"formData.d.ts","sourceRoot":"","sources":["../../../../src/components/Camera/utils/formData.ts"],"names":[],"mappings":"AAMA,QAAA,MAAM,cAAc;;;;;;;;;;;;;;;;;;GA0EnB,CAAA;AAED,OAAO,EAAE,cAAc,EAAE,CAAC"}
+{"version":3,"file":"formData.d.ts","sourceRoot":"","sources":["../../../../src/components/Camera/utils/formData.ts"],"names":[],"mappings":"AAMA,QAAA,MAAM,cAAc;;;;;;;;;;;;;;;;;;GA0EnB,CAAC;AAEF,OAAO,EAAE,cAAc,EAAE,CAAC"}

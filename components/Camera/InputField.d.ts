@@ -10,6 +10,6 @@ type InputFieldProps = {
     /** Map of full PV names to live device objects used to determine connection state and current value. */
     cameraSettingsPVs: Devices;
 };
-export default function InputField({ onSubmit, pv, input, cameraSettingsPVs }: InputFieldProps): import("react/jsx-runtime").JSX.Element;
+export default function InputField({ onSubmit, pv, input, cameraSettingsPVs, }: InputFieldProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputField.d.ts.map

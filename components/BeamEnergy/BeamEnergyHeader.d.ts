@@ -21,6 +21,6 @@ type BeamEnergyHeaderProps = {
     handleToggleAbout: () => void;
     className?: string;
 };
-export default function BeamEnergyHeader({ showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout, className }: BeamEnergyHeaderProps): import("react/jsx-runtime").JSX.Element;
+export default function BeamEnergyHeader({ showController, showPlot, showAbout, isLocked, handleToggleLock, handleToggleController, handleTogglePlot, handleToggleAbout, className, }: BeamEnergyHeaderProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=BeamEnergyHeader.d.ts.map

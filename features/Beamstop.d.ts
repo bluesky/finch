@@ -9,5 +9,5 @@ export type BeamstopProps = {
     enableBestOption?: boolean;
     stackVertical?: boolean;
 };
-export default function Beamstop({ beamstopXName, beamstopYName, beamstopCurrentName, beamstopXIcon, beamstopYIcon, beamstopXTitle, beamstopYTitle, enableBestOption, stackVertical }: BeamstopProps): import("react/jsx-runtime").JSX.Element;
+export default function Beamstop({ beamstopXName, beamstopYName, beamstopCurrentName, beamstopXIcon, beamstopYIcon, beamstopXTitle, beamstopYTitle, enableBestOption, stackVertical, }: BeamstopProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=Beamstop.d.ts.map

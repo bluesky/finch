@@ -8,7 +8,7 @@ export type UseTIFFCanvasProps = {
     prefix?: string;
     wsUrl?: string;
 };
-export declare function useTIFFCanvas({ canvasSize, prefix, wsUrl }: UseTIFFCanvasProps): {
+export declare function useTIFFCanvas({ canvasSize, prefix, wsUrl, }: UseTIFFCanvasProps): {
     canvasRef: import('../../../../node_modules/react').MutableRefObject<HTMLCanvasElement | null>;
     fps: string;
     socketStatus: string;

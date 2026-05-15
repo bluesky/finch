@@ -12,6 +12,6 @@ type HistorgramPlotProps = {
     /** Number of significant figures for sum displays. Defaults to `6`. */
     precision?: number;
 };
-export default function HistogramPlot({ arrayData, showPlotSettings, className, classNameSettings, title, precision }: HistorgramPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function HistogramPlot({ arrayData, showPlotSettings, className, classNameSettings, title, precision, }: HistorgramPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=HistogramPlot.d.ts.map

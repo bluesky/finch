@@ -14,6 +14,6 @@ type InputGroupProps = {
     /** Callback invoked when the user submits a new value for any PV in the group. */
     onSubmit: (pv: string, value: string | boolean | number) => void;
 };
-export default function InputGroup({ settingsGroup, prefix, cameraSettingsPVs, onSubmit }: InputGroupProps): import("react/jsx-runtime").JSX.Element;
+export default function InputGroup({ settingsGroup, prefix, cameraSettingsPVs, onSubmit, }: InputGroupProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=InputGroup.d.ts.map
