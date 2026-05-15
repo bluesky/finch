@@ -1,42 +1,42 @@
 import { ReactNode } from 'react';
 
 export interface TabsContextType {
-  activeTab: string;
-  setActiveTab: (value: string) => void;
+    activeTab: string;
+    setActiveTab: (value: string) => void;
 }
 
 export interface TabsProps {
-  defaultValue: string;
-  children: ReactNode;
-  className?: string;
+    defaultValue: string;
+    children: ReactNode;
+    className?: string;
 }
 
 export interface TabsListProps {
-  children: ReactNode;
-  className?: string;
+    children: ReactNode;
+    className?: string;
 }
 
 export interface TabProps {
-  value: string;
-  children: ReactNode;
-  removeTab: (tabId: string) => void
-  mainTab?: boolean;
-  className?: string;
-  hasFileProp: boolean;
+    value: string;
+    children: ReactNode;
+    removeTab: (tabId: string) => void;
+    mainTab?: boolean;
+    className?: string;
+    hasFileProp: boolean;
 }
 
 export interface TabsPanelProps {
-  value: string;
-  children: ReactNode;
-  className?: string;
+    value: string;
+    children: ReactNode;
+    className?: string;
 }
 
 export interface TabData {
-  id: string;
-  label: string;
-  content?: React.ReactNode;
-  fileName?: string;
-  args?: Record<string, any>;
-  isMainTab?: boolean;
-  scale: number;
+    id: string;
+    label: string;
+    content?: React.ReactNode;
+    fileName?: string;
+    args?: Record<string, any>;
+    isMainTab?: boolean;
+    scale: number;
 }

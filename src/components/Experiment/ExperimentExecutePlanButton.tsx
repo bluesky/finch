@@ -23,27 +23,28 @@ type ExperimentExecutePlanButtonProps = {
 };
 
 export default function ExperimentExecutePlanButton({
-    detectors = ["motor1"],
+    detectors = ['motor1'],
     num = 10,
     delay = 10,
     md = {},
     disabled = false,
-    className = "",
+    className = '',
     onSuccess,
-    onError
+    onError,
 }: ExperimentExecutePlanButtonProps) {
     const plansQuery = usePlansAllowedQuery();
     const executeMutation = useExecuteQueueItemMutation();
 
-    const isCountPlanAvailable = plansQuery.data?.success && plansQuery.data?.plans_allowed
-        ? Object.keys(plansQuery.data.plans_allowed).includes('count')
-        : false;
+    const isCountPlanAvailable =
+        plansQuery.data?.success && plansQuery.data?.plans_allowed
+            ? Object.keys(plansQuery.data.plans_allowed).includes('count')
+            : false;
 
     useEffect(() => {
         if (plansQuery.isError) {
-            onError?.("Error fetching allowed plans");
+            onError?.('Error fetching allowed plans');
         } else if (!plansQuery.isLoading && plansQuery.data && !isCountPlanAvailable) {
-            onError?.("Count plan is not available in the allowed plans");
+            onError?.('Count plan is not available in the allowed plans');
         }
     }, [plansQuery.isError, plansQuery.isLoading, plansQuery.data, isCountPlanAvailable, onError]);
 
@@ -51,34 +52,37 @@ export default function ExperimentExecutePlanButton({
         if (!isCountPlanAvailable || executeMutation.isPending) return;
 
         executeMutation.mutate(
-            { item: { name: "count", kwargs: { detectors, num, delay, md }, item_type: "plan" } },
+            { item: { name: 'count', kwargs: { detectors, num, delay, md }, item_type: 'plan' } },
             {
                 onSuccess: (response) => {
-                    console.log("QServer execute response:", response);
+                    console.log('QServer execute response:', response);
                     if (response.success) {
                         onSuccess?.(response);
                     } else {
-                        onError?.(response.msg || "Failed to execute count plan");
+                        onError?.(response.msg || 'Failed to execute count plan');
                     }
                 },
                 onError: (error) => {
-                    const errorMessage = error instanceof Error ? error.message : "Network error executing plan";
+                    const errorMessage =
+                        error instanceof Error ? error.message : 'Network error executing plan';
                     onError?.(errorMessage);
-                    console.error("Error executing plan:", error);
+                    console.error('Error executing plan:', error);
                 },
-            }
+            },
         );
     };
 
     const getButtonText = () => {
-        if (plansQuery.isLoading) return "Loading...";
-        if (executeMutation.isPending) return "Executing...";
-        if (!isCountPlanAvailable) return "Count Plan Unavailable";
-        return "Execute Count Plan";
+        if (plansQuery.isLoading) return 'Loading...';
+        if (executeMutation.isPending) return 'Executing...';
+        if (!isCountPlanAvailable) return 'Count Plan Unavailable';
+        return 'Execute Count Plan';
     };
 
     const isButtonDisabled = () => {
-        return disabled || plansQuery.isLoading || executeMutation.isPending || !isCountPlanAvailable;
+        return (
+            disabled || plansQuery.isLoading || executeMutation.isPending || !isCountPlanAvailable
+        );
     };
 
     return (

@@ -11,14 +11,14 @@ import {
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
  * Provides real-time device state management and control functions.
- * 
+ *
  * @param deviceNameList - Array of Ophyd device names to subscribe to
  * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
  * @returns Object containing device states and control functions
  */
 export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
     const configWsUrl = useOphydApiUrls().getWsUrl('device-socket');
-    const apiUrl:string = wsUrl ?? configWsUrl;
+    const apiUrl: string = wsUrl ?? configWsUrl;
     const [devices, setDevices] = useState<OphydDevices>(() => {
         const initialDevices: OphydDevices = {};
         deviceNameList.forEach((deviceName) => {
@@ -61,16 +61,19 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
      * @param deviceName - The name/identifier of the device to update
      * @param value - The new value to set for the device (string, number, or boolean)
      */
-    const handleSetValueRequest = useCallback((deviceName: string, value: string | number | boolean) => {
-        if (wsRef.current) {
-            const setValueMessage = {
-                action: 'set',
-                device: deviceName,
-                value: value,
-            };
-            wsRef.current.send(JSON.stringify(setValueMessage));
-        }
-    }, []);
+    const handleSetValueRequest = useCallback(
+        (deviceName: string, value: string | number | boolean) => {
+            if (wsRef.current) {
+                const setValueMessage = {
+                    action: 'set',
+                    device: deviceName,
+                    value: value,
+                };
+                wsRef.current.send(JSON.stringify(setValueMessage));
+            }
+        },
+        [],
+    );
 
     /**
      * Toggles the expanded state of a device in the UI.
@@ -141,7 +144,11 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
         // Handle incoming WebSocket messages
         ws.onmessage = (event) => {
             try {
-                const message: MessageResponse | ErrorResponse | ValueUpdateResponse | MetaUpdateResponse = JSON.parse(event.data);
+                const message:
+                    | MessageResponse
+                    | ErrorResponse
+                    | ValueUpdateResponse
+                    | MetaUpdateResponse = JSON.parse(event.data);
 
                 if ('sub_type' in message && message.sub_type === 'meta') {
                     //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
@@ -154,7 +161,6 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
                             //units: message.units,
                             min: message.lower_ctrl_limit,
                             max: message.upper_ctrl_limit,
-                            
                         },
                     }));
                 } else if ('device' in message) {
@@ -164,7 +170,7 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
                         ...prevDevices,
                         [deviceName]: {
                             ...prevDevices[deviceName],
-                            ...message, 
+                            ...message,
                         },
                     }));
                 }

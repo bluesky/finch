@@ -101,31 +101,43 @@ describe('IFrame — with url', () => {
 
     it('does not show error overlay before timeout', () => {
         render(<IFrame url="https://example.com" timeoutMs={2000} />);
-        act(() => { vi.advanceTimersByTime(1999); });
+        act(() => {
+            vi.advanceTimersByTime(1999);
+        });
         expect(screen.queryByText(/Could not load/i)).not.toBeInTheDocument();
     });
 
     it('shows error overlay after timeout without a load event', async () => {
         render(<IFrame url="https://example.com" timeoutMs={2000} />);
-        act(() => { vi.advanceTimersByTime(2000); });
-        expect(screen.getByText(/Could not load the page at https:\/\/example\.com/)).toBeInTheDocument();
+        act(() => {
+            vi.advanceTimersByTime(2000);
+        });
+        expect(
+            screen.getByText(/Could not load the page at https:\/\/example\.com/),
+        ).toBeInTheDocument();
     });
 
     it('error overlay includes the url', () => {
         render(<IFrame url="https://example.com" timeoutMs={1000} />);
-        act(() => { vi.advanceTimersByTime(1000); });
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
         expect(screen.getByText(/https:\/\/example\.com/)).toBeInTheDocument();
     });
 
     it('shows Retry button in error overlay', () => {
         render(<IFrame url="https://example.com" timeoutMs={1000} />);
-        act(() => { vi.advanceTimersByTime(1000); });
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
         expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
     });
 
     it('shows "Open in new tab" link in error overlay', () => {
         render(<IFrame url="https://example.com" timeoutMs={1000} />);
-        act(() => { vi.advanceTimersByTime(1000); });
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
         const link = screen.getByRole('link', { name: 'Open in new tab' });
         expect(link).toHaveAttribute('href', 'https://example.com');
         expect(link).toHaveAttribute('target', '_blank');
@@ -134,13 +146,17 @@ describe('IFrame — with url', () => {
     it('does not show error overlay when iframe loads before timeout', () => {
         render(<IFrame url="https://example.com" timeoutMs={2000} />);
         fireEvent.load(document.querySelector('iframe')!);
-        act(() => { vi.advanceTimersByTime(2000); });
+        act(() => {
+            vi.advanceTimersByTime(2000);
+        });
         expect(screen.queryByText(/Could not load/i)).not.toBeInTheDocument();
     });
 
     it('clicking Retry remounts the iframe (resets loading state)', () => {
         render(<IFrame url="https://example.com" timeoutMs={1000} />);
-        act(() => { vi.advanceTimersByTime(1000); });
+        act(() => {
+            vi.advanceTimersByTime(1000);
+        });
         fireEvent.click(screen.getByRole('button', { name: 'Retry' }));
         // After retry the loading overlay reappears (iframe is remounted, not yet loaded)
         expect(screen.getByText('Loading preview...')).toBeInTheDocument();

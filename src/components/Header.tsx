@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 export type HeaderProps = {
     /** The title */
     title?: string;
@@ -10,19 +10,25 @@ export type HeaderProps = {
     className?: string;
     /** Additional CSS classes applied to the image element. */
     classNameImage?: string;
-}
+};
 export default function Header({
-    title='My App',
-    classNameText='text-sky-700',
+    title = 'My App',
+    classNameText = 'text-sky-700',
     classNameImage,
-    logoUrl='/finchIconCircle.png',
+    logoUrl = '/finchIconCircle.png',
     className,
     ...props
 }: HeaderProps) {
     return (
-        <header className={cn(`w-full border-b-slate-300 border-b flex items-center h-8 py-8 justify-center space-x-4`, className)} {...props}>
-            {logoUrl && <img src={logoUrl} className={cn(`h-8 w-auto`, classNameImage)}/>}
+        <header
+            className={cn(
+                `w-full border-b-slate-300 border-b flex items-center h-8 py-8 justify-center space-x-4`,
+                className,
+            )}
+            {...props}
+        >
+            {logoUrl && <img src={logoUrl} className={cn(`h-8 w-auto`, classNameImage)} />}
             <h1 className={cn(`text-4xl`, classNameText)}>{title}</h1>
         </header>
-    )
+    );
 }

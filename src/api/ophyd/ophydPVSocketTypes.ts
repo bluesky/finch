@@ -1,6 +1,5 @@
 //Types for the responses and calls made to /api/v1/pv-socket
 
-
 //Responses
 export interface MessageResponse {
     message: string;
@@ -34,13 +33,18 @@ export interface MetaUpdateResponseBase {
     sub_type: 'meta';
 }
 //split up to make device types more flexible when they aren't connected
-export interface MetaUpdateResponse extends MetaUpdateResponseBase, ValueUpdateResponse {
-}
+export interface MetaUpdateResponse extends MetaUpdateResponseBase, ValueUpdateResponse {}
 
 //Requests
 
 export interface ActionRequest {
-    action: 'subscribe' | 'subscribeSafely' | 'subscribeReadOnly' | 'unsubscribe' | 'refresh' | 'set';
+    action:
+        | 'subscribe'
+        | 'subscribeSafely'
+        | 'subscribeReadOnly'
+        | 'unsubscribe'
+        | 'refresh'
+        | 'set';
     pv?: string;
     value?: string | number | boolean;
 }

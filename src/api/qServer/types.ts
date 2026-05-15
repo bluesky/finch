@@ -126,7 +126,7 @@ export type FailedQueueItem = BaseQueueItem;
 export interface RunningQueueItem extends QueueItem {
     properties: {
         time_start: number;
-    }
+    };
 }
 
 export interface ArbitraryKwargs {
@@ -145,7 +145,7 @@ export interface ExecuteQueueItemBody {
 }
 
 export interface AddQueueItemBody {
-    item: BaseQueueItem
+    item: BaseQueueItem;
     pos: string | number;
 }
 
@@ -209,7 +209,7 @@ export interface RemoveQueueItemBody {
 
 export interface PostItemRemoveResponse extends PostItemAddResponse {
     qsize: number;
-};
+}
 
 export interface RunsActiveListItem {
     uid: string;

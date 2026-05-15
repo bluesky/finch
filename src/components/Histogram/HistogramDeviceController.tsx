@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { Device } from "@/types/deviceControllerTypes"
+import { cn } from '@/lib/utils';
+import { Device } from '@/types/deviceControllerTypes';
 
 type HistogramDeviceControllerProps = {
     /** Live device object for the acquire PV, used to read current acquisition state. */
@@ -10,12 +10,12 @@ type HistogramDeviceControllerProps = {
     handleStopAcquisition: () => void;
     /** Additional class names applied to the container element. */
     className?: string;
-}
+};
 export default function HistogramDeviceController({ className }: HistogramDeviceControllerProps) {
     //To Do: add acquire state display, start/stop buttons
     return (
-        <div className={cn("flex flex-col items-center justify-start gap-4", className)}>
+        <div className={cn('flex flex-col items-center justify-start gap-4', className)}>
             <p className="text-lg text-white text-center">Title</p>
         </div>
-    )
+    );
 }

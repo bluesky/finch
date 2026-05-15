@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import PlotlyScatter from "./PlotlyScatter";
-import { PlotlyScatterData } from "@/types/plotTypes";
-import { Datum } from "plotly.js";
-import { blankScatterData } from "@/utils/plotGenerators";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import PlotlyScatter from './PlotlyScatter';
+import { PlotlyScatterData } from '@/types/plotTypes';
+import { Datum } from 'plotly.js';
+import { blankScatterData } from '@/utils/plotGenerators';
+import { cn } from '@/lib/utils';
 
 type DeviceLike = {
     value: string | number | boolean;
@@ -43,15 +43,22 @@ export default function SignalMonitorPlotDevice({
     pollingIntervalMilliseconds = 1000,
     demo = false,
     tickTextIntervalSeconds = 10,
-    color = "#082f49",
+    color = '#082f49',
     yAxisTitle,
     yAxisRange,
     showMarkers = false,
     ...props
 }: SignalMonitorPlotDeviceProps) {
-    const styledData = { ...blankScatterData, mode: showMarkers ? 'lines+markers' as const : 'lines' as const, marker: { ...blankScatterData.marker, color } };
+    const styledData = {
+        ...blankScatterData,
+        mode: showMarkers ? ('lines+markers' as const) : ('lines' as const),
+        marker: { ...blankScatterData.marker, color },
+    };
     const [data, setData] = useState<PlotlyScatterData>(styledData);
-    const [xLayout, setXLayout] = useState<{ tickvals: string[]; ticktext: string[] }>({ tickvals: [], ticktext: [] });
+    const [xLayout, setXLayout] = useState<{ tickvals: string[]; ticktext: string[] }>({
+        tickvals: [],
+        ticktext: [],
+    });
 
     // Keep a ref to the latest device so the polling interval can read it
     // without being a dependency (which would cause the interval to reset on every device update)
@@ -71,32 +78,45 @@ export default function SignalMonitorPlotDevice({
             }
             if (!showMarkers) return { ...prevData, x: newX, y: newY };
             const n = newX.length;
-            const newMarkerSize = Array.from({ length: n }, (_, i) => n === 1 ? 8 : Math.round(3 + (i / (n - 1)) * 5));
-            return { ...prevData, x: newX, y: newY, marker: { ...prevData.marker, size: newMarkerSize } };
+            const newMarkerSize = Array.from({ length: n }, (_, i) =>
+                n === 1 ? 8 : Math.round(3 + (i / (n - 1)) * 5),
+            );
+            return {
+                ...prevData,
+                x: newX,
+                y: newY,
+                marker: { ...prevData.marker, size: newMarkerSize },
+            };
         });
     }, [numVisiblePoints, showMarkers]);
 
-    const addTickValue = useCallback((newXValue: string) => {
-        setXLayout((prevLayout) => {
-            const previousLabel: string = prevLayout.tickvals[prevLayout.tickvals.length - 1];
-            if (!previousLabel || previousLabel.length === 0) {
-                return { ticktext: [newXValue], tickvals: [newXValue] };
-            }
-            const previousLabelNumber = previousLabel.replaceAll(":", "");
-            const currentLabelNumber = newXValue.replaceAll(":", "");
-            if (parseInt(currentLabelNumber) >= (parseInt(previousLabelNumber) + tickTextIntervalSeconds)) {
-                const newTickvals = [...prevLayout.tickvals, newXValue];
-                const newTicktext = [...prevLayout.ticktext, newXValue];
-                if (newTickvals.length > numVisiblePoints) {
-                    newTickvals.shift();
-                    newTicktext.shift();
+    const addTickValue = useCallback(
+        (newXValue: string) => {
+            setXLayout((prevLayout) => {
+                const previousLabel: string = prevLayout.tickvals[prevLayout.tickvals.length - 1];
+                if (!previousLabel || previousLabel.length === 0) {
+                    return { ticktext: [newXValue], tickvals: [newXValue] };
                 }
-                return { ticktext: newTicktext, tickvals: newTickvals };
-            } else {
-                return prevLayout;
-            }
-        });
-    }, [numVisiblePoints, tickTextIntervalSeconds]);
+                const previousLabelNumber = previousLabel.replaceAll(':', '');
+                const currentLabelNumber = newXValue.replaceAll(':', '');
+                if (
+                    parseInt(currentLabelNumber) >=
+                    parseInt(previousLabelNumber) + tickTextIntervalSeconds
+                ) {
+                    const newTickvals = [...prevLayout.tickvals, newXValue];
+                    const newTicktext = [...prevLayout.ticktext, newXValue];
+                    if (newTickvals.length > numVisiblePoints) {
+                        newTickvals.shift();
+                        newTicktext.shift();
+                    }
+                    return { ticktext: newTicktext, tickvals: newTickvals };
+                } else {
+                    return prevLayout;
+                }
+            });
+        },
+        [numVisiblePoints, tickTextIntervalSeconds],
+    );
 
     useEffect(() => {
         if (demo) {
@@ -118,26 +138,43 @@ export default function SignalMonitorPlotDevice({
                     }
                     if (!showMarkers) return { ...prevData, x: newX, y: newY };
                     const n = newX.length;
-                    const newMarkerSize = Array.from({ length: n }, (_, i) => n === 1 ? 8 : Math.round(3 + (i / (n - 1)) * 5));
-                    return { ...prevData, x: newX, y: newY, marker: { ...prevData.marker, size: newMarkerSize } };
+                    const newMarkerSize = Array.from({ length: n }, (_, i) =>
+                        n === 1 ? 8 : Math.round(3 + (i / (n - 1)) * 5),
+                    );
+                    return {
+                        ...prevData,
+                        x: newX,
+                        y: newY,
+                        marker: { ...prevData.marker, size: newMarkerSize },
+                    };
                 });
                 addTickValue(newXValue);
             }, pollingIntervalMilliseconds);
             return () => clearInterval(interval);
         }
-    }, [addSinglePoint, addTickValue, demo, numVisiblePoints, pollingIntervalMilliseconds, showMarkers]);
+    }, [
+        addSinglePoint,
+        addTickValue,
+        demo,
+        numVisiblePoints,
+        pollingIntervalMilliseconds,
+        showMarkers,
+    ]);
 
     const currentValue = device?.value;
-    const formattedValue = typeof currentValue === 'number'
-        ? parseFloat(currentValue.toPrecision(5)).toString()
-        : currentValue;
-    const valueDisplay = formattedValue !== undefined && formattedValue !== null
-        ? `${formattedValue}`
-        : 'N/A';
+    const formattedValue =
+        typeof currentValue === 'number'
+            ? parseFloat(currentValue.toPrecision(5)).toString()
+            : currentValue;
+    const valueDisplay =
+        formattedValue !== undefined && formattedValue !== null ? `${formattedValue}` : 'N/A';
 
     // Memoize props that are stable between device value updates so React.memo
     // on PlotlyScatter can bail out and prevent Plotly from re-animating the layout.
-    const resolvedYAxisTitle = useMemo(() => yAxisTitle ?? device?.units, [yAxisTitle, device?.units]);
+    const resolvedYAxisTitle = useMemo(
+        () => yAxisTitle ?? device?.units,
+        [yAxisTitle, device?.units],
+    );
 
     return (
         <div className={cn('relative flex flex-col bg-white', className)}>

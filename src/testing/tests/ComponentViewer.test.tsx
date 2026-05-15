@@ -6,7 +6,12 @@ import { TestItemCollection } from '../../features/ComponentViewer/types';
 const testItems: TestItemCollection = {
     item1: { name: 'Alpha', element: <div>Alpha content</div> },
     item2: { name: 'Beta', element: <div>Beta content</div>, command: 'npm start' },
-    item3: { name: 'Gamma', element: <div>Gamma content</div>, info: 'Some info', link: 'https://example.com' },
+    item3: {
+        name: 'Gamma',
+        element: <div>Gamma content</div>,
+        info: 'Some info',
+        link: 'https://example.com',
+    },
 };
 
 describe('ComponentViewer', () => {
@@ -49,9 +54,9 @@ describe('ComponentViewer', () => {
         render(<ComponentViewer testItems={testItems} />);
 
         // Use caret buttons — prev is disabled at index 0, next is enabled
-        const [, nextButton] = screen.getAllByRole('button').filter(b =>
-            b.className.includes('px-3 py-2')
-        );
+        const [, nextButton] = screen
+            .getAllByRole('button')
+            .filter((b) => b.className.includes('px-3 py-2'));
 
         fireEvent.click(nextButton);
         expect(screen.getByText('Beta content')).toBeInTheDocument();
@@ -60,17 +65,16 @@ describe('ComponentViewer', () => {
 
     it('prev button is disabled on first test', () => {
         render(<ComponentViewer testItems={testItems} />);
-        const [prevBtn] = screen.getAllByRole('button').filter(b =>
-            b.className.includes('px-3 py-2')
-        );
+        const [prevBtn] = screen
+            .getAllByRole('button')
+            .filter((b) => b.className.includes('px-3 py-2'));
         expect(prevBtn).toBeDisabled();
     });
 
     it('next button is disabled on last test', () => {
         render(<ComponentViewer testItems={testItems} />);
-        const getNextBtn = () => screen.getAllByRole('button').filter(b =>
-            b.className.includes('px-3 py-2')
-        )[1];
+        const getNextBtn = () =>
+            screen.getAllByRole('button').filter((b) => b.className.includes('px-3 py-2'))[1];
 
         fireEvent.click(getNextBtn());
         fireEvent.click(getNextBtn());

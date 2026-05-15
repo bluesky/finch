@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
-import Plot from "react-plotly.js";
-import { useEffect, useMemo, useRef, useState } from "react";
-import InputSliderRange from "../InputSliderRange";
-import HistogramPlotSettings from "./HistogramPlotSettings";
+import { cn } from '@/lib/utils';
+import Plot from 'react-plotly.js';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import InputSliderRange from '../InputSliderRange';
+import HistogramPlotSettings from './HistogramPlotSettings';
 
 type HistorgramPlotProps = {
     /** Histogram counts array where each index is a channel and each value is the count. `null` renders a placeholder. */
@@ -17,9 +17,16 @@ type HistorgramPlotProps = {
     title?: string;
     /** Number of significant figures for sum displays. Defaults to `6`. */
     precision?: number;
-}
+};
 
-export default function HistogramPlot({ arrayData, showPlotSettings, className, classNameSettings, title, precision = 6 }: HistorgramPlotProps) {
+export default function HistogramPlot({
+    arrayData,
+    showPlotSettings,
+    className,
+    classNameSettings,
+    title,
+    precision = 6,
+}: HistorgramPlotProps) {
     const plotContainer = useRef<HTMLDivElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [enableROI] = useState(true);
@@ -31,7 +38,7 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
         return arrayData.reduce((acc, val) => acc + val, 0);
     }, [arrayData]);
 
-    const totalArrayElements = useMemo(() => arrayData ? arrayData.length : 0, [arrayData]);
+    const totalArrayElements = useMemo(() => (arrayData ? arrayData.length : 0), [arrayData]);
 
     useEffect(() => {
         const resizeObserver = new ResizeObserver((entries) => {
@@ -49,8 +56,11 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
     }, []);
 
     const isValidArray = useMemo(
-        () => Array.isArray(arrayData) && arrayData.length > 0 && arrayData.every((value) => Number.isFinite(value)),
-        [arrayData]
+        () =>
+            Array.isArray(arrayData) &&
+            arrayData.length > 0 &&
+            arrayData.every((value) => Number.isFinite(value)),
+        [arrayData],
     );
 
     const xValues = useMemo(() => {
@@ -103,14 +113,22 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
         return total;
     }, [arrayData, isValidArray, roiBounds]);
 
-    const roiSliderMax = useMemo(() => Math.max(1, totalArrayElements > 0 ? totalArrayElements - 1 : 1), [totalArrayElements]);
+    const roiSliderMax = useMemo(
+        () => Math.max(1, totalArrayElements > 0 ? totalArrayElements - 1 : 1),
+        [totalArrayElements],
+    );
 
     return (
-        <div className={cn("flex flex-col items-center justify-start min-w-[70rem]", className)}>
-                <p className="text-lg text-center font-semibold text-sky-900">{title || "Histogram"}</p>
+        <div className={cn('flex flex-col items-center justify-start min-w-[70rem]', className)}>
+            <p className="text-lg text-center font-semibold text-sky-900">{title || 'Histogram'}</p>
             <article className="flex w-full flex-col items-start justify-center pl-12 text-slate-600">
-                <p className="text-lg text-center">Sum of All Elements: {sum.toPrecision(precision)}</p>
-                <p className="text-lg text-center">ROI Sum [{range[0]}-{range[1]}]: {enableROI ? roiAreaSum.toPrecision(precision) : 0}</p>
+                <p className="text-lg text-center">
+                    Sum of All Elements: {sum.toPrecision(precision)}
+                </p>
+                <p className="text-lg text-center">
+                    ROI Sum [{range[0]}-{range[1]}]:{' '}
+                    {enableROI ? roiAreaSum.toPrecision(precision) : 0}
+                </p>
                 <p className="text-lg text-center">Total Array Elements: {totalArrayElements}</p>
             </article>
 
@@ -136,23 +154,26 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
                             margin: { l: 50, r: 20, t: 10, b: 45 },
                             xaxis: { title: { text: 'Channel' } },
                             yaxis: { title: { text: 'Counts' } },
-                            shapes: enableROI && roiMaxY > 0 ? [
-                                {
-                                    type: 'rect',
-                                    xref: 'x',
-                                    yref: 'y',
-                                    x0: range[0],
-                                    x1: range[1],
-                                    y0: 0,
-                                    y1: roiMaxY,
-                                    line: {
-                                        color: '#94a3b8',
-                                        width: 2,
-                                        dash: 'dot',
-                                    },
-                                    fillcolor: 'rgba(148, 163, 184, 0.08)',
-                                },
-                            ] : undefined,
+                            shapes:
+                                enableROI && roiMaxY > 0
+                                    ? [
+                                          {
+                                              type: 'rect',
+                                              xref: 'x',
+                                              yref: 'y',
+                                              x0: range[0],
+                                              x1: range[1],
+                                              y0: 0,
+                                              y1: roiMaxY,
+                                              line: {
+                                                  color: '#94a3b8',
+                                                  width: 2,
+                                                  dash: 'dot',
+                                              },
+                                              fillcolor: 'rgba(148, 163, 184, 0.08)',
+                                          },
+                                      ]
+                                    : undefined,
                             plot_bgcolor: 'transparent',
                             paper_bgcolor: 'transparent',
                         }}
@@ -180,5 +201,5 @@ export default function HistogramPlot({ arrayData, showPlotSettings, className, 
                 />
             </div>
         </div>
-    )
+    );
 }

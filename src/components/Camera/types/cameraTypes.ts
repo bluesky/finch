@@ -16,7 +16,6 @@ export interface DetectorInput {
     enums?: string[];
 }
 
-
 export interface EnumProperties {
     enums: string[];
 }

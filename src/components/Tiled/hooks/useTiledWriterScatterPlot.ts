@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { getSearchResults, TiledSearchConfig } from "@blueskyproject/tiled";
-import { checkRunCompletion } from "../utils/tiledUtils";
+import { useState, useEffect, useCallback } from 'react';
+import { getSearchResults, TiledSearchConfig } from '@blueskyproject/tiled';
+import { checkRunCompletion } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
     /** Resolved Tiled path to the primary stream data, or `null` while searching. */
@@ -27,11 +27,11 @@ type UseTiledWriterScatterPlotOptions = {
 };
 
 export const useTiledWriterScatterPlot = (
-    blueskyRunId: string, 
-    options: UseTiledWriterScatterPlotOptions = {}
+    blueskyRunId: string,
+    options: UseTiledWriterScatterPlotOptions = {},
 ): UseTiledWriterScatterPlotReturn => {
     const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl } = options;
-    
+
     const [tiledPath, setTiledPath] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -40,23 +40,30 @@ export const useTiledWriterScatterPlot = (
     const [retryInterval, setRetryInterval] = useState<NodeJS.Timeout | null>(null);
 
     // Function to start polling for completion
-    const startCompletionPolling = useCallback((customPollingInterval?: number) => {
-        console.log(`[useTiledWriterScatterPlot] Starting completion polling for run: ${blueskyRunId}`);
-        
-        const intervalId = setInterval(async () => {
-            const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
-            if (isComplete) {
-                setEnablePolling(false);
-                clearInterval(intervalId);
-                setPollingInterval(null);
-                console.log(`[useTiledWriterScatterPlot] Run completed, cleared polling interval`);
-            } else {
-                setEnablePolling(true);
-            }
-        }, customPollingInterval || pollingIntervalMs);
-        
-        setPollingInterval(intervalId);
-    }, [blueskyRunId, tiledBaseUrl, pollingIntervalMs]);
+    const startCompletionPolling = useCallback(
+        (customPollingInterval?: number) => {
+            console.log(
+                `[useTiledWriterScatterPlot] Starting completion polling for run: ${blueskyRunId}`,
+            );
+
+            const intervalId = setInterval(async () => {
+                const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
+                if (isComplete) {
+                    setEnablePolling(false);
+                    clearInterval(intervalId);
+                    setPollingInterval(null);
+                    console.log(
+                        `[useTiledWriterScatterPlot] Run completed, cleared polling interval`,
+                    );
+                } else {
+                    setEnablePolling(true);
+                }
+            }, customPollingInterval || pollingIntervalMs);
+
+            setPollingInterval(intervalId);
+        },
+        [blueskyRunId, tiledBaseUrl, pollingIntervalMs],
+    );
 
     // Function to stop polling
     const stopCompletionPolling = () => {
@@ -77,94 +84,111 @@ export const useTiledWriterScatterPlot = (
     }, [retryInterval]);
 
     // Function to handle successful path discovery
-    const handleSuccessfulPath = useCallback(async (finalPath: string, pathType: string) => {
-        console.log(`[useTiledWriterScatterPlot] Success! Using ${pathType} path: ${finalPath}`);
-        setTiledPath(finalPath);
-        setIsLoading(false);
-        setError(null);
-        
-        // Stop retry polling since we found the path
-        stopRetryPolling();
-        
-        // Check run completion and start polling if needed
-        const isComplete = await checkRunCompletion(blueskyRunId);
-        if (isComplete) {
-            setEnablePolling(false);
-        } else {
-            setEnablePolling(true);
-            if (!isRunFinished) {
-                startCompletionPolling();
+    const handleSuccessfulPath = useCallback(
+        async (finalPath: string, pathType: string) => {
+            console.log(
+                `[useTiledWriterScatterPlot] Success! Using ${pathType} path: ${finalPath}`,
+            );
+            setTiledPath(finalPath);
+            setIsLoading(false);
+            setError(null);
+
+            // Stop retry polling since we found the path
+            stopRetryPolling();
+
+            // Check run completion and start polling if needed
+            const isComplete = await checkRunCompletion(blueskyRunId);
+            if (isComplete) {
+                setEnablePolling(false);
+            } else {
+                setEnablePolling(true);
+                if (!isRunFinished) {
+                    startCompletionPolling();
+                }
             }
-        }
-    }, [blueskyRunId, isRunFinished, stopRetryPolling, startCompletionPolling]);
+        },
+        [blueskyRunId, isRunFinished, stopRetryPolling, startCompletionPolling],
+    );
 
     // Find the Tiled path
     useEffect(() => {
         const findTiledPath = async (): Promise<boolean> => {
             // Check if blueskyRunId is empty
-            const searchConfig: TiledSearchConfig = {path: blueskyRunId};
+            const searchConfig: TiledSearchConfig = { path: blueskyRunId };
             if (!blueskyRunId || blueskyRunId.trim() === '') {
                 console.log(`[useTiledWriterScatterPlot] Empty blueskyRunId, waiting for run ID`);
                 setError('Waiting for run ID');
                 setIsLoading(false);
                 return false;
             }
-            
+
             try {
-                console.log(`[useTiledWriterScatterPlot] Searching for blueskyRunId: ${blueskyRunId}`);
-                
+                console.log(
+                    `[useTiledWriterScatterPlot] Searching for blueskyRunId: ${blueskyRunId}`,
+                );
+
                 // Step 1: Search for the run ID to see if it exists
                 const initialSearchResults = await getSearchResults(searchConfig);
-                console.log(`[useTiledWriterScatterPlot] Initial search results:`, initialSearchResults);
-                
+                console.log(
+                    `[useTiledWriterScatterPlot] Initial search results:`,
+                    initialSearchResults,
+                );
+
                 if (!initialSearchResults) {
-                    console.log(`[useTiledWriterScatterPlot] No results found for blueskyRunId: ${blueskyRunId}`);
+                    console.log(
+                        `[useTiledWriterScatterPlot] No results found for blueskyRunId: ${blueskyRunId}`,
+                    );
                     setError(`Searching for run data... (Run ID: ${blueskyRunId})`);
                     return false;
                 }
-                
+
                 // Use the original blueskyRunId as the base path
                 const basePath = blueskyRunId;
                 console.log(`[useTiledWriterScatterPlot] Using base path: ${basePath}`);
-                
+
                 // Step 2: Try to find the primary data path
                 // First try: /streams/primary (newer tiled writer version)
                 const streamsPath = `${basePath}/streams/primary`;
                 console.log(`[useTiledWriterScatterPlot] Trying streams path: ${streamsPath}`);
-                
+
                 try {
-                    const streamsResults = await getSearchResults({path: streamsPath});
+                    const streamsResults = await getSearchResults({ path: streamsPath });
                     if (streamsResults) {
                         const finalPath = `${streamsPath}/internal`;
-                        await handleSuccessfulPath(finalPath, "streams");
+                        await handleSuccessfulPath(finalPath, 'streams');
                         return true;
                     }
                 } catch (_streamsError) {
-                    console.log(`[useTiledWriterScatterPlot] Streams path not found, trying direct primary path`);
+                    console.log(
+                        `[useTiledWriterScatterPlot] Streams path not found, trying direct primary path`,
+                    );
                 }
-                
+
                 // Second try: /primary (older tiled writer version)
                 const directPath = `${basePath}/primary`;
-                console.log(`[useTiledWriterScatterPlot] Trying direct primary path: ${directPath}`);
-                
+                console.log(
+                    `[useTiledWriterScatterPlot] Trying direct primary path: ${directPath}`,
+                );
+
                 try {
-                    const directResults = await getSearchResults({path: directPath});
+                    const directResults = await getSearchResults({ path: directPath });
                     if (directResults) {
                         const finalPath = `${directPath}/internal`;
-                        await handleSuccessfulPath(finalPath, "direct");
+                        await handleSuccessfulPath(finalPath, 'direct');
                         return true;
                     }
                 } catch (_directError) {
                     console.log(`[useTiledWriterScatterPlot] Direct primary path not found either`);
                 }
-                
+
                 // If neither path works, but run exists, it might be that data isn't written yet
                 setError(`Waiting for scan data to be written... (Run ID: ${blueskyRunId})`);
                 return false;
-                
             } catch (error) {
                 console.error('[useTiledWriterScatterPlot] Error finding Tiled path:', error);
-                setError(`Searching for run data... (${error instanceof Error ? error.message : 'Unknown error'})`);
+                setError(
+                    `Searching for run data... (${error instanceof Error ? error.message : 'Unknown error'})`,
+                );
                 return false;
             }
         };
@@ -172,10 +196,10 @@ export const useTiledWriterScatterPlot = (
         const startSearch = async () => {
             setIsLoading(true);
             setError(null);
-            
+
             // Stop any existing retry polling
             stopRetryPolling();
-            
+
             // Only proceed if we have a valid blueskyRunId
             if (!blueskyRunId || blueskyRunId.trim() === '') {
                 setError('Waiting for run ID');
@@ -185,22 +209,28 @@ export const useTiledWriterScatterPlot = (
 
             // Try to find the path immediately
             const success = await findTiledPath();
-            
+
             // If not successful and run is not finished, start retry polling
             if (!success && !isRunFinished) {
-                console.log(`[useTiledWriterScatterPlot] Starting retry polling every 2 seconds for run: ${blueskyRunId}`);
-                
+                console.log(
+                    `[useTiledWriterScatterPlot] Starting retry polling every 2 seconds for run: ${blueskyRunId}`,
+                );
+
                 const intervalId = setInterval(async () => {
-                    console.log(`[useTiledWriterScatterPlot] Retrying path search for run: ${blueskyRunId}`);
+                    console.log(
+                        `[useTiledWriterScatterPlot] Retrying path search for run: ${blueskyRunId}`,
+                    );
                     const retrySuccess = await findTiledPath();
-                    
+
                     if (retrySuccess) {
                         clearInterval(intervalId);
                         setRetryInterval(null);
-                        console.log(`[useTiledWriterScatterPlot] Successfully found path on retry, stopping retry polling`);
+                        console.log(
+                            `[useTiledWriterScatterPlot] Successfully found path on retry, stopping retry polling`,
+                        );
                     }
                 }, 2000);
-                
+
                 setRetryInterval(intervalId);
             } else if (!success && isRunFinished) {
                 // Run is finished but we couldn't find the path
@@ -234,6 +264,6 @@ export const useTiledWriterScatterPlot = (
         error,
         enablePolling,
         startCompletionPolling,
-        stopCompletionPolling
+        stopCompletionPolling,
     };
 };

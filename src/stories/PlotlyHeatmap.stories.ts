@@ -8,7 +8,7 @@ const meta = {
     tags: ['autodocs'],
     parameters: {
         layout: 'centered',
-    }
+    },
 } satisfies Meta<typeof PlotlyHeatmap>;
 
 export default meta;
@@ -18,28 +18,28 @@ function generateEggData(size: number): number[][] {
     const maxVal = 255; // Maximum intensity
     const center = size / 2; // Center of the Egg
     const data: number[][] = [];
-  
+
     for (let y = 0; y < size; y++) {
-      const row: number[] = [];
-      for (let x = 0; x < size; x++) {
-        // Calculate distance from the center
-        const dx = x - center;
-        const dy = y - center;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-  
-        // Egg-like function: exponential decay from center
-        const intensity = maxVal * Math.exp(-distance * distance / (2 * (center / 2) ** 2));
-        row.push(Math.round(intensity)); // Normalize to integer
-      }
-      data.push(row);
+        const row: number[] = [];
+        for (let x = 0; x < size; x++) {
+            // Calculate distance from the center
+            const dx = x - center;
+            const dy = y - center;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Egg-like function: exponential decay from center
+            const intensity = maxVal * Math.exp((-distance * distance) / (2 * (center / 2) ** 2));
+            row.push(Math.round(intensity)); // Normalize to integer
+        }
+        data.push(row);
     }
-  
+
     return data;
-  }
-  
-  // Example usage
-  const size = 10; // Adjust size for desired resolution
-  const eggData = generateEggData(size);
+}
+
+// Example usage
+const size = 10; // Adjust size for desired resolution
+const eggData = generateEggData(size);
 
 export const Default: Story = {
     args: {
@@ -47,9 +47,8 @@ export const Default: Story = {
         width: 'w-96',
         height: 'h-96',
         lockPlotHeightToParent: true,
-
-    }
-}
+    },
+};
 
 export const Electric: Story = {
     args: {
@@ -57,31 +56,34 @@ export const Electric: Story = {
         width: 'w-96',
         height: 'h-96',
         lockPlotHeightToParent: true,
-        colorScale: 'Electric'
-
-    }
-}
+        colorScale: 'Electric',
+    },
+};
 
 export const HeatmapOnly: Story = {
     args: {
-        array: [[1, 20, 30], [20, 1, 60]],
+        array: [
+            [1, 20, 30],
+            [20, 1, 60],
+        ],
         width: 'w-96',
         height: 'h-96',
         lockPlotHeightToParent: true,
-        showScale: false
-
-    }
-}
+        showScale: false,
+    },
+};
 
 export const Labels: Story = {
     args: {
-        array: [[1, 20, 30], [20, 1, 60], [30, 60, 1]],
+        array: [
+            [1, 20, 30],
+            [20, 1, 60],
+            [30, 60, 1],
+        ],
         width: 'w-96',
         height: 'h-96',
         lockPlotHeightToParent: true,
         xAxisTitle: 'X axis title',
-        yAxisTitle: 'Y axis title'
-        
-
-    }
-}
+        yAxisTitle: 'Y axis title',
+    },
+};

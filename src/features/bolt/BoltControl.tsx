@@ -8,7 +8,7 @@ import Bento from '@/components/Bento';
 import { deviceIcons } from '@/assets/icons';
 
 export default function BoltControl() {
-    const deviceNameList = useMemo(()=>['IOC:m1', 'IOC:m2'], []);
+    const deviceNameList = useMemo(() => ['IOC:m1', 'IOC:m2'], []);
     const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydSocket(deviceNameList);
 
     return (
@@ -30,9 +30,13 @@ export default function BoltControl() {
                 />
             </div>
             <Paper title="Camera" size="grow">
-                <CameraContainer prefix="Basler5472" enableControlPanel={true} enableSettings={true} canvasSize="medium"/>
+                <CameraContainer
+                    prefix="Basler5472"
+                    enableControlPanel={true}
+                    enableSettings={true}
+                    canvasSize="medium"
+                />
             </Paper>
         </Bento>
-
-    )
+    );
 }

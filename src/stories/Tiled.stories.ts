@@ -265,11 +265,10 @@ const meta = {
     title: 'Bluesky Components/Tiled',
     component: TiledWrapper,
     parameters: {
-      layout: 'centered',
+        layout: 'centered',
     },
     tags: ['autodocs'],
-    argTypes: {
-    }
+    argTypes: {},
 } satisfies Meta<typeof TiledWrapper>;
 
 export default meta;
@@ -277,42 +276,41 @@ type Story = StoryObj<typeof meta>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Primary: Story = {
-  args: {
-    reverseSort: false,
-    enableStartupScreen: false,
-    size: 'medium',
-    tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
-    onSelectCallback: (links) => console.log('Selected Tiled link:', links.self),
-    isButtonMode: false,
-    isPopup: false,
-    singleColumnMode: false,
-    isFullWidth: false,
-    buttonModeText: undefined,
-    apiKey: undefined,
-    bearerToken: undefined,
-    closeOnSelect: false,
-  },
+    args: {
+        reverseSort: false,
+        enableStartupScreen: false,
+        size: 'medium',
+        tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
+        onSelectCallback: (links) => console.log('Selected Tiled link:', links.self),
+        isButtonMode: false,
+        isPopup: false,
+        singleColumnMode: false,
+        isFullWidth: false,
+        buttonModeText: undefined,
+        apiKey: undefined,
+        bearerToken: undefined,
+        closeOnSelect: false,
+    },
 };
 
 export const LocalHostUrl: Story = {
     args: {
-      size: 'medium',
+        size: 'medium',
     },
-  };
+};
 
 export const CustomUrl: Story = {
     args: {
-      enableStartupScreen: true,
-      size: 'medium',
+        enableStartupScreen: true,
+        size: 'medium',
     },
-  };
+};
 
-  export const ButtonMode: Story = {
+export const ButtonMode: Story = {
     args: {
-      isButtonMode: true,
-      size: 'medium',
-      tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
-      reverseSort: false,
+        isButtonMode: true,
+        size: 'medium',
+        tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
+        reverseSort: false,
     },
-  };
-
+};

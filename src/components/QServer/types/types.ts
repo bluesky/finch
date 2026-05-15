@@ -1,4 +1,11 @@
-import { Parameter, Device, QueueItem, HistoryItem, RunningQueueItem, ArbitraryKwargs } from "@/api/qServer/types";
+import {
+    Parameter,
+    Device,
+    QueueItem,
+    HistoryItem,
+    RunningQueueItem,
+    ArbitraryKwargs,
+} from '@/api/qServer/types';
 
 export type PopupItem = QueueItem | HistoryItem | RunningQueueItem;
 
@@ -6,7 +13,7 @@ export interface HistoryResultRow {
     name: string;
     icon: JSX.Element;
     content: JSX.Element | null;
-};
+}
 
 /* export type Parameter = {
     name: string;
@@ -25,7 +32,7 @@ export type Parameters = {
 export type Plan = {
     name: string;
     kwargs: Record<string, unknown>;
-    item_type: string; 
+    item_type: string;
 };
 
 export interface PlanInput {
@@ -36,7 +43,7 @@ export interface PlanInput {
 export interface ParameterInput extends Parameter {
     value: string | string[];
     required: boolean;
-    [key:string]: unknown; //required for metadata field which allows writing of any key/value pair. should be refactored so that md lives inside 'value' as dict
+    [key: string]: unknown; //required for metadata field which allows writing of any key/value pair. should be refactored so that md lives inside 'value' as dict
 }
 
 export interface ParameterInputDict {

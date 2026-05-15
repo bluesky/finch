@@ -1,125 +1,105 @@
-import { useState, useCallback, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import UICanvas from "./UICanvas";
-import { useUIData } from "./utils/useUIData";
-import ScalableContainer from "./ScalableContainer";
-import { useTabManagement } from "../Tabs/context/TabsContext";
-import { useMock } from "./context/MockContext";
-import styles from "./styles.json";
-import { useVariant } from "./context/VariantContext";
+import { useState, useCallback, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+import UICanvas from './UICanvas';
+import { useUIData } from './utils/useUIData';
+import ScalableContainer from './ScalableContainer';
+import { useTabManagement } from '../Tabs/context/TabsContext';
+import { useMock } from './context/MockContext';
+import styles from './styles.json';
+import { useVariant } from './context/VariantContext';
 
 export type UIViewProps = {
-  className?: string;
-  fileName: string;
-  scale?: number; // Add scale prop
-  onScaleChange?: (scale: number) => void; // Add callback for scale changes
-  [key: string]: any;
+    className?: string;
+    fileName: string;
+    scale?: number; // Add scale prop
+    onScaleChange?: (scale: number) => void; // Add callback for scale changes
+    [key: string]: any;
 };
 
 export default function UIView({
-  className,
-  fileName,
-  scale = 0.85, // Default scale
-  onScaleChange,
-  ...args
-}: UIViewProps) {
-  const { mock } = useMock();
-  const { variant } = useVariant();
-  const [currentScale, setCurrentScale] = useState(scale);
-  const { addTab } = useTabManagement();
-
-  // Update local scale when prop changes
-  useEffect(() => {
-    setCurrentScale(scale);
-  }, [scale]);
-
-  const { UIData, loading, error, devices, onSubmitSettings } = useUIData({
+    className,
     fileName,
-    args,
-    mock,
-  });
+    scale = 0.85, // Default scale
+    onScaleChange,
+    ...args
+}: UIViewProps) {
+    const { mock } = useMock();
+    const { variant } = useVariant();
+    const [currentScale, setCurrentScale] = useState(scale);
+    const { addTab } = useTabManagement();
 
-  const handleScaleChange = useCallback(
-    (newScale: number) => {
-      setCurrentScale(newScale);
-      onScaleChange?.(newScale); // Notify parent of scale change
-    },
-    [onScaleChange]
-  );
+    // Update local scale when prop changes
+    useEffect(() => {
+        setCurrentScale(scale);
+    }, [scale]);
 
-  // for related displays, drilled via UICanvas -> DeviceRenderer - > RelatedDisp
-  const addTabWithScale = useCallback(
-    (
-      label: string,
-      content: React.ReactNode,
-      fileName: string,
-      args: Record<string, any>
-    ) => {
-      addTab(label, content, fileName, args, currentScale);
-    },
-    [addTab, currentScale]
-  );
+    const { UIData, loading, error, devices, onSubmitSettings } = useUIData({
+        fileName,
+        args,
+        mock,
+    });
 
-  if (loading) {
-    return (
-      <div
-        className={cn(
-          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
-          className
-        )}
-      >
-        <div className="text-blue-500">Loading {fileName}...</div>
-      </div>
+    const handleScaleChange = useCallback(
+        (newScale: number) => {
+            setCurrentScale(newScale);
+            onScaleChange?.(newScale); // Notify parent of scale change
+        },
+        [onScaleChange],
     );
-  }
 
-  if (error) {
-    return (
-      <div
-        className={cn(
-          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
-          className
-        )}
-      >
-        <div className="text-red-500">{error}</div>
-      </div>
+    // for related displays, drilled via UICanvas -> DeviceRenderer - > RelatedDisp
+    const addTabWithScale = useCallback(
+        (label: string, content: React.ReactNode, fileName: string, args: Record<string, any>) => {
+            addTab(label, content, fileName, args, currentScale);
+        },
+        [addTab, currentScale],
     );
-  }
 
-  if (!UIData) {
+    if (loading) {
+        return (
+            <div className={cn('inline-block rounded-xl bg-slate-100 p-4 mt-4', className)}>
+                <div className="text-blue-500">Loading {fileName}...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={cn('inline-block rounded-xl bg-slate-100 p-4 mt-4', className)}>
+                <div className="text-red-500">{error}</div>
+            </div>
+        );
+    }
+
+    if (!UIData) {
+        return (
+            <div className={cn('inline-block rounded-xl bg-slate-100 p-4 mt-4', className)}>
+                <div className="text-white">No data available</div>
+            </div>
+        );
+    }
+
     return (
-      <div
-        className={cn(
-          "inline-block rounded-xl bg-slate-100 p-4 mt-4",
-          className
-        )}
-      >
-        <div className="text-white">No data available</div>
-      </div>
+        <ScalableContainer
+            className={cn(
+                'inline-block rounded-xl bg-slate-100 p-4 mt-4',
+                className,
+                styles.variants[variant as keyof typeof styles.variants].display,
+            )}
+            initialScale={currentScale}
+            minScale={0.3}
+            maxScale={3.0}
+            onScaleReset={0.85}
+            sensitivity={200}
+            onScaleChange={handleScaleChange}
+        >
+            <UICanvas
+                UIData={UIData}
+                devices={devices}
+                onSubmit={onSubmitSettings}
+                addTab={addTabWithScale}
+                {...args}
+            />
+        </ScalableContainer>
     );
-  }
-
-  return (
-    <ScalableContainer
-      className={cn(
-        "inline-block rounded-xl bg-slate-100 p-4 mt-4",
-        className,
-        styles.variants[variant as keyof typeof styles.variants].display
-      )}
-      initialScale={currentScale}
-      minScale={0.3}
-      maxScale={3.0}
-      onScaleReset={0.85}
-      sensitivity={200}
-      onScaleChange={handleScaleChange}
-    >
-      <UICanvas
-        UIData={UIData}
-        devices={devices}
-        onSubmit={onSubmitSettings}
-        addTab={addTabWithScale}
-        {...args}
-      />
-    </ScalableContainer>
-  );
 }

@@ -1,7 +1,7 @@
-import { NavLink } from "react-router";
-import { cn } from "@/lib/utils";
+import { NavLink } from 'react-router';
+import { cn } from '@/lib/utils';
 
-import { RouteItem } from "@/types/navigationRouterTypes";
+import { RouteItem } from '@/types/navigationRouterTypes';
 
 export type HubSidebarProps = {
     /** Route definitions used to render the sidebar navigation links. */
@@ -12,17 +12,31 @@ export type HubSidebarProps = {
     classNameActiveLink?: string;
     /** Additional CSS classes applied to inactive navigation links. */
     classNameInactiveLink?: string;
-}
-export default function HubSidebar({routes, className, classNameActiveLink, classNameInactiveLink, ...props}: HubSidebarProps) {
-    const navStyles = cn('flex flex-col items-center justify-center h-20 aspect-square rounded-lg text-white hover:bg-sky-800 cursor-pointer', classNameInactiveLink);
+};
+export default function HubSidebar({
+    routes,
+    className,
+    classNameActiveLink,
+    classNameInactiveLink,
+    ...props
+}: HubSidebarProps) {
+    const navStyles = cn(
+        'flex flex-col items-center justify-center h-20 aspect-square rounded-lg text-white hover:bg-sky-800 cursor-pointer',
+        classNameInactiveLink,
+    );
     return (
-        <aside className={cn("row-span-2 bg-sky-950 flex flex-col py-4 overflow-y-auto", className)} {...props}>
-            {routes.map((item, index) => 
+        <aside
+            className={cn('row-span-2 bg-sky-950 flex flex-col py-4 overflow-y-auto', className)}
+            {...props}
+        >
+            {routes.map((item, index) => (
                 <div key={index} className="flex flex-col items-center">
-                    <NavLink 
+                    <NavLink
                         to={item.path}
-                        className={({isActive}) =>
-                            isActive ? cn(navStyles, cn("bg-sky-300 text-black", classNameActiveLink)) : navStyles
+                        className={({ isActive }) =>
+                            isActive
+                                ? cn(navStyles, cn('bg-sky-300 text-black', classNameActiveLink))
+                                : navStyles
                         }
                     >
                         {item.icon}
@@ -30,7 +44,7 @@ export default function HubSidebar({routes, className, classNameActiveLink, clas
                     </NavLink>
                     <div className="h-[1px] w-10/12 border-b border-white/50 my-4"></div>
                 </div>
-            )}
+            ))}
         </aside>
-    )
+    );
 }
