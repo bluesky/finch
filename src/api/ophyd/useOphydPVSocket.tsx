@@ -8,15 +8,17 @@ import {
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydPVSocketTypes';
 
-/**
- * Custom hook for managing WebSocket connections to Ophyd devices.
- * Provides real-time device state management and control functions.
- *
- * @param deviceNameList - Array of EPICS PVs to subscribe to
- * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
- * @returns Object containing device states and control functions
- */
-export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
+type SubscribeAction = 'subscribe' | 'subscribeSafely' | 'subscribeReadOnly';
+
+interface UseOphydPVSocketOptions {
+    wsUrl?: string;
+    subscribeAction?: SubscribeAction;
+}
+
+export default function useOphydPVSocket(
+    deviceNameList: string[],
+    { wsUrl, subscribeAction = 'subscribeSafely' }: UseOphydPVSocketOptions = {},
+) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]); //device updates can retrigger the hook if inputs aren't memoized
     const configWsUrl = useOphydApiUrls().getWsUrl('pv-socket');
@@ -131,14 +133,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
 
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
-            //console.log('WebSocket connection opened');
-            memoizedDeviceNames.forEach((deviceName) => {
-                const subscribeMessage = {
-                    action: 'subscribe',
-                    pv: deviceName,
-                };
-                ws.send(JSON.stringify(subscribeMessage));
-            });
+            ws.send(JSON.stringify({ action: subscribeAction, pvs: memoizedDeviceNames }));
         };
 
         // Handle incoming WebSocket messages
@@ -198,7 +193,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, memoizedDeviceNames, apiUrl]);
+    }, [wsUrl, memoizedDeviceNames, apiUrl, subscribeAction]);
 
     return {
         devices,

@@ -8,15 +8,17 @@ import {
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydDeviceSocketTypes';
 
-/**
- * Custom hook for managing WebSocket connections to Ophyd devices.
- * Provides real-time device state management and control functions.
- *
- * @param deviceNameList - Array of Ophyd device names to subscribe to
- * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
- * @returns Object containing device states and control functions
- */
-export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string) {
+type SubscribeAction = 'subscribe' | 'subscribeSafely' | 'subscribeReadOnly';
+
+interface UseOphydDeviceSocketOptions {
+    wsUrl?: string;
+    subscribeAction?: SubscribeAction;
+}
+
+export default function useOphydDeviceSocket(
+    deviceNameList: string[],
+    { wsUrl, subscribeAction = 'subscribe' }: UseOphydDeviceSocketOptions = {},
+) {
     const configWsUrl = useOphydApiUrls().getWsUrl('device-socket');
     const apiUrl: string = wsUrl ?? configWsUrl;
     const [devices, setDevices] = useState<OphydDevices>(() => {
@@ -132,13 +134,7 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
         // Open WebSocket connection and subscribe to devices
         ws.onopen = () => {
             console.log('WebSocket connection opened');
-            memoizedDeviceNames.forEach((deviceName) => {
-                const subscribeMessage = {
-                    action: 'subscribe',
-                    device: deviceName,
-                };
-                ws.send(JSON.stringify(subscribeMessage));
-            });
+            ws.send(JSON.stringify({ action: subscribeAction, devices: memoizedDeviceNames }));
         };
 
         // Handle incoming WebSocket messages
@@ -199,7 +195,7 @@ export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: s
                 wsRef.current = null;
             }
         };
-    }, [wsUrl, memoizedDeviceNames, apiUrl]);
+    }, [wsUrl, memoizedDeviceNames, apiUrl, subscribeAction]);
 
     return {
         devices,
