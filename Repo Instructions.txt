@@ -1,0 +1,450 @@
+Finch Repository Instructions
+=============================
+
+Project purpose
+---------------
+Finch is a Vite + React + TypeScript component library for Bluesky beamline
+applications. It provides reusable UI components, beamline-specific controls,
+data visualization widgets, queue-server tools, Ophyd WebSocket hooks, Tiled
+data-browser wrappers, Storybook documentation, and a local development app.
+
+The npm package name is `@blueskyproject/finch`. The library build is generated
+from `src/index.ts`, while the local demo application starts from
+`src/main.tsx` and `src/app/App.tsx`.
+
+
+Top-level structure
+-------------------
+`.github/workflows/`
+    GitHub Actions pipelines for tests, Storybook publishing, and npm
+    publishing.
+
+`.storybook/`
+    Storybook configuration. Storybook uses the React/Vite framework, imports
+    Tailwind styles, serves files from `public/`, and injects the Finch package
+    version as `STORYBOOK_FINCH_VERSION`.
+
+`public/`
+    Static assets used by the demo app and Storybook, including Finch images,
+    icons, `finch.config.json`, and `mockServiceWorker.js` for MSW-backed
+    Storybook or test mocks.
+
+`src/`
+    Main source tree for the library, demo app, API hooks, components, features,
+    tests, stories, types, utilities, and assets.
+
+`index.html`
+    Vite HTML entry point for the local development app.
+
+`package.json`
+    Defines package metadata, npm exports, scripts, dependencies, peer
+    dependencies, and publishing information.
+
+`vite.config.ts`
+    Configures Vite for local development, library builds, declaration-file
+    generation, backend proxies, path aliases, and Vitest.
+
+`tailwind.config.js`, `tailwind.css`, `postcss.config.js`
+    Tailwind and PostCSS setup used by the library, demo app, and Storybook.
+
+`tsconfig*.json`
+    TypeScript configuration for app code, node-side config files, and the
+    overall project.
+
+`eslint.config.js`, `.prettierrc`
+    Linting and formatting rules.
+
+`README.md`
+    User-facing installation and app setup guide.
+
+`CONTRIBUTING.md`
+    Developer setup, environment variable notes, and publish guidance.
+
+
+Source tree structure
+---------------------
+`src/index.ts`
+    Public library entry point. This file imports Finch CSS and re-exports the
+    components, hooks, helper types, and API utilities that package consumers can
+    import from `@blueskyproject/finch`.
+
+`src/main.tsx`
+    Local Vite app entry point. It renders `src/app/App.tsx` inside
+    `BrowserRouter`.
+
+`src/app/`
+    Local development app and global app styles.
+
+    `App.tsx`
+        Creates a demo `HubAppLayout` with routes for About, component review,
+        test content, and documentation. It wraps the app in
+        `FinchConfigProvider` and `QueryClientProvider`.
+
+    `FinchConfigProvider.tsx`
+        Defines the shared runtime config context. It accepts optional backend
+        URLs/API keys, cleans URL values, supplies defaults through helper hooks,
+        and exposes `useFinchConfig()` / `useOptionalFinchConfig()`.
+
+    `pages/`
+        Demo-app pages used by `App.tsx`.
+
+`src/api/`
+    Backend-facing API clients and hooks.
+
+    `qServer/`
+        Queue Server REST client, request functions, React Query hooks, types,
+        and examples. `createQServerApiClient()` creates an Axios instance with
+        an `ApiKey` authorization header. Request functions call queue, history,
+        status, plan, device, environment, queue-item, and RunEngine endpoints.
+        Hooks wrap those calls with TanStack Query queries/mutations and
+        invalidate related cache keys after mutations.
+
+    `ophyd/`
+        Ophyd WebSocket hooks and message types. Hooks connect to configured
+        WebSocket endpoints, subscribe to PVs or devices, process value/meta
+        updates, expose local device state, and provide setters for write
+        requests. `useOphydSocket()` is kept for backward compatibility and
+        delegates to `useOphydPVSocket()`.
+
+`src/components/`
+    Reusable UI and beamline components. Important groups include:
+
+    General UI:
+        Button variants, inputs, sliders, dropdowns, tabs, table, popover,
+        layout primitives, plots, cards/paper, copy-to-clipboard, iframe, and
+        Google Doc wrappers.
+
+    App layout:
+        `HubAppLayout`, `HubHeader`, `HubSidebar`, and `HubMainContent`. The
+        layout expects route definitions and renders a sidebar, header, and
+        routed content area.
+
+    Beamline/device controls:
+        BeamEnergy, Hexapod, Histogram, Shutter, camera components, device
+        controller boxes, signal monitor plots, relative/absolute move controls,
+        BeamVis 3D synoptic tools, and ReactEDM.
+
+    QServer:
+        Queue Server UI container, queue lists, plan submission form, console,
+        settings panels, popups, hooks, and CSS. `ContainerQServer` composes the
+        main UI: side panel, running worker, queue/history lists, plan-add panel,
+        console panel, and settings panel.
+
+    Tiled:
+        Wrapper components around `@blueskyproject/tiled`, custom scatter and
+        heatmap components, and hooks such as `useTiledMostRecentDetImage()`.
+        The wrapper pulls Tiled URL/API key values from Finch config when props
+        are not passed directly.
+
+    ReactEDM:
+        Runtime rendering for ADL/BOB-style UI definitions, parsers, mock
+        context, widgets, style rendering, scalable canvas, and included ADL/BOB
+        assets.
+
+`src/features/`
+    Higher-level feature components that compose lower-level components, such as
+    `ComponentViewer`, `QServerPlanMonitor`, `TiledHeatmapSelector`, Beamstop,
+    and Bolt control.
+
+`src/hooks/`
+    Shared React hooks, including device message helpers and resize observation.
+
+`src/utils/`
+    Shared utilities. `apiUtils.ts` centralizes default backend URLs and config
+    lookup for Ophyd, Queue Server, and Tiled. Other files handle errors, URL
+    conversion, and plot processing/generation.
+
+`src/types/`
+    Shared TypeScript types for device controllers, navigation route items, and
+    plots.
+
+`src/testing/`
+    Vitest setup and component test suites. Tests use Testing Library and
+    jsdom/happy-dom-related tooling depending on configuration and dependencies.
+
+`src/stories/`
+    Storybook stories and docs. Includes MD/MDX documentation, component
+    examples, Storybook-specific assets, and ReactEDM documentation.
+
+`src/assets/`
+    Shared icons and image assets used by components and the demo app.
+
+`src/lib/`
+    Small shared helpers, including `cn()` for class-name merging.
+
+
+Runtime architecture
+--------------------
+1. Local development starts with `npm run dev`.
+2. Vite serves `index.html`.
+3. `src/main.tsx` mounts React into the page and wraps the demo app in
+   `BrowserRouter`.
+4. `src/app/App.tsx` creates route definitions and wraps `HubAppLayout` with:
+       - `FinchConfigProvider`
+       - `QueryClientProvider`
+5. `FinchConfigProvider` receives environment-driven config values such as
+   Tiled, Ophyd, Queue Server, and Finch backend URLs. It normalizes the URLs and
+   makes them available through context.
+6. Components and hooks use helpers from `src/utils/apiUtils.ts` to resolve
+   backend URLs. If no config is provided, they fall back to local defaults:
+       - Tiled: `http://<current-host>:8000/api/v1`
+       - Ophyd: `http://<current-host>:8001/api/v1`
+       - Queue Server: `http://<current-host>:60610/api`
+       - Queue Server API key: `test`
+7. Routed pages render Finch components. Data-oriented components use React
+   Query, fetch, Axios, or WebSocket hooks to communicate with services.
+
+
+Backend/data flow
+-----------------
+Queue Server flow:
+1. A component calls a hook from `src/api/qServer/hooks.ts`.
+2. The hook reads Queue Server URL/API key values through `useQueueServerApiUrls()`.
+3. The hook creates an Axios client with `createQServerApiClient()`.
+4. Query hooks call request helpers such as `getQueue()`, `getStatus()`,
+   `getPlansAllowed()`, and `getRunsActive()`.
+5. Mutation hooks call request helpers such as `addQueueItem()`,
+   `executeQueueItem()`, `removeQueueItem()`, `openEnvironment()`, `startRE()`,
+   `pauseRE()`, `resumeRE()`, and `abortRE()`.
+6. Successful mutations invalidate relevant React Query cache keys so queue,
+   history, status, and run data refresh.
+
+Ophyd WebSocket flow:
+1. A component calls an Ophyd hook with a list of device names or PV names.
+2. The hook resolves a WebSocket URL from Finch config or local defaults.
+3. On WebSocket open, the hook sends subscription messages for each device/PV.
+4. Incoming messages are parsed as JSON and merged into React state.
+5. Setter functions send JSON messages back through the socket when users change
+   device values.
+6. Cleanup closes the socket when the component unmounts or subscriptions change.
+
+Tiled flow:
+1. Tiled components read `tiledApiUrl` and `tiledApiKey` from Finch config.
+2. `src/components/Tiled/Tiled.tsx` wraps `@blueskyproject/tiled` so Finch
+   consumers get the Tiled styles and default config automatically.
+3. Custom hooks such as `useTiledMostRecentDetImage()` poll Tiled search and
+   metadata endpoints to find recent detector image runs.
+4. Plot components render heatmaps/scatter plots from Tiled or local data.
+
+Camera/TIFF flow:
+1. Camera components use Ophyd-derived WebSocket URLs or explicit props.
+2. Hooks manage streaming state, control-panel state, canvas drawing, and TIFF
+   display.
+3. Vite dev proxies can forward local `/api/camera` and `/api/tiff` WebSocket
+   paths to configured backend socket endpoints.
+
+
+Development commands
+--------------------
+Install dependencies:
+    npm install
+
+Run the local demo app:
+    npm run dev
+
+Run Storybook:
+    npm run storybook
+
+Build the library:
+    npm run build
+
+Preview a production build:
+    npm run preview
+
+Run lint:
+    npm run lint
+
+Auto-fix lint issues:
+    npm run lint:fix
+
+Check formatting:
+    npm run format
+
+Apply formatting:
+    npm run format:fix
+
+Run tests in watch mode:
+    npm test
+
+Run tests once:
+    npm run test:run
+
+Build Storybook:
+    npm run build-storybook
+
+Deploy Storybook manually:
+    npm run deploy-storybook
+
+
+Build and package pipeline
+--------------------------
+The library build is configured in `vite.config.ts`.
+
+1. `npm run build` runs `tsc && vite build`.
+2. TypeScript checks the project.
+3. Vite builds library output from `src/index.ts`.
+4. `vite-plugin-dts` generates declaration files from `src/`.
+5. Rollup outputs ES module and UMD bundles:
+       - `dist/finch.es.js`
+       - `dist/finch.umd.js`
+       - `dist/index.d.ts`
+       - `dist/finch.css`
+6. Peer dependencies from `package.json` are externalized so consumers provide
+   React, React DOM, and React Router.
+7. `package.json` exports the root package and CSS entry:
+       - `@blueskyproject/finch`
+       - `@blueskyproject/finch/style.css`
+
+
+Vite dev-server proxies
+-----------------------
+`vite.config.ts` defines local proxy routes for development:
+
+`/api/qserver`
+    Proxies REST calls to `VITE_QSERVER_REST` or `http://localhost:60610`.
+
+`/api/qserver/console`
+    Proxies WebSocket traffic to `VITE_QSERVER_WS` or the default Queue Server
+    console socket URL.
+
+`/api/camera`
+    Proxies WebSocket traffic to `VITE_CAMERA_WS`.
+
+`/api/tiff`
+    Proxies WebSocket traffic to `VITE_TIFF_WS`.
+
+These proxies help the demo app talk to local services without hard-coding
+backend addresses into component code.
+
+
+Environment configuration
+-------------------------
+Finch commonly uses Vite environment variables in `.env` files. Examples:
+
+    VITE_TILED_API_URL=http://localhost:8000/api/v1
+    VITE_TILED_API_KEY=your-tiled-key
+    VITE_OPHYD_API_URL=http://localhost:8001/api/v1
+    VITE_QSERVER_API_URL=http://localhost:60610/api
+    VITE_QSERVER_API_KEY=test
+    VITE_FINCH_API_URL=http://localhost:8003/api
+
+The Vite proxy layer also reads:
+
+    VITE_QSERVER_REST=http://localhost:60610
+    VITE_QSERVER_WS=ws://localhost:8001/api/v1/qs-console-socket
+    VITE_CAMERA_WS=ws://localhost:8001/api/v1/camera-socket
+    VITE_TIFF_WS=ws://localhost:8002/tiff-socket
+
+When adding new backend-aware components, prefer reading service addresses
+through `FinchConfigProvider` and `src/utils/apiUtils.ts` instead of hard-coding
+URLs.
+
+
+Testing pipeline
+----------------
+Tests live in `src/testing/tests/` and use Vitest with Testing Library.
+
+Local one-shot test command:
+    npm run test:run
+
+CI test workflow:
+1. Runs on pull requests to `main` and `staging`, and pushes to `staging`.
+2. Uses Node.js 20.x.
+3. Installs dependencies with `npm ci`.
+4. Runs lint and formatting checks, capturing output artifacts.
+5. Runs the TypeScript/library build.
+6. Runs listed component test suites individually for clearer CI output.
+7. Uploads test artifacts.
+8. On pull requests, posts a test summary comment with lint, format, build, and
+   test status.
+
+
+Storybook pipeline
+------------------
+Storybook source lives in `src/stories/` plus component-adjacent MDX/stories
+matched by `.storybook/main.ts`.
+
+Local Storybook:
+    npm run storybook
+
+Build Storybook:
+    npm run build-storybook
+
+Publish Storybook:
+1. The `Publish Storybook` GitHub Action runs on manual dispatch or push to
+   `main`.
+2. It installs dependencies with `npm ci`.
+3. It configures a GitHub Actions git identity and authenticated remote.
+4. It runs `npm run deploy-storybook`.
+5. The deploy script builds Storybook and publishes `storybook-static` to the
+   `gh-pages` branch.
+6. The public docs site is served at `https://blueskyproject.io/finch/`.
+
+
+npm publishing pipeline
+-----------------------
+Manual publishing guidance is in `CONTRIBUTING.md`, and automated release
+publishing is configured in `.github/workflows/publish-npm.yml`.
+
+Automated workflow:
+1. Runs on manual dispatch and published GitHub releases.
+2. Installs dependencies with `npm ci`.
+3. Runs lint, tests, and build when present.
+4. Runs `npm pack --dry-run` to preview package contents.
+5. Uploads `dist/` as an artifact.
+6. On published releases, downloads `dist/`, installs dependencies, pins npm to
+   a known version, and publishes with provenance:
+       npm publish --access public --provenance
+
+Manual workflow:
+1. Ensure the working tree is clean.
+2. Increment the version, for example:
+       npm version patch
+3. Build:
+       npm run build
+4. Publish:
+       npm publish
+
+
+How to add or change functionality
+----------------------------------
+Adding a public component:
+1. Add the component under `src/components/` or a domain-specific subfolder.
+2. Add props/types near the component or in `src/types/` if shared.
+3. Add or update tests in `src/testing/tests/`.
+4. Add a Storybook story or docs page in `src/stories/` when useful.
+5. Export the component and public types from `src/index.ts`.
+
+Adding backend functionality:
+1. Put raw API calls in `src/api/<service>/requests.ts` or a similar service
+   module.
+2. Put shared service types in `src/api/<service>/types.ts`.
+3. Wrap calls in hooks when React state, caching, or mutations are needed.
+4. Use `src/utils/apiUtils.ts` and `FinchConfigProvider` for URLs/API keys.
+5. Invalidate React Query keys after mutations that change backend state.
+
+Adding a demo page:
+1. Create a page under `src/app/pages/`.
+2. Import it in `src/app/App.tsx`.
+3. Add a `RouteItem` entry with path, label, element, and optional icon.
+
+Adding Storybook docs:
+1. Add `.stories.tsx`, `.stories.ts`, `.md`, or `.mdx` files under `src/stories/`
+   or another `src/` location matched by Storybook.
+2. Use `npm run storybook` to verify locally.
+3. Use `npm run build-storybook` before publishing or opening a docs PR.
+
+
+Important conventions
+---------------------
+- Use TypeScript for source files.
+- Keep public exports centralized in `src/index.ts`.
+- Use the `@/` alias for imports rooted at `src/` when it matches existing
+  style.
+- Prefer shared URL helpers in `src/utils/apiUtils.ts`.
+- Keep backend-aware components configurable through props and
+  `FinchConfigProvider`.
+- Import `@blueskyproject/finch/style.css` once in consumer apps.
+- Keep tests focused on public behavior.
+- Do not rely on generated `dist/` files during local development; source files
+  under `src/` are the source of truth.
