@@ -68,6 +68,7 @@ export default function TiledWriterScatterPlot({
         <>
             {showStatusText && <p className="text-xs text-gray-600 mb-2">{getStatusText()}</p>}
             <TiledScatterPlot
+                blueskyRunId={blueskyRunId}
                 path={tiledPath}
                 tiledTrace={tiledTrace}
                 partition={partition}
