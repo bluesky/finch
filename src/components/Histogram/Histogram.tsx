@@ -21,6 +21,8 @@ type HistogramProps = {
     arrayPV: string;
     /** EPICS PV name for the acquire control (1 = start, 0 = stop). */
     acquirePV: string;
+    /** EPICS PV name for the exposure setting (default value is in seconds) */
+    exposurePV: string;
     /** When `true`, renders the `HistogramDeviceController` below the plot. */
     showDeviceController?: boolean;
     /** When `true`, renders plot settings controls inside `HistogramPlot`. */
@@ -43,6 +45,7 @@ type HistogramProps = {
 export default function Histogram({
     arrayPV,
     acquirePV,
+    exposurePV,
     showDeviceController,
     showPlotSettings,
     classNameContainer,
@@ -58,6 +61,8 @@ export default function Histogram({
         [demo, arrayPV, acquirePV],
     );
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
+    const acquireDevice = devices[acquirePV];
+    const exposureDevice = devices[exposurePV];
 
     const baseRef = useRef<number[]>(generateDemoBase());
     const [demoData, setDemoData] = useState<number[]>(() => baseRef.current);
@@ -90,6 +95,9 @@ export default function Histogram({
     const handleStopAcquisition = useCallback(() => {
         handleSetValueRequest(acquirePV, 0);
     }, [acquirePV, handleSetValueRequest]);
+    const handleSetExposure = useCallback((newValue:number) => {
+        handleSetValueRequest(exposurePV, newValue);
+    }, [exposurePV, handleSetValueRequest])
 
     const allConnected = demo || deviceList.every((pv) => devices[pv]?.connected === true);
 
@@ -125,8 +133,10 @@ export default function Histogram({
             {showDeviceController && (
                 <HistogramDeviceController
                     acquireDevice={devices[acquirePV]}
+                    exposureDevice={exposureDevice}
                     handleStartAcquisition={handleStartAcquisition}
                     handleStopAcquisition={handleStopAcquisition}
+                    handleSetExposure={handleSetExposure}
                     className={classNameDeviceController}
                 />
             )}
