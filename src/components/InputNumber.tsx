@@ -75,7 +75,7 @@ export default function InputNumber({
             )}
             {...props}
         >
-            {label && <span className="mx-1 font-light">{label}</span>}
+            {label && <span className="mx-1 font-light w-12">{label}</span>}
             <input
                 name={name ? name : 'input-number'}
                 type="number"
