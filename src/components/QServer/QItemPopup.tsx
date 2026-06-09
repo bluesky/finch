@@ -143,14 +143,14 @@ export default function QItemPopup({
             return (
                 <span className="flex" key={kwarg}>
                     <p className="w-1/2">{kwarg}</p>
-                    <p className="w-1/2">{popupItem.kwargs[kwarg]}</p>
+                    <p className="w-1/2 text-ellipsis overflow-hidden">{popupItem.kwargs[kwarg]}</p>
                 </span>
             );
         } else {
             return (
                 <span className="flex" key={kwarg}>
                     <p className="w-1/2">{kwarg}</p>
-                    <p className="w-1/2">{JSON.stringify(popupItem.kwargs[kwarg])}</p>
+                    <p className="w-1/2 text-ellipsis overflow-hidden">{JSON.stringify(popupItem.kwargs[kwarg])}</p>
                 </span>
             );
         }
@@ -266,7 +266,7 @@ export default function QItemPopup({
     return (
         <div
             onClick={handleQItemPopupClose}
-            className={`absolute top-0 left-0 w-full h-full z-40 rounded-md ${getPlanColorOpacity(popupItem.name)} flex justify-center items-center ${isDeleteModeVisible ? 'bg-red-600/40' : ''}`}
+            className={`absolute top-0 left-0 w-full h-full z-40 rounded-md text-slate-700 ${getPlanColorOpacity(popupItem.name)} flex justify-center items-center ${isDeleteModeVisible ? 'bg-red-600/40' : ''}`}
         >
             <div
                 onClick={(e) => e.stopPropagation()}
