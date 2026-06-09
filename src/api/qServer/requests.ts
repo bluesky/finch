@@ -80,7 +80,7 @@ export async function removeQueueItem(
 }
 
 export async function getRunsActive(client: AxiosInstance): Promise<GetRunsActiveResponse> {
-    const response = await client.get<GetRunsActiveResponse>('/runs/active');
+    const response = await client.get<GetRunsActiveResponse>('/re/runs/active');
     return response.data;
 }
 
