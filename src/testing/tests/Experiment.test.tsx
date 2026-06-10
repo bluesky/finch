@@ -13,7 +13,16 @@ function renderWithQueryClient(ui: ReactNode) {
 const { usePlansAllowedQueryMock, useQueueQueryMock, useExecuteQueueItemMutationMock } = vi.hoisted(
     () => ({
         usePlansAllowedQueryMock: vi.fn(() => ({
-            data: { success: true, plans_allowed: { count: {}, angle_scan: {}, energy_scan: {} } },
+            data: {
+                success: true,
+                plans_allowed: {
+                    count: {},
+                    angle_scan: {},
+                    energy_scan: {},
+                    xas_scan: {},
+                    xas_alignment: {},
+                },
+            },
             isLoading: false,
             isError: false,
         })),
@@ -41,6 +50,10 @@ vi.mock('../../components/QServer/utils/qServerApiUtils', () => ({
 
 vi.mock('@/components/Tiled/TiledWriterScatterPlot', () => ({
     default: () => <div data-testid="scatter-plot" />,
+}));
+
+vi.mock('@/api/tiled/hooks', () => ({
+    useSearchResultsQuery: vi.fn(() => ({ data: undefined })),
 }));
 
 vi.mock('../../components/Tiled/TiledWriterDetImageHeatmap', () => ({
@@ -77,6 +90,8 @@ vi.mock('../../components/Button', () => ({
 
 import ExperimentAngleScan from '../../components/Experiment/ExperimentAngleScan';
 import ExperimentEnergyScan from '../../components/Experiment/ExperimentEnergyScan';
+import ExperimentXASScan from '../../components/Experiment/ExperimentXASScan';
+import ExperimentXASAlignment from '../../components/Experiment/ExperimentXASAlignment';
 import ExperimentHistory from '../../components/Experiment/ExperimentHistory';
 import ExperimentExecutePlanButton from '../../components/Experiment/ExperimentExecutePlanButton';
 import ExperimentExecutePlanButtonGeneric from '../../components/Experiment/ExperimentExecutePlanButtonGeneric';
@@ -307,5 +322,117 @@ describe('ExperimentPlanSettings', () => {
         } as unknown as ReturnType<typeof useQSAddItem>);
         render(<ExperimentPlanSettings />);
         expect(screen.getByTestId('qs-param-input')).toBeInTheDocument();
+    });
+});
+
+// ── ExperimentXASScan ─────────────────────────────────────────────────────────
+
+describe('ExperimentXASScan', () => {
+    it('renders without crashing', () => {
+        const { container } = renderWithQueryClient(<ExperimentXASScan />);
+        expect(container.firstChild).toBeInTheDocument();
+    });
+
+    it('shows the "XAS Scan" heading', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        expect(screen.getByText('XAS Scan')).toBeInTheDocument();
+    });
+
+    it('renders the energy, ROI, and num points labels', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        expect(screen.getByText(/Start Energy/i)).toBeInTheDocument();
+        expect(screen.getByText(/Stop Energy/i)).toBeInTheDocument();
+        expect(screen.getByText(/ROI Low/i)).toBeInTheDocument();
+        expect(screen.getByText(/ROI High/i)).toBeInTheDocument();
+        expect(screen.getByText(/Number of Points/i)).toBeInTheDocument();
+    });
+
+    it('applies className to the root element', () => {
+        const { container } = renderWithQueryClient(<ExperimentXASScan className="my-class" />);
+        expect(container.firstChild).toHaveClass('my-class');
+    });
+
+    it('renders the scatter plot', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        expect(screen.getByTestId('scatter-plot')).toBeInTheDocument();
+    });
+
+    it('shows the execute button', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        expect(screen.getByTestId('plan-button')).toBeInTheDocument();
+    });
+
+    it('shows history view when History tab is clicked', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        fireEvent.click(screen.getByTitle('View scan history'));
+        expect(screen.queryByText(/Start Energy/i)).not.toBeInTheDocument();
+    });
+
+    it('returns to form view when Run tab is clicked', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        fireEvent.click(screen.getByTitle('View scan history'));
+        fireEvent.click(screen.getByTitle('Run new scan'));
+        expect(screen.getByText(/Start Energy/i)).toBeInTheDocument();
+    });
+
+    it('toggles auto execution mode when the toggle is clicked', () => {
+        renderWithQueryClient(<ExperimentXASScan />);
+        const toggle = screen.getByTitle('Switch to auto');
+        expect(screen.queryByText('looping')).not.toBeInTheDocument();
+        fireEvent.click(toggle);
+        expect(screen.getByText('looping')).toBeInTheDocument();
+        expect(screen.getByTitle('Switch to manual')).toBeInTheDocument();
+    });
+});
+
+// ── ExperimentXASAlignment ────────────────────────────────────────────────────
+
+describe('ExperimentXASAlignment', () => {
+    it('renders without crashing', () => {
+        const { container } = renderWithQueryClient(<ExperimentXASAlignment />);
+        expect(container.firstChild).toBeInTheDocument();
+    });
+
+    it('shows the "XAS Alignment" heading', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        expect(screen.getByText('XAS Alignment')).toBeInTheDocument();
+    });
+
+    it('renders the Z and Y scan fieldsets', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        expect(screen.getByText('Z (vertical)')).toBeInTheDocument();
+        expect(screen.getByText('Y (horizontal)')).toBeInTheDocument();
+    });
+
+    it('applies className to the root element', () => {
+        const { container } = renderWithQueryClient(
+            <ExperimentXASAlignment className="my-class" />,
+        );
+        expect(container.firstChild).toHaveClass('my-class');
+    });
+
+    it('renders a scatter plot for both the Z and Y scans', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        expect(screen.getByText('Z scan')).toBeInTheDocument();
+        expect(screen.getByText('Y scan')).toBeInTheDocument();
+        expect(screen.getAllByTestId('scatter-plot')).toHaveLength(2);
+    });
+
+    it('shows the execute button', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        expect(screen.getByTestId('plan-button')).toBeInTheDocument();
+    });
+
+    it('shows history view when History tab is clicked', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        fireEvent.click(screen.getByTitle('View alignment history'));
+        expect(screen.queryByText('Z (vertical)')).not.toBeInTheDocument();
+    });
+
+    it('returns to form view when Run tab is clicked', () => {
+        renderWithQueryClient(<ExperimentXASAlignment />);
+        fireEvent.click(screen.getByTitle('View alignment history'));
+        fireEvent.click(screen.getByTitle('Run new alignment'));
+        expect(screen.getByText('Z (vertical)')).toBeInTheDocument();
     });
 });

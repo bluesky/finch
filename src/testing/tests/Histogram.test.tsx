@@ -133,18 +133,37 @@ describe('Histogram', () => {
 
     it('renders without crashing in demo mode', () => {
         const { container } = render(
-            <Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" demo />,
+            <Histogram
+                arrayPV="test:array"
+                acquirePV="test:acquire"
+                exposurePV="test:exposure"
+                demo
+            />,
         );
         expect(container.firstChild).toBeInTheDocument();
     });
 
     it('renders the plot in demo mode', () => {
-        render(<Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" demo />);
+        render(
+            <Histogram
+                arrayPV="test:array"
+                acquirePV="test:acquire"
+                exposurePV="test:exposure"
+                demo
+            />,
+        );
         expect(screen.getByTestId('plotly-plot')).toBeInTheDocument();
     });
 
     it('does not render device controller by default', () => {
-        render(<Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" demo />);
+        render(
+            <Histogram
+                arrayPV="test:array"
+                acquirePV="test:acquire"
+                exposurePV="test:exposure"
+                demo
+            />,
+        );
         // HistogramDeviceController renders the "Start Acquire" button — should not be present
         expect(screen.queryByText('Start Acquire')).not.toBeInTheDocument();
     });
@@ -163,7 +182,14 @@ describe('Histogram', () => {
     });
 
     it('passes empty device list to socket hook in demo mode', () => {
-        render(<Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" demo />);
+        render(
+            <Histogram
+                arrayPV="test:array"
+                acquirePV="test:acquire"
+                exposurePV="test:exposure"
+                demo
+            />,
+        );
         expect(useOphydPVSocket).toHaveBeenCalledWith([]);
     });
 
@@ -172,8 +198,14 @@ describe('Histogram', () => {
             devices: { 'test:array': { value: null } },
             handleSetValueRequest: mockHandleSetValueRequest,
         } as unknown as ReturnType<typeof useOphydPVSocket>);
-        render(<Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />);
-        expect(useOphydPVSocket).toHaveBeenCalledWith(['test:array', 'test:acquire', 'test:exposure']);
+        render(
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />,
+        );
+        expect(useOphydPVSocket).toHaveBeenCalledWith([
+            'test:array',
+            'test:acquire',
+            'test:exposure',
+        ]);
     });
 
     it('shows placeholder when PV has no array data', () => {
@@ -186,8 +218,43 @@ describe('Histogram', () => {
             },
             handleSetValueRequest: mockHandleSetValueRequest,
         } as unknown as ReturnType<typeof useOphydPVSocket>);
-        render(<Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />);
+        render(
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />,
+        );
         expect(screen.getByText(/Waiting for histogram array data/i)).toBeInTheDocument();
+    });
+
+    it('shows the disconnected warning instead of the plot when devices are not connected', () => {
+        // Default beforeEach mock returns no devices, so none report connected.
+        render(
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />,
+        );
+        expect(
+            screen.getByText('Error: Cannot display Histogram - Devices not connected'),
+        ).toBeInTheDocument();
+        // The plot should not render while devices are disconnected.
+        expect(screen.queryByTestId('plotly-plot')).not.toBeInTheDocument();
+    });
+
+    it('lists the disconnected PV names in the warning', () => {
+        vi.mocked(useOphydPVSocket).mockReturnValue({
+            // array is connected; acquire and exposure are not.
+            devices: {
+                'test:array': { connected: true, value: null },
+                'test:acquire': { connected: false },
+            },
+            handleSetValueRequest: mockHandleSetValueRequest,
+        } as unknown as ReturnType<typeof useOphydPVSocket>);
+        render(
+            <Histogram arrayPV="test:array" acquirePV="test:acquire" exposurePV="test:exposure" />,
+        );
+        expect(
+            screen.getByText('Error: Cannot display Histogram - Devices not connected'),
+        ).toBeInTheDocument();
+        // Only the unconnected PVs are listed; the connected one is not.
+        expect(screen.getByText('test:acquire')).toBeInTheDocument();
+        expect(screen.getByText('test:exposure')).toBeInTheDocument();
+        expect(screen.queryByText('test:array')).not.toBeInTheDocument();
     });
 
     it('updates demo data after 1 second', async () => {

@@ -37,14 +37,46 @@ vi.mock('../../components/Tiled/hooks/useTiledWriterScatterPlot', () => ({
     useTiledWriterScatterPlot: vi.fn(),
 }));
 
+vi.mock('../../components/Tiled/hooks/useTiledWriterMultiScatterPlot', () => ({
+    useTiledWriterMultiScatterPlot: vi.fn(),
+}));
+
+// Capture the props TiledWriterMultiScatterPlot forwards to its child.
+vi.mock('../../components/Tiled/TiledMultiScatterPlot', () => ({
+    default: ({
+        paths,
+        popupMessage,
+        shortPathNames,
+        traceNames,
+        title,
+    }: {
+        paths?: (string | null)[];
+        popupMessage?: string;
+        shortPathNames?: boolean;
+        traceNames?: string[];
+        title?: string;
+    }) => (
+        <div
+            data-testid="multi-scatter-plot"
+            data-paths={JSON.stringify(paths ?? [])}
+            data-popup={popupMessage ?? ''}
+            data-short-path-names={String(shortPathNames)}
+            data-trace-names={JSON.stringify(traceNames ?? [])}
+            data-title={title ?? ''}
+        />
+    ),
+}));
+
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
 import { useQuery } from '@tanstack/react-query';
 import { useTiledWriterDetImageHeatmap } from '../../components/Tiled/hooks/useTiledWriterDetImageHeatmap';
 import { useTiledWriterScatterPlot } from '../../components/Tiled/hooks/useTiledWriterScatterPlot';
+import { useTiledWriterMultiScatterPlot } from '../../components/Tiled/hooks/useTiledWriterMultiScatterPlot';
 import TiledScatterPlot from '../../components/Tiled/TiledScatterPlot';
 import TiledWriterDetImageHeatmap from '../../components/Tiled/TiledWriterDetImageHeatmap';
 import TiledWriterScatterPlot from '../../components/Tiled/TiledWriterScatterPlot';
+import TiledWriterMultiScatterPlot from '../../components/Tiled/TiledWriterMultiScatterPlot';
 
 const trace = { x: 'motor', y: 'detector' };
 
@@ -348,5 +380,99 @@ describe('TiledWriterScatterPlot', () => {
         expect(
             screen.queryByText('No data path provided - waiting for data'),
         ).not.toBeInTheDocument();
+    });
+});
+
+// ── TiledWriterMultiScatterPlot ───────────────────────────────────────────────
+
+describe('TiledWriterMultiScatterPlot', () => {
+    beforeEach(() => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [],
+            isLoading: false,
+            errors: [],
+        });
+    });
+
+    it('renders the multi scatter plot', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toBeInTheDocument();
+    });
+
+    it('forwards resolved tiledPaths to the plot', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: ['/run-1/primary', null],
+            isLoading: false,
+            errors: [],
+        });
+        render(
+            <TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1', 'run-2']} />,
+        );
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-paths',
+            JSON.stringify(['/run-1/primary', null]),
+        );
+    });
+
+    it('shows no popup message when there are no errors', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-popup', '');
+    });
+
+    it('passes an error popup message when the hook reports errors', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [null],
+            isLoading: false,
+            errors: ['run not found'],
+        });
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-popup',
+            'Error fetching data from Tiled server, check the console for more details',
+        );
+        errorSpy.mockRestore();
+    });
+
+    it('suppresses the error popup while still loading', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [null],
+            isLoading: true,
+            errors: ['run not found'],
+        });
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-popup', '');
+    });
+
+    it('enables shortPathNames when no traceNames are provided', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-short-path-names',
+            'true',
+        );
+    });
+
+    it('disables shortPathNames and forwards explicit traceNames', () => {
+        render(
+            <TiledWriterMultiScatterPlot
+                tiledTrace={trace}
+                blueskyRunIds={['run-1']}
+                traceNames={['Scan A']}
+            />,
+        );
+        const plot = screen.getByTestId('multi-scatter-plot');
+        expect(plot).toHaveAttribute('data-short-path-names', 'false');
+        expect(plot).toHaveAttribute('data-trace-names', JSON.stringify(['Scan A']));
+    });
+
+    it('forwards the title to the plot', () => {
+        render(
+            <TiledWriterMultiScatterPlot
+                tiledTrace={trace}
+                blueskyRunIds={['run-1']}
+                title="My Scans"
+            />,
+        );
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-title', 'My Scans');
     });
 });
