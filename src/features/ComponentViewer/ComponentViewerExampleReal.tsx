@@ -11,6 +11,7 @@ import Hexapod from '@/components/Hexapod/Hexapod';
 import BeamEnergyOphyd from '@/components/BeamEnergy/BeamEnergyOphyd';
 import Histogram from '@/components/Histogram/Histogram';
 import Beamstop from '../Beamstop';
+import TiledLinePlotMaker from '@/features/TiledLinePlotMaker';
 export default function ComponentViewerExampleReal() {
     const testItems: TestItemCollection = {
         RealCam1: {
@@ -60,6 +61,11 @@ export default function ComponentViewerExampleReal() {
             name: 'Tiled Heatmap Selector',
             element: <TiledHeatmapSelector />,
             info: 'This component allows users to select from available heatmaps in a Tiled server and displays the selected heatmap. This test requires a Tiled server containing 2D+ array data.',
+        },
+        RealTiled2: {
+            name: 'Tiled Line Plot Maker',
+            element: <TiledLinePlotMaker />,
+            info: 'This component allows users to select from available 1D array data in a Tiled server and displays the selected data as a line plot. This test requires a Tiled server containing 1D array data. The Tiled data must be bluesky runs written from Tiled Writer',
         },
         RealQueue1: {
             name: 'Queue Server Dashboard Interface',

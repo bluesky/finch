@@ -3,6 +3,7 @@ import TiledWriterMultiScatterPlot from '@/components/Tiled/TiledWriterMultiScat
 import { TiledSearchConfig, TiledSearchResult, getSearchResults } from '@blueskyproject/tiled';
 import { Shuffle, Sliders, PaintBrush } from '@phosphor-icons/react';
 import { Tooltip } from 'react-tooltip';
+import { cn } from '@/lib/utils';
 import dayjs from 'dayjs';
 import '@/components/style.css';
 
@@ -28,8 +29,15 @@ function itemLabel(meta: Record<string, unknown> | undefined, id: string): strin
     const parts = [datePart, timePart, sample, userMeta, id].filter(Boolean);
     return parts.join('  ');
 }
-
-export default function TiledLinePlotMaker() {
+export type TiledLinePlotMakerProps = {
+    /** Base URL of the Tiled server to search for data to plot. */
+    tiledBaseUrl?: string;
+    /** Optional initial path used in the Tiled server search. */
+    initialPath?: string;
+    /** Optional class name for the component. */
+    className?: string;
+};
+export default function TiledLinePlotMaker({ tiledBaseUrl, initialPath, className }: TiledLinePlotMakerProps) {
     const [blueskyIds, setBlueskyIds] = useState<string[]>([]);
     const [traceNames, setTraceNames] = useState<Record<string, string>>({});
     const [plotTitle, setPlotTitle] = useState('');
@@ -54,6 +62,7 @@ export default function TiledLinePlotMaker() {
                 filters: {
                     specs: { include: ['BlueskyRun'], exclude: [] },
                 },
+                initialPath,
             };
             try {
                 const results: TiledSearchResult | null = await getSearchResults(searchConfig);
@@ -65,7 +74,7 @@ export default function TiledLinePlotMaker() {
         fetchData();
     }, []);
     return (
-        <article className="h-full flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md">
+        <article className={cn("h-[52rem] flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md", className)}>
             <div className="flex flex-col h-full overflow-auto border-r-2 border-slate-300 pr-8">
                 {/* Plot Settings Inputs */}
                 <section className="mb-8 max-w-72">
