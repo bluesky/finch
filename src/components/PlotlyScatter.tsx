@@ -24,6 +24,8 @@ export type PlotlyScatterProps = {
     layout?: Partial<Layout>;
     /** Additional CSS classes applied to the root container div. */
     className?: string;
+    /** Plotly configuration options. */
+    config?: Partial<PlotParams['config']>;
 };
 
 const sampleData: PlotParams['data'] = [
@@ -110,7 +112,7 @@ const PlotlyScatter = React.memo(function PlotlyScatter({
                     },
                     ...layout,
                 }}
-                config={{ responsive: true }}
+                config={{ responsive: true, ...props.config }}
             />
         </div>
     );
