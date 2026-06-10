@@ -280,21 +280,18 @@ export type TiledTableData = TiledTableRow[];
 /** Full dataset returned by a Tiled structured array fetch. */
 export type TiledStructuredArrayData = TiledStructuredArrayRow[];
 
- 
 export const isArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<ArrayStructure> => {
     return item.attributes.structure_family === 'array';
 };
 
- 
 export const isTableStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<TableStructure> => {
     return item.attributes.structure_family === 'table';
 };
 
- 
 export const isContainerStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<ContainerStructure> => {
@@ -304,21 +301,18 @@ export const isContainerStructure = (
     );
 };
 
- 
 export const isAwkwardStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<AwkwardStructure> => {
     return item.attributes.structure_family === 'awkward';
 };
 
- 
 export const isSparseStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<SparseStructure> => {
     return item.attributes.structure_family === 'sparse';
 };
 
- 
 export const isStructuredArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<StructuredArrayStructure> => {
@@ -328,7 +322,6 @@ export const isStructuredArrayStructure = (
     );
 };
 
- 
 export const isXArrayStructure = (
     item: TiledSearchItem<any>,
 ): item is TiledSearchItem<XArrayStructure> => {
@@ -357,7 +350,7 @@ export type TiledAuthProvider = {
     };
     /** Message shown to the user after successful authentication. */
     confirmation_message: string;
-     
+
     [key: string]: any;
 };
 
@@ -402,7 +395,6 @@ export type TiledInfoResponse = {
     };
 };
 
- 
 export function isValidTiledInfoResponse(data: any): data is TiledInfoResponse {
     return (
         data &&

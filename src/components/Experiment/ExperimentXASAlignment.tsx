@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
-import { useQueueQuery } from "@/api/qServer/hooks";
-import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
-import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
-import ExperimentHistory from "./ExperimentHistory";
-import { useSearchResultsQuery } from "@/api/tiled/hooks";
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
+import { useQueueQuery } from '@/api/qServer/hooks';
+import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
+import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
+import ExperimentHistory from './ExperimentHistory';
+import { useSearchResultsQuery } from '@/api/tiled/hooks';
 
-import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from "@phosphor-icons/react";
-import { PostItemAddResponse } from "@/api/qServer/types";
-import { cn } from "@/lib/utils";
-import { TiledSearchItem, TiledStructures } from "../Tiled/types/tempTypes";
+import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
+import { PostItemAddResponse } from '@/api/qServer/types';
+import { cn } from '@/lib/utils';
+import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 
 type ExperimentXASAlignmentProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -25,12 +25,15 @@ type ExperimentXASAlignmentProps = {
 
 const getLs = (key: string, fallback: number) => {
     const raw = localStorage.getItem(key);
-    if (raw === null || raw === "") return fallback;
+    if (raw === null || raw === '') return fallback;
     const n = Number(raw);
     return Number.isFinite(n) ? n : fallback;
 };
 
-function readStartField(item: TiledSearchItem<TiledStructures> | undefined, key: string): string | undefined {
+function readStartField(
+    item: TiledSearchItem<TiledStructures> | undefined,
+    key: string,
+): string | undefined {
     const start = item?.attributes?.metadata?.start as Record<string, unknown> | undefined;
     const value = start?.[key];
     return typeof value === 'string' ? value : undefined;
@@ -42,30 +45,32 @@ export default function ExperimentXASAlignment({
     onError,
     tiledBaseUrl,
 }: ExperimentXASAlignmentProps) {
-    const [user, setUser] = useState<string>(localStorage.getItem("xas_alignment_user") ?? "");
-    const [sample, setSample] = useState<string>(localStorage.getItem("xas_alignment_sample") ?? "");
-    const [startZ, setStartZ] = useState<number | "">(getLs("xas_alignment_start_z", -1));
-    const [stopZ, setStopZ] = useState<number | "">(getLs("xas_alignment_stop_z", -5));
-    const [numZ, setNumZ] = useState<number | "">(getLs("xas_alignment_num_z", 21));
-    const [startY, setStartY] = useState<number | "">(getLs("xas_alignment_start_y", -10));
-    const [stopY, setStopY] = useState<number | "">(getLs("xas_alignment_stop_y", -12));
-    const [numY, setNumY] = useState<number | "">(getLs("xas_alignment_num_y", 21));
-    const [executedItemUid, setExecutedItemUid] = useState<string>("");
-    const [currentSequenceUid, setCurrentSequenceUid] = useState<string>("");
+    const [user, setUser] = useState<string>(localStorage.getItem('xas_alignment_user') ?? '');
+    const [sample, setSample] = useState<string>(
+        localStorage.getItem('xas_alignment_sample') ?? '',
+    );
+    const [startZ, setStartZ] = useState<number | ''>(getLs('xas_alignment_start_z', -1));
+    const [stopZ, setStopZ] = useState<number | ''>(getLs('xas_alignment_stop_z', -5));
+    const [numZ, setNumZ] = useState<number | ''>(getLs('xas_alignment_num_z', 21));
+    const [startY, setStartY] = useState<number | ''>(getLs('xas_alignment_start_y', -10));
+    const [stopY, setStopY] = useState<number | ''>(getLs('xas_alignment_stop_y', -12));
+    const [numY, setNumY] = useState<number | ''>(getLs('xas_alignment_num_y', 21));
+    const [executedItemUid, setExecutedItemUid] = useState<string>('');
+    const [currentSequenceUid, setCurrentSequenceUid] = useState<string>('');
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
 
     // Keep the queue query around so the Execute button can detect a busy queue.
     useQueueQuery({ refetchInterval: 1000 });
 
     useEffect(() => {
-        localStorage.setItem("xas_alignment_user", user);
-        localStorage.setItem("xas_alignment_sample", sample);
-        localStorage.setItem("xas_alignment_start_z", startZ.toString());
-        localStorage.setItem("xas_alignment_stop_z", stopZ.toString());
-        localStorage.setItem("xas_alignment_num_z", numZ.toString());
-        localStorage.setItem("xas_alignment_start_y", startY.toString());
-        localStorage.setItem("xas_alignment_stop_y", stopY.toString());
-        localStorage.setItem("xas_alignment_num_y", numY.toString());
+        localStorage.setItem('xas_alignment_user', user);
+        localStorage.setItem('xas_alignment_sample', sample);
+        localStorage.setItem('xas_alignment_start_z', startZ.toString());
+        localStorage.setItem('xas_alignment_stop_z', stopZ.toString());
+        localStorage.setItem('xas_alignment_num_z', numZ.toString());
+        localStorage.setItem('xas_alignment_start_y', startY.toString());
+        localStorage.setItem('xas_alignment_stop_y', stopY.toString());
+        localStorage.setItem('xas_alignment_num_y', numY.toString());
     }, [user, sample, startZ, stopZ, numZ, startY, stopY, numY]);
 
     const getBlueskyRunList = useGetBlueskyRunList();
@@ -80,7 +85,7 @@ export default function ExperimentXASAlignment({
         enabled: !!executedItemUid,
         refetchInterval: (query) => {
             const data = query.state.data;
-            return (data && Array.isArray(data) && data.length > 0) ? false : 1000;
+            return data && Array.isArray(data) && data.length > 0 ? false : 1000;
         },
         refetchIntervalInBackground: true,
         retry: (failureCount) => failureCount < 30,
@@ -88,7 +93,7 @@ export default function ExperimentXASAlignment({
         staleTime: 500,
     });
 
-    const firstUserRunId = runList[0] ?? "";
+    const firstUserRunId = runList[0] ?? '';
 
     // Look up the first user-initiated run's metadata to extract sequence_uid.
     const { data: firstRunMeta } = useSearchResultsQuery(
@@ -105,9 +110,9 @@ export default function ExperimentXASAlignment({
                 const seq = readStartField(query.state.data?.data[0], 'alignment_sequence_uid');
                 return seq ? false : 2000;
             },
-        }
+        },
     );
-    const userSequenceUid = readStartField(firstRunMeta?.data[0], 'alignment_sequence_uid') ?? "";
+    const userSequenceUid = readStartField(firstRunMeta?.data[0], 'alignment_sequence_uid') ?? '';
 
     // ── External-start detection ──────────────────────────────────────────────
     // Poll Tiled for the most recent xas_alignment run started anywhere (e.g.
@@ -121,9 +126,10 @@ export default function ExperimentXASAlignment({
                 contains: { key: 'start.plan_name', value: 'xas_alignment' },
             },
         },
-        { refetchInterval: 5000 }
+        { refetchInterval: 5000 },
     );
-    const externalSequenceUid = readStartField(latestAlignmentResult?.data[0], 'alignment_sequence_uid') ?? "";
+    const externalSequenceUid =
+        readStartField(latestAlignmentResult?.data[0], 'alignment_sequence_uid') ?? '';
 
     // ── Funnel all three discovery paths into currentSequenceUid ──────────────
     useEffect(() => {
@@ -150,17 +156,20 @@ export default function ExperimentXASAlignment({
             enabled: !!currentSequenceUid,
             refetchInterval: (query) => {
                 const items = query.state.data?.data ?? [];
-                const hasZ = items.some(r => readStartField(r, 'alignment_role') === 'z_scan');
-                const hasY = items.some(r => readStartField(r, 'alignment_role') === 'y_scan');
-                return (hasZ && hasY) ? false : 2000;
+                const hasZ = items.some((r) => readStartField(r, 'alignment_role') === 'z_scan');
+                const hasY = items.some((r) => readStartField(r, 'alignment_role') === 'y_scan');
+                return hasZ && hasY ? false : 2000;
             },
-        }
+        },
     );
 
-    const zRunId = siblings?.data.find(r => readStartField(r, 'alignment_role') === 'z_scan')?.id ?? "";
-    const yRunId = siblings?.data.find(r => readStartField(r, 'alignment_role') === 'y_scan')?.id ?? "";
+    const zRunId =
+        siblings?.data.find((r) => readStartField(r, 'alignment_role') === 'z_scan')?.id ?? '';
+    const yRunId =
+        siblings?.data.find((r) => readStartField(r, 'alignment_role') === 'y_scan')?.id ?? '';
 
-    const makeNumberHandler = (setter: React.Dispatch<React.SetStateAction<number | "">>) =>
+    const makeNumberHandler =
+        (setter: React.Dispatch<React.SetStateAction<number | ''>>) =>
         (e: React.ChangeEvent<HTMLInputElement>) => {
             const v = e.target.value;
             setter(v === '' ? '' : Number(v));
@@ -169,23 +178,23 @@ export default function ExperimentXASAlignment({
     const handleSuccess = (response: PostItemAddResponse) => {
         if (response.item && 'item_uid' in response.item) {
             setExecutedItemUid(response.item.item_uid);
-            setCurrentSequenceUid("");
+            setCurrentSequenceUid('');
         }
         onSuccess?.(response);
     };
 
     const handleError = (error: string) => {
-        console.error("XAS alignment execution failed:", error);
+        console.error('XAS alignment execution failed:', error);
         onError?.(error);
     };
 
     const zTrace = {
-        x: import.meta.env.VITE_ALIGNMENT_Z_X ?? "hexapod_motor_Tz_readback",
-        y: import.meta.env.VITE_ALIGNMENT_Z_Y ?? "amptek_fluo_roi_sum",
+        x: import.meta.env.VITE_ALIGNMENT_Z_X ?? 'hexapod_motor_Tz_readback',
+        y: import.meta.env.VITE_ALIGNMENT_Z_Y ?? 'amptek_fluo_roi_sum',
     };
     const yTrace = {
-        x: import.meta.env.VITE_ALIGNMENT_Y_X ?? "hexapod_motor_Ty_readback",
-        y: import.meta.env.VITE_ALIGNMENT_Y_Y ?? "amptek_fluo_roi_sum",
+        x: import.meta.env.VITE_ALIGNMENT_Y_X ?? 'hexapod_motor_Ty_readback',
+        y: import.meta.env.VITE_ALIGNMENT_Y_Y ?? 'amptek_fluo_roi_sum',
     };
 
     return (
@@ -200,8 +209,8 @@ export default function ExperimentXASAlignment({
                                 <button
                                     onClick={() => {
                                         setViewMode('form');
-                                        setCurrentSequenceUid("");
-                                        setExecutedItemUid("");
+                                        setCurrentSequenceUid('');
+                                        setExecutedItemUid('');
                                     }}
                                     className={`flex flex-col items-center gap-1 p-2 transition-colors ${
                                         viewMode === 'form'
@@ -212,7 +221,9 @@ export default function ExperimentXASAlignment({
                                 >
                                     <PersonSimpleRun size={24} weight="regular" />
                                     <span className="text-xs font-light">Run</span>
-                                    {viewMode === 'form' && <div className="h-0.5 w-full bg-sky-800" />}
+                                    {viewMode === 'form' && (
+                                        <div className="h-0.5 w-full bg-sky-800" />
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setViewMode('history')}
@@ -225,7 +236,9 @@ export default function ExperimentXASAlignment({
                                 >
                                     <ClockCounterClockwise size={24} weight="regular" />
                                     <span className="text-xs font-light">History</span>
-                                    {viewMode === 'history' && <div className="h-0.5 w-full bg-sky-800" />}
+                                    {viewMode === 'history' && (
+                                        <div className="h-0.5 w-full bg-sky-800" />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -243,7 +256,9 @@ export default function ExperimentXASAlignment({
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Sample:</label>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Sample:
+                                    </label>
                                     <input
                                         type="text"
                                         value={sample}
@@ -253,10 +268,14 @@ export default function ExperimentXASAlignment({
                                     />
                                 </div>
                                 <fieldset className="border border-gray-300 rounded-md p-3 space-y-2">
-                                    <legend className="text-sm font-semibold px-1">Z (vertical)</legend>
+                                    <legend className="text-sm font-semibold px-1">
+                                        Z (vertical)
+                                    </legend>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Start</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Start
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={startZ}
@@ -268,7 +287,9 @@ export default function ExperimentXASAlignment({
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Stop</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Stop
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={stopZ}
@@ -280,7 +301,9 @@ export default function ExperimentXASAlignment({
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Num</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Num
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={numZ}
@@ -294,10 +317,14 @@ export default function ExperimentXASAlignment({
                                     </div>
                                 </fieldset>
                                 <fieldset className="border border-gray-300 rounded-md p-3 space-y-2">
-                                    <legend className="text-sm font-semibold px-1">Y (horizontal)</legend>
+                                    <legend className="text-sm font-semibold px-1">
+                                        Y (horizontal)
+                                    </legend>
                                     <div className="grid grid-cols-3 gap-2">
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Start</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Start
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={startY}
@@ -309,7 +336,9 @@ export default function ExperimentXASAlignment({
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Stop</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Stop
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={stopY}
@@ -321,7 +350,9 @@ export default function ExperimentXASAlignment({
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium mb-1">Num</label>
+                                            <label className="block text-xs font-medium mb-1">
+                                                Num
+                                            </label>
                                             <input
                                                 type="number"
                                                 value={numY}
@@ -344,7 +375,7 @@ export default function ExperimentXASAlignment({
                                             start_Y: startY,
                                             stop_Y: stopY,
                                             num_Y: numY,
-                                            md: { exact_plan_name: "xas_alignment", user, sample },
+                                            md: { exact_plan_name: 'xas_alignment', user, sample },
                                         }}
                                         onSuccess={handleSuccess}
                                         onError={handleError}
@@ -377,9 +408,14 @@ export default function ExperimentXASAlignment({
                             </button>
                         </span>
 
-                        <div className="flex flex-grow flex-row gap-4 h-fit justify-center" key={viewMode}>
+                        <div
+                            className="flex flex-grow flex-row gap-4 h-fit justify-center"
+                            key={viewMode}
+                        >
                             <div className="flex-1 flex flex-col">
-                                <h3 className="text-sm font-medium text-center text-slate-600 mb-1">Z scan</h3>
+                                <h3 className="text-sm font-medium text-center text-slate-600 mb-1">
+                                    Z scan
+                                </h3>
                                 <TiledWriterScatterPlot
                                     key={zRunId || 'z-empty'}
                                     blueskyRunId={zRunId}
@@ -391,7 +427,9 @@ export default function ExperimentXASAlignment({
                                 />
                             </div>
                             <div className="flex-1 flex flex-col">
-                                <h3 className="text-sm font-medium text-center text-slate-600 mb-1">Y scan</h3>
+                                <h3 className="text-sm font-medium text-center text-slate-600 mb-1">
+                                    Y scan
+                                </h3>
                                 <TiledWriterScatterPlot
                                     key={yRunId || 'y-empty'}
                                     blueskyRunId={yRunId}

@@ -1,14 +1,17 @@
-import { useState, useEffect } from "react";
-import TiledWriterMultiScatterPlot from "@/components/Tiled/TiledWriterMultiScatterPlot";
-import { TiledSearchConfig, TiledSearchResult, getSearchResults } from "@blueskyproject/tiled";
-import { Shuffle, Sliders, PaintBrush } from "@phosphor-icons/react";
-import { Tooltip } from "react-tooltip";
-import dayjs from "dayjs";
+import { useState, useEffect } from 'react';
+import TiledWriterMultiScatterPlot from '@/components/Tiled/TiledWriterMultiScatterPlot';
+import { TiledSearchConfig, TiledSearchResult, getSearchResults } from '@blueskyproject/tiled';
+import { Shuffle, Sliders, PaintBrush } from '@phosphor-icons/react';
+import { Tooltip } from 'react-tooltip';
+import dayjs from 'dayjs';
 import '@/components/style.css';
 
 function Row({ label, value }: { label: string; value: string | number }) {
     return (
-        <p><span className="text-slate-400">{label}: </span><span className="text-white">{value}</span></p>
+        <p>
+            <span className="text-slate-400">{label}: </span>
+            <span className="text-white">{value}</span>
+        </p>
     );
 }
 
@@ -18,7 +21,10 @@ function itemLabel(meta: Record<string, unknown> | undefined, id: string): strin
     const datePart = time ? dayjs.unix(time).format('MM/DD') : null;
     const timePart = time ? dayjs.unix(time).format('HH:mm') : null;
     const sample = start?.sample as string | undefined;
-    const userMeta = (start?.sample_name ?? start?.user ?? start?.operator ?? start?.proposal_id) as string | undefined;
+    const userMeta = (start?.sample_name ??
+        start?.user ??
+        start?.operator ??
+        start?.proposal_id) as string | undefined;
     const parts = [datePart, timePart, sample, userMeta, id].filter(Boolean);
     return parts.join('  ');
 }
@@ -27,15 +33,17 @@ export default function TiledLinePlotMaker() {
     const [blueskyIds, setBlueskyIds] = useState<string[]>([]);
     const [traceNames, setTraceNames] = useState<Record<string, string>>({});
     const [plotTitle, setPlotTitle] = useState('');
-    const [xAxis, setXAxis] = useState(import.meta.env.VITE_XAS_SCATTER_X ?? "mono_energy_energy_eV");
-    const [yAxis, setYAxis] = useState(import.meta.env.VITE_XAS_SCATTER_Y ?? "amptek_fluo_roi_sum");
+    const [xAxis, setXAxis] = useState(
+        import.meta.env.VITE_XAS_SCATTER_X ?? 'mono_energy_energy_eV',
+    );
+    const [yAxis, setYAxis] = useState(import.meta.env.VITE_XAS_SCATTER_Y ?? 'amptek_fluo_roi_sum');
     const handleIDSelect = (id: string) => {
         setBlueskyIds((prev) => [...prev, id]);
     };
     const handleIDUnselect = (id: string) => {
         setBlueskyIds((prev) => prev.filter((existingId) => existingId !== id));
     };
-    const [ searchResults, setSearchResults ] = useState<TiledSearchResult | null>(null);
+    const [searchResults, setSearchResults] = useState<TiledSearchResult | null>(null);
     useEffect(() => {
         const fetchData = async () => {
             //eventually uncomment this and get the key contains working once that's updated in tiled api
@@ -44,23 +52,21 @@ export default function TiledLinePlotMaker() {
                     sort: '-',
                 },
                 filters: {
-                    specs: {include: ['BlueskyRun'], exclude: []},
-                }
+                    specs: { include: ['BlueskyRun'], exclude: [] },
+                },
             };
             try {
-                const results:TiledSearchResult | null = await getSearchResults(searchConfig);
+                const results: TiledSearchResult | null = await getSearchResults(searchConfig);
                 setSearchResults(results);
             } catch (error) {
-                console.error("Error fetching ExperimentHistory data:", error);
+                console.error('Error fetching ExperimentHistory data:', error);
             }
         };
         fetchData();
     }, []);
     return (
         <article className="h-full flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md">
-
             <div className="flex flex-col h-full overflow-auto border-r-2 border-slate-300 pr-8">
-
                 {/* Plot Settings Inputs */}
                 <section className="mb-8 max-w-72">
                     <span className="flex space-x-4 items-center mb-4">
@@ -102,10 +108,14 @@ export default function TiledLinePlotMaker() {
                                 data-tooltip-content="The column name from the Tiled tabular data to plot on the Y axis. An exact string match is required."
                             />
                         </label>
-                        <Tooltip id="axis-input-tooltip" place="right" className="max-w-56 text-xs" />
+                        <Tooltip
+                            id="axis-input-tooltip"
+                            place="right"
+                            className="max-w-56 text-xs"
+                        />
                     </div>
                 </section>
-        
+
                 {/* Data Selection Table */}
                 <section>
                     <span className="flex space-x-4 items-center mb-4">
@@ -120,35 +130,53 @@ export default function TiledLinePlotMaker() {
                         <div className="flex flex-grow min-h-0 px-2">
                             {/* All Data For selection */}
                             <ul className="w-72 h-full overflow-y-auto rounded-scrollbar border-r-2 borer-slate-300 pr-2">
-                                {searchResults && searchResults.data.map((item) => {
-                                    const meta = item?.attributes?.metadata;
-                                    const startTime = meta?.start?.time;
-                                    const endTime = meta?.stop?.time;
-                                    const tooltipContent = JSON.stringify({
-                                        id: item.id,
-                                        scanId: meta?.start?.scan_id,
-                                        sample: (meta?.start as { sample?: string } | undefined)?.sample,
-                                        plan: meta?.start?.plan_name,
-                                        detectors: meta?.start?.detectors?.join(', '),
-                                        numPoints: meta?.start?.num_points,
-                                        start: startTime ? dayjs.unix(startTime).format('MM/DD/YY h:mm A') : null,
-                                        duration: startTime && endTime ? dayjs.unix(endTime).diff(dayjs.unix(startTime), 'second') : null,
-                                        status: meta?.stop?.exit_status ?? 'running',
-                                    });
-                                    const isSelected = blueskyIds.includes(item.id);
-                                    return (
-                                        <li
-                                            className={`flex items-center gap-1 px-1 text-sm w-full min-w-0 pb-1 ${isSelected ? 'text-slate-300 hover:text-slate-800' : 'text-slate-800 hover:text-slate-500'} hover:cursor-pointer text-sm`}
-                                            key={item.id}
-                                            data-tooltip-id="run-meta-tooltip"
-                                            data-tooltip-content={tooltipContent}
-                                            onClick={isSelected ? () => handleIDUnselect(item.id) : () => handleIDSelect(item.id)}
-                                        >
-                                            <p className="truncate flex-1 min-w-0">{itemLabel(meta as Record<string, unknown>, item.id)}</p>
-                                            <Shuffle size={14} className="shrink-0" />
-                                        </li>
-                                    )
-                                })}
+                                {searchResults &&
+                                    searchResults.data.map((item) => {
+                                        const meta = item?.attributes?.metadata;
+                                        const startTime = meta?.start?.time;
+                                        const endTime = meta?.stop?.time;
+                                        const tooltipContent = JSON.stringify({
+                                            id: item.id,
+                                            scanId: meta?.start?.scan_id,
+                                            sample: (meta?.start as { sample?: string } | undefined)
+                                                ?.sample,
+                                            plan: meta?.start?.plan_name,
+                                            detectors: meta?.start?.detectors?.join(', '),
+                                            numPoints: meta?.start?.num_points,
+                                            start: startTime
+                                                ? dayjs.unix(startTime).format('MM/DD/YY h:mm A')
+                                                : null,
+                                            duration:
+                                                startTime && endTime
+                                                    ? dayjs
+                                                          .unix(endTime)
+                                                          .diff(dayjs.unix(startTime), 'second')
+                                                    : null,
+                                            status: meta?.stop?.exit_status ?? 'running',
+                                        });
+                                        const isSelected = blueskyIds.includes(item.id);
+                                        return (
+                                            <li
+                                                className={`flex items-center gap-1 px-1 text-sm w-full min-w-0 pb-1 ${isSelected ? 'text-slate-300 hover:text-slate-800' : 'text-slate-800 hover:text-slate-500'} hover:cursor-pointer text-sm`}
+                                                key={item.id}
+                                                data-tooltip-id="run-meta-tooltip"
+                                                data-tooltip-content={tooltipContent}
+                                                onClick={
+                                                    isSelected
+                                                        ? () => handleIDUnselect(item.id)
+                                                        : () => handleIDSelect(item.id)
+                                                }
+                                            >
+                                                <p className="truncate flex-1 min-w-0">
+                                                    {itemLabel(
+                                                        meta as Record<string, unknown>,
+                                                        item.id,
+                                                    )}
+                                                </p>
+                                                <Shuffle size={14} className="shrink-0" />
+                                            </li>
+                                        );
+                                    })}
                             </ul>
                             <Tooltip
                                 id="run-meta-tooltip"
@@ -158,15 +186,25 @@ export default function TiledLinePlotMaker() {
                                     const d = JSON.parse(content);
                                     return (
                                         <div className="text-xs space-y-1 max-w-56">
-                                            <p className="font-semibold text-white truncate">{d.id}</p>
+                                            <p className="font-semibold text-white truncate">
+                                                {d.id}
+                                            </p>
                                             <hr className="border-slate-500" />
                                             {d.sample && <Row label="Sample" value={d.sample} />}
-                                            {d.scanId != null    && <Row label="Scan ID"    value={d.scanId} />}
-                                            {d.plan              && <Row label="Plan"       value={d.plan} />}
-                                            {d.detectors         && <Row label="Detectors"  value={d.detectors} />}
-                                            {d.numPoints != null && <Row label="Points"     value={d.numPoints} />}
-                                            {d.start             && <Row label="Start"      value={d.start} />}
-                                            {d.duration != null  && <Row label="Duration"   value={`${d.duration} s`} />}
+                                            {d.scanId != null && (
+                                                <Row label="Scan ID" value={d.scanId} />
+                                            )}
+                                            {d.plan && <Row label="Plan" value={d.plan} />}
+                                            {d.detectors && (
+                                                <Row label="Detectors" value={d.detectors} />
+                                            )}
+                                            {d.numPoints != null && (
+                                                <Row label="Points" value={d.numPoints} />
+                                            )}
+                                            {d.start && <Row label="Start" value={d.start} />}
+                                            {d.duration != null && (
+                                                <Row label="Duration" value={`${d.duration} s`} />
+                                            )}
                                             <Row label="Status" value={d.status} />
                                         </div>
                                     );
@@ -175,7 +213,9 @@ export default function TiledLinePlotMaker() {
                             {/* Currently Selected items */}
                             <ul className="w-72 h-full overflow-y-auto rounded-scrollbar text-slate-800 pl-2">
                                 {blueskyIds.length === 0 && (
-                                    <li className="p-2 text-sm text-sky-900 animate-pulse">Select a data set...</li>
+                                    <li className="p-2 text-sm text-sky-900 animate-pulse">
+                                        Select a data set...
+                                    </li>
                                 )}
                                 {blueskyIds.map((id) => {
                                     const item = searchResults?.data.find((r) => r.id === id);
@@ -184,31 +224,52 @@ export default function TiledLinePlotMaker() {
                                     const endTime = meta?.stop?.time;
                                     const tooltipContent = JSON.stringify({
                                         id,
-                                        sample: (meta?.start as { sample?: string } | undefined)?.sample,
+                                        sample: (meta?.start as { sample?: string } | undefined)
+                                            ?.sample,
                                         scanId: meta?.start?.scan_id,
                                         plan: meta?.start?.plan_name,
                                         detectors: meta?.start?.detectors?.join(', '),
                                         numPoints: meta?.start?.num_points,
-                                        start: startTime ? dayjs.unix(startTime).format('MM/DD/YY h:mm A') : null,
-                                        duration: startTime && endTime ? dayjs.unix(endTime).diff(dayjs.unix(startTime), 'second') : null,
+                                        start: startTime
+                                            ? dayjs.unix(startTime).format('MM/DD/YY h:mm A')
+                                            : null,
+                                        duration:
+                                            startTime && endTime
+                                                ? dayjs
+                                                      .unix(endTime)
+                                                      .diff(dayjs.unix(startTime), 'second')
+                                                : null,
                                         status: meta?.stop?.exit_status ?? 'running',
                                     });
                                     return (
-                                        <li key={id} className="flex items-center gap-2 pb-1 px-1 text-slate-800">
+                                        <li
+                                            key={id}
+                                            className="flex items-center gap-2 pb-1 px-1 text-slate-800"
+                                        >
                                             <span
                                                 className="flex items-center gap-2 flex-1 min-w-0 hover:text-slate-500 hover:cursor-pointer"
                                                 data-tooltip-id="run-meta-tooltip-left"
                                                 data-tooltip-content={tooltipContent}
                                                 onClick={() => handleIDUnselect(id)}
                                             >
-                                                <Shuffle size={14} className="shrink-0 scale-x-[-1]" />
-                                                <p className="truncate flex-1 min-w-0 text-sm">{itemLabel(meta as Record<string, unknown>, id)}</p>
+                                                <Shuffle
+                                                    size={14}
+                                                    className="shrink-0 scale-x-[-1]"
+                                                />
+                                                <p className="truncate flex-1 min-w-0 text-sm">
+                                                    {itemLabel(meta as Record<string, unknown>, id)}
+                                                </p>
                                             </span>
                                             <input
                                                 type="text"
                                                 placeholder={id.slice(0, 4)}
                                                 value={traceNames[id] ?? ''}
-                                                onChange={(e) => setTraceNames((prev) => ({ ...prev, [id]: e.target.value }))}
+                                                onChange={(e) =>
+                                                    setTraceNames((prev) => ({
+                                                        ...prev,
+                                                        [id]: e.target.value,
+                                                    }))
+                                                }
                                                 className="w-24 shrink-0 border border-gray-300 rounded px-1 py-0.5 text-sm text-slate-800"
                                             />
                                         </li>
@@ -223,15 +284,25 @@ export default function TiledLinePlotMaker() {
                                     const d = JSON.parse(content);
                                     return (
                                         <div className="text-xs space-y-1 max-w-56">
-                                            <p className="font-semibold text-white truncate">{d.id}</p>
+                                            <p className="font-semibold text-white truncate">
+                                                {d.id}
+                                            </p>
                                             <hr className="border-slate-500" />
                                             {d.sample && <Row label="Sample" value={d.sample} />}
-                                            {d.scanId != null    && <Row label="Scan ID"   value={d.scanId} />}
-                                            {d.plan              && <Row label="Plan"      value={d.plan} />}
-                                            {d.detectors         && <Row label="Detectors" value={d.detectors} />}
-                                            {d.numPoints != null && <Row label="Points"    value={d.numPoints} />}
-                                            {d.start             && <Row label="Start"     value={d.start} />}
-                                            {d.duration != null  && <Row label="Duration"  value={`${d.duration} s`} />}
+                                            {d.scanId != null && (
+                                                <Row label="Scan ID" value={d.scanId} />
+                                            )}
+                                            {d.plan && <Row label="Plan" value={d.plan} />}
+                                            {d.detectors && (
+                                                <Row label="Detectors" value={d.detectors} />
+                                            )}
+                                            {d.numPoints != null && (
+                                                <Row label="Points" value={d.numPoints} />
+                                            )}
+                                            {d.start && <Row label="Start" value={d.start} />}
+                                            {d.duration != null && (
+                                                <Row label="Duration" value={`${d.duration} s`} />
+                                            )}
                                             <Row label="Status" value={d.status} />
                                         </div>
                                     );
@@ -252,5 +323,5 @@ export default function TiledLinePlotMaker() {
                 plotClassName="h-full"
             />
         </article>
-    )
+    );
 }

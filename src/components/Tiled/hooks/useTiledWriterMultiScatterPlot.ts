@@ -1,7 +1,7 @@
-import { useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
-import { getSearchResults, TiledSearchConfig } from "@blueskyproject/tiled";
-import { useTiledApiUrls } from "src/utils/apiUtils";
+import { useMemo } from 'react';
+import { useQueries } from '@tanstack/react-query';
+import { getSearchResults, TiledSearchConfig } from '@blueskyproject/tiled';
+import { useTiledApiUrls } from 'src/utils/apiUtils';
 
 async function searchById(config: TiledSearchConfig): Promise<unknown | null> {
     try {
@@ -27,7 +27,7 @@ type UseTiledWriterMultiScatterPlotOptions = {
 
 export const useTiledWriterMultiScatterPlot = (
     blueskyRunIds: string[],
-    options: UseTiledWriterMultiScatterPlotOptions = {}
+    options: UseTiledWriterMultiScatterPlotOptions = {},
 ): UseTiledWriterMultiScatterPlotReturn => {
     const { httpBaseUrl, apiKey: rawApiKey } = useTiledApiUrls();
     const baseUrl = options.tiledBaseUrl ?? httpBaseUrl;
@@ -42,12 +42,13 @@ export const useTiledWriterMultiScatterPlot = (
         })),
     });
 
-    const tiledPaths = useMemo(() =>
-        blueskyRunIds.map((id, i) => {
-            const primaryFound = primaryQueries[i]?.isSuccess && !!primaryQueries[i]?.data;
-            return primaryFound ? `${id}/primary/internal` : null;
-        }),
-        [blueskyRunIds, primaryQueries]
+    const tiledPaths = useMemo(
+        () =>
+            blueskyRunIds.map((id, i) => {
+                const primaryFound = primaryQueries[i]?.isSuccess && !!primaryQueries[i]?.data;
+                return primaryFound ? `${id}/primary/internal` : null;
+            }),
+        [blueskyRunIds, primaryQueries],
     );
 
     const isLoading = primaryQueries.some((q) => q.isLoading);

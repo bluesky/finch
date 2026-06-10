@@ -100,7 +100,7 @@ export default function TiledScatterPlot({
                 yAxisTitle={yName}
                 className={plotClassName}
                 title={'bluesky run: ' + blueskyRunId}
-                layout={{plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff'}}
+                layout={{ plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff' }}
             />
         </div>
     );

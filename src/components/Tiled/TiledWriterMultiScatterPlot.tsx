@@ -1,6 +1,6 @@
-import { TiledPlotlyTrace } from "./types/tiledPlotTypes"
-import { useTiledWriterMultiScatterPlot } from "./hooks/useTiledWriterMultiScatterPlot";
-import TiledMultiScatterPlot from "./TiledMultiScatterPlot";
+import { TiledPlotlyTrace } from './types/tiledPlotTypes';
+import { useTiledWriterMultiScatterPlot } from './hooks/useTiledWriterMultiScatterPlot';
+import TiledMultiScatterPlot from './TiledMultiScatterPlot';
 
 type TiledWriterMultiScatterPlotProps = {
     /** Trace descriptor mapping Plotly fields to table column names for x and y axes. */
@@ -19,7 +19,7 @@ type TiledWriterMultiScatterPlotProps = {
     title?: string;
     /** Explicit legend names for each trace, parallel to `blueskyRunIds`. */
     traceNames?: string[];
-}
+};
 
 export default function TiledWriterMultiScatterPlot({
     tiledTrace,
@@ -31,24 +31,31 @@ export default function TiledWriterMultiScatterPlot({
     title,
     traceNames,
 }: TiledWriterMultiScatterPlotProps) {
-    const { tiledPaths, isLoading, errors } = useTiledWriterMultiScatterPlot(blueskyRunIds, { tiledBaseUrl });
-    const errorMessage = isLoading ? undefined : errors.length > 0 ? `Error fetching data from Tiled server, check the console for more details` : undefined;
-    if (!isLoading && errors.length > 0) console.error('Errors in useTiledWriterMultiScatterPlot:', errors);
+    const { tiledPaths, isLoading, errors } = useTiledWriterMultiScatterPlot(blueskyRunIds, {
+        tiledBaseUrl,
+    });
+    const errorMessage = isLoading
+        ? undefined
+        : errors.length > 0
+          ? `Error fetching data from Tiled server, check the console for more details`
+          : undefined;
+    if (!isLoading && errors.length > 0)
+        console.error('Errors in useTiledWriterMultiScatterPlot:', errors);
 
-//todo - display error in the UI if there is one from the hook. if use provides specific className for the plot
-//if we can't get any tiledPaths
+    //todo - display error in the UI if there is one from the hook. if use provides specific className for the plot
+    //if we can't get any tiledPaths
     return (
-            <TiledMultiScatterPlot
-                paths={tiledPaths}
-                tiledTrace={tiledTrace}
-                tiledBaseUrl={tiledBaseUrl}
-                pollingIntervalMs={pollingIntervalMs}
-                className={className}
-                plotClassName={plotClassName}
-                title={title}
-                shortPathNames={!traceNames}
-                traceNames={traceNames}
-                popupMessage={errorMessage}
-            />
+        <TiledMultiScatterPlot
+            paths={tiledPaths}
+            tiledTrace={tiledTrace}
+            tiledBaseUrl={tiledBaseUrl}
+            pollingIntervalMs={pollingIntervalMs}
+            className={className}
+            plotClassName={plotClassName}
+            title={title}
+            shortPathNames={!traceNames}
+            traceNames={traceNames}
+            popupMessage={errorMessage}
+        />
     );
-}           
+}

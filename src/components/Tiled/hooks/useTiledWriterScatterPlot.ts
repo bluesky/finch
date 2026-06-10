@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useSearchByIdQuery } from "@/api/tiled/hooks";
-import { checkRunCompletion } from "../utils/tiledUtils";
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useSearchByIdQuery } from '@/api/tiled/hooks';
+import { checkRunCompletion } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
     /** Resolved Tiled path to the primary stream data, or `null` while searching. */
@@ -28,7 +28,7 @@ type UseTiledWriterScatterPlotOptions = {
 
 export const useTiledWriterScatterPlot = (
     blueskyRunId: string,
-    options: UseTiledWriterScatterPlotOptions = {}
+    options: UseTiledWriterScatterPlotOptions = {},
 ): UseTiledWriterScatterPlotReturn => {
     const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl } = options;
 
@@ -44,8 +44,8 @@ export const useTiledWriterScatterPlot = (
         {
             enabled: hasRunId,
             retry: false,
-            refetchInterval: (query) => (query.state.data || isRunFinished) ? false : 2000,
-        }
+            refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
+        },
     );
     const runExists = !!runQuery.data;
 
@@ -55,8 +55,8 @@ export const useTiledWriterScatterPlot = (
         {
             enabled: runExists,
             retry: false,
-            refetchInterval: (query) => (query.state.data || isRunFinished) ? false : 2000,
-        }
+            refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
+        },
     );
     const directFound = directQuery.isSuccess && !!directQuery.data;
 
@@ -80,21 +80,33 @@ export const useTiledWriterScatterPlot = (
                 : `Waiting for scan data to be written... (Run ID: ${blueskyRunId})`;
         }
         return null;
-    }, [hasRunId, tiledPath, isLoading, runExists, directQuery.isSuccess, directQuery.data, isRunFinished, blueskyRunId]);
+    }, [
+        hasRunId,
+        tiledPath,
+        isLoading,
+        runExists,
+        directQuery.isSuccess,
+        directQuery.data,
+        isRunFinished,
+        blueskyRunId,
+    ]);
 
-    const startCompletionPolling = useCallback((customPollingInterval?: number) => {
-        const intervalId = setInterval(async () => {
-            const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
-            if (isComplete) {
-                setEnablePolling(false);
-                clearInterval(intervalId);
-                setPollingInterval(null);
-            } else {
-                setEnablePolling(true);
-            }
-        }, customPollingInterval ?? pollingIntervalMs);
-        setPollingInterval(intervalId);
-    }, [blueskyRunId, tiledBaseUrl, pollingIntervalMs]);
+    const startCompletionPolling = useCallback(
+        (customPollingInterval?: number) => {
+            const intervalId = setInterval(async () => {
+                const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
+                if (isComplete) {
+                    setEnablePolling(false);
+                    clearInterval(intervalId);
+                    setPollingInterval(null);
+                } else {
+                    setEnablePolling(true);
+                }
+            }, customPollingInterval ?? pollingIntervalMs);
+            setPollingInterval(intervalId);
+        },
+        [blueskyRunId, tiledBaseUrl, pollingIntervalMs],
+    );
 
     const stopCompletionPolling = useCallback(() => {
         if (pollingInterval) {

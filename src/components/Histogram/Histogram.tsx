@@ -95,20 +95,32 @@ export default function Histogram({
     const handleStopAcquisition = useCallback(() => {
         handleSetValueRequest(acquirePV, 0);
     }, [acquirePV, handleSetValueRequest]);
-    const handleSetExposure = useCallback((newValue:number) => {
-        handleSetValueRequest(exposurePV, newValue);
-    }, [exposurePV, handleSetValueRequest])
+    const handleSetExposure = useCallback(
+        (newValue: number) => {
+            handleSetValueRequest(exposurePV, newValue);
+        },
+        [exposurePV, handleSetValueRequest],
+    );
 
     const allConnected = demo || deviceList.every((pv) => devices[pv]?.connected === true);
 
     if (!allConnected) {
         const disconnectedPVs = deviceList.filter((pv) => devices[pv]?.connected !== true);
         return (
-            <section className={cn("flex flex-col items-center justify-center gap-2 p-4 bg-slate-200 text-slate-700 w-[70rem] h-96 rounded-lg shadow-lg", classNameContainer)}>
-                <p className="font-semibold text-slate-600">Error: Cannot display Histogram - Devices not connected</p>
+            <section
+                className={cn(
+                    'flex flex-col items-center justify-center gap-2 p-4 bg-slate-200 text-slate-700 w-[70rem] h-96 rounded-lg shadow-lg',
+                    classNameContainer,
+                )}
+            >
+                <p className="font-semibold text-slate-600">
+                    Error: Cannot display Histogram - Devices not connected
+                </p>
                 <ul className="text-sm text-slate-500 list-disc list-inside">
                     {disconnectedPVs.map((pv) => (
-                        <li key={pv} className="font-mono">{pv}</li>
+                        <li key={pv} className="font-mono">
+                            {pv}
+                        </li>
                     ))}
                 </ul>
             </section>

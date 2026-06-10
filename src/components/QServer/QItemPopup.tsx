@@ -150,7 +150,9 @@ export default function QItemPopup({
             return (
                 <span className="flex" key={kwarg}>
                     <p className="w-1/2">{kwarg}</p>
-                    <p className="w-1/2 text-ellipsis overflow-hidden">{JSON.stringify(popupItem.kwargs[kwarg])}</p>
+                    <p className="w-1/2 text-ellipsis overflow-hidden">
+                        {JSON.stringify(popupItem.kwargs[kwarg])}
+                    </p>
                 </span>
             );
         }
