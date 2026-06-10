@@ -57,13 +57,14 @@ export default function Histogram({
     title,
 }: HistogramProps) {
     const deviceList = useMemo(
-        () => (demo ? [] : [arrayPV, acquirePV]),
-        [demo, arrayPV, acquirePV],
+        () => (demo ? [] : [arrayPV, acquirePV, exposurePV]),
+        [demo, arrayPV, acquirePV, exposurePV],
     );
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
     const acquireDevice = devices[acquirePV];
     const exposureDevice = devices[exposurePV];
 
+    // Demo mode will eventually be removed in lieu of Ophyd Sim
     const baseRef = useRef<number[]>(generateDemoBase());
     const [demoData, setDemoData] = useState<number[]>(() => baseRef.current);
 

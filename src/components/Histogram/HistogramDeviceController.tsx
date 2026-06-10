@@ -29,7 +29,7 @@ export default function HistogramDeviceController({
     //const [ exposureMoveValue, setExposureMoveValue ] = useState<number | null>(null);
     return (
         <div className={cn('flex items-center justify-start gap-4 m-auto', className)}>
-            <p className="w-24">{acquireDevice.value === 1 ? 'Acquiring' : 'Done'}</p>
+            <p className="w-24">{acquireDevice?.value === 1 ? 'Acquiring' : 'Done'}</p>
             <Button onClick={handleStartAcquisition} text="Start Acquire" />
             <Button
                 onClick={handleStopAcquisition}
@@ -38,7 +38,7 @@ export default function HistogramDeviceController({
                 className="border-slate-600"
             />
             <InputNumber
-                label={`${exposureDevice.value} ${exposureDevice.units ? exposureDevice.units.slice(0, 3) : 's'}`}
+                label={`${exposureDevice?.value ?? ''} ${exposureDevice?.units ? exposureDevice.units.slice(0, 3) : 's'}`}
                 labelPosition="right"
                 className={`w-24`}
                 handleEnter={(input) => input !== null && handleSetExposure(input)}
