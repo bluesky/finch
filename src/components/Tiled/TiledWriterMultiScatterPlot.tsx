@@ -9,8 +9,6 @@ type TiledWriterMultiScatterPlotProps = {
     blueskyRunIds: string[];
     /** Base URL of the Tiled server forwarded to `TiledMultiScatterPlot`. */
     tiledBaseUrl?: string;
-    /** Milliseconds between data refetches while the run is ongoing. Defaults to `1000`. */
-    pollingIntervalMs?: number;
     /** Additional class names applied to the `TiledMultiScatterPlot` container. */
     className?: string;
     /** Additional class names applied to the plot inside `TiledMultiScatterPlot`. */
@@ -25,7 +23,6 @@ export default function TiledWriterMultiScatterPlot({
     tiledTrace,
     blueskyRunIds,
     tiledBaseUrl,
-    pollingIntervalMs,
     className,
     plotClassName,
     title,
