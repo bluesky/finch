@@ -85,6 +85,7 @@ export default function ComponentViewerExampleReal() {
                 <Histogram
                     arrayPV="dxpMercury:mca1.VAL"
                     acquirePV="dxpMercury:StartAll"
+                    exposurePV="dxpMercury:mca1.ERES"
                     showDeviceController={false}
                     showPlotSettings={false}
                 />

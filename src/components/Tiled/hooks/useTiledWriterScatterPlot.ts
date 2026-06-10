@@ -33,7 +33,9 @@ export const useTiledWriterScatterPlot = (
     const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl } = options;
 
     const [enablePolling, setEnablePolling] = useState(!isRunFinished);
-    const [pollingInterval, setPollingInterval] = useState<number | null>(null);
+    const [pollingInterval, setPollingInterval] = useState<ReturnType<typeof setInterval> | null>(
+        null,
+    );
     const completionStartedRef = useRef(false);
 
     const hasRunId = !!blueskyRunId && blueskyRunId.trim() !== '';

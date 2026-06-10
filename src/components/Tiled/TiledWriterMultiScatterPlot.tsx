@@ -49,7 +49,6 @@ export default function TiledWriterMultiScatterPlot({
             paths={tiledPaths}
             tiledTrace={tiledTrace}
             tiledBaseUrl={tiledBaseUrl}
-            pollingIntervalMs={pollingIntervalMs}
             className={className}
             plotClassName={plotClassName}
             title={title}
