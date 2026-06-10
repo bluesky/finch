@@ -31,6 +31,8 @@ export type HubAppLayoutProps = {
     classNameSidebarActiveLink?: string;
     /** Additional CSS classes applied to inactive sidebar links. */
     classNameSidebarInactiveLink?: string;
+    /** Additional CSS classes applied to the image within the header. */
+    classNameImage?: string;
     /** Additional CSS classes applied to the root layout element. */
     className?: string;
 };
@@ -46,6 +48,7 @@ export default function HubAppLayout({
     classNameSidebar,
     classNameSidebarActiveLink,
     classNameSidebarInactiveLink,
+    classNameImage,
     className,
     ...props
 }: HubAppLayoutProps) {
@@ -69,6 +72,7 @@ export default function HubAppLayout({
                 logoIcon={headerLogoIcon}
                 className={classNameHeader}
                 classNameTitle={classNameHeaderTitle}
+                classNameImage={classNameImage}
             />
             <HubMainContent
                 routes={routes}
