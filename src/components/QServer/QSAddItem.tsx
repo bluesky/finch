@@ -73,7 +73,7 @@ export default function QSAddItem({
                     </div>
                 </div>
                 <ul
-                    className={`${activePlan ? '' : ''} flex-grow duration-[1100ms] overflow-auto overflow-y-auto transition-all ease-in relative`}
+                    className={`${activePlan ? '' : ''} flex-grow duration-1000 overflow-auto overflow-y-auto transition-all ease-in relative`}
                 >
                     {!activePlan && (
                         <div className="absolute top-0 left-0 w-2/12 h-full border-r border-slate-300 pointer-events-none"></div>
