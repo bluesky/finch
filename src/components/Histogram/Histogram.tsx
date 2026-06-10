@@ -132,7 +132,7 @@ export default function Histogram({
             />
             {showDeviceController && (
                 <HistogramDeviceController
-                    acquireDevice={devices[acquirePV]}
+                    acquireDevice={acquireDevice}
                     exposureDevice={exposureDevice}
                     handleStartAcquisition={handleStartAcquisition}
                     handleStopAcquisition={handleStopAcquisition}

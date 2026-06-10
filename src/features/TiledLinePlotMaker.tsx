@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { Tiled } from "@blueskyproject/tiled";
-import { TiledItemSelectionData } from "@blueskyproject/tiled/dist/components/Tiled/types";
 import TiledWriterMultiScatterPlot from "@/components/Tiled/TiledWriterMultiScatterPlot";
 import { TiledSearchConfig, TiledSearchResult, getSearchResults } from "@blueskyproject/tiled";
 import { Shuffle, Sliders, PaintBrush } from "@phosphor-icons/react";

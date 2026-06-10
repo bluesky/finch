@@ -47,7 +47,6 @@ export const useTiledWriterMultiScatterPlot = (
             const primaryFound = primaryQueries[i]?.isSuccess && !!primaryQueries[i]?.data;
             return primaryFound ? `${id}/primary/internal` : null;
         }),
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [blueskyRunIds, primaryQueries]
     );
 

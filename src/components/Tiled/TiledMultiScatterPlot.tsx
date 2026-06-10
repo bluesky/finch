@@ -15,8 +15,6 @@ type TiledMultiScatterPlotProps = {
     partition?: number;
     /** Base URL of the Tiled server. Falls back to the library default when omitted. */
     tiledBaseUrl?: string;
-    /** When `true`, refetches data at the interval set by `pollingIntervalMs`. */
-    pollingIntervalMs?: number;
     /** Additional class names applied to the outer container element. */
     className?: string;
     /** Additional class names applied to the `PlotlyScatter` element. */
@@ -31,7 +29,7 @@ type TiledMultiScatterPlotProps = {
     popupMessage?: string;
 }
 
-export default function TiledMultiScatterPlot({ tiledTrace, paths, partition = 0, tiledBaseUrl, pollingIntervalMs = 1000, className, plotClassName, title, shortPathNames = false, traceNames, popupMessage }: TiledMultiScatterPlotProps) {
+export default function TiledMultiScatterPlot({ tiledTrace, paths, partition = 0, tiledBaseUrl, className, plotClassName, title, shortPathNames = false, traceNames, popupMessage }: TiledMultiScatterPlotProps) {
     const results = useQueries({
         queries: paths.map((path) => ({
             queryKey: ['tiled', 'table', path ?? ''],
@@ -49,20 +47,6 @@ export default function TiledMultiScatterPlot({ tiledTrace, paths, partition = 0
     // Collect available column names from the first loaded result that has data but is missing x or y.
     const mismatchedResult = !isLoading ? results.find((r) => r.data && (!r.data[xName] || !r.data[yName])) : undefined;
     const availableColumns = mismatchedResult ? Object.keys(mismatchedResult.data!) : null;
-
-    const getStatusText = () => {
-        if (paths.every((p) => p === null)) {
-            return 'No data paths provided - waiting for data';
-        }
-        if (isLoading) {
-            return 'Loading data...';
-        }
-        if (errors.length > 0) {
-            return `Error loading data: ${errors[0]}`;
-        }
-        const totalPoints = results.reduce((sum, r) => sum + (r.data?.[xName]?.length ?? 0), 0);
-        return `Scatter plot data: ${totalPoints} points`;
-    };
 
     const plotData: Partial<PlotData>[] = results.flatMap((r, i) => {
         const data = r.data;

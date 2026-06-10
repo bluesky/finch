@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Device } from "@/types/deviceControllerTypes";
 import Button from "../Button";
@@ -20,7 +19,7 @@ type HistogramDeviceControllerProps = {
 }
 export default function HistogramDeviceController({ acquireDevice, exposureDevice, handleSetExposure, handleStartAcquisition, handleStopAcquisition, className }: HistogramDeviceControllerProps) {
     //To Do: add acquire state display, start/stop buttons
-    const [ exposureMoveValue, setExposureMoveValue ] = useState<number | null>(null);
+    //const [ exposureMoveValue, setExposureMoveValue ] = useState<number | null>(null);
     return (
         <div className={cn("flex items-center justify-start gap-4 m-auto", className)}>
             <p className="w-24">{acquireDevice.value === 1 ? 'Acquiring' : 'Done'}</p>
@@ -31,7 +30,6 @@ export default function HistogramDeviceController({ acquireDevice, exposureDevic
                 labelPosition='right' 
                 className={`w-24`} 
                 handleEnter={(input)=>input!==null && handleSetExposure(input)}  
-                onChange={(input) => setExposureMoveValue(input)} 
                 classNameInput="text-right border border-slate-300 rounded-md bg-sky-200 shadow-inner"
             />
             {/* <input type="number" step="any" value={exposureDevice.value as number ?? ''} onChange={(e) => handleSetExposure(parseFloat(e.target.value))} className="w-24 p-1 border border-gray-300 rounded" placeholder="Exposure"/> */}

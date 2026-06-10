@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
 import { useQueueQuery, useExecuteQueueItemMutation } from "@/api/qServer/hooks";
 import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
 import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
-import TiledWriterDetImageHeatmap from "../Tiled/TiledWriterDetImageHeatmap";
 import ExperimentHistory from "./ExperimentHistory";
 
-import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
+import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from "@phosphor-icons/react";
 import { PostItemAddResponse } from "@/api/qServer/types";
 import { cn } from "@/lib/utils";
 import { useSearchResultsQuery } from "@/api/tiled/hooks";
@@ -22,11 +21,15 @@ type ExperimentXASScanProps = {
     /** The base Tiled url */
     tiledBaseUrl?: string;
 };
-const getLocalStorageEnergyStart = ()=> Number(localStorage.getItem("xas_start_energy")) ?? 9000;
-const getLocalStorageEnergyStop = ()=> Number(localStorage.getItem("xas_stop_energy")) ?? 10000;
-const getLocalStorageNumPoints = ()=> Number(localStorage.getItem("xas_num_points")) ?? 10;
-const getLocalStorageRoiLow = ()=> Number(localStorage.getItem("xas_roi_low")) ?? 1800;
-const getLocalStorageRoiHigh = ()=> Number(localStorage.getItem("xas_roi_high")) ?? 2750;
+const getLocalStorageNumber = (key: string, fallback: number) => {
+    const stored = localStorage.getItem(key);
+    return stored !== null ? Number(stored) : fallback;
+};
+const getLocalStorageEnergyStart = ()=> getLocalStorageNumber("xas_start_energy", 9000);
+const getLocalStorageEnergyStop = ()=> getLocalStorageNumber("xas_stop_energy", 10000);
+const getLocalStorageNumPoints = ()=> getLocalStorageNumber("xas_num_points", 10);
+const getLocalStorageRoiLow = ()=> getLocalStorageNumber("xas_roi_low", 1800);
+const getLocalStorageRoiHigh = ()=> getLocalStorageNumber("xas_roi_high", 2750);
 export default function ExperimentXASScan({ 
     className,
     onSuccess,
@@ -54,6 +57,54 @@ export default function ExperimentXASScan({
     // Prevent double-firing: track whether we already submitted in this idle window
     const autoSubmittedRef = useRef(false);
 
+    // Energy scan form handlers
+    const handleStartEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setStartEnergy(value === '' ? '' : Number(value));
+    };
+
+    const handleStopEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setStopEnergy(value === '' ? '' : Number(value));
+    };
+
+    const handleNumPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setNumPoints(value === '' ? '' : Number(value));
+    };
+
+    const handleRoiLowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setRoiLow(value === '' ? '' : Number(value));
+    };
+
+    const handleRoiHighChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setRoiHigh(value === '' ? '' : Number(value));
+    };
+
+    const handleSampleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value;
+        setSample(value);
+    }
+
+    const handleSuccess = useCallback(async (response: PostItemAddResponse) => {
+        console.log("XAS scan executed successfully!", response);
+
+        // Set the item UID to trigger TanStack Query polling
+        if (response.item && 'item_uid' in response.item) {
+            setExecutedItemUid(response.item.item_uid);
+        }
+
+        onSuccess?.(response);
+    }, [onSuccess]);
+
+    const handleError = useCallback((error: string) => {
+        console.error("XAS scan execution failed:", error);
+        alert(`XAS scan execution failed: ${error}`);
+        onError?.(error);
+    }, [onError]);
+    
     useEffect(() => {
         localStorage.setItem("angle_scan_user", user);
         localStorage.setItem("xas_start_energy", startEnergy.toString());
@@ -88,13 +139,6 @@ export default function ExperimentXASScan({
     // Get the first run ID when available
     const pollRunId = runList && runList.length > 0 ? runList[0] : "";
 
-    const startEnergyNumber = typeof startEnergy === 'number' ? startEnergy : 0;
-    const stopEnergyNumber = typeof stopEnergy === 'number' ? stopEnergy : 0;
-    const numPointsNumber = typeof numPoints === 'number' ? numPoints : 0;
-    const stepSizeLabel = numPointsNumber > 1
-        ? ((stopEnergyNumber - startEnergyNumber) / (numPointsNumber - 1)).toFixed(2)
-        : '0';
-    
     // Update blueskyRunId when polling returns new run
     useEffect(() => {
         if (pollRunId) {
@@ -158,55 +202,9 @@ export default function ExperimentXASScan({
         }, 3000);
 
         return () => clearTimeout(timer);
-    }, [autoMode, isQueueBusy, executeMutation.isPending]);
+    }, [handleError, handleSuccess, autoMode, isQueueBusy, executeMutation.isPending, executeMutation, roiLow, roiHigh, startEnergy, stopEnergy, numPoints, user, sample]);
 
-    // Energy scan form handlers
-    const handleStartEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setStartEnergy(value === '' ? '' : Number(value));
-    };
-
-    const handleStopEnergyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setStopEnergy(value === '' ? '' : Number(value));
-    };
-
-    const handleNumPointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setNumPoints(value === '' ? '' : Number(value));
-    };
-
-    const handleRoiLowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setRoiLow(value === '' ? '' : Number(value));
-    };
-
-    const handleRoiHighChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setRoiHigh(value === '' ? '' : Number(value));
-    };
-
-    const handleSampleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        setSample(value);
-    }
-
-    const handleSuccess = async (response: PostItemAddResponse) => {
-        console.log("XAS scan executed successfully!", response);
-        
-        // Set the item UID to trigger TanStack Query polling
-        if (response.item && 'item_uid' in response.item) {
-            setExecutedItemUid(response.item.item_uid);
-        }
-        
-        onSuccess?.(response);
-    };
-
-    const handleError = (error: string) => {
-        console.error("XAS scan execution failed:", error);
-        alert(`XAS scan execution failed: ${error}`);
-        onError?.(error);
-    };
+    
 
     return (
         <div className={cn('text-slate-700', className)}>
@@ -407,15 +405,6 @@ export default function ExperimentXASScan({
                         </span>
 
                         <div className="flex flex-grow items-center gap-4 h-fit justify-center" key={viewMode}>
-                            {/* <TiledWriterScatterPlot 
-                                key={blueskyRunId}
-                                blueskyRunId={blueskyRunId}
-                                tiledTrace={{ x: "mono_energy_energy_eV", y: "amptek_fluo_roi_sum" }}
-                                className="max-h-[40rem] h-full"
-                                plotClassName="h-[calc(100%-2rem)]"
-                                showStatusText={false}
-                                tiledBaseUrl={tiledBaseUrl}
-                            /> */}
                             <TiledWriterScatterPlot 
                                 key={blueskyRunId}
                                 blueskyRunId={blueskyRunId}
