@@ -37,7 +37,11 @@ export type TiledLinePlotMakerProps = {
     /** Optional class name for the component. */
     className?: string;
 };
-export default function TiledLinePlotMaker({ tiledBaseUrl, initialPath, className }: TiledLinePlotMakerProps) {
+export default function TiledLinePlotMaker({
+    tiledBaseUrl,
+    initialPath,
+    className,
+}: TiledLinePlotMakerProps) {
     const [blueskyIds, setBlueskyIds] = useState<string[]>([]);
     const [traceNames, setTraceNames] = useState<Record<string, string>>({});
     const [plotTitle, setPlotTitle] = useState('');
@@ -63,6 +67,7 @@ export default function TiledLinePlotMaker({ tiledBaseUrl, initialPath, classNam
                     specs: { include: ['BlueskyRun'], exclude: [] },
                 },
                 initialPath,
+                baseUrl: tiledBaseUrl,
             };
             try {
                 const results: TiledSearchResult | null = await getSearchResults(searchConfig);
@@ -72,9 +77,14 @@ export default function TiledLinePlotMaker({ tiledBaseUrl, initialPath, classNam
             }
         };
         fetchData();
-    }, []);
+    }, [initialPath, tiledBaseUrl]);
     return (
-        <article className={cn("h-[52rem] flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md", className)}>
+        <article
+            className={cn(
+                'h-[52rem] flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md',
+                className,
+            )}
+        >
             <div className="flex flex-col h-full overflow-auto border-r-2 border-slate-300 pr-8">
                 {/* Plot Settings Inputs */}
                 <section className="mb-8 max-w-72">
