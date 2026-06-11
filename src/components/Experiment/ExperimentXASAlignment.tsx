@@ -1,3 +1,5 @@
+//Exploratory scan component, not for publishing
+
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
@@ -201,7 +203,7 @@ export default function ExperimentXASAlignment({
         <div className={cn('text-slate-700', className)}>
             <h2 className="text-xl font-bold mb-4 text-white">XAS Alignment</h2>
 
-            <div className="bg-gray-50 p-4 rounded-lg space-y-4 h-fit">
+            <div className="bg-gray-50 p-4 rounded-lg space-y-4 h-fit min-h-[48rem]">
                 <div className="flex gap-6">
                     <div className="w-96 space-y-4">
                         <div className="flex flex-col items-center">
@@ -420,7 +422,7 @@ export default function ExperimentXASAlignment({
                                     key={zRunId || 'z-empty'}
                                     blueskyRunId={zRunId}
                                     tiledTrace={zTrace}
-                                    className="max-h-[40rem] h-full"
+                                    className="max-h-[42rem] h-[42rem]"
                                     plotClassName="h-[calc(100%-2rem)]"
                                     showStatusText={false}
                                     tiledBaseUrl={tiledBaseUrl}
@@ -434,7 +436,7 @@ export default function ExperimentXASAlignment({
                                     key={yRunId || 'y-empty'}
                                     blueskyRunId={yRunId}
                                     tiledTrace={yTrace}
-                                    className="max-h-[40rem] h-full"
+                                    className="max-h-[42rem] h-[42rem]"
                                     plotClassName="h-[calc(100%-2rem)]"
                                     showStatusText={false}
                                     tiledBaseUrl={tiledBaseUrl}
