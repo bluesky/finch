@@ -6,7 +6,7 @@ const meta = {
     title: 'Bluesky Components/Tiled',
     component: TiledWrapper,
     parameters: {
-        layout: 'centered',
+        layout: 'fullscreen',
     },
     tags: ['autodocs'],
     argTypes: {},

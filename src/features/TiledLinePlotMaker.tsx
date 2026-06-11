@@ -35,12 +35,18 @@ export type TiledLinePlotMakerProps = {
     /** Optional initial path used in the Tiled server search. */
     initialPath?: string;
     /** Optional class name for the component. */
-    className?: string;
+    classNameContainer?: string;
+    /** Optional class name for the component. */
+    classNameInnerContainer?: string;
+    /**Optional class name for the plot container */
+    classNamePlot?: string;
 };
 export default function TiledLinePlotMaker({
     tiledBaseUrl,
     initialPath,
-    className,
+    classNameContainer,
+    classNameInnerContainer,
+    classNamePlot,
 }: TiledLinePlotMakerProps) {
     const [blueskyIds, setBlueskyIds] = useState<string[]>([]);
     const [traceNames, setTraceNames] = useState<Record<string, string>>({});
@@ -81,11 +87,16 @@ export default function TiledLinePlotMaker({
     return (
         <article
             className={cn(
-                'h-[52rem] flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md',
-                className,
+                'h-[52rem] min-h-fit w-fit flex space-x-8 p-4 bg-slate-200 text-slate-700 rounded-md shadow-md',
+                classNameContainer,
             )}
         >
-            <div className="flex flex-col h-full overflow-auto border-r-2 border-slate-300 pr-8">
+            <div
+                className={cn(
+                    'flex flex-col h-full overflow-auto border-r-2 border-slate-300 pr-8',
+                    classNameInnerContainer,
+                )}
+            >
                 {/* Plot Settings Inputs */}
                 <section className="mb-8 max-w-72">
                     <span className="flex space-x-4 items-center mb-4">
@@ -338,7 +349,7 @@ export default function TiledLinePlotMaker({
                 blueskyRunIds={blueskyIds}
                 traceNames={blueskyIds.map((id) => traceNames[id] || id.slice(0, 4))}
                 title={plotTitle || undefined}
-                className="h-full border-2 border-black/20"
+                className={cn('h-full border-2 border-black/20', classNamePlot)}
                 plotClassName="h-full"
             />
         </article>
