@@ -17,7 +17,9 @@ const preview: Preview = {
           "About",
           "Documentation", [
             "Installation",
+            "Configuration",
             "BackendSetup",
+            "API Hooks",
           ],
           "Bluesky Components",  [
             'ReactEDM', [

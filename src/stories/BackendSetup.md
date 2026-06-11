@@ -20,17 +20,16 @@ Instructions for setting those services are left to Bluesky Web, but a list of t
 
 2\. The Queue Server API is formally named 'bluesky http server.'
 
-# Specifying Backend URLs and keys with environment variables
-Whether using Finch directly cloned down from Github or by installing it via NPM, environment variables can be used to conveniently alter the addresses and api keys used for connections between Finch and the backend services.
+# Specifying backend URLs and keys with environment variables
+Whether using Finch directly cloned down from Github or by installing it via NPM, environment variables can be used to conveniently alter the addresses and API keys used for connections between Finch and the backend services.
 
-A list of environment variables and their corresponding services are provided below.
+These variables are passed into `FinchConfigProvider` via `import.meta.env` in `App.tsx`. See the **Configuration** page for the full provider setup.
 
-| Service  | Environment Variables | Default Value in Finch | Description |
+| Service | Environment Variable | `FinchConfig` field | Default |
 | :---- | :---- | :---- | :---- |
-| Tiled | `VITE_API_TILED_URL` | `http://localhost:8000/api/v1` | Base URL for Tiled API endpoints |
-| Tiled| `VITE_API_TILED_API_KEY` | None | API key for authenticated Tiled requests |
-| Ophyd API | `VITE_QSERVER_WS` | `ws://localhost:8001/api/v1/qs-console-socket` | WebSocket endpoint for Queue Server Console Monitor |
-| Ophyd API | `VITE_PV_WS` | `ws://localhost:8001/api/v1/pv-socket` | WebSocket endpoint for camera feeds |
-| Ophyd API | `VITE_CAMERA_WS` | `ws://localhost:8001/api/v1/camera-socket` | WebSocket endpoint for camera feeds |
-| Frontend API | `VITE_FRONTEND_API_URL` | `http://localhost:8002` | Base URL for frontend API endpoints |
-| Queue Server API  | `VITE_QSERVER_API_URL` | `http://localhost:60610` | Base URL for Queue Server API endpoints |
+| Tiled | `VITE_TILED_API_URL` | `tiledApiUrl` | `http://localhost:8000/api/v1` |
+| Tiled | `VITE_TILED_API_KEY` | `tiledApiKey` | none |
+| Ophyd API | `VITE_OPHYD_API_URL` | `ophydApiUrl` | `http://localhost:8001/api/v1` |
+| Queue Server API | `VITE_QSERVER_API_URL` | `qServerApiUrl` | `http://localhost:60610/api` |
+| Queue Server API | `VITE_QSERVER_API_KEY` | `qServerApiKey` | `test` |
+| Finch API | `VITE_FINCH_API_URL` | `finchApiUrl` | `http://localhost:8002` |

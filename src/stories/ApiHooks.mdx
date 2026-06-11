@@ -1,0 +1,119 @@
+import { Meta } from '@storybook/blocks';
+import OphydHooksDemo from './demos/OphydHooksDemo';
+
+<Meta title="Documentation/API Hooks" />
+
+# API Hooks
+
+Finch exposes react-query hooks for the Queue Server and Tiled services, and WebSocket hooks for Ophyd device control. All hooks read their backend URLs from `FinchConfigProvider` — see the **Configuration** page for setup.
+
+- Queue server and Tiled hooks require `QueryClientProvider`.
+- Ophyd hooks manage their own WebSocket connections and have no react-query dependency.
+
+---
+
+## Ophyd WebSocket — `useOphydPVSocket`
+
+Connects to the Ophyd WebSocket server and subscribes to EPICS PV updates in real time.
+
+```tsx
+import { useOphydPVSocket } from '@blueskyproject/finch';
+
+function DevicePanel() {
+  const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+    useOphydPVSocket(['IOC:m1', 'IOC:m2']);
+
+  return (
+    <div>
+      <p>{devices['IOC:m1']?.value}</p>
+      <button onClick={() => handleSetValueRequest('IOC:m1', 5.0)}>Move to 5</button>
+    </div>
+  );
+}
+```
+
+`devices` is a keyed object — `devices['IOC:m1']` contains `{ value, connected, units, min, max, locked, ... }`.
+
+### Simulation variant — `useSimOphydPVSocket`
+
+Drop-in replacement that needs no backend. Use it for development, testing, and Storybook stories.
+Special device names `"sineSignal"` and `"noisySignal"` produce animated values automatically.
+
+```tsx
+import { useSimOphydPVSocket } from '@blueskyproject/finch';
+
+const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+  useSimOphydPVSocket(['sineSignal', 'noisySignal', 'motor1']);
+```
+
+**Live demo** (no backend required):
+
+<div style={{padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+  <OphydHooksDemo />
+</div>
+
+---
+
+## Queue Server — `useStatusQuery`, `useQueueQuery`, and mutations
+
+All Queue Server hooks are exported from `@blueskyproject/finch` and use react-query internally.
+
+```tsx
+import { useStatusQuery, useQueueQuery, useOpenEnvironmentMutation } from '@blueskyproject/finch';
+
+function QServerPanel() {
+  const { data: status } = useStatusQuery({ refetchInterval: 2000 });
+  const { data: queue } = useQueueQuery();
+  const openEnv = useOpenEnvironmentMutation();
+
+  return (
+    <div>
+      <p>Manager state: {status?.manager_state}</p>
+      <p>Queue items: {queue?.items.length}</p>
+      <button onClick={() => openEnv.mutate()}>Open environment</button>
+    </div>
+  );
+}
+```
+
+All hooks accept an optional `queryOptions` argument passed through to react-query — use it for polling intervals, stale time, conditional enabling, etc.:
+
+```tsx
+// Poll every second
+useQueueQuery({ refetchInterval: 1000 });
+
+// Only fetch when user is authenticated
+useStatusQuery({ enabled: isLoggedIn });
+```
+
+Available query hooks: `useStatusQuery`, `useQueueQuery`, `useQueueHistoryQuery`, `usePlansAllowedQuery`, `useDevicesAllowedQuery`, `useQueueItemQuery`, `useRunsActiveQuery`.
+
+Available mutation hooks: `useAddQueueItemMutation`, `useExecuteQueueItemMutation`, `useRemoveQueueItemMutation`, `useOpenEnvironmentMutation`, `useStartREMutation`, `usePauseREMutation`, `useResumeREMutation`, `useAbortREMutation`.
+
+---
+
+## Tiled
+
+For npm-installed Finch, the public Tiled surface is the `Tiled.*` function namespace:
+
+```tsx
+import { Tiled } from '@blueskyproject/finch';
+
+const results = await Tiled.searchBySpecs(['BlueskyRun'], { path: '/my-catalog' });
+const metadata = await Tiled.getItemMetadata('/my-catalog/run-uid');
+const tableData = await Tiled.getTableDataAsJson('/my-catalog/run-uid/primary/data', 0);
+```
+
+When working inside the Finch repo, react-query hooks are also available for declarative data fetching:
+
+```tsx
+import { useSearchBySpecsQuery, useItemMetadataQuery } from '@/api/tiled/hooks';
+
+function RunBrowser() {
+  const { data } = useSearchBySpecsQuery(['BlueskyRun'], [], '/my-catalog');
+  const { data: meta } = useItemMetadataQuery('/my-catalog/run-uid');
+  // ...
+}
+```
+
+The hook `useTiledMostRecentDetImage` is also exported from `@blueskyproject/finch` for retrieving the latest detector image from a Tiled catalog.
