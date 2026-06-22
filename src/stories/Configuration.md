@@ -4,6 +4,14 @@ Finch components that communicate with backend services (Tiled, Ophyd WebSocket,
 
 ## Required providers
 
+- **`QueryClientProvider`** — required for all react-query data-fetching hooks (queue server, tiled).
+- **`BrowserRouter`** — required by the routing-based component `HubAppLayout` (not required if you don't use that component).
+
+## Optional providers
+- **`FinchConfigProvider`** — distributes backend URLs and API keys to all Finch components and hooks (reduces prop drilling).
+
+## Provider Example
+
 ```tsx
 // main.tsx
 import { StrictMode } from 'react';
@@ -35,13 +43,22 @@ createRoot(document.getElementById('root')!).render(
 );
 ```
 
-- **`BrowserRouter`** — required by routing-based components such as `HubAppLayout`.
-- **`QueryClientProvider`** — required for all react-query data-fetching hooks (queue server, tiled).
-- **`FinchConfigProvider`** — distributes backend URLs and API keys to all Finch components and hooks.
 
-## FinchConfig fields
+# FinchConfigProvider fields
 
-All fields are optional. Components fall back to localhost defaults when a field is omitted.
+FinchConfigProvider accepts a config object with fields for making API calls to various Bluesky services. All fields are optional. Components fall back to localhost defaults when a field is omitted.
+
+```tsx
+  <FinchConfigProvider config={{
+    tiledApiUrl: 'http://localhost:8000/api/v1',
+    tiledApiKey: 'your-tiled-key',
+    ophydApiUrl: 'http://localhost:8001/api/v1',
+    qServerApiUrl: 'http://localhost:60610/api',
+    qServerApiKey: 'your-api-key',
+  }}>
+    <App />
+  </FinchConfigProvider>
+```
 
 | Field | Default | Description |
 | :--- | :--- | :--- |
@@ -54,7 +71,7 @@ All fields are optional. Components fall back to localhost defaults when a field
 
 `FinchConfigProvider` automatically validates and normalises URLs on mount — trailing slashes are stripped, and a protocol (`http://` or `https://`) is added if missing for localhost addresses.
 
-## Using env variables
+## Using env variables for finch config
 
 When running the app from the cloned repo or configuring a deployment, the standard approach is to pass env variables into `FinchConfigProvider`:
 
@@ -67,6 +84,71 @@ When running the app from the cloned repo or configuring a deployment, the stand
   qServerApiKey:  import.meta.env.VITE_QSERVER_API_KEY,
   finchApiUrl:    import.meta.env.VITE_FINCH_API_URL,
 }}>
+```
+
+## Using JSON file for finch config
+It is also possible to load in a config based on a JSON file at runtime, which can be useful for containerized deployments or other setups where env vars are less convenient.
+
+```js
+// public/finch.config.json
+{
+  "tiledApiUrl": "http://localhost:8000/api/v1",
+  "tiledApiKey": "your-tiled-api-key",
+  "ophydApiUrl": "http://localhost:8001/api/v1",
+  "qServerApiUrl": "http://localhost:60610/api",
+  "qServerApiKey": "your-qserver-api-key",
+  "finchApiUrl": "http://localhost:8002"
+}
+```
+
+Then in your app, load the json with an async function  (shown in the same file for convience)
+
+```js
+// main.tsx
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { FinchConfigProvider } from '@blueskyproject/finch';
+import type { FinchConfig } from '@blueskyproject/finch';
+import '@blueskyproject/finch/style.css';
+import App from './App';
+
+const queryClient = new QueryClient();
+
+async function loadFinchConfig(): Promise<Partial<FinchConfig>> {
+  try {
+    const response = await fetch('/finch.config.json');
+
+    if (!response.ok) {
+      console.warn(
+        `Could not load finch.config.json: ${response.status} ${response.statusText}`
+      );
+      return {};
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.warn('Could not load finch.config.json:', error);
+    return {};
+  }
+}
+
+function renderApp(config: Partial<FinchConfig>) {
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <FinchConfigProvider config={config}>
+            <App />
+          </FinchConfigProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </StrictMode>
+  );
+}
+
+loadFinchConfig().then(renderApp);
 ```
 
 See the **BackendSetup** page for the full list of env variables and their corresponding services.

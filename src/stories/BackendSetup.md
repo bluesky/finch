@@ -12,24 +12,9 @@ Instructions for setting those services are left to Bluesky Web, but a list of t
 | :---- | :-: | -: |
 | [Tiled](https://github.com/bluesky/tiled) | Yes | 8000 |
 | [Ophyd API<sup>1</sup>](https://github.com/bluesky/ophyd-websocket) | No  | 8001 |
-| [Frontend API](https://github.com/als-computing/bluesky-web/tree/main/frontend-api) | No | 8002 |
 | [Queue Server](https://github.com/bluesky/bluesky-queueserver)   | Yes  | 60625 |
 | [Queue Server API<sup>2</sup>](https://github.com/bluesky/bluesky-httpserver) | Yes | 60610 |
 
 1\. Ophyd API is under active development, it primarily includes websockets for live device updates but is subject to ongoing changes and potential integration with 'Ophyd as a Service.'
 
 2\. The Queue Server API is formally named 'bluesky http server.'
-
-# Specifying backend URLs and keys with environment variables
-Whether using Finch directly cloned down from Github or by installing it via NPM, environment variables can be used to conveniently alter the addresses and API keys used for connections between Finch and the backend services.
-
-These variables are passed into `FinchConfigProvider` via `import.meta.env` in `App.tsx`. See the **Configuration** page for the full provider setup.
-
-| Service | Environment Variable | `FinchConfig` field | Default |
-| :---- | :---- | :---- | :---- |
-| Tiled | `VITE_TILED_API_URL` | `tiledApiUrl` | `http://localhost:8000/api/v1` |
-| Tiled | `VITE_TILED_API_KEY` | `tiledApiKey` | none |
-| Ophyd API | `VITE_OPHYD_API_URL` | `ophydApiUrl` | `http://localhost:8001/api/v1` |
-| Queue Server API | `VITE_QSERVER_API_URL` | `qServerApiUrl` | `http://localhost:60610/api` |
-| Queue Server API | `VITE_QSERVER_API_KEY` | `qServerApiKey` | `test` |
-| Finch API | `VITE_FINCH_API_URL` | `finchApiUrl` | `http://localhost:8002` |
