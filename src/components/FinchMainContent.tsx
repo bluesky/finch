@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-export type HubMainContentProps = {
+export type FinchMainContentProps = {
     /** Route definitions used to render the matched page component via React Router. */
     routes: RouteItem[];
     /** Additional CSS classes applied to the main outer element. */
@@ -11,12 +11,12 @@ export type HubMainContentProps = {
     /** Additional CSS classes applied to the inner element directly rendering the route element. */
     classNameInnerContainer?: string;
 };
-export default function HubMainContent({
+export default function FinchMainContent({
     routes,
     className,
     classNameInnerContainer,
     ...props
-}: HubMainContentProps) {
+}: FinchMainContentProps) {
     return (
         <main className={cn('bg-sky-900 h-full w-full p-8 overflow-y-auto', className)} {...props}>
             <Routes>

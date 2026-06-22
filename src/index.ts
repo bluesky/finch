@@ -28,16 +28,30 @@ export type { TiledHeatmapSelectorProps } from './features/TiledHeatmapSelector'
 export { default as Beamstop } from './features/Beamstop';
 export type { BeamstopProps } from './features/Beamstop';
 
-export { default as HubAppLayout } from './components/HubAppLayout';
-export type { HubAppLayoutProps } from './components/HubAppLayout';
+export { default as FinchAppLayout } from './components/FinchAppLayout';
+export type { FinchAppLayoutProps } from './components/FinchAppLayout';
 
-export { default as HubHeader } from './components/HubHeader';
-export type { HubHeaderProps } from './components/HubHeader';
+export { default as FinchHeader } from './components/FinchHeader';
+export type { FinchHeaderProps } from './components/FinchHeader';
 
-export { default as HubMainContent } from './components/HubMainContent';
-export type { HubMainContentProps } from './components/HubMainContent';
-export { default as HubSidebar } from './components/HubSidebar';
-export type { HubSidebarProps } from './components/HubSidebar';
+export { default as FinchMainContent } from './components/FinchMainContent';
+export type { FinchMainContentProps } from './components/FinchMainContent';
+
+export { default as FinchSidebar } from './components/FinchSidebar';
+export type { FinchSidebarProps } from './components/FinchSidebar';
+
+// @deprecated — use Finch* equivalents
+export { default as HubAppLayout } from './components/FinchAppLayout';
+export type { FinchAppLayoutProps as HubAppLayoutProps } from './components/FinchAppLayout';
+
+export { default as HubHeader } from './components/FinchHeader';
+export type { FinchHeaderProps as HubHeaderProps } from './components/FinchHeader';
+
+export { default as HubMainContent } from './components/FinchMainContent';
+export type { FinchMainContentProps as HubMainContentProps } from './components/FinchMainContent';
+
+export { default as HubSidebar } from './components/FinchSidebar';
+export type { FinchSidebarProps as HubSidebarProps } from './components/FinchSidebar';
 
 export { default as ContainerQServer } from './components/QServer/ContainerQServer';
 export type { ContainerQServerProps } from './components/QServer/ContainerQServer';

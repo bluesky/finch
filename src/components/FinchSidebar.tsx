@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-export type HubSidebarProps = {
+export type FinchSidebarProps = {
     /** Route definitions used to render the sidebar navigation links. */
     routes: RouteItem[];
     /** Additional CSS classes applied to the root aside element. */
@@ -13,13 +13,13 @@ export type HubSidebarProps = {
     /** Additional CSS classes applied to inactive navigation links. */
     classNameInactiveLink?: string;
 };
-export default function HubSidebar({
+export default function FinchSidebar({
     routes,
     className,
     classNameActiveLink,
     classNameInactiveLink,
     ...props
-}: HubSidebarProps) {
+}: FinchSidebarProps) {
     const navStyles = cn(
         'flex flex-col items-center justify-center h-20 aspect-square rounded-lg text-white hover:bg-sky-800 cursor-pointer',
         classNameInactiveLink,

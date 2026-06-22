@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import HubAppLayout from '../../components/HubAppLayout';
+import FinchAppLayout from '../../components/FinchAppLayout';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const mockRoutes: RouteItem[] = [
@@ -12,12 +12,12 @@ const mockRoutes: RouteItem[] = [
 function renderLayout(props = {}) {
     return render(
         <MemoryRouter initialEntries={['/home']}>
-            <HubAppLayout routes={mockRoutes} {...props} />
+            <FinchAppLayout routes={mockRoutes} {...props} />
         </MemoryRouter>,
     );
 }
 
-describe('HubAppLayout Component', () => {
+describe('FinchAppLayout Component', () => {
     it('renders without crashing', () => {
         const { container } = renderLayout();
         expect(container.firstChild).toBeInTheDocument();
@@ -84,7 +84,7 @@ describe('HubAppLayout Component', () => {
         ];
         render(
             <MemoryRouter initialEntries={['/a']}>
-                <HubAppLayout routes={moreRoutes} />
+                <FinchAppLayout routes={moreRoutes} />
             </MemoryRouter>,
         );
         expect(screen.getByText('Alpha')).toBeInTheDocument();

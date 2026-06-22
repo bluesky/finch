@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import HubMainContent from '../../components/HubMainContent';
+import FinchMainContent from '../../components/FinchMainContent';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const mockRoutes: RouteItem[] = [
@@ -12,12 +12,12 @@ const mockRoutes: RouteItem[] = [
 function renderContent(initialPath = '/home', props = {}) {
     return render(
         <MemoryRouter initialEntries={[initialPath]}>
-            <HubMainContent routes={mockRoutes} {...props} />
+            <FinchMainContent routes={mockRoutes} {...props} />
         </MemoryRouter>,
     );
 }
 
-describe('HubMainContent Component', () => {
+describe('FinchMainContent Component', () => {
     it('renders without crashing', () => {
         const { container } = renderContent();
         expect(container.firstChild).toBeInTheDocument();

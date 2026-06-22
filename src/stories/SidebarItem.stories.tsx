@@ -4,7 +4,7 @@ import React from 'react';
 import SidebarItem from '../components/SidebarItem';
 
 const meta = {
-    title: '', //phaseing out in favor of HubAppLayout
+    title: '', //phaseing out in favor of FinchAppLayout
     component: SidebarItem,
     tags: ['autodocs'],
     parameters: {

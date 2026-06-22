@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import HubAppLayout from '@/components/HubAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout';
 import Paper from '@/components/Paper';
 import { House, Joystick, StackPlus, ImageSquare } from '@phosphor-icons/react';
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -9,7 +9,7 @@ import { MemoryRouter } from 'react-router';
  * Routes Structure Documentation
  * ============================
  *
- * The HubAppLayout component expects a `routes` prop that is an array of RouteItem objects.
+ * The FinchAppLayout component expects a `routes` prop that is an array of RouteItem objects.
  * Each RouteItem defines a navigation tab/page with the following structure:
  *
  * RouteItem {
@@ -35,7 +35,7 @@ import { MemoryRouter } from 'react-router';
  *   }
  * ];
  *
- * The HubAppLayout component will:
+ * The FinchAppLayout component will:
  * 1. Create sidebar navigation tabs based on the label and icon
  * 2. Handle routing between different paths
  * 3. Render the corresponding element when a route is selected
@@ -86,8 +86,8 @@ const routes: RouteItem[] = [
 ];
 
 const meta = {
-    title: 'Layout Components/HubAppLayout',
-    component: HubAppLayout,
+    title: 'Layout Components/FinchAppLayout',
+    component: FinchAppLayout,
     tags: ['autodocs'],
     parameters: {
         layout: 'fullscreen',
@@ -96,7 +96,7 @@ const meta = {
                 component: `
 ## Routes Structure
 
-The HubAppLayout component expects a \`routes\` prop that is an array of RouteItem objects.
+The FinchAppLayout component expects a \`routes\` prop that is an array of RouteItem objects.
 Each RouteItem defines a navigation tab/page with the following structure:
 
 \`\`\`typescript
@@ -130,7 +130,7 @@ const routes: RouteItem[] = [
 
 ### Full App Example (from App.tsx):
 \`\`\`typescript
-import HubAppLayout from '@/components/HubAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout';
 import { RouteItem } from '@/types/navigationRouterTypes';
 import { House, Table, TestTube, Question } from '@phosphor-icons/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -170,7 +170,7 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <HubAppLayout
+      <FinchAppLayout
         routes={routes}
         headerTitle="Finch Dev Mode"
         headerLogoIcon={
@@ -202,7 +202,7 @@ The component uses React Router internally to manage navigation between differen
             </MemoryRouter>
         ),
     ],
-} satisfies Meta<typeof HubAppLayout>;
+} satisfies Meta<typeof FinchAppLayout>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

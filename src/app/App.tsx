@@ -7,7 +7,7 @@ import AllComponentsPage from './pages/AllComponentsPage';
 import TestPage from './pages/TestPage';
 import Documentation from './pages/Documentation';
 
-import HubAppLayout from '@/components/HubAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
@@ -59,7 +59,7 @@ function App() {
             }}
         >
             <QueryClientProvider client={queryClient}>
-                <HubAppLayout
+                <FinchAppLayout
                     routes={routes}
                     headerTitle="Finch Dev Mode"
                     headerLogoIcon={
