@@ -4,7 +4,7 @@ import React from 'react';
 import SidebarItem from '../components/SidebarItem';
 
 const meta = {
-    title: 'Layout Components/Sidebar/SidebarItem',
+    title: '', //phaseing out in favor of HubAppLayout
     component: SidebarItem,
     tags: ['autodocs'],
     parameters: {

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import DashboardPage from './DashboardPage';
 
 const meta = {
-    title: 'Layout Components/DashboardPage',
+    title: '', //old component being phased out in favor of HubAppLayout
     component: DashboardPage,
     tags: ['autodocs'],
     parameters: {
