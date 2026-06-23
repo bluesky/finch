@@ -4,10 +4,19 @@ Thank you for your interest in contributing to Finch! This document provides gui
 
 ## Development Setup
 
-1. Clone the repository:
+1. Fork the repository:
+To contribute changes, first create your own fork of this repository.
+
+- Open the repository on GitHub.
+- Click **Fork** in the upper-right corner.
+- Choose your GitHub account or organization as the destination.
+- Clone your fork locally:
+
 ```bash
-git clone https://github.com/bluesky/finch.git
-cd finch
+   git clone https://github.com/YOUR_USERNAME/finch.git
+   cd finch
+   git remote add upstream https://github.com/blueskyproject/finch.git
+
 ```
 
 2. Install dependencies:
@@ -28,11 +37,17 @@ npm run storybook
 ## Pre Commit Hooks
 Husky is used to run pre-commit hooks. To skip these and commit directly add the `-n` flag like:`git commit -m "..." -n`
 
+## Tests
+New components should have tests added for them under `src/testing/tests` using vitest. Modifications to existing components (like adding new props) should result in a new test being added.
+
+For new components, manually add the new test file to `/github/workflows/test.yml` to ensure coverage via github actions.
+
 ## Pull Request Guidelines
 
 - Ensure that you have ran `npm run test`, `npm run lint:fix`, `npm run format:fix`, and `npm run build` prior to opening a PR
 - New components should have comprehensive tests added in the `src/testing` folder.
-- Make PR's into the `Staging` branch on Finch
+- New components should have a story added onto storybook, with at least a few variants depending on the extent of props.
+- Make PR's into the `Staging` branch on Finch.
 
 ## Publishing Workflow
 
