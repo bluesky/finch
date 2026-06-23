@@ -16,7 +16,8 @@
     "deploy-storybook": "npm run build-storybook && gh-pages -d storybook-static",
     "reload-tiled": "rm -rf node_modules/@blueskyproject/tiled && npm install @blueskyproject/tiled@latest && npm run build",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "prepare": "husky"
   },
   "files": [
     "dist"
@@ -86,6 +87,7 @@
     "gh-pages": "^6.3.0",
     "globals": "^15.13.0",
     "happy-dom": "^20.8.3",
+    "husky": "^9.1.7",
     "jsdom": "^28.1.0",
     "msw": "^2.8.4",
     "msw-storybook-addon": "^2.0.4",
