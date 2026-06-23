@@ -7,7 +7,7 @@ import { useQueueQuery } from '@/api/qServer/hooks';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import ExperimentHistory from './ExperimentHistory';
-import { useSearchResultsQuery } from '@/api/tiled/hooks';
+import { useTiledSearchResultsQuery } from '@/api/tiled/hooks';
 
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
 import { PostItemAddResponse } from '@/api/qServer/types';
@@ -98,7 +98,7 @@ export default function ExperimentXASAlignment({
     const firstUserRunId = runList[0] ?? '';
 
     // Look up the first user-initiated run's metadata to extract sequence_uid.
-    const { data: firstRunMeta } = useSearchResultsQuery(
+    const { data: firstRunMeta } = useTiledSearchResultsQuery(
         {
             options: { pageLimit: 1 },
             filters: {
@@ -120,7 +120,7 @@ export default function ExperimentXASAlignment({
     // Poll Tiled for the most recent xas_alignment run started anywhere (e.g.
     // from a notebook). If its sequence_uid differs from the one being shown,
     // switch to it.
-    const { data: latestAlignmentResult } = useSearchResultsQuery(
+    const { data: latestAlignmentResult } = useTiledSearchResultsQuery(
         {
             options: { pageLimit: 1, sort: '-' },
             filters: {
@@ -146,7 +146,7 @@ export default function ExperimentXASAlignment({
     }, [userSequenceUid, externalSequenceUid, executedItemUid, viewMode, currentSequenceUid]);
 
     // ── Sibling resolution: find both runs sharing the sequence_uid ───────────
-    const { data: siblings } = useSearchResultsQuery(
+    const { data: siblings } = useTiledSearchResultsQuery(
         {
             options: { pageLimit: 5, sort: '-' },
             filters: {

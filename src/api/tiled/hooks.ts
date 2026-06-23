@@ -46,7 +46,7 @@ function useTiledBase() {
 // Full-config search
 // ---------------------------------------------------------------------------
 
-export function useSearchResultsQuery(
+export function useTiledSearchResultsQuery(
     config: Omit<TiledSearchConfig, 'baseUrl' | 'apiKey'>,
     queryOptions?: Partial<UseQueryOptions<TiledSearchResult, Error, TiledSearchResult, unknown[]>>,
 ) {
@@ -58,7 +58,7 @@ export function useSearchResultsQuery(
     });
 }
 
-export function useSearchByIdQuery(
+export function useTiledSearchByIdQuery(
     config: Omit<TiledSearchConfig, 'baseUrl' | 'apiKey'>,
     queryOptions?: Partial<
         UseQueryOptions<TiledSearchResult | null, Error, TiledSearchResult | null, unknown[]>
@@ -76,7 +76,7 @@ export function useSearchByIdQuery(
 // Convenience search hooks
 // ---------------------------------------------------------------------------
 
-export function useSearchBySpecsQuery(
+export function useTiledSearchBySpecsQuery(
     include: string[],
     exclude?: string[],
     path?: string,
@@ -91,7 +91,7 @@ export function useSearchBySpecsQuery(
     });
 }
 
-export function useSearchByFulltextQuery(
+export function useTiledSearchByFulltextQuery(
     text: string,
     path?: string,
     options?: TiledSearchOptions,
@@ -106,7 +106,7 @@ export function useSearchByFulltextQuery(
     });
 }
 
-export function useSearchByMetadataEqualsQuery(
+export function useTiledSearchByMetadataEqualsQuery(
     key: string,
     value: string,
     path?: string,
@@ -121,7 +121,7 @@ export function useSearchByMetadataEqualsQuery(
     });
 }
 
-export function useSearchByMetadataComparisonQuery(
+export function useTiledSearchByMetadataComparisonQuery(
     key: string,
     operator: 'gt' | 'gte' | 'lt' | 'lte',
     value: string,
@@ -147,7 +147,7 @@ export function useSearchByMetadataComparisonQuery(
     });
 }
 
-export function useSearchByRegexQuery(
+export function useTiledSearchByRegexQuery(
     key: string,
     pattern: string,
     caseSensitive?: boolean,
@@ -163,7 +163,7 @@ export function useSearchByRegexQuery(
     });
 }
 
-export function useSearchByStructureFamilyQuery(
+export function useTiledSearchByStructureFamilyQuery(
     structureFamily: 'container' | 'array' | 'table' | 'awkward' | 'sparse',
     path?: string,
     options?: TiledSearchOptions,
@@ -181,7 +181,7 @@ export function useSearchByStructureFamilyQuery(
 // Item data hooks
 // ---------------------------------------------------------------------------
 
-export function useItemMetadataQuery(
+export function useTiledItemMetadataQuery(
     searchPath: string,
     queryOptions?: Partial<
         UseQueryOptions<
@@ -201,7 +201,7 @@ export function useItemMetadataQuery(
     });
 }
 
-export function useBlueskyPlanMetadataQuery(
+export function useTiledBlueskyPlanMetadataQuery(
     searchPath: string,
     queryOptions?: Partial<
         UseQueryOptions<
@@ -221,7 +221,7 @@ export function useBlueskyPlanMetadataQuery(
     });
 }
 
-export function useTableDataAsSequenceQuery(
+export function useTiledTableDataAsSequenceQuery(
     searchPath: string,
     partition: number,
     queryOptions?: Partial<
@@ -237,7 +237,7 @@ export function useTableDataAsSequenceQuery(
     });
 }
 
-export function useTableDataAsJsonQuery(
+export function useTiledTableDataAsJsonQuery(
     searchPath: string,
     partition: number,
     queryOptions?: Partial<
@@ -258,7 +258,7 @@ export function useTableDataAsJsonQuery(
     });
 }
 
-export function useStructuredArrayDataQuery(
+export function useTiledStructuredArrayDataQuery(
     searchPath: string,
     block: number,
     queryOptions?: Partial<
@@ -279,7 +279,7 @@ export function useStructuredArrayDataQuery(
     });
 }
 
-export function useXArrayDataQuery(
+export function useTiledXArrayDataQuery(
     searchPath: string,
     stack: number[],
     queryOptions?: Partial<UseQueryOptions<number[][] | null, Error, number[][] | null, unknown[]>>,
@@ -297,7 +297,7 @@ export function useXArrayDataQuery(
 // Server info
 // ---------------------------------------------------------------------------
 
-export function useServerInfoQuery(
+export function useTiledServerInfoQuery(
     queryOptions?: Partial<
         UseQueryOptions<TiledInfoResponse | null, Error, TiledInfoResponse | null, unknown[]>
     >,

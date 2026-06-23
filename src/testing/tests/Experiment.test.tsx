@@ -53,7 +53,7 @@ vi.mock('@/components/Tiled/TiledWriterScatterPlot', () => ({
 }));
 
 vi.mock('@/api/tiled/hooks', () => ({
-    useSearchResultsQuery: vi.fn(() => ({ data: undefined })),
+    useTiledSearchResultsQuery: vi.fn(() => ({ data: undefined })),
 }));
 
 vi.mock('../../components/Tiled/TiledWriterDetImageHeatmap', () => ({

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useSearchByIdQuery } from '@/api/tiled/hooks';
+import { useTiledSearchByIdQuery } from '@/api/tiled/hooks';
 import { checkRunCompletion } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
@@ -41,7 +41,7 @@ export const useTiledWriterScatterPlot = (
     const hasRunId = !!blueskyRunId && blueskyRunId.trim() !== '';
 
     // Step 1: Verify the run exists in Tiled. Retries every 2 s until found (unless finished).
-    const runQuery = useSearchByIdQuery(
+    const runQuery = useTiledSearchByIdQuery(
         { path: blueskyRunId },
         {
             enabled: hasRunId,
@@ -52,7 +52,7 @@ export const useTiledWriterScatterPlot = (
     const runExists = !!runQuery.data;
 
     // Step 2: Fetch the primary path directly under the run ID.
-    const directQuery = useSearchByIdQuery(
+    const directQuery = useTiledSearchByIdQuery(
         { path: `${blueskyRunId}/primary` },
         {
             enabled: runExists,

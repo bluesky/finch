@@ -220,6 +220,25 @@ export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocke
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
 
+// TILED HOOKS
+export {
+    useTiledSearchResultsQuery,
+    useTiledSearchByIdQuery,
+    useTiledSearchBySpecsQuery,
+    useTiledSearchByFulltextQuery,
+    useTiledSearchByMetadataEqualsQuery,
+    useTiledSearchByMetadataComparisonQuery,
+    useTiledSearchByRegexQuery,
+    useTiledSearchByStructureFamilyQuery,
+    useTiledItemMetadataQuery,
+    useTiledBlueskyPlanMetadataQuery,
+    useTiledTableDataAsSequenceQuery,
+    useTiledTableDataAsJsonQuery,
+    useTiledStructuredArrayDataQuery,
+    useTiledXArrayDataQuery,
+    useTiledServerInfoQuery,
+} from './api/tiled/hooks';
+
 // OPHYD TYPES
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
 export * as OphydPVSocketTypes from './api/ophyd/ophydPVSocketTypes';

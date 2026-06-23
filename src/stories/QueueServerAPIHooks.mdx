@@ -1,0 +1,419 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Documentation/Queue Server API Hooks" />
+
+# Queue Server API Hooks
+
+Finch exposes react-query hooks for every Queue Server (bluesky-queueserver) endpoint. All hooks read their backend URL and API key from `FinchConfigProvider` — see the **Configuration** page for setup.
+
+**Requirements:**
+- `QueryClientProvider` must wrap your component tree (react-query)
+- `FinchConfigProvider` must be configured with the Queue Server HTTP base URL
+
+---
+
+## Setup
+
+```tsx
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { FinchConfigProvider } from '@blueskyproject/finch';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <FinchConfigProvider config={{ qServerUrl: 'http://localhost:60610' }}>
+        <YourApp />
+      </FinchConfigProvider>
+    </QueryClientProvider>
+  );
+}
+```
+
+---
+
+## Query hooks
+
+All query hooks accept an optional `queryOptions` argument that is passed through to react-query's `useQuery`. Use it to configure polling intervals, stale time, conditional enabling, and more.
+
+```tsx
+// Poll every 2 seconds
+useStatusQuery({ refetchInterval: 2000 });
+
+// Only fetch when the user is authenticated
+useQueueQuery({ enabled: isAuthenticated });
+
+// Cache for 30 seconds before re-fetching in the background
+usePlansAllowedQuery({ staleTime: 30_000 });
+```
+
+---
+
+### `useStatusQuery`
+
+Returns the current RunEngine and environment status.
+
+```tsx
+import { useStatusQuery } from '@blueskyproject/finch';
+
+function StatusBadge() {
+  const { data: status, isLoading } = useStatusQuery({ refetchInterval: 2000 });
+
+  if (isLoading) return <span>Loading...</span>;
+
+  return (
+    <div>
+      <p>Manager state: {status?.manager_state}</p>
+      <p>Environment: {status?.worker_environment_state}</p>
+      <p>RE state: {status?.re_state}</p>
+      <p>Queue size: {status?.items_in_queue}</p>
+      <p>Running: {status?.items_in_history} completed</p>
+    </div>
+  );
+}
+```
+
+**Query key:** `['qserver', 'status']`
+
+---
+
+### `useQueueQuery`
+
+Returns the list of items currently in the queue.
+
+```tsx
+import { useQueueQuery } from '@blueskyproject/finch';
+
+function QueueList() {
+  const { data: queue } = useQueueQuery({ refetchInterval: 1000 });
+
+  return (
+    <ul>
+      {queue?.items.map((item) => (
+        <li key={item.item_uid}>
+          {item.name} — uid: {item.item_uid}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Query key:** `['qserver', 'queue']`
+
+---
+
+### `useQueueHistoryQuery`
+
+Returns the execution history of completed queue items.
+
+```tsx
+import { useQueueHistoryQuery } from '@blueskyproject/finch';
+
+function HistoryList() {
+  const { data: history } = useQueueHistoryQuery();
+
+  return (
+    <ul>
+      {history?.items.map((item) => (
+        <li key={item.item_uid}>
+          {item.name} — result: {item.result?.exit_status}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Query key:** `['qserver', 'history']`
+
+---
+
+### `usePlansAllowedQuery`
+
+Returns the list of plans allowed on this Queue Server instance.
+
+```tsx
+import { usePlansAllowedQuery } from '@blueskyproject/finch';
+
+function PlanSelector() {
+  const { data } = usePlansAllowedQuery();
+
+  return (
+    <select>
+      {Object.keys(data?.plans_allowed ?? {}).map((planName) => (
+        <option key={planName} value={planName}>{planName}</option>
+      ))}
+    </select>
+  );
+}
+```
+
+**Query key:** `['qserver', 'plansAllowed']`
+
+---
+
+### `useDevicesAllowedQuery`
+
+Returns the list of devices allowed on this Queue Server instance.
+
+```tsx
+import { useDevicesAllowedQuery } from '@blueskyproject/finch';
+
+function DeviceList() {
+  const { data } = useDevicesAllowedQuery();
+
+  return (
+    <ul>
+      {Object.keys(data?.devices_allowed ?? {}).map((name) => (
+        <li key={name}>{name}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Query key:** `['qserver', 'devicesAllowed']`
+
+---
+
+### `useQueueItemQuery`
+
+Returns details for a specific queue item by UID. Automatically disabled when `itemUid` is `undefined`.
+
+```tsx
+import { useQueueItemQuery } from '@blueskyproject/finch';
+
+function QueueItemDetail({ uid }: { uid: string | undefined }) {
+  const { data: item } = useQueueItemQuery(uid);
+
+  if (!item) return null;
+
+  return (
+    <div>
+      <p>Plan: {item.item?.name}</p>
+      <p>UID: {item.item?.item_uid}</p>
+    </div>
+  );
+}
+```
+
+**Parameters:** `(itemUid: string | undefined, queryOptions?)`
+
+**Query key:** `['qserver', 'queueItem', itemUid]`
+
+---
+
+### `useRunsActiveQuery`
+
+Returns the list of currently active (running) Bluesky runs.
+
+```tsx
+import { useRunsActiveQuery } from '@blueskyproject/finch';
+
+function ActiveRuns() {
+  const { data } = useRunsActiveQuery({ refetchInterval: 1000 });
+
+  return (
+    <ul>
+      {data?.run_list?.map((run) => (
+        <li key={run.uid}>{run.uid}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+**Query key:** `['qserver', 'runsActive']`
+
+---
+
+## Mutation hooks
+
+Mutation hooks use react-query's `useMutation` and automatically invalidate related queries on success so your UI stays in sync without manual refetches.
+
+### RunEngine lifecycle mutations
+
+```tsx
+import {
+  useOpenEnvironmentMutation,
+  useStartREMutation,
+  usePauseREMutation,
+  useResumeREMutation,
+  useAbortREMutation,
+} from '@blueskyproject/finch';
+
+function REControls() {
+  const openEnv = useOpenEnvironmentMutation();
+  const startRE = useStartREMutation();
+  const pauseRE = usePauseREMutation();
+  const resumeRE = useResumeREMutation();
+  const abortRE = useAbortREMutation();
+
+  return (
+    <div>
+      <button onClick={() => openEnv.mutate()}>Open environment</button>
+      <button onClick={() => startRE.mutate()}>Start queue</button>
+      <button onClick={() => pauseRE.mutate()}>Pause</button>
+      <button onClick={() => resumeRE.mutate()}>Resume</button>
+      <button onClick={() => abortRE.mutate()}>Abort</button>
+    </div>
+  );
+}
+```
+
+| Hook | Invalidates on success |
+|---|---|
+| `useOpenEnvironmentMutation` | `status` |
+| `useStartREMutation` | `status`, `queue` |
+| `usePauseREMutation` | `status` |
+| `useResumeREMutation` | `status` |
+| `useAbortREMutation` | `status`, `queue`, `runsActive` |
+
+---
+
+### `useAddQueueItemMutation`
+
+Adds a plan to the queue.
+
+```tsx
+import { useAddQueueItemMutation } from '@blueskyproject/finch';
+
+function AddPlanButton() {
+  const addItem = useAddQueueItemMutation();
+
+  const handleAdd = () => {
+    addItem.mutate({
+      item: {
+        name: 'count',
+        args: [['det']],
+        kwargs: { num: 5, delay: 0.1 },
+        item_type: 'plan',
+      },
+      pos: 'back',
+    });
+  };
+
+  return (
+    <button onClick={handleAdd} disabled={addItem.isPending}>
+      {addItem.isPending ? 'Adding...' : 'Add to queue'}
+    </button>
+  );
+}
+```
+
+**Parameter:** `AddQueueItemBody`
+
+**Invalidates on success:** `queue`, `history`
+
+---
+
+### `useExecuteQueueItemMutation`
+
+Immediately executes a single plan item (outside the queue).
+
+```tsx
+import { useExecuteQueueItemMutation } from '@blueskyproject/finch';
+
+function RunNowButton() {
+  const execute = useExecuteQueueItemMutation();
+
+  return (
+    <button
+      onClick={() =>
+        execute.mutate({
+          item: {
+            name: 'count',
+            args: [['det']],
+            kwargs: { num: 1 },
+            item_type: 'plan',
+          },
+        })
+      }
+    >
+      Run now
+    </button>
+  );
+}
+```
+
+**Parameter:** `ExecuteQueueItemBody`
+
+**Invalidates on success:** `queue`, `status`, `runsActive`
+
+---
+
+### `useRemoveQueueItemMutation`
+
+Removes an item from the queue by UID.
+
+```tsx
+import { useRemoveQueueItemMutation } from '@blueskyproject/finch';
+
+function RemoveButton({ uid }: { uid: string }) {
+  const remove = useRemoveQueueItemMutation();
+
+  return (
+    <button onClick={() => remove.mutate({ uid })}>
+      Remove
+    </button>
+  );
+}
+```
+
+**Parameter:** `RemoveQueueItemBody`
+
+**Invalidates on success:** `queue`, `history`
+
+---
+
+## Combined example
+
+A realistic panel showing live status polling alongside queue control mutations:
+
+```tsx
+import {
+  useStatusQuery,
+  useQueueQuery,
+  useOpenEnvironmentMutation,
+  useStartREMutation,
+  useAddQueueItemMutation,
+} from '@blueskyproject/finch';
+
+function QServerPanel() {
+  const { data: status } = useStatusQuery({ refetchInterval: 2000 });
+  const { data: queue } = useQueueQuery({ refetchInterval: 2000 });
+  const openEnv = useOpenEnvironmentMutation();
+  const startRE = useStartREMutation();
+  const addItem = useAddQueueItemMutation();
+
+  const isReady = status?.manager_state === 'idle';
+
+  return (
+    <div>
+      <p>State: {status?.manager_state ?? '—'}</p>
+      <p>Queue: {queue?.items.length ?? 0} items</p>
+
+      <button onClick={() => openEnv.mutate()} disabled={!isReady}>
+        Open environment
+      </button>
+
+      <button
+        onClick={() =>
+          addItem.mutate({
+            item: { name: 'count', args: [['det']], kwargs: { num: 5 }, item_type: 'plan' },
+            pos: 'back',
+          })
+        }
+      >
+        Add plan
+      </button>
+
+      <button onClick={() => startRE.mutate()} disabled={!isReady}>
+        Start queue
+      </button>
+    </div>
+  );
+}
+```
