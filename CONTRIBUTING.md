@@ -25,10 +25,21 @@ npm run dev
 npm run storybook
 ```
 
+## Pre Commit Hooks
+Husky is used to run pre-commit hooks. To skip these and commit directly add the `-n` flag like:`git commit -m "..." -n`
+
+## Pull Request Guidelines
+
+- Ensure that you have ran `npm run test`, `npm run lint:fix`, `npm run format:fix`, and `npm run build` prior to opening a PR
+- New components should have comprehensive tests added in the `src/testing` folder.
+- Make PR's into the `Staging` branch on Finch
+
 ## Publishing Workflow
 
 ### Updating the NPM Package
-Future configuration will likely support automatic npm builds through gh actions, but currently manual updates are required.
+NPM packages are created whenever a new release is made via github actions. To support this, the staging branch should have incremented the NPM version prior to merging into main.
+
+Outside of github actions, the general procedure is outlined below.
 
 First commit any changes so your working tree is clean
 
@@ -55,6 +66,8 @@ To verify what you're about to publish, you can check out the /dist folder.
 The build can be viewed at [https://www.npmjs.com/package/@blueskyproject/finch](https://www.npmjs.com/package/@blueskyproject/finch).
 
 ### Updating Storybook on GH Pages
+Storybook is updated automatically via github actions on merges into main. Manual update methods are shown below.
+
 Please note that storybook on gh pages is hosted with a /finch path, and local development is served at /. The storybook manager and service worker are configured to look at the current path before deciding where to make files available at.
 
 After making changes to Storybook, commit.
@@ -66,25 +79,6 @@ npm run deploy-storybook
 ```
 
 This will run the build process, upload the files to the gh-pages branch, and deploy the static files at [https://blueskyproject.io/finch/](https://blueskyproject.io/finch/).
-
-## Environment Variables
-
-When developing, you can set up environment variables in a `.env` file to configure the various backend services:
-
-| Service  | Environment Variables | Default Value | Description |
-| :---- | :---- | :---- | :---- |
-| [Tiled](https://github.com/bluesky/tiled) | `VITE_API_TILED_URL` | `http://localhost:8000/api/v1` | Base URL for Tiled API endpoints |
-| [Tiled](https://github.com/bluesky/tiled) | `VITE_API_TILED_API_KEY` | None | API key for authenticated Tiled requests |
-| [Queue Server API](https://github.com/bluesky/bluesky-httpserver) | `VITE_QSERVER_REST` | `http://localhost:60610` | REST API endpoint for Queue Server |
-| [Queue Server](https://github.com/bluesky/bluesky-queueserver) | `VITE_QSERVER_WS` | `ws://localhost:8000/queue_server` | WebSocket endpoint for Queue Server |
-| Camera Service | `VITE_CAMERA_WS` | `ws://localhost:8000/pvcamera` | WebSocket endpoint for camera feeds |
-
-## Pull Request Guidelines
-
-- Ensure your code follows the existing style conventions
-- Test your changes thoroughly
-- Update documentation if necessary
-- Keep commits focused and atomic
 
 ## Related Projects
 
