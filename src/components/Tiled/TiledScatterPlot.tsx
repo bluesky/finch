@@ -7,6 +7,8 @@ import { getTableDataAsJson } from '@blueskyproject/tiled';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 
 type TiledScatterPlotProps = {
+    /**Bluesky Run ID saved into Tiled */
+    blueskyRunId: string;
     /** Trace descriptor mapping Plotly fields to table column names for x and y axes. */
     tiledTrace: TiledPlotlyTrace;
     /** Tiled path to the table node (e.g. `'/uid/streams/primary/internal'`). `null` shows a waiting message. */
@@ -26,6 +28,7 @@ type TiledScatterPlotProps = {
 };
 
 export default function TiledScatterPlot({
+    blueskyRunId,
     tiledTrace,
     path,
     partition = 0,
@@ -88,12 +91,16 @@ export default function TiledScatterPlot({
                 className,
             )}
         >
-            <div className="text-sm text-gray-600 h-8">{getStatusText()}</div>
+            <span className="flex items-center h-8 space-x-8">
+                <p className="text-sm text-gray-600">{getStatusText()}</p>
+            </span>
             <PlotlyScatter
                 data={plotData}
                 xAxisTitle={xName}
                 yAxisTitle={yName}
                 className={plotClassName}
+                title={'bluesky run: ' + blueskyRunId}
+                layout={{ plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff' }}
             />
         </div>
     );

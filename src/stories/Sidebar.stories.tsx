@@ -4,7 +4,7 @@ import React from 'react';
 import Sidebar from '../components/Sidebar';
 
 const meta = {
-    title: 'Layout Components/Sidebar',
+    title: '', //phaseing out in favor of FinchAppLayout
     component: Sidebar,
     tags: ['autodocs'],
     parameters: {

@@ -3,11 +3,20 @@ import { describe, it, expect, vi } from 'vitest';
 import PlotlyScatter from '../../components/PlotlyScatter';
 
 vi.mock('react-plotly.js', () => ({
-    default: ({ data, layout }: { data: unknown; layout: Record<string, unknown> }) => (
+    default: ({
+        data,
+        layout,
+        config,
+    }: {
+        data: unknown;
+        layout: Record<string, unknown>;
+        config: Record<string, unknown>;
+    }) => (
         <div
             data-testid="plotly-plot"
             data-trace-count={Array.isArray(data) ? data.length : 0}
             data-title={(layout?.title as string) ?? ''}
+            data-config={JSON.stringify(config ?? {})}
         />
     ),
 }));
@@ -43,6 +52,31 @@ describe('PlotlyScatter Component', () => {
     it('passes title to the plot layout', () => {
         render(<PlotlyScatter data={sampleTrace} title="My Chart" />);
         expect(screen.getByTestId('plotly-plot')).toHaveAttribute('data-title', 'My Chart');
+    });
+
+    it('defaults config to responsive when no config prop is provided', () => {
+        render(<PlotlyScatter data={sampleTrace} />);
+        const config = JSON.parse(
+            screen.getByTestId('plotly-plot').getAttribute('data-config') ?? '{}',
+        );
+        expect(config).toEqual({ responsive: true });
+    });
+
+    it('passes config options through to the plot', () => {
+        render(<PlotlyScatter data={sampleTrace} config={{ displayModeBar: false }} />);
+        const config = JSON.parse(
+            screen.getByTestId('plotly-plot').getAttribute('data-config') ?? '{}',
+        );
+        // User-provided options are merged on top of the responsive default.
+        expect(config).toEqual({ responsive: true, displayModeBar: false });
+    });
+
+    it('lets the config prop override the responsive default', () => {
+        render(<PlotlyScatter data={sampleTrace} config={{ responsive: false }} />);
+        const config = JSON.parse(
+            screen.getByTestId('plotly-plot').getAttribute('data-config') ?? '{}',
+        );
+        expect(config.responsive).toBe(false);
     });
 
     it('applies custom className to the container', () => {

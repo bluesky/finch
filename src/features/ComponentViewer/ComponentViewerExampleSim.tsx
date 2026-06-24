@@ -57,7 +57,14 @@ export default function ComponentViewerExampleSim() {
         },
         SimMonitor2: {
             name: 'Histogram',
-            element: <Histogram arrayPV="fake array" acquirePV="fake acquire" demo={true} />,
+            element: (
+                <Histogram
+                    arrayPV="fake array"
+                    acquirePV="fake acquire"
+                    exposurePV="fake exposure"
+                    demo={true}
+                />
+            ),
             info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
         },
     };

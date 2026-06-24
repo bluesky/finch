@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import HubSidebar from '../../components/HubSidebar';
+import FinchSidebar from '../../components/FinchSidebar';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const mockRoutes: RouteItem[] = [
@@ -13,12 +13,12 @@ const mockRoutes: RouteItem[] = [
 function renderSidebar(initialPath = '/home', props = {}) {
     return render(
         <MemoryRouter initialEntries={[initialPath]}>
-            <HubSidebar routes={mockRoutes} {...props} />
+            <FinchSidebar routes={mockRoutes} {...props} />
         </MemoryRouter>,
     );
 }
 
-describe('HubSidebar Component', () => {
+describe('FinchSidebar Component', () => {
     it('renders without crashing', () => {
         const { container } = renderSidebar();
         expect(container.firstChild).toBeInTheDocument();
@@ -68,7 +68,7 @@ describe('HubSidebar Component', () => {
         ];
         render(
             <MemoryRouter initialEntries={['/home']}>
-                <HubSidebar routes={routesWithIcons} />
+                <FinchSidebar routes={routesWithIcons} />
             </MemoryRouter>,
         );
         expect(screen.getByTestId('home-icon')).toBeInTheDocument();
@@ -87,7 +87,7 @@ describe('HubSidebar Component', () => {
     it('renders an empty sidebar when routes is an empty array', () => {
         render(
             <MemoryRouter>
-                <HubSidebar routes={[]} />
+                <FinchSidebar routes={[]} />
             </MemoryRouter>,
         );
         expect(screen.queryByRole('link')).not.toBeInTheDocument();

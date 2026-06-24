@@ -1,0 +1,216 @@
+import { Meta } from '@storybook/blocks';
+import OphydHooksDemo from './demos/OphydHooksDemo';
+
+<Meta title="Documentation/Ophyd API Hooks" />
+
+# Ophyd API Hooks
+
+Finch provides WebSocket-based hooks for real-time EPICS PV and Ophyd device communication. These hooks manage their own WebSocket connections and have **no react-query dependency** — they can be used without a `QueryClientProvider`.
+
+All hooks read their backend URL from `FinchConfigProvider` by default. See the **Configuration** page for setup details.
+
+---
+
+## `useOphydPVSocket`
+
+Connects to the Ophyd WebSocket server and subscribes to live EPICS PV updates. This is the primary hook for interacting with individual process variables.
+
+```tsx
+import { useOphydPVSocket } from '@blueskyproject/finch';
+
+function DevicePanel() {
+  const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+    useOphydPVSocket(['IOC:m1', 'IOC:m2']);
+
+  const motor = devices['IOC:m1'];
+
+  return (
+    <div>
+      <p>Value: {motor?.value} {motor?.units}</p>
+      <p>Connected: {motor?.connected ? 'yes' : 'no'}</p>
+      <button
+        disabled={motor?.locked}
+        onClick={() => handleSetValueRequest('IOC:m1', 5.0)}
+      >
+        Move to 5
+      </button>
+      <button onClick={() => toggleDeviceLock('IOC:m1')}>
+        {motor?.locked ? 'Unlock' : 'Lock'}
+      </button>
+    </div>
+  );
+}
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `deviceNameList` | `string[]` | EPICS PV names to subscribe to |
+| `wsUrl` | `string?` | WebSocket URL override. Defaults to `FinchConfigProvider` → env var → `ws://localhost:8001` |
+
+### Return value
+
+```ts
+{
+  devices: Devices;                                                        // keyed by PV name
+  handleSetValueRequest: (deviceName: string, value: string | number | boolean) => void;
+  toggleDeviceLock: (deviceName: string) => void;
+  toggleExpand: (deviceName: string) => void;
+}
+```
+
+### `Devices` object shape
+
+`devices` is a dictionary keyed by PV name. Each entry has the following shape:
+
+```ts
+{
+  name: string;         // PV name
+  pv: string;           // same as name
+  value: string;        // current value (as string)
+  connected: boolean;   // EPICS connection status
+  locked: boolean;      // UI lock — set via toggleDeviceLock
+  expanded: boolean;    // UI expand state — set via toggleExpand
+  timestamp: number;    // last update timestamp
+  units?: string;       // physical unit (e.g. "mm", "eV")
+  min?: number;         // lower control limit
+  max?: number;         // upper control limit
+  read_access: boolean;
+  write_access: boolean;
+}
+```
+
+### WebSocket protocol
+
+On connection, the hook sends a `subscribe` message for each PV:
+
+```json
+{ "action": "subscribe", "pv": "IOC:m1" }
+```
+
+To update a value, `handleSetValueRequest` sends:
+
+```json
+{ "action": "set", "pv": "IOC:m1", "value": 5.0 }
+```
+
+The server sends back two message types:
+- **meta** (`sub_type: "meta"`) — delivered on first subscription and on reconnects; carries `connected`, `units`, `lower_ctrl_limit`, `upper_ctrl_limit`.
+- **value updates** — delivered on each PV change; carries `value`, `timestamp`, `connected`.
+
+---
+
+## `useOphydDeviceSocket`
+
+Connects via **Ophyd device names** rather than raw EPICS PVs. Use this when your backend exposes higher-level Ophyd device objects instead of individual PV addresses.
+
+```tsx
+import { useOphydDeviceSocket } from '@blueskyproject/finch';
+
+function DevicePanel() {
+  const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+    useOphydDeviceSocket(['det', 'motor1']);
+
+  return (
+    <div>
+      <p>Motor position: {devices['motor1']?.value}</p>
+      <button onClick={() => handleSetValueRequest('motor1', 10.0)}>
+        Move to 10
+      </button>
+    </div>
+  );
+}
+```
+
+### Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `deviceNameList` | `string[]` | Ophyd device names to subscribe to |
+| `wsUrl` | `string?` | WebSocket URL override. Defaults to `FinchConfigProvider` device-socket URL |
+
+### Return value
+
+Same shape as `useOphydPVSocket`, but `devices` entries use `device` key instead of `pv`:
+
+```ts
+{
+  devices: OphydDevices;   // keyed by device name
+  handleSetValueRequest: (deviceName: string, value: string | number | boolean) => void;
+  toggleDeviceLock: (deviceName: string) => void;
+  toggleExpand: (deviceName: string) => void;
+}
+```
+
+### Protocol difference from `useOphydPVSocket`
+
+Subscribe message uses `device` instead of `pv`:
+
+```json
+{ "action": "subscribe", "device": "motor1" }
+```
+
+Set-value message:
+
+```json
+{ "action": "set", "device": "motor1", "value": 10.0 }
+```
+
+---
+
+## `useSimOphydPVSocket`
+
+A drop-in simulation replacement for `useOphydPVSocket` that requires **no backend**. Useful for development, testing, and Storybook stories.
+
+```tsx
+import { useSimOphydPVSocket } from '@blueskyproject/finch';
+
+function DevicePanel() {
+  const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
+    useSimOphydPVSocket(['sineSignal', 'noisySignal', 'motor1']);
+
+  return (
+    <div>
+      <p>Sine: {devices['sineSignal']?.value}</p>
+      <p>Noisy: {devices['noisySignal']?.value}</p>
+      <p>Motor: {devices['motor1']?.value}</p>
+      <button onClick={() => handleSetValueRequest('motor1', 42)}>Set motor to 42</button>
+    </div>
+  );
+}
+```
+
+### Special device names
+
+| Name | Behavior |
+|---|---|
+| `"sineSignal"` | Animated sine wave value, updates continuously |
+| `"noisySignal"` | Random noise value, updates continuously |
+| Any other name | Static simulated device; value responds to `handleSetValueRequest` |
+
+### Parameters and return value
+
+Identical to `useOphydPVSocket`. The `wsUrl` parameter is accepted but ignored — no real connection is made.
+
+### Live demo (no backend required)
+
+<div style={{padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0'}}>
+  <OphydHooksDemo />
+</div>
+
+---
+
+## `useOphydSocket` — deprecated
+
+`useOphydSocket` is a thin backwards-compatibility alias that delegates directly to `useOphydPVSocket`. It has the same signature and return value.
+
+```tsx
+// Prefer this:
+import { useOphydPVSocket } from '@blueskyproject/finch';
+
+// Instead of:
+import { useOphydSocket } from '@blueskyproject/finch'; // deprecated
+```
+
+Both are exported from `@blueskyproject/finch` for now. Use `useOphydPVSocket` in new code.

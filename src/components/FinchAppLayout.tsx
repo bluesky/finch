@@ -1,11 +1,11 @@
-import HubHeader from '@/components/HubHeader';
-import HubMainContent from '@/components/HubMainContent';
-import HubSidebar from '@/components/HubSidebar';
+import FinchHeader from '@/components/FinchHeader';
+import FinchMainContent from '@/components/FinchMainContent';
+import FinchSidebar from '@/components/FinchSidebar';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 
-export type HubAppLayoutProps = {
+export type FinchAppLayoutProps = {
     /** Route definitions used to populate the sidebar navigation and render the main content area. */
     routes: RouteItem[];
     /** Title text displayed in the header. */
@@ -31,10 +31,12 @@ export type HubAppLayoutProps = {
     classNameSidebarActiveLink?: string;
     /** Additional CSS classes applied to inactive sidebar links. */
     classNameSidebarInactiveLink?: string;
+    /** Additional CSS classes applied to the image within the header. */
+    classNameImage?: string;
     /** Additional CSS classes applied to the root layout element. */
     className?: string;
 };
-export default function HubAppLayout({
+export default function FinchAppLayout({
     routes,
     headerTitle,
     headerLogoUrl,
@@ -46,9 +48,10 @@ export default function HubAppLayout({
     classNameSidebar,
     classNameSidebarActiveLink,
     classNameSidebarInactiveLink,
+    classNameImage,
     className,
     ...props
-}: HubAppLayoutProps) {
+}: FinchAppLayoutProps) {
     return (
         <div
             className={cn(
@@ -57,20 +60,21 @@ export default function HubAppLayout({
             )}
             {...props}
         >
-            <HubSidebar
+            <FinchSidebar
                 routes={routes}
                 className={classNameSidebar}
                 classNameActiveLink={classNameSidebarActiveLink}
                 classNameInactiveLink={classNameSidebarInactiveLink}
             />
-            <HubHeader
+            <FinchHeader
                 title={headerTitle}
                 logoUrl={headerLogoUrl}
                 logoIcon={headerLogoIcon}
                 className={classNameHeader}
                 classNameTitle={classNameHeaderTitle}
+                classNameImage={classNameImage}
             />
-            <HubMainContent
+            <FinchMainContent
                 routes={routes}
                 className={cn('h-[calc(100vh-4rem)]', classNameMainContent)}
                 classNameInnerContainer={classNameMainContentInnerContainer}

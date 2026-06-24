@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-export type HubHeaderProps = {
+export type FinchHeaderProps = {
     /** Title text displayed in the header. */
     title?: string;
     /** URL of the logo image displayed in the header. Ignored when `logoIcon` is provided. */
@@ -35,7 +35,7 @@ export default function HubHeader({
     classNameTitle,
     rightSlot,
     ...props
-}: HubHeaderProps) {
+}: FinchHeaderProps) {
     return (
         <header
             className={cn('bg-white h-16 flex justify-between items-center', className)}

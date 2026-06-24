@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import Plot, { PlotParams } from 'react-plotly.js';
-import { LayoutAxis } from 'plotly.js';
+import { Layout, LayoutAxis } from 'plotly.js';
 import { cn } from '@/lib/utils';
 
 export type PlotlyScatterProps = {
@@ -20,8 +20,12 @@ export type PlotlyScatterProps = {
     xAxisLayout?: Partial<LayoutAxis>;
     /** Additional Plotly yaxis layout overrides merged on top of defaults. */
     yAxisLayout?: Partial<LayoutAxis>;
+    /** Plotly layout overrides — merged on top of defaults, user values take precedence. */
+    layout?: Partial<Layout>;
     /** Additional CSS classes applied to the root container div. */
     className?: string;
+    /** Plotly configuration options. */
+    config?: Partial<PlotParams['config']>;
 };
 
 const sampleData: PlotParams['data'] = [
@@ -48,6 +52,7 @@ const PlotlyScatter = React.memo(function PlotlyScatter({
     yAxisRange,
     xAxisLayout,
     yAxisLayout,
+    layout,
     className,
     ...props
 }: PlotlyScatterProps) {
@@ -105,8 +110,9 @@ const PlotlyScatter = React.memo(function PlotlyScatter({
                         t: 30,
                         b: xAxisTitle ? 70 : 30,
                     },
+                    ...layout,
                 }}
-                config={{ responsive: true }}
+                config={{ responsive: true, ...props.config }}
             />
         </div>
     );
