@@ -3,6 +3,8 @@ type HistogramProps = {
     arrayPV: string;
     /** EPICS PV name for the acquire control (1 = start, 0 = stop). */
     acquirePV: string;
+    /** EPICS PV name for the exposure setting (default value is in seconds) */
+    exposurePV: string;
     /** When `true`, renders the `HistogramDeviceController` below the plot. */
     showDeviceController?: boolean;
     /** When `true`, renders plot settings controls inside `HistogramPlot`. */
@@ -19,7 +21,9 @@ type HistogramProps = {
     demo?: boolean;
     /** Number of significant figures for sum displays in the plot. Defaults to `6`. */
     precision?: number;
+    /** Title displayed at the top of the plot */
+    title?: string;
 };
-export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision, }: HistogramProps): import("react/jsx-runtime").JSX.Element;
+export default function Histogram({ arrayPV, acquirePV, exposurePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision, title, }: HistogramProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Histogram.d.ts.map

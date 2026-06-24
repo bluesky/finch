@@ -1,5 +1,7 @@
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 type TiledScatterPlotProps = {
+    /**Bluesky Run ID saved into Tiled */
+    blueskyRunId: string;
     /** Trace descriptor mapping Plotly fields to table column names for x and y axes. */
     tiledTrace: TiledPlotlyTrace;
     /** Tiled path to the table node (e.g. `'/uid/streams/primary/internal'`). `null` shows a waiting message. */
@@ -17,6 +19,6 @@ type TiledScatterPlotProps = {
     /** Additional class names applied to the `PlotlyScatter` element. */
     plotClassName?: string;
 };
-export default function TiledScatterPlot({ tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, className, plotClassName, }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledScatterPlot({ blueskyRunId, tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, className, plotClassName, }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledScatterPlot.d.ts.map

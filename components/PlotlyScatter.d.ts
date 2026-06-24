@@ -1,6 +1,6 @@
 import { default as React } from '../../node_modules/react';
 import { PlotParams } from 'react-plotly.js';
-import { LayoutAxis } from 'plotly.js';
+import { Layout, LayoutAxis } from 'plotly.js';
 export type PlotlyScatterProps = {
     /** Plotly trace array to render. Defaults to a sample line+marker dataset. */
     data: PlotParams['data'];
@@ -18,8 +18,12 @@ export type PlotlyScatterProps = {
     xAxisLayout?: Partial<LayoutAxis>;
     /** Additional Plotly yaxis layout overrides merged on top of defaults. */
     yAxisLayout?: Partial<LayoutAxis>;
+    /** Plotly layout overrides — merged on top of defaults, user values take precedence. */
+    layout?: Partial<Layout>;
     /** Additional CSS classes applied to the root container div. */
     className?: string;
+    /** Plotly configuration options. */
+    config?: Partial<PlotParams['config']>;
 };
 declare const PlotlyScatter: React.NamedExoticComponent<PlotlyScatterProps>;
 export default PlotlyScatter;
