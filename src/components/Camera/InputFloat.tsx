@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 
 type InputFloatProps = {
     /** Display label shown to the left of the number input. */
@@ -8,11 +8,15 @@ type InputFloatProps = {
     /** When `true`, prevents interaction and renders the input in a disabled style. */
     isDisabled?: boolean;
 };
-export default function InputFloat ({label='', onSubmit=(input)=>console.log('submit: ' + input), isDisabled=false }: InputFloatProps) {
+export default function InputFloat({
+    label = '',
+    onSubmit = (input) => console.log('submit: ' + input),
+    isDisabled = false,
+}: InputFloatProps) {
     const [value, setValue] = useState<number | string>('');
-    const handleChange = (e:React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
-        if (!isNaN(parseFloat(newValue)) || newValue==='') {
+        if (!isNaN(parseFloat(newValue)) || newValue === '') {
             if (newValue === '') {
                 setValue('');
             } else {
@@ -21,8 +25,8 @@ export default function InputFloat ({label='', onSubmit=(input)=>console.log('su
         }
     };
 
-    const handleKeyPress = (e:React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
             if (typeof value === 'number') {
                 onSubmit(value);
             }
@@ -30,16 +34,18 @@ export default function InputFloat ({label='', onSubmit=(input)=>console.log('su
     };
 
     return (
-        <label className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between text-lg`}>
+        <label
+            className={`${isDisabled ? 'text-slate-400' : 'text-black'} w-full max-w-64 flex justify-between text-lg`}
+        >
             {label}
             <input
                 disabled={isDisabled}
-                type="number" 
-                value={value} 
-                className={`${isDisabled ? 'hover:cursor-not-allowed text-slate-400' : 'text-black'} w-1/2 border border-slate-300 pl-2`} 
-                onKeyDown={handleKeyPress} 
+                type="number"
+                value={value}
+                className={`${isDisabled ? 'hover:cursor-not-allowed text-slate-400' : 'text-black'} w-1/2 border border-slate-300 pl-2`}
+                onKeyDown={handleKeyPress}
                 onChange={handleChange}
             />
         </label>
-    )
+    );
 }

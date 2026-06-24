@@ -15,7 +15,7 @@
 //  * @param {Array} settings - Optional array of setting suffixes. Defaults to ADSimDetector
 //  * @param {boolean} enableControlPanel - Optional boolean. True = connect acquire PV to web socket, False = do nothing
 //  * @param {boolean} enableSettings - Optional boolean. True = connect settings PVs to web socket, False = do nothing
-//  * 
+//  *
 //  * @returns {Object} An object containing state variables, WebSocket connections, and control functions for camera operations:
 //  * - **cameraControlPV**: A React state object representing the control PV state, including properties like `value`, `lastUpdate`, `pv`, and `isConnected`.
 //  * - **cameraSettingsPVs**: A React state object containing the settings PVs as keys, each with properties like `value`, `lastUpdate`, `pv`, and `isConnected`.
@@ -42,7 +42,6 @@
 
 //     const connectionControl = useRef(null);
 //     const connectionSettings = useRef(null);
-
 
 //     //helper function to return prefix with no whitespace or trailing ':'
 //     const sanitizeInputPrefix = (prefix:string) => {
@@ -213,7 +212,7 @@
 //                         stateCopy[pv].isConnected = false;
 //                     }
 //                     stateCopy[pv].lastUpdate = dayjs().format('hh:MM:ss A');
-    
+
 //                     //copy over all values from e into stateCopy
 //                     stateCopy[pv] = {...stateCopy[pv], ...e};
 //                 } else {
@@ -226,7 +225,6 @@
 //         }
 //     };
 
-
 //     /**
 //      * Generic function for subscribing to a WebSocket.
 //      * This function establishes a WebSocket connection and attaches event listeners
@@ -236,7 +234,7 @@
 //      * @param {string} wsUrl - The WebSocket URL to connect to.
 //      * @param {Function} [cbOpen=()=>{}] - Optional callback function to be executed when the WebSocket connection is opened.
 //      * @param {Function} [cbMessage=()=>{}] - Optional callback function to handle incoming WebSocket messages.
-//      * 
+//      *
 //      * @returns {void} This function does not return anything.
 //      */
 //     const connectWebSocket = (connection=false, wsUrl='', cbOpen=()=>{}, cbMessage=()=>{}, wsTitle='') => {
@@ -253,14 +251,14 @@
 //             console.log(error);
 //             return;
 //         }
-    
+
 //         socket.addEventListener("open", event => {
 //             console.log("Opened " + wsTitle + " websocket: " + wsUrl);
 //             connection.current = socket;
 //             //onWebSocketOpen(connection, socket, wsUrl, cbOpen);
 //             cbOpen(connection);
 //         });
-    
+
 //         socket.addEventListener("message", event => {
 //             //console.log("Websocket " + wsTitle + " message at: " + dayjs().format('hh:mm:ss a'));
 //             var eventData = JSON.parse(event.data);
@@ -284,7 +282,7 @@
 //      * @param {string} pv - The pv to write the new value to
 //      * @param {string} newValue - The new value to assign to the pv
 //      * @param {Function} [cb=()=>{}] - Optional callback function to be executed after the Websocket message is sent.
-//      * 
+//      *
 //      * @returns {boolean} This function returns a boolean based on success of sending the message
 //      */
 //     const writePV = (connection=false, pv='', newValue='', cb=()=>{}) => {
@@ -319,7 +317,7 @@
 
 //     /**
 //      * A function that writes 1 to the area Detector Acquire PV to start acquiring images
-//      * 
+//      *
 //      * @returns {void} This function does not return a function
 //      */
 //     const startAcquire = () => {
@@ -328,7 +326,7 @@
 
 //     /**
 //      * A function that writes 0 to the area Detector Acquire PV to stop acquiring images
-//      * 
+//      *
 //      * @returns {void} This function does not return a function
 //      */
 //     const stopAcquire = () => {
@@ -342,7 +340,7 @@
 //             //create a websocket connection for acquire pv only
 //             connectWebSocket(connectionControl, wsUrl, subscribeControlPV, updateControlPV, 'Camera Control');
 //         }
-    
+
 //         if (enableSettings === true && settings.length !== 0 && prefix !== '') {
 //             //create blank cameraSettingsPVs
 //             var settingsPVArray = createSettingsPVArray(settings, prefix);
@@ -352,9 +350,8 @@
 //         }
 //     }, []);
 
-
 //     return {
-//         cameraControlPV,     
+//         cameraControlPV,
 //         cameraSettingsPVs,
 //         connectionControl,
 //         connectionSettings,

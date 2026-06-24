@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import ExperimentExecutePlanButtonGeneric from "./ExperimentExecutePlanButtonGeneric";
-import TiledWriterScatterPlot from "@/components/Tiled/TiledWriterScatterPlot";
-import { useGetBlueskyRunList } from "@/components/QServer/utils/qServerApiUtils";
-import TiledWriterDetImageHeatmap from "../Tiled/TiledWriterDetImageHeatmap";
-import ExperimentHistory from "./ExperimentHistory";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
+import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
+import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
+import TiledWriterDetImageHeatmap from '../Tiled/TiledWriterDetImageHeatmap';
+import ExperimentHistory from './ExperimentHistory';
+import { cn } from '@/lib/utils';
 
-import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from "@phosphor-icons/react";
-import { PostItemAddResponse } from "@/api/qServer/types";
+import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from '@phosphor-icons/react';
+import { PostItemAddResponse } from '@/api/qServer/types';
 
 type ExperimentEnergyScanProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -21,23 +21,23 @@ type ExperimentEnergyScanProps = {
     tiledBaseUrl?: string;
 };
 
-export default function ExperimentEnergyScan({ 
+export default function ExperimentEnergyScan({
     className,
     onSuccess,
     onError,
-    tiledBaseUrl
+    tiledBaseUrl,
 }: ExperimentEnergyScanProps) {
     // Energy scan form state
-    const [user, setUser] = useState<string>(localStorage.getItem("energy_scan_user") ?? "");
-    const [startEnergy, setStartEnergy] = useState<number | "">(7000);
-    const [stopEnergy, setStopEnergy] = useState<number | "">(7500);
-    const [numPoints, setNumPoints] = useState<number | "">(10);
-    const [executedItemUid, setExecutedItemUid] = useState<string>("");
+    const [user, setUser] = useState<string>(localStorage.getItem('energy_scan_user') ?? '');
+    const [startEnergy, setStartEnergy] = useState<number | ''>(7000);
+    const [stopEnergy, setStopEnergy] = useState<number | ''>(7500);
+    const [numPoints, setNumPoints] = useState<number | ''>(10);
+    const [executedItemUid, setExecutedItemUid] = useState<string>('');
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
-    const [blueskyRunId, setBlueskyRunId] = useState<string>("");
+    const [blueskyRunId, setBlueskyRunId] = useState<string>('');
 
     useEffect(() => {
-        localStorage.setItem("energy_scan_user", user);
+        localStorage.setItem('energy_scan_user', user);
     }, [user]);
 
     const getBlueskyRunList = useGetBlueskyRunList();
@@ -50,7 +50,7 @@ export default function ExperimentEnergyScan({
         refetchInterval: (query) => {
             // Stop polling if we have at least one run or if there's an error
             const data = query.state.data;
-            return (data && Array.isArray(data) && data.length > 0) ? false : 1000;
+            return data && Array.isArray(data) && data.length > 0 ? false : 1000;
         },
         refetchIntervalInBackground: true,
         retry: (failureCount) => {
@@ -62,15 +62,16 @@ export default function ExperimentEnergyScan({
     });
 
     // Get the first run ID when available
-    const pollRunId = runList && runList.length > 0 ? runList[0] : "";
-    
+    const pollRunId = runList && runList.length > 0 ? runList[0] : '';
+
     const startEnergyNumber = typeof startEnergy === 'number' ? startEnergy : 0;
     const stopEnergyNumber = typeof stopEnergy === 'number' ? stopEnergy : 0;
     const numPointsNumber = typeof numPoints === 'number' ? numPoints : 0;
-    const stepSizeLabel = numPointsNumber > 1
-        ? ((stopEnergyNumber - startEnergyNumber) / (numPointsNumber - 1)).toFixed(1)
-        : '0';
-    
+    const stepSizeLabel =
+        numPointsNumber > 1
+            ? ((stopEnergyNumber - startEnergyNumber) / (numPointsNumber - 1)).toFixed(1)
+            : '0';
+
     // Update blueskyRunId when polling returns new run
     useEffect(() => {
         if (pollRunId) {
@@ -95,18 +96,18 @@ export default function ExperimentEnergyScan({
     };
 
     const handleSuccess = async (response: PostItemAddResponse) => {
-        console.log("Energy scan executed successfully!", response);
-        
+        console.log('Energy scan executed successfully!', response);
+
         // Set the item UID to trigger TanStack Query polling
         if (response.item && 'item_uid' in response.item) {
             setExecutedItemUid(response.item.item_uid);
         }
-        
+
         onSuccess?.(response);
     };
 
     const handleError = (error: string) => {
-        console.error("Energy scan execution failed:", error);
+        console.error('Energy scan execution failed:', error);
         alert(`Energy scan execution failed: ${error}`);
         onError?.(error);
     };
@@ -114,7 +115,7 @@ export default function ExperimentEnergyScan({
     return (
         <div className={cn('text-slate-700', className)}>
             <h2 className="text-xl font-bold mb-4 text-white">Energy Scan</h2>
-            
+
             <div className="bg-gray-50 p-4 rounded-lg space-y-4 h-fit">
                 <div className="flex gap-6">
                     <div className="w-96 space-y-4">
@@ -126,28 +127,32 @@ export default function ExperimentEnergyScan({
                                         setBlueskyRunId('');
                                     }}
                                     className={`flex flex-col items-center gap-1 p-2 transition-colors ${
-                                        viewMode === 'form' 
-                                            ? 'text-sky-800' 
+                                        viewMode === 'form'
+                                            ? 'text-sky-800'
                                             : 'text-gray-400 hover:text-sky-600'
                                     }`}
                                     title="Run new scan"
                                 >
                                     <PersonSimpleRun size={24} weight="regular" />
                                     <span className="text-xs font-light">Run</span>
-                                    {viewMode === 'form' && <div className="h-0.5 w-full bg-sky-800" />}
+                                    {viewMode === 'form' && (
+                                        <div className="h-0.5 w-full bg-sky-800" />
+                                    )}
                                 </button>
                                 <button
                                     onClick={() => setViewMode('history')}
                                     className={`flex flex-col items-center gap-1 p-2 transition-colors ${
-                                        viewMode === 'history' 
-                                            ? 'text-sky-800' 
+                                        viewMode === 'history'
+                                            ? 'text-sky-800'
                                             : 'text-gray-400 hover:text-sky-600'
                                     }`}
                                     title="View scan history"
                                 >
                                     <ClockCounterClockwise size={24} weight="regular" />
                                     <span className="text-xs font-light">History</span>
-                                    {viewMode === 'history' && <div className="h-0.5 w-full bg-sky-800" />}
+                                    {viewMode === 'history' && (
+                                        <div className="h-0.5 w-full bg-sky-800" />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -164,9 +169,11 @@ export default function ExperimentEnergyScan({
                                         placeholder="Enter user name"
                                     />
                                 </div>
-                                
+
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Start Energy (eV):</label>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Start Energy (eV):
+                                    </label>
                                     <input
                                         type="number"
                                         value={startEnergy}
@@ -177,9 +184,11 @@ export default function ExperimentEnergyScan({
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     />
                                 </div>
-                                
+
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Stop Energy (eV):</label>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Stop Energy (eV):
+                                    </label>
                                     <input
                                         type="number"
                                         value={stopEnergy}
@@ -190,9 +199,11 @@ export default function ExperimentEnergyScan({
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     />
                                 </div>
-                                
+
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Number of Points:</label>
+                                    <label className="block text-sm font-medium mb-1">
+                                        Number of Points:
+                                    </label>
                                     <input
                                         type="number"
                                         value={numPoints}
@@ -202,25 +213,28 @@ export default function ExperimentEnergyScan({
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md"
                                     />
                                 </div>
-                                
+
                                 <div className="pt-2 m-auto w-fit">
                                     <ExperimentExecutePlanButtonGeneric
                                         planName="energy_scan"
                                         kwargs={{
-                                            detectors: ["det", "diode"],
-                                            motor: "mono_energy",
-                                            start: typeof startEnergy === 'number' ? startEnergy : 0,
+                                            detectors: ['det', 'diode'],
+                                            motor: 'mono_energy',
+                                            start:
+                                                typeof startEnergy === 'number' ? startEnergy : 0,
                                             stop: typeof stopEnergy === 'number' ? stopEnergy : 0,
                                             num: typeof numPoints === 'number' ? numPoints : 0,
-                                            md: {exact_plan_name: "energy_scan", user: user}
+                                            md: { exact_plan_name: 'energy_scan', user: user },
                                         }}
                                         onSuccess={handleSuccess}
                                         onError={handleError}
                                     />
                                 </div>
-                                
+
                                 <div className="text-xs text-gray-600 mt-2 mx-auto w-fit">
-                                    <p>Scan Range: {startEnergy} - {stopEnergy} eV</p>
+                                    <p>
+                                        Scan Range: {startEnergy} - {stopEnergy} eV
+                                    </p>
                                     <p>Step Size: {stepSizeLabel} eV</p>
                                 </div>
                             </>
@@ -234,7 +248,7 @@ export default function ExperimentEnergyScan({
                             />
                         )}
                     </div>
-                    
+
                     <div className="flex flex-col min-w-96 flex-grow border-l-2 border-slate-300 pl-4">
                         <span className="flex flex-start gap-8">
                             <button
@@ -255,7 +269,10 @@ export default function ExperimentEnergyScan({
                             </button>
                         </span>
 
-                        <div className="flex flex-grow items-center gap-4 h-fit justify-center" key={viewMode}>
+                        <div
+                            className="flex flex-grow items-center gap-4 h-fit justify-center"
+                            key={viewMode}
+                        >
                             <TiledWriterDetImageHeatmap
                                 blueskyRunId={blueskyRunId}
                                 size="medium"
@@ -263,10 +280,10 @@ export default function ExperimentEnergyScan({
                                 plotClassName="bg-transparent"
                                 tiledBaseUrl={tiledBaseUrl}
                             />
-                            <TiledWriterScatterPlot 
+                            <TiledWriterScatterPlot
                                 key={blueskyRunId}
                                 blueskyRunId={blueskyRunId}
-                                tiledTrace={{ x: "seq_num", y: "diode" }}
+                                tiledTrace={{ x: 'seq_num', y: 'diode' }}
                                 className="max-h-[40rem] h-full"
                                 plotClassName="h-[calc(100%-2rem)]"
                                 showStatusText={false}

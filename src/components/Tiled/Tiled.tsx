@@ -8,17 +8,15 @@ import React from 'react';
 import { useTiledApiUrls } from '@/utils/apiUtils';
 
 const TiledWrapper: React.FC<TiledProps> = (props) => {
-  //allow finch config to be used in args if not provided directly as props
-  //finch config url will always be used, but the apiKey will only be sent if provided as a prop, or if assigned in finch config
-  const defaultTiledUrl = useTiledApiUrls().httpBaseUrl;
-  const defaultTiledApiKey = useTiledApiUrls().apiKey;
+    //allow finch config to be used in args if not provided directly as props
+    //finch config url will always be used, but the apiKey will only be sent if provided as a prop, or if assigned in finch config
+    const defaultTiledUrl = useTiledApiUrls().httpBaseUrl;
+    const defaultTiledApiKey = useTiledApiUrls().apiKey;
 
-  const tiledBaseUrl = props.tiledBaseUrl || defaultTiledUrl;
-  const tiledApiKey = props.apiKey || defaultTiledApiKey;
+    const tiledBaseUrl = props.tiledBaseUrl || defaultTiledUrl;
+    const tiledApiKey = props.apiKey || defaultTiledApiKey;
 
-
-  return <Tiled {...props} tiledBaseUrl={tiledBaseUrl} apiKey={tiledApiKey ?? undefined} />;
-
+    return <Tiled {...props} tiledBaseUrl={tiledBaseUrl} apiKey={tiledApiKey ?? undefined} />;
 };
 
 export type { TiledProps } from '@blueskyproject/tiled';

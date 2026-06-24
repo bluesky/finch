@@ -17,7 +17,7 @@ const colorList = [
     'bg-teal-700',
     'bg-emerald-600',
     'bg-yellow-600',
-    'bg-red-500'
+    'bg-red-500',
 ];
 
 //the opacity list must be hardcoded to be picked up by tailwind and included in the CSS
@@ -41,15 +41,15 @@ const colorListOpacity = [
     'bg-teal-700/40',
     'bg-emerald-600/40',
     'bg-yellow-600/40',
-    'bg-red-500/40'
+    'bg-red-500/40',
 ];
 
-const randomColor = (plan:string) => {
+const randomColor = (plan: string) => {
     const pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorList.length;
     return colorList[pseudoRandomInt];
 };
 
-const randomColorOpacity = (plan:string) => {
+const randomColorOpacity = (plan: string) => {
     const pseudoRandomInt = (plan.charCodeAt(0) + plan.length * 1000) % colorListOpacity.length;
     return colorListOpacity[pseudoRandomInt];
 };
@@ -63,7 +63,7 @@ const colorMap = {
     grid_scan: 'bg-amber-800',
     align: 'bg-line-700',
     log_scan: 'bg-green-950',
-    scan: 'bg-cyan-800'
+    scan: 'bg-cyan-800',
 };
 
 const colorMapOpacity = {
@@ -75,10 +75,10 @@ const colorMapOpacity = {
     grid_scan: 'bg-amber-800/40',
     align: 'bg-line-700/40',
     log_scan: 'bg-green-950/40',
-    scan: 'bg-cyan-800/40'
+    scan: 'bg-cyan-800/40',
 };
 
-const getPlanColor= (plan:string) => {
+const getPlanColor = (plan: string) => {
     if (plan in colorMap) {
         return colorMap[plan as keyof typeof colorMap];
     } else {
@@ -86,12 +86,12 @@ const getPlanColor= (plan:string) => {
     }
 };
 
-const getPlanColorOpacity = (plan:string) => {
+const getPlanColorOpacity = (plan: string) => {
     if (plan in colorMapOpacity) {
         return colorMapOpacity[plan as keyof typeof colorMapOpacity];
     } else {
         return randomColorOpacity(plan);
     }
-}
+};
 
 export { getPlanColor, getPlanColorOpacity };

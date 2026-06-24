@@ -12,13 +12,9 @@ type UseTiledWriterDetImageHeatmapOptions = {
 
 export function useTiledWriterDetImageHeatmap(
     blueskyRunId: string | null,
-    options: UseTiledWriterDetImageHeatmapOptions = {}
+    options: UseTiledWriterDetImageHeatmapOptions = {},
 ) {
-    const {
-        isRunFinished = false,
-        pollingIntervalMs = 2000,
-        tiledBaseUrl
-    } = options;
+    const { isRunFinished = false, pollingIntervalMs = 2000, tiledBaseUrl } = options;
 
     const [tiledPath, setTiledPath] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -35,16 +31,16 @@ export function useTiledWriterDetImageHeatmap(
 
             // Check if the run exists and get its metadata
             const runResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${blueskyRunId}`);
-            
+
             if (!runResponse.ok) {
                 throw new Error(`Run ${blueskyRunId} not found`);
             }
 
             const runData = await runResponse.json();
-            
+
             // Check for 'stop' key in metadata to determine if run is finished
             const hasStopKey = runData.data.attributes?.metadata?.stop !== undefined;
-            
+
             if (hasStopKey && enablePolling) {
                 //console.log(`[useTiledWriterDetImageHeatmap] Stop key found for run ${blueskyRunId}, disabling polling`);
                 setEnablePolling(false);
@@ -59,19 +55,21 @@ export function useTiledWriterDetImageHeatmap(
             }
 
             const detImageData = await detImageResponse.json();
-            
+
             // Verify it's an array structure
             if (detImageData.data.attributes?.structure_family !== 'array') {
-                console.log({detImageData})
+                console.log({ detImageData });
                 throw new Error('det_image is not an array structure');
             }
 
             //console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
             setTiledPath(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
-
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-            console.error(`[useTiledWriterDetImageHeatmap] Error fetching det_image for run ${blueskyRunId}:`, errorMessage);
+            console.error(
+                `[useTiledWriterDetImageHeatmap] Error fetching det_image for run ${blueskyRunId}:`,
+                errorMessage,
+            );
             setError(errorMessage);
             setTiledPath(null);
         } finally {
@@ -95,7 +93,14 @@ export function useTiledWriterDetImageHeatmap(
             const interval = setInterval(checkForDetImage, pollingIntervalMs);
             return () => clearInterval(interval);
         }
-    }, [blueskyRunId, enablePolling, isRunFinished, pollingIntervalMs, tiledBaseUrl, checkForDetImage]);
+    }, [
+        blueskyRunId,
+        enablePolling,
+        isRunFinished,
+        pollingIntervalMs,
+        tiledBaseUrl,
+        checkForDetImage,
+    ]);
 
     // Update polling state when isRunFinished changes
     useEffect(() => {
@@ -109,6 +114,6 @@ export function useTiledWriterDetImageHeatmap(
         tiledPath,
         isLoading,
         error,
-        enablePolling
+        enablePolling,
     };
 }

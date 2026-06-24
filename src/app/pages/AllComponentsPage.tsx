@@ -1,8 +1,7 @@
-import { useState } from "react";
-import ComponentViewerExampleReal from "@/features/ComponentViewer/ComponentViewerExampleReal";
-import ComponentViewerExampleSim from "@/features/ComponentViewer/ComponentViewerExampleSim";
-import { Cube, CubeTransparent } from "@phosphor-icons/react";
-
+import { useState } from 'react';
+import ComponentViewerExampleReal from '@/features/ComponentViewer/ComponentViewerExampleReal';
+import ComponentViewerExampleSim from '@/features/ComponentViewer/ComponentViewerExampleSim';
+import { Cube, CubeTransparent } from '@phosphor-icons/react';
 
 export default function AllComponentsPage() {
     const [mode, setMode] = useState<'real' | 'sim'>('sim');
@@ -18,7 +17,9 @@ export default function AllComponentsPage() {
                         size={mode === 'sim' ? 48 : 44}
                         className={mode === 'sim' ? 'text-sky-700' : 'text-slate-400'}
                     />
-                    <span className={`text-lg ${mode === 'sim' ? 'text-sky-700 font-semibold' : 'text-slate-400'}`}>
+                    <span
+                        className={`text-lg ${mode === 'sim' ? 'text-sky-700 font-semibold' : 'text-slate-400'}`}
+                    >
                         Simulated Devices
                     </span>
                 </button>
@@ -30,7 +31,9 @@ export default function AllComponentsPage() {
                         size={mode === 'real' ? 48 : 44}
                         className={mode === 'real' ? 'text-sky-700' : 'text-slate-400'}
                     />
-                    <span className={`text-lg ${mode === 'real' ? 'text-sky-700 font-semibold' : 'text-slate-400'}`}>
+                    <span
+                        className={`text-lg ${mode === 'real' ? 'text-sky-700 font-semibold' : 'text-slate-400'}`}
+                    >
                         Real Beamline Devices
                     </span>
                 </button>

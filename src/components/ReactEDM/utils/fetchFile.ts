@@ -1,14 +1,17 @@
 // GitHub repo configuration
-const GITHUB_BRANCH = "main";
+const GITHUB_BRANCH = 'main';
 
 // Cache for UI files to avoid repeated fetches
 const UICache = new Map<string, string>();
 
 // localStorage key prefix for UI files
-const STORAGE_PREFIX = "UI_file_";
+const STORAGE_PREFIX = 'UI_file_';
 
-export const fetchFile = async (fileName: string, owner: string, repo: string): Promise<string | null> => {
-
+export const fetchFile = async (
+    fileName: string,
+    owner: string,
+    repo: string,
+): Promise<string | null> => {
     // Check in-memory cache first
     if (UICache.has(fileName)) {
         return UICache.get(fileName)!;
@@ -61,6 +64,6 @@ export const clearUICache = () => {
         }
     }
 
-    keysToRemove.forEach(key => localStorage.removeItem(key));
+    keysToRemove.forEach((key) => localStorage.removeItem(key));
     UICache.clear();
 };

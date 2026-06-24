@@ -1,9 +1,9 @@
-import CameraCanvas from "./CameraCanvas";
-import CameraControlPanel from "./CameraControlPanel";
-import CameraSettings from "./CameraSettings";
-import { cameraDeviceData } from "./utils/cameraDeviceData.js";
-import { DetectorSetting } from "./types/cameraTypes";
-import { useCameraContainer } from "./hooks/useCameraContainer";
+import CameraCanvas from './CameraCanvas';
+import CameraControlPanel from './CameraControlPanel';
+import CameraSettings from './CameraSettings';
+import { cameraDeviceData } from './utils/cameraDeviceData.js';
+import { DetectorSetting } from './types/cameraTypes';
+import { useCameraContainer } from './hooks/useCameraContainer';
 
 //"13SIM1:image1:ArrayData"
 export type CameraContainerProps = {
@@ -27,37 +27,59 @@ export type CameraContainerProps = {
         sizeY_pv: string;
         colorMode_pv: string;
         dataType_pv: string;
-    },
+    };
     /** WebSocket URL for the image stream. Falls back to the application default when omitted. */
-    cameraImageWsUrl?:string,
+    cameraImageWsUrl?: string;
     /** WebSocket URL for the camera control PV subscription. Falls back to the application default when omitted. */
-    cameraControlWsUrl?:string
-}
-export default function CameraContainer(
-    {
-        prefix='13SIM1',
-        imageArrayPV='',
-        settings=cameraDeviceData.ADSimDetector,
-        enableControlPanel=true,
-        enableSettings=true,
-        canvasSize='medium',
-        sizePVs,
-        cameraImageWsUrl,
-        cameraControlWsUrl
-    }: CameraContainerProps)
-    {
+    cameraControlWsUrl?: string;
+};
+export default function CameraContainer({
+    prefix = '13SIM1',
+    imageArrayPV = '',
+    settings = cameraDeviceData.ADSimDetector,
+    enableControlPanel = true,
+    enableSettings = true,
+    canvasSize = 'medium',
+    sizePVs,
+    cameraImageWsUrl,
+    cameraControlWsUrl,
+}: CameraContainerProps) {
     const { devices, startAcquire, stopAcquire, onSubmitSettings, cameraControlPV } =
         useCameraContainer({ prefix, settings, enableControlPanel, cameraControlWsUrl });
 
     return (
         <div className="w-fit h-fit flex flex-wrap space-x-4 items-start justify-center">
             <div className="flex flex-col flex-shrink-0 items-center">
-                <CameraCanvas imageArrayPV={imageArrayPV} canvasSize={canvasSize} sizePVs={sizePVs} prefix={prefix} wsUrl={cameraImageWsUrl}/>
-                { enableControlPanel ? <CameraControlPanel cameraControlPV={cameraControlPV} startAcquire={startAcquire} stopAcquire={stopAcquire}/> : ''}
+                <CameraCanvas
+                    imageArrayPV={imageArrayPV}
+                    canvasSize={canvasSize}
+                    sizePVs={sizePVs}
+                    prefix={prefix}
+                    wsUrl={cameraImageWsUrl}
+                />
+                {enableControlPanel ? (
+                    <CameraControlPanel
+                        cameraControlPV={cameraControlPV}
+                        startAcquire={startAcquire}
+                        stopAcquire={stopAcquire}
+                    />
+                ) : (
+                    ''
+                )}
             </div>
-            <div className='overflow-x-auto overflow-y-auto'>
-                {enableSettings ? <CameraSettings enableSettings={enableSettings} settings={settings} prefix={prefix} cameraSettingsPVs={devices} onSubmit={onSubmitSettings}/> : ''}
+            <div className="overflow-x-auto overflow-y-auto">
+                {enableSettings ? (
+                    <CameraSettings
+                        enableSettings={enableSettings}
+                        settings={settings}
+                        prefix={prefix}
+                        cameraSettingsPVs={devices}
+                        onSubmit={onSubmitSettings}
+                    />
+                ) : (
+                    ''
+                )}
             </div>
         </div>
-    )
+    );
 }

@@ -1,0 +1,396 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Documentation/Tiled API Hooks" />
+
+# Tiled API Hooks
+
+Finch integrates with the [Tiled](https://blueskyproject.io/tiled) data access service via two surfaces:
+
+- **`Tiled.*` namespace** — async functions exported from `@blueskyproject/finch`, usable anywhere.
+- **`useTiled*` react-query hooks** — declarative data-fetching hooks, also exported from `@blueskyproject/finch`.
+
+Both surfaces read their base URL and API key from `FinchConfigProvider`. See the **Configuration** page for setup.
+
+---
+
+## Public API — `Tiled.*` namespace
+
+Import the `Tiled` object from `@blueskyproject/finch` and call its async functions directly.
+
+```tsx
+import { Tiled } from '@blueskyproject/finch';
+```
+
+### Search
+
+```tsx
+// Search by Bluesky spec tags
+const results = await Tiled.searchBySpecs(['BlueskyRun'], { path: '/my-catalog' });
+
+// Full-text search across metadata
+const results = await Tiled.searchByFulltext('sample-name', '/my-catalog');
+
+// Match a metadata key exactly
+const results = await Tiled.searchByMetadataEquals('plan_name', 'count', '/my-catalog');
+
+// Metadata comparison (gt, gte, lt, lte)
+const results = await Tiled.searchByMetadataComparison('num_points', 'gt', '10', '/my-catalog');
+
+// Regex match on a metadata key
+const results = await Tiled.searchByRegex('sample_name', '^Au.*', false, '/my-catalog');
+
+// Filter by data structure family
+const results = await Tiled.searchByStructureFamily('table', '/my-catalog');
+```
+
+### Data retrieval
+
+```tsx
+// Item metadata
+const meta = await Tiled.getItemMetadata('/my-catalog/run-uid');
+
+// Bluesky plan metadata (structured)
+const planMeta = await Tiled.getBlueskyPlanMetadata('/my-catalog/run-uid');
+
+// Table data
+const rows = await Tiled.getTableDataAsSequence('/my-catalog/run-uid/primary/data', 0);
+const json = await Tiled.getTableDataAsJson('/my-catalog/run-uid/primary/data', 0);
+
+// Structured array / xarray
+const array = await Tiled.getStructuredArrayData('/my-catalog/run-uid/primary/data/det', 0);
+const xarrayData = await Tiled.getXArrayData('/my-catalog/run-uid/primary/data/det', [0, 0]);
+```
+
+### Server
+
+```tsx
+const info = await Tiled.getServerInfo();
+console.log(info.library_version);
+```
+
+### Image helpers
+
+```tsx
+// Build an authenticated PNG URL for a 2D array node
+const url = Tiled.generateFullImagePngPath('/my-catalog/run-uid/primary/data/det');
+
+// Fetch image bytes with authentication header applied
+const blob = await Tiled.getAuthenticatedImage(url);
+```
+
+### Configuration
+
+```tsx
+// Set a global path prefix used by all subsequent requests
+Tiled.setInitialPath('/my-catalog');
+
+// Retrieve the current base URL (from FinchConfigProvider)
+const url = Tiled.getDefaultUrl();
+
+// Set a bearer token for requests that need explicit auth
+Tiled.setBearerToken('my-api-key');
+
+// Register a callback invoked when any request returns 401
+Tiled.setAuthErrorCallback(() => redirectToLogin());
+
+// Reverse sort order for search results
+Tiled.setReverseSort(true);
+
+// Reset all global state (path, sort, token)
+Tiled.resetGlobalState();
+```
+
+---
+
+## react-query hooks
+
+All `useTiled*` hooks are exported from `@blueskyproject/finch` and require `QueryClientProvider` to be mounted.
+
+```tsx
+import {
+  useTiledSearchBySpecsQuery,
+  useTiledItemMetadataQuery,
+} from '@blueskyproject/finch';
+```
+
+All hooks accept an optional `queryOptions` argument passed through to react-query's `useQuery`.
+
+---
+
+### Search hooks
+
+#### `useTiledSearchResultsQuery`
+
+Full-config search using a `TiledSearchConfig` object (excluding `baseUrl` and `apiKey`, which are injected automatically from `FinchConfigProvider`).
+
+```tsx
+const { data } = useTiledSearchResultsQuery({
+  path: '/my-catalog',
+  specs: ['BlueskyRun'],
+  offset: 0,
+  limit: 20,
+});
+```
+
+**Query key:** `['tiled', 'search', baseUrl, config]`
+
+---
+
+#### `useTiledSearchByIdQuery`
+
+Like `useTiledSearchResultsQuery` but returns `null` instead of throwing on a 404. Useful when the existence of an item is uncertain.
+
+```tsx
+const { data } = useTiledSearchByIdQuery({ path: '/my-catalog/some-uid' });
+// data is TiledSearchResult | null
+```
+
+**Query key:** `['tiled', 'searchById', baseUrl, config]`
+
+---
+
+#### `useTiledSearchBySpecsQuery`
+
+Search by Bluesky spec tags.
+
+```tsx
+const { data } = useTiledSearchBySpecsQuery(
+  ['BlueskyRun'],     // include specs
+  [],                 // exclude specs
+  '/my-catalog',      // path
+  { limit: 50 },      // TiledSearchOptions
+);
+```
+
+**Parameters:** `(include: string[], exclude?, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchBySpecs', baseUrl, include, exclude, path, options]`
+
+---
+
+#### `useTiledSearchByFulltextQuery`
+
+Full-text search across all metadata fields. Auto-disabled when `text` is an empty string.
+
+```tsx
+const { data } = useTiledSearchByFulltextQuery('gold nanoparticles', '/my-catalog');
+```
+
+**Parameters:** `(text: string, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchByFulltext', baseUrl, text, path, options]`
+
+---
+
+#### `useTiledSearchByMetadataEqualsQuery`
+
+Exact match on a metadata key.
+
+```tsx
+const { data } = useTiledSearchByMetadataEqualsQuery('plan_name', 'count', '/my-catalog');
+```
+
+**Parameters:** `(key: string, value: string, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchByMetadataEquals', baseUrl, key, value, path, options]`
+
+---
+
+#### `useTiledSearchByMetadataComparisonQuery`
+
+Numeric comparison on a metadata key. Operator is one of `'gt' | 'gte' | 'lt' | 'lte'`.
+
+```tsx
+const { data } = useTiledSearchByMetadataComparisonQuery(
+  'num_points', 'gt', '10', '/my-catalog',
+);
+```
+
+**Parameters:** `(key: string, operator: 'gt'|'gte'|'lt'|'lte', value: string, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchByMetadataComparison', baseUrl, key, operator, value, path, options]`
+
+---
+
+#### `useTiledSearchByRegexQuery`
+
+Regex match on a metadata key.
+
+```tsx
+const { data } = useTiledSearchByRegexQuery(
+  'sample_name', '^Au.*', false, '/my-catalog',
+);
+```
+
+**Parameters:** `(key: string, pattern: string, caseSensitive?, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchByRegex', baseUrl, key, pattern, caseSensitive, path, options]`
+
+---
+
+#### `useTiledSearchByStructureFamilyQuery`
+
+Filter results by Tiled structure family. Valid values: `'container' | 'array' | 'table' | 'awkward' | 'sparse'`.
+
+```tsx
+const { data } = useTiledSearchByStructureFamilyQuery('table', '/my-catalog');
+```
+
+**Parameters:** `(structureFamily: string, path?, options?, queryOptions?)`
+
+**Query key:** `['tiled', 'searchByStructureFamily', baseUrl, structureFamily, path, options]`
+
+---
+
+### Item data hooks
+
+All item data hooks are auto-disabled when `searchPath` is an empty string.
+
+#### `useTiledItemMetadataQuery`
+
+Fetches raw Tiled metadata for a node.
+
+```tsx
+const { data: meta } = useTiledItemMetadataQuery('/my-catalog/run-uid');
+```
+
+**Query key:** `['tiled', 'itemMetadata', baseUrl, searchPath]`
+
+---
+
+#### `useTiledBlueskyPlanMetadataQuery`
+
+Fetches structured Bluesky plan metadata (`start`, `stop`, `descriptors`).
+
+```tsx
+const { data: planMeta } = useTiledBlueskyPlanMetadataQuery('/my-catalog/run-uid');
+
+console.log(planMeta?.start?.plan_name);
+console.log(planMeta?.stop?.exit_status);
+```
+
+**Query key:** `['tiled', 'blueskyPlanMetadata', baseUrl, searchPath]`
+
+---
+
+#### `useTiledTableDataAsSequenceQuery`
+
+Fetches a table partition as an array of row objects.
+
+```tsx
+const { data: rows } = useTiledTableDataAsSequenceQuery(
+  '/my-catalog/run-uid/primary/data',
+  0, // partition index
+);
+// rows: TiledTableRow[] | null
+```
+
+**Parameters:** `(searchPath: string, partition: number, queryOptions?)`
+
+**Query key:** `['tiled', 'tableDataAsSequence', baseUrl, searchPath, partition]`
+
+---
+
+#### `useTiledTableDataAsJsonQuery`
+
+Fetches a table partition as a columnar JSON object (column name → array of values).
+
+```tsx
+const { data } = useTiledTableDataAsJsonQuery('/my-catalog/run-uid/primary/data', 0);
+// data: TiledTableJSONResponse | null
+// e.g. { det: [1.0, 2.0, 3.0], motor: [0, 1, 2] }
+```
+
+**Parameters:** `(searchPath: string, partition: number, queryOptions?)`
+
+**Query key:** `['tiled', 'tableDataAsJson', baseUrl, searchPath, partition]`
+
+---
+
+#### `useTiledStructuredArrayDataQuery`
+
+Fetches a block of structured (named-column) array data.
+
+```tsx
+const { data } = useTiledStructuredArrayDataQuery('/my-catalog/run-uid/primary/data/det', 0);
+```
+
+**Parameters:** `(searchPath: string, block: number, queryOptions?)`
+
+**Query key:** `['tiled', 'structuredArrayData', baseUrl, searchPath, block]`
+
+---
+
+#### `useTiledXArrayDataQuery`
+
+Fetches a slice of an N-dimensional array using a stack index array.
+
+```tsx
+const { data: frame } = useTiledXArrayDataQuery(
+  '/my-catalog/run-uid/primary/data/det',
+  [0, 0], // stack indices for each dimension beyond the last two
+);
+// data: number[][] | null
+```
+
+**Parameters:** `(searchPath: string, stack: number[], queryOptions?)`
+
+**Query key:** `['tiled', 'xArrayData', baseUrl, searchPath, stack]`
+
+---
+
+### Server info hook
+
+#### `useTiledServerInfoQuery`
+
+Returns Tiled server version and API metadata.
+
+```tsx
+const { data: info } = useTiledServerInfoQuery();
+console.log(info?.library_version);
+```
+
+**Query key:** `['tiled', 'serverInfo', baseUrl]`
+
+---
+
+## Combined example
+
+Searching for runs and loading table data for the selected one:
+
+```tsx
+import { useState } from 'react';
+import {
+  useTiledSearchBySpecsQuery,
+  useTiledTableDataAsJsonQuery,
+} from '@blueskyproject/finch';
+
+function RunBrowser() {
+  const [selectedPath, setSelectedPath] = useState('');
+
+  const { data: runs } = useTiledSearchBySpecsQuery(['BlueskyRun'], [], '/my-catalog');
+
+  const { data: tableData } = useTiledTableDataAsJsonQuery(
+    selectedPath ? `${selectedPath}/primary/data` : '',
+    0,
+  );
+
+  return (
+    <div>
+      <ul>
+        {runs?.data?.map((run) => (
+          <li key={run.id}>
+            <button onClick={() => setSelectedPath(run.links?.self ?? '')}>
+              {run.id}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {tableData && (
+        <pre>{JSON.stringify(Object.keys(tableData), null, 2)}</pre>
+      )}
+    </div>
+  );
+}
+```

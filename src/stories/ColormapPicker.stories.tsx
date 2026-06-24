@@ -70,7 +70,7 @@ import { ColormapPicker, COLORMAPS } from '@blueskyproject/finch';
     args: {
         value: 'viridis',
         className: 'w-56',
-        colormaps: COLORMAPS.filter(c => ['viridis', 'magma', 'gray'].includes(c.id)),
+        colormaps: COLORMAPS.filter((c) => ['viridis', 'magma', 'gray'].includes(c.id)),
     },
 };
 
@@ -79,7 +79,7 @@ export const PlotlyColormaps: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Colorscales matched to Plotly\'s built-in names. The selected `id` can be passed directly to Plotly\'s `colorscale` prop without any mapping.',
+                story: "Colorscales matched to Plotly's built-in names. The selected `id` can be passed directly to Plotly's `colorscale` prop without any mapping.",
             },
         },
     },
@@ -103,8 +103,8 @@ export const LongLabels: Story = {
         value: 'short',
         className: 'w-56',
         colormaps: [
-            { id: 'short',     label: 'Short',                    stops: '#440154,#fde725' },
-            { id: 'medium',    label: 'Medium Length',            stops: '#0d0887,#f0f921' },
+            { id: 'short', label: 'Short', stops: '#440154,#fde725' },
+            { id: 'medium', label: 'Medium Length', stops: '#0d0887,#f0f921' },
             { id: 'very-long', label: 'A Very Long Colormap Name', stops: '#000004,#fde0dd' },
         ],
     },
@@ -142,7 +142,7 @@ const customColormaps = [
         className: 'w-56',
         colormaps: [
             { id: 'red-blue', label: 'Red-Blue', stops: '#d73027,#f46d43,#74add1,#4575b4' },
-            { id: 'bw',       label: 'B+W',      stops: '#000000,#ffffff' },
+            { id: 'bw', label: 'B+W', stops: '#000000,#ffffff' },
         ],
     },
 };

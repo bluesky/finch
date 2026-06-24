@@ -20,7 +20,9 @@ vi.mock('../../components/PlotlyScatter', () => ({
 }));
 
 vi.mock('../../components/PlotlyHeatmapTiled', () => ({
-    default: ({ url }: { url?: string | null }) => <div data-testid="plotly-heatmap-tiled" data-url={url ?? undefined} />,
+    default: ({ url }: { url?: string | null }) => (
+        <div data-testid="plotly-heatmap-tiled" data-url={url ?? undefined} />
+    ),
 }));
 
 // NOTE: TiledScatterPlot is NOT mocked here so it can be tested directly.
@@ -35,14 +37,46 @@ vi.mock('../../components/Tiled/hooks/useTiledWriterScatterPlot', () => ({
     useTiledWriterScatterPlot: vi.fn(),
 }));
 
+vi.mock('../../components/Tiled/hooks/useTiledWriterMultiScatterPlot', () => ({
+    useTiledWriterMultiScatterPlot: vi.fn(),
+}));
+
+// Capture the props TiledWriterMultiScatterPlot forwards to its child.
+vi.mock('../../components/Tiled/TiledMultiScatterPlot', () => ({
+    default: ({
+        paths,
+        popupMessage,
+        shortPathNames,
+        traceNames,
+        title,
+    }: {
+        paths?: (string | null)[];
+        popupMessage?: string;
+        shortPathNames?: boolean;
+        traceNames?: string[];
+        title?: string;
+    }) => (
+        <div
+            data-testid="multi-scatter-plot"
+            data-paths={JSON.stringify(paths ?? [])}
+            data-popup={popupMessage ?? ''}
+            data-short-path-names={String(shortPathNames)}
+            data-trace-names={JSON.stringify(traceNames ?? [])}
+            data-title={title ?? ''}
+        />
+    ),
+}));
+
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
 import { useQuery } from '@tanstack/react-query';
 import { useTiledWriterDetImageHeatmap } from '../../components/Tiled/hooks/useTiledWriterDetImageHeatmap';
 import { useTiledWriterScatterPlot } from '../../components/Tiled/hooks/useTiledWriterScatterPlot';
+import { useTiledWriterMultiScatterPlot } from '../../components/Tiled/hooks/useTiledWriterMultiScatterPlot';
 import TiledScatterPlot from '../../components/Tiled/TiledScatterPlot';
 import TiledWriterDetImageHeatmap from '../../components/Tiled/TiledWriterDetImageHeatmap';
 import TiledWriterScatterPlot from '../../components/Tiled/TiledWriterScatterPlot';
+import TiledWriterMultiScatterPlot from '../../components/Tiled/TiledWriterMultiScatterPlot';
 
 const trace = { x: 'motor', y: 'detector' };
 
@@ -50,7 +84,11 @@ const trace = { x: 'motor', y: 'detector' };
 
 describe('TiledScatterPlot', () => {
     beforeEach(() => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as unknown as ReturnType<typeof useQuery>);
+        vi.mocked(useQuery).mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            error: null,
+        } as unknown as ReturnType<typeof useQuery>);
     });
 
     it('shows waiting message when path is null', () => {
@@ -59,7 +97,11 @@ describe('TiledScatterPlot', () => {
     });
 
     it('shows loading message while fetching', () => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: true, error: null } as unknown as ReturnType<typeof useQuery>);
+        vi.mocked(useQuery).mockReturnValue({
+            data: undefined,
+            isLoading: true,
+            error: null,
+        } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
         expect(screen.getByText('Loading data...')).toBeInTheDocument();
     });
@@ -86,7 +128,9 @@ describe('TiledScatterPlot', () => {
             error: null,
         } as unknown as ReturnType<typeof useQuery>);
         render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
-        expect(screen.getByText('Error: Missing data for scatter plot (motor, detector)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Error: Missing data for scatter plot (motor, detector)'),
+        ).toBeInTheDocument();
     });
 
     it('shows data point count when data is ready', () => {
@@ -116,7 +160,7 @@ describe('TiledScatterPlot', () => {
 
     it('applies custom className to the container', () => {
         const { container } = render(
-            <TiledScatterPlot tiledTrace={trace} path={null} className="my-class" />
+            <TiledScatterPlot tiledTrace={trace} path={null} className="my-class" />,
         );
         expect(container.firstChild).toHaveClass('my-class');
     });
@@ -136,7 +180,10 @@ describe('TiledWriterDetImageHeatmap', () => {
 
     it('shows loading message while hook is loading', () => {
         vi.mocked(useTiledWriterDetImageHeatmap).mockReturnValue({
-            tiledPath: null, isLoading: true, error: null, enablePolling: false,
+            tiledPath: null,
+            isLoading: true,
+            error: null,
+            enablePolling: false,
         });
         render(<TiledWriterDetImageHeatmap blueskyRunId="abc-123" />);
         expect(screen.getByText('Loading detector image for run abc-123...')).toBeInTheDocument();
@@ -144,7 +191,10 @@ describe('TiledWriterDetImageHeatmap', () => {
 
     it('shows error message when hook returns an error', () => {
         vi.mocked(useTiledWriterDetImageHeatmap).mockReturnValue({
-            tiledPath: null, isLoading: false, error: 'Run not found', enablePolling: false,
+            tiledPath: null,
+            isLoading: false,
+            error: 'Run not found',
+            enablePolling: false,
         });
         render(<TiledWriterDetImageHeatmap blueskyRunId="abc-123" />);
         expect(screen.getByText('Error: Run not found')).toBeInTheDocument();
@@ -162,18 +212,28 @@ describe('TiledWriterDetImageHeatmap', () => {
 
     it('shows complete status when tiledPath is set and polling is disabled', () => {
         vi.mocked(useTiledWriterDetImageHeatmap).mockReturnValue({
-            tiledPath: '/some/path', isLoading: false, error: null, enablePolling: false,
+            tiledPath: '/some/path',
+            isLoading: false,
+            error: null,
+            enablePolling: false,
         });
         render(<TiledWriterDetImageHeatmap blueskyRunId="abc-123" />);
-        expect(screen.getByText('Det Image for run: abc-123 (Complete - polling disabled)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Det Image for run: abc-123 (Complete - polling disabled)'),
+        ).toBeInTheDocument();
     });
 
     it('shows live status when tiledPath is set and polling is enabled', () => {
         vi.mocked(useTiledWriterDetImageHeatmap).mockReturnValue({
-            tiledPath: '/some/path', isLoading: false, error: null, enablePolling: true,
+            tiledPath: '/some/path',
+            isLoading: false,
+            error: null,
+            enablePolling: true,
         });
         render(<TiledWriterDetImageHeatmap blueskyRunId="abc-123" />);
-        expect(screen.getByText('Det Image for run: abc-123 (Live - polling enabled)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Det Image for run: abc-123 (Live - polling enabled)'),
+        ).toBeInTheDocument();
     });
 
     it('renders the heatmap component', () => {
@@ -183,15 +243,21 @@ describe('TiledWriterDetImageHeatmap', () => {
 
     it('passes tiledPath as url to heatmap', () => {
         vi.mocked(useTiledWriterDetImageHeatmap).mockReturnValue({
-            tiledPath: '/tiled/path', isLoading: false, error: null, enablePolling: false,
+            tiledPath: '/tiled/path',
+            isLoading: false,
+            error: null,
+            enablePolling: false,
         });
         render(<TiledWriterDetImageHeatmap blueskyRunId="abc-123" />);
-        expect(screen.getByTestId('plotly-heatmap-tiled')).toHaveAttribute('data-url', '/tiled/path');
+        expect(screen.getByTestId('plotly-heatmap-tiled')).toHaveAttribute(
+            'data-url',
+            '/tiled/path',
+        );
     });
 
     it('applies custom className to container', () => {
         const { container } = render(
-            <TiledWriterDetImageHeatmap blueskyRunId="abc-123" className="my-class" />
+            <TiledWriterDetImageHeatmap blueskyRunId="abc-123" className="my-class" />,
         );
         expect(container.firstChild).toHaveClass('my-class');
     });
@@ -201,7 +267,11 @@ describe('TiledWriterDetImageHeatmap', () => {
 
 describe('TiledWriterScatterPlot', () => {
     beforeEach(() => {
-        vi.mocked(useQuery).mockReturnValue({ data: undefined, isLoading: false, error: null } as unknown as ReturnType<typeof useQuery>);
+        vi.mocked(useQuery).mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            error: null,
+        } as unknown as ReturnType<typeof useQuery>);
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
             tiledPath: null,
             isLoading: false,
@@ -214,8 +284,12 @@ describe('TiledWriterScatterPlot', () => {
 
     it('shows loading message while hook is loading', () => {
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
-            tiledPath: null, isLoading: true, error: null, enablePolling: false,
-            startCompletionPolling: vi.fn(), stopCompletionPolling: vi.fn(),
+            tiledPath: null,
+            isLoading: true,
+            error: null,
+            enablePolling: false,
+            startCompletionPolling: vi.fn(),
+            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Loading Tiled data for run run-1...')).toBeInTheDocument();
@@ -223,8 +297,12 @@ describe('TiledWriterScatterPlot', () => {
 
     it('shows error message when hook returns an error', () => {
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
-            tiledPath: null, isLoading: false, error: 'Waiting for run ID', enablePolling: false,
-            startCompletionPolling: vi.fn(), stopCompletionPolling: vi.fn(),
+            tiledPath: null,
+            isLoading: false,
+            error: 'Waiting for run ID',
+            enablePolling: false,
+            startCompletionPolling: vi.fn(),
+            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Error: Waiting for run ID')).toBeInTheDocument();
@@ -237,24 +315,42 @@ describe('TiledWriterScatterPlot', () => {
 
     it('shows found path status with complete label', () => {
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
-            tiledPath: '/run/primary', isLoading: false, error: null, enablePolling: false,
-            startCompletionPolling: vi.fn(), stopCompletionPolling: vi.fn(),
+            tiledPath: '/run/primary',
+            isLoading: false,
+            error: null,
+            enablePolling: false,
+            startCompletionPolling: vi.fn(),
+            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
-        expect(screen.getByText('Found Tiled path: /run/primary (Complete - polling disabled)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Found Tiled path: /run/primary (Complete - polling disabled)'),
+        ).toBeInTheDocument();
     });
 
     it('shows live label when polling is enabled', () => {
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
-            tiledPath: '/run/primary', isLoading: false, error: null, enablePolling: true,
-            startCompletionPolling: vi.fn(), stopCompletionPolling: vi.fn(),
+            tiledPath: '/run/primary',
+            isLoading: false,
+            error: null,
+            enablePolling: true,
+            startCompletionPolling: vi.fn(),
+            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
-        expect(screen.getByText('Found Tiled path: /run/primary (Live - polling enabled)')).toBeInTheDocument();
+        expect(
+            screen.getByText('Found Tiled path: /run/primary (Live - polling enabled)'),
+        ).toBeInTheDocument();
     });
 
     it('hides status text when showStatusText is false', () => {
-        render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" showStatusText={false} />);
+        render(
+            <TiledWriterScatterPlot
+                tiledTrace={trace}
+                blueskyRunId="run-1"
+                showStatusText={false}
+            />,
+        );
         expect(screen.queryByText('No data path found for run run-1')).not.toBeInTheDocument();
     });
 
@@ -271,12 +367,112 @@ describe('TiledWriterScatterPlot', () => {
 
     it('forwards tiledPath to TiledScatterPlot — resolved path triggers data fetch', () => {
         vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
-            tiledPath: '/run/primary', isLoading: false, error: null, enablePolling: false,
-            startCompletionPolling: vi.fn(), stopCompletionPolling: vi.fn(),
+            tiledPath: '/run/primary',
+            isLoading: false,
+            error: null,
+            enablePolling: false,
+            startCompletionPolling: vi.fn(),
+            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         // TiledScatterPlot with a real path and no data shows "No data available" (not the null-path message)
         expect(screen.getByText('No data available')).toBeInTheDocument();
-        expect(screen.queryByText('No data path provided - waiting for data')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('No data path provided - waiting for data'),
+        ).not.toBeInTheDocument();
+    });
+});
+
+// ── TiledWriterMultiScatterPlot ───────────────────────────────────────────────
+
+describe('TiledWriterMultiScatterPlot', () => {
+    beforeEach(() => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [],
+            isLoading: false,
+            errors: [],
+        });
+    });
+
+    it('renders the multi scatter plot', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toBeInTheDocument();
+    });
+
+    it('forwards resolved tiledPaths to the plot', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: ['/run-1/primary', null],
+            isLoading: false,
+            errors: [],
+        });
+        render(
+            <TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1', 'run-2']} />,
+        );
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-paths',
+            JSON.stringify(['/run-1/primary', null]),
+        );
+    });
+
+    it('shows no popup message when there are no errors', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-popup', '');
+    });
+
+    it('passes an error popup message when the hook reports errors', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [null],
+            isLoading: false,
+            errors: ['run not found'],
+        });
+        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-popup',
+            'Error fetching data from Tiled server, check the console for more details',
+        );
+        errorSpy.mockRestore();
+    });
+
+    it('suppresses the error popup while still loading', () => {
+        vi.mocked(useTiledWriterMultiScatterPlot).mockReturnValue({
+            tiledPaths: [null],
+            isLoading: true,
+            errors: ['run not found'],
+        });
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-popup', '');
+    });
+
+    it('enables shortPathNames when no traceNames are provided', () => {
+        render(<TiledWriterMultiScatterPlot tiledTrace={trace} blueskyRunIds={['run-1']} />);
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute(
+            'data-short-path-names',
+            'true',
+        );
+    });
+
+    it('disables shortPathNames and forwards explicit traceNames', () => {
+        render(
+            <TiledWriterMultiScatterPlot
+                tiledTrace={trace}
+                blueskyRunIds={['run-1']}
+                traceNames={['Scan A']}
+            />,
+        );
+        const plot = screen.getByTestId('multi-scatter-plot');
+        expect(plot).toHaveAttribute('data-short-path-names', 'false');
+        expect(plot).toHaveAttribute('data-trace-names', JSON.stringify(['Scan A']));
+    });
+
+    it('forwards the title to the plot', () => {
+        render(
+            <TiledWriterMultiScatterPlot
+                tiledTrace={trace}
+                blueskyRunIds={['run-1']}
+                title="My Scans"
+            />,
+        );
+        expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-title', 'My Scans');
     });
 });

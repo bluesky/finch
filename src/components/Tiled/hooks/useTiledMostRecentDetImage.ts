@@ -27,30 +27,26 @@ type UseTiledMostRecentDetImageReturn = {
 };
 
 export const useTiledMostRecentDetImage = (
-    options: UseTiledMostRecentDetImageOptions = {}
+    options: UseTiledMostRecentDetImageOptions = {},
 ): UseTiledMostRecentDetImageReturn => {
-    const { 
-        pollingIntervalMs = 2000, 
-        tiledBaseUrl,
-        enabled = true 
-    } = options;
+    const { pollingIntervalMs = 2000, tiledBaseUrl, enabled = true } = options;
 
     const { httpBaseUrl } = useTiledApiUrls();
     const tiledBaseUrlFinal = tiledBaseUrl || httpBaseUrl;
 
     const [enablePolling, setEnablePolling] = useState(enabled);
     const [isRunFinished, setIsRunFinished] = useState<boolean>(false);
-    
+
     // Keep track of current run ID separately from query data
     const currentRunIdRef = useRef<string | null>(null);
 
     // Function to search for runs with det_image
     //TODO: replace this with function from Tiled api client once implemented
     const searchForDetImage = async (): Promise<string | null> => {
-        try { 
+        try {
             // Get last 10 entries, sorted by most recent
             const searchResponse = await fetch(
-                `${tiledBaseUrlFinal}/search/?sort=-&page[offset]=0&page[limit]=10`
+                `${tiledBaseUrlFinal}/search/?sort=-&page[offset]=0&page[limit]=10`,
             );
 
             if (!searchResponse.ok) {
@@ -67,31 +63,39 @@ export const useTiledMostRecentDetImage = (
 
                 try {
                     const detImageResponse = await fetch(
-                        `${tiledBaseUrlFinal}/metadata/${detImagePath}`
+                        `${tiledBaseUrlFinal}/metadata/${detImagePath}`,
                     );
                     if (detImageResponse.ok) {
                         const detImageData = await detImageResponse.json();
                         // Verify it's an array structure
-                        if (detImageData.data.attributes?.structure_family === 'array') {                            
+                        if (detImageData.data.attributes?.structure_family === 'array') {
                             // Only return if this is a new/different run ID
                             if (runId !== currentRunIdRef.current) {
                                 currentRunIdRef.current = runId;
                                 try {
-                                    const isComplete = entry.attributes?.metadata?.stop !== undefined;
+                                    const isComplete =
+                                        entry.attributes?.metadata?.stop !== undefined;
                                     setIsRunFinished(isComplete);
                                 } catch (metadataError) {
-                                    console.warn(`[useTiledMostRecentDetImage] Could not check stop key for run ${runId}:`, metadataError);
+                                    console.warn(
+                                        `[useTiledMostRecentDetImage] Could not check stop key for run ${runId}:`,
+                                        metadataError,
+                                    );
                                 }
                                 return runId;
                             } else {
                                 //found the same runId, but verify if the run status has changed
                                 try {
-                                    const isComplete = entry.attributes?.metadata?.stop !== undefined;
+                                    const isComplete =
+                                        entry.attributes?.metadata?.stop !== undefined;
                                     if (isComplete !== isRunFinished) {
-                                            setIsRunFinished(isComplete);
-                                        }
+                                        setIsRunFinished(isComplete);
+                                    }
                                 } catch (metadataError) {
-                                    console.warn(`[useTiledMostRecentDetImage] Could not check stop key for run ${runId}:`, metadataError);
+                                    console.warn(
+                                        `[useTiledMostRecentDetImage] Could not check stop key for run ${runId}:`,
+                                        metadataError,
+                                    );
                                 }
                                 // Same run ID, no change needed
                                 return currentRunIdRef.current;
@@ -103,7 +107,6 @@ export const useTiledMostRecentDetImage = (
                 }
             }
             return currentRunIdRef.current; // Return current if no new runs found
-
         } catch (error) {
             console.error('[useTiledMostRecentDetImage] Error searching for det_image:', error);
             throw error;
@@ -115,7 +118,7 @@ export const useTiledMostRecentDetImage = (
         data: blueskyRunId,
         isLoading,
         error,
-        refetch: _refetch
+        refetch: _refetch,
     } = useQuery({
         queryKey: ['tiledMostRecentDetImage', tiledBaseUrlFinal],
         queryFn: searchForDetImage,
@@ -127,12 +130,11 @@ export const useTiledMostRecentDetImage = (
         staleTime: pollingIntervalMs - 500,
         structuralSharing: (oldData, newData) => {
             return oldData === newData ? oldData : newData;
-    }
-        
+        },
     });
 
     const togglePolling = () => {
-        setEnablePolling(prev => !prev);
+        setEnablePolling((prev) => !prev);
     };
 
     return {
@@ -141,6 +143,6 @@ export const useTiledMostRecentDetImage = (
         isRunFinished,
         error: error ? (error instanceof Error ? error.message : 'Unknown error') : null,
         enablePolling,
-        togglePolling
+        togglePolling,
     };
 };

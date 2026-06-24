@@ -1,7 +1,7 @@
-import { CSSProperties, useState } from "react";
-import { cn } from "@/lib/utils";
-import styles from "../styles.json";
-import { useVariant } from "../context/VariantContext";
+import { CSSProperties, useState } from 'react';
+import { cn } from '@/lib/utils';
+import styles from '../styles.json';
+import { useVariant } from '../context/VariantContext';
 
 type ButtonProps = {
     label?: string;
@@ -13,10 +13,12 @@ type ButtonProps = {
 
 export default function Button({
     label = '',
-    onSubmit = (input) => { console.log('submit ' + input) },
+    onSubmit = (input) => {
+        console.log('submit ' + input);
+    },
     isDisabled = false,
     style,
-    val
+    val,
 }: ButtonProps) {
     const { variant } = useVariant();
     const [isPressed, setIsPressed] = useState(false);
@@ -37,7 +39,6 @@ export default function Button({
             disabled={isDisabled}
             onClick={handleClick}
             className={cn(
-
                 // Conditional styles
                 isDisabled
                     ? 'bg-slate-300 text-slate-500 cursor-not-allowed'

@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import styles from "../styles.json";
-import { useVariant } from "../context/VariantContext";
+import styles from '../styles.json';
+import { useVariant } from '../context/VariantContext';
 
 export interface TextProps {
     children?: React.ReactNode;
@@ -28,8 +28,8 @@ const Text: React.FC<TextProps> = ({
     // Handle visibility logic for dynamic text
     if (dynamic) {
         const visibilityConditions: Record<string, boolean> = {
-            "if zero": val === 0,
-            "if not zero": val !== 0,
+            'if zero': val === 0,
+            'if not zero': val !== 0,
         };
 
         if (vis && !visibilityConditions[vis]) {
@@ -39,16 +39,20 @@ const Text: React.FC<TextProps> = ({
 
     // Handle alignment logic
     const alignmentClasses = {
-        "horiz. right": "text-right",
-        "horiz. centered": "text-center",
-        "horiz. left": "text-left"
+        'horiz. right': 'text-right',
+        'horiz. centered': 'text-center',
+        'horiz. left': 'text-left',
     } as const;
 
     const alignmentClass = align ? alignmentClasses[align as keyof typeof alignmentClasses] : null;
 
     return (
         <div
-            className={cn("relative z-40", alignmentClass, styles.variants[variant as keyof typeof styles.variants].text)}
+            className={cn(
+                'relative z-40',
+                alignmentClass,
+                styles.variants[variant as keyof typeof styles.variants].text,
+            )}
             style={style}
             {...props}
         >

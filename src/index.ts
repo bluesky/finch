@@ -28,16 +28,30 @@ export type { TiledHeatmapSelectorProps } from './features/TiledHeatmapSelector'
 export { default as Beamstop } from './features/Beamstop';
 export type { BeamstopProps } from './features/Beamstop';
 
-export { default as HubAppLayout } from './components/HubAppLayout';
-export type { HubAppLayoutProps } from './components/HubAppLayout';
+export { default as FinchAppLayout } from './components/FinchAppLayout';
+export type { FinchAppLayoutProps } from './components/FinchAppLayout';
 
-export { default as HubHeader } from './components/HubHeader';
-export type { HubHeaderProps } from './components/HubHeader';
+export { default as FinchHeader } from './components/FinchHeader';
+export type { FinchHeaderProps } from './components/FinchHeader';
 
-export { default as HubMainContent } from './components/HubMainContent';
-export type { HubMainContentProps } from './components/HubMainContent';
-export { default as HubSidebar } from './components/HubSidebar';
-export type { HubSidebarProps } from './components/HubSidebar';
+export { default as FinchMainContent } from './components/FinchMainContent';
+export type { FinchMainContentProps } from './components/FinchMainContent';
+
+export { default as FinchSidebar } from './components/FinchSidebar';
+export type { FinchSidebarProps } from './components/FinchSidebar';
+
+// @deprecated — use Finch* equivalents
+export { default as HubAppLayout } from './components/FinchAppLayout';
+export type { FinchAppLayoutProps as HubAppLayoutProps } from './components/FinchAppLayout';
+
+export { default as HubHeader } from './components/FinchHeader';
+export type { FinchHeaderProps as HubHeaderProps } from './components/FinchHeader';
+
+export { default as HubMainContent } from './components/FinchMainContent';
+export type { FinchMainContentProps as HubMainContentProps } from './components/FinchMainContent';
+
+export { default as HubSidebar } from './components/FinchSidebar';
+export type { FinchSidebarProps as HubSidebarProps } from './components/FinchSidebar';
 
 export { default as ContainerQServer } from './components/QServer/ContainerQServer';
 export type { ContainerQServerProps } from './components/QServer/ContainerQServer';
@@ -48,8 +62,8 @@ export type { CameraContainerProps } from './components/Camera/CameraContainer';
 export { default as CameraCanvas } from './components/Camera/CameraCanvas';
 export type { CameraCanvasProps } from './components/Camera/CameraCanvas';
 
-export {default as Widget} from './components/Widget';
-export type {WidgetProps} from './components/Widget';
+export { default as Widget } from './components/Widget';
+export type { WidgetProps } from './components/Widget';
 
 export { default as PlotlyHeatmap } from './components/PlotlyHeatmap';
 export type { PlotlyHeatmapProps } from './components/PlotlyHeatmap';
@@ -126,7 +140,6 @@ export type { ComponentViewerProps } from './features/ComponentViewer/ComponentV
 export { default as ComponentViewerExampleSim } from './features/ComponentViewer/ComponentViewerExampleSim';
 export { default as ComponentViewerExampleReal } from './features/ComponentViewer/ComponentViewerExampleReal';
 
-
 // TABS
 export { TabsGroup } from './components/Tabs/TabsGroup';
 export { TabsList } from './components/Tabs/TabsList';
@@ -200,7 +213,6 @@ export type { ReactEDMProps } from './components/ReactEDM/ReactEDM';
 export { default as QueueServer } from './components/QServer/QueueServer';
 export type { QueueServerProps } from './components/QServer/QueueServer';
 
-
 //HOOKS
 export { default as useOphydSocket } from './api/ophyd/useOphydSocket';
 export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
@@ -208,14 +220,33 @@ export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocke
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
 
+// TILED HOOKS
+export {
+    useTiledSearchResultsQuery,
+    useTiledSearchByIdQuery,
+    useTiledSearchBySpecsQuery,
+    useTiledSearchByFulltextQuery,
+    useTiledSearchByMetadataEqualsQuery,
+    useTiledSearchByMetadataComparisonQuery,
+    useTiledSearchByRegexQuery,
+    useTiledSearchByStructureFamilyQuery,
+    useTiledItemMetadataQuery,
+    useTiledBlueskyPlanMetadataQuery,
+    useTiledTableDataAsSequenceQuery,
+    useTiledTableDataAsJsonQuery,
+    useTiledStructuredArrayDataQuery,
+    useTiledXArrayDataQuery,
+    useTiledServerInfoQuery,
+} from './api/tiled/hooks';
+
 // OPHYD TYPES
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
 export * as OphydPVSocketTypes from './api/ophyd/ophydPVSocketTypes';
 export {
-  ophydSocketTIFFPath,
-  ophydSocketCameraPath,
-  ophydSocketDevicePath,
-  ophydSocketPVPath,
+    ophydSocketTIFFPath,
+    ophydSocketCameraPath,
+    ophydSocketDevicePath,
+    ophydSocketPVPath,
 } from './api/ophyd/socketPaths';
 
 // QSERVER API
@@ -225,111 +256,107 @@ export type { QServerApiConfig } from './api/qServer/client';
 export * as QServerRequests from './api/qServer/requests';
 
 export {
-  useQueueQuery,
-  useQueueHistoryQuery,
-  useStatusQuery,
-  usePlansAllowedQuery,
-  useDevicesAllowedQuery,
-  useQueueItemQuery,
-  useRunsActiveQuery,
-  useAddQueueItemMutation,
-  useExecuteQueueItemMutation,
-  useRemoveQueueItemMutation,
-  useOpenEnvironmentMutation,
-  useStartREMutation,
-  usePauseREMutation,
-  useResumeREMutation,
-  useAbortREMutation,
+    useQueueQuery,
+    useQueueHistoryQuery,
+    useStatusQuery,
+    usePlansAllowedQuery,
+    useDevicesAllowedQuery,
+    useQueueItemQuery,
+    useRunsActiveQuery,
+    useAddQueueItemMutation,
+    useExecuteQueueItemMutation,
+    useRemoveQueueItemMutation,
+    useOpenEnvironmentMutation,
+    useStartREMutation,
+    usePauseREMutation,
+    useResumeREMutation,
+    useAbortREMutation,
 } from './api/qServer/hooks';
 
 export type {
-  GetStatusResponse,
-  GetQueueResponse,
-  GetHistoryResponse,
-  GetPlansAllowedResponse,
-  GetDevicesAllowedResponse,
-  GetQueueItemResponse,
-  GetRunsActiveResponse,
-  PostItemAddResponse,
-  PostItemExecuteResponse,
-  PostItemRemoveResponse,
-  PostEnvironmentOpenResponse,
-  PostREResponse,
-  BaseQueueItem,
-  QueueItem,
-  FailedQueueItem,
-  RunningQueueItem,
-  HistoryItem,
-  ArbitraryKwargs,
-  MetadataKwarg,
-  AddQueueItemBody,
-  ExecuteQueueItemBody,
-  RemoveQueueItemBody,
-  RunsActiveListItem,
-  Component,
-  Device as QServerDevice,
-  Parameter,
-  Plan,
-  Result,
+    GetStatusResponse,
+    GetQueueResponse,
+    GetHistoryResponse,
+    GetPlansAllowedResponse,
+    GetDevicesAllowedResponse,
+    GetQueueItemResponse,
+    GetRunsActiveResponse,
+    PostItemAddResponse,
+    PostItemExecuteResponse,
+    PostItemRemoveResponse,
+    PostEnvironmentOpenResponse,
+    PostREResponse,
+    BaseQueueItem,
+    QueueItem,
+    FailedQueueItem,
+    RunningQueueItem,
+    HistoryItem,
+    ArbitraryKwargs,
+    MetadataKwarg,
+    AddQueueItemBody,
+    ExecuteQueueItemBody,
+    RemoveQueueItemBody,
+    RunsActiveListItem,
+    Component,
+    Device as QServerDevice,
+    Parameter,
+    Plan,
+    Result,
 } from './api/qServer/types';
 
 //TYPES
 export type { RouteItem } from './types/navigationRouterTypes';
-export type {Device, Devices } from './types/deviceControllerTypes';
-
+export type { Device, Devices } from './types/deviceControllerTypes';
 
 //CONTEXT PROVIDERS
-export {
-  FinchConfigProvider,
-  useOptionalFinchConfig,
-} from './app/FinchConfigProvider';
+export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 
 // Tiled API namespace - groups all Tiled functionality under a clear namespace
 import * as TiledAPI from '@blueskyproject/tiled';
 
 export const Tiled = {
-  // Path management
-  setInitialPath: TiledAPI.setInitialPath,
-  getInitialPath: TiledAPI.getInitialPath,
-  
-  // Authentication and server configuration
-  setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
-  getDefaultUrl: TiledAPI.getDefaultTiledUrl,
-  setBearerToken: TiledAPI.setBearerToken,
-  getServerInfo: TiledAPI.getServerInfo,
-  loginWithPassword: TiledAPI.loginUserWithNamePassword,
-  
-  // Search and data retrieval
-  getSearchResults: TiledAPI.getSearchResults,
-  getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
-  getItemMetadata: TiledAPI.getItemMetadata,
-  getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
-  getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
-  getTableDataAsJson: TiledAPI.getTableDataAsJson,
-  getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
-  getStructuredArrayData: TiledAPI.getStructuredArrayData,
-  getXArrayData: TiledAPI.getXArrayData,
-  
-  // Comprehensive search functions
-  searchBySpecs: TiledAPI.searchBySpecs,
-  searchByFulltext: TiledAPI.searchByFulltext,
-  searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
-  searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
-  searchByRegex: TiledAPI.searchByRegex,
-  searchByStructureFamily: TiledAPI.searchByStructureFamily,
-  
-  // Image handling
-  generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
-  getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
-  
-  // Configuration and state management
-  setReverseSort: TiledAPI.setReverseSort,
-  resetGlobalState: TiledAPI.resetGlobalState,
-  
-  // Type guards
-  isArrayStructure: TiledAPI.isArrayStructure,
-  isTableStructure: TiledAPI.isTableStructure,
-  isContainerStructure: TiledAPI.isContainerStructure,
+    // Path management
+    setInitialPath: TiledAPI.setInitialPath,
+    getInitialPath: TiledAPI.getInitialPath,
+
+    // Authentication and server configuration
+    setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
+    getDefaultUrl: TiledAPI.getDefaultTiledUrl,
+    setBearerToken: TiledAPI.setBearerToken,
+    getServerInfo: TiledAPI.getServerInfo,
+    loginWithPassword: TiledAPI.loginUserWithNamePassword,
+
+    // Search and data retrieval
+    getSearchResults: TiledAPI.getSearchResults,
+    getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
+    getItemMetadata: TiledAPI.getItemMetadata,
+    getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
+    getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
+    getTableDataAsJson: TiledAPI.getTableDataAsJson,
+    getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
+    getStructuredArrayData: TiledAPI.getStructuredArrayData,
+    getXArrayData: TiledAPI.getXArrayData,
+
+    // Comprehensive search functions
+    searchBySpecs: TiledAPI.searchBySpecs,
+    searchByFulltext: TiledAPI.searchByFulltext,
+    searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
+    searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
+    searchByRegex: TiledAPI.searchByRegex,
+    searchByStructureFamily: TiledAPI.searchByStructureFamily,
+
+    // Image handling
+    generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
+    getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
+
+    // Configuration and state management
+    setReverseSort: TiledAPI.setReverseSort,
+    resetGlobalState: TiledAPI.resetGlobalState,
+
+    // Type guards
+    isArrayStructure: TiledAPI.isArrayStructure,
+    isTableStructure: TiledAPI.isTableStructure,
+    isContainerStructure: TiledAPI.isContainerStructure,
 };
 
 export type { FinchConfig } from './app/FinchConfigProvider';

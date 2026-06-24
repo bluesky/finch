@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils';
 
 type ButtonIconOnlyProps = {
     /** JSX element displayed as the button content - typically an SVG icon */
@@ -15,7 +15,7 @@ type ButtonIconOnlyProps = {
     isSecondary?: boolean;
     /** Renders the button in a pressed/active state */
     active?: boolean;
-}
+};
 
 const buttonVariants = {
     primary: 'bg-sky-500 hover:bg-sky-600',
@@ -31,7 +31,16 @@ const getButtonClasses = (active: boolean | undefined, isSecondary: boolean | un
     return buttonVariants.primary;
 };
 
-export default function ButtonIconOnly({ icon, className, classNameIcon, onClick, disabled, isSecondary, active, ...props }: ButtonIconOnlyProps) {
+export default function ButtonIconOnly({
+    icon,
+    className,
+    classNameIcon,
+    onClick,
+    disabled,
+    isSecondary,
+    active,
+    ...props
+}: ButtonIconOnlyProps) {
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         if (onClick) onClick(e);
@@ -39,12 +48,17 @@ export default function ButtonIconOnly({ icon, className, classNameIcon, onClick
     return (
         <button
             aria-pressed={active}
-            className={cn(`${getButtonClasses(active, isSecondary)} rounded-sm px-2 py-1 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`, className)}
+            className={cn(
+                `${getButtonClasses(active, isSecondary)} rounded-sm px-2 py-1 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`,
+                className,
+            )}
             onClick={handleClick}
             disabled={disabled}
             {...props}
         >
-            <span className={cn(`${isSecondary ? 'text-black' : 'text-white'}`, classNameIcon)}>{icon}</span>
+            <span className={cn(`${isSecondary ? 'text-black' : 'text-white'}`, classNameIcon)}>
+                {icon}
+            </span>
         </button>
-    )
+    );
 }

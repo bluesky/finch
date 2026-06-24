@@ -1,12 +1,12 @@
-import React from "react";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import React from 'react';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export type doc = {
     title: string;
     url: string;
     description?: string;
-}
+};
 
 type GoogleDocProps = {
     /** URL of a single document to embed. Used when no docs list is provided, or as the initial selection when docs is also provided. */
@@ -17,19 +17,21 @@ type GoogleDocProps = {
     className?: string;
 };
 
-const googleDocIcon = "https://img.icons8.com/?size=100&id=30464&format=png&color=000000";
+const googleDocIcon = 'https://img.icons8.com/?size=100&id=30464&format=png&color=000000';
 
 export default function GoogleDoc({ url, docs, className, ...props }: GoogleDocProps) {
-    const [ selectedDocUrl, setSelectedDocUrl ] = useState<string>(url ? url : (docs && docs.length > 0 ? docs[0].url : ""));
+    const [selectedDocUrl, setSelectedDocUrl] = useState<string>(
+        url ? url : docs && docs.length > 0 ? docs[0].url : '',
+    );
 
     const handleDocChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedDocUrl(event.target.value);
     };
 
     return docs && docs.length > 0 ? (
-        <div className={cn("w-full h-full flex flex-col bg-white", className)} {...props}>
+        <div className={cn('w-full h-full flex flex-col bg-white', className)} {...props}>
             <div className="p-4 bg-gray-100 border-b border-gray-300 flex items-center gap-4">
-                <img src={googleDocIcon} alt="Google Doc" className="w-8 h-8"/>
+                <img src={googleDocIcon} alt="Google Doc" className="w-8 h-8" />
                 <select
                     value={selectedDocUrl}
                     onChange={handleDocChange}
@@ -52,7 +54,10 @@ export default function GoogleDoc({ url, docs, className, ...props }: GoogleDocP
             </div>
         </div>
     ) : (
-        <div className={cn("w-full h-full flex justify-center items-center bg-white", className)} {...props}>
+        <div
+            className={cn('w-full h-full flex justify-center items-center bg-white', className)}
+            {...props}
+        >
             <iframe
                 src={url}
                 title="Google Doc Viewer"

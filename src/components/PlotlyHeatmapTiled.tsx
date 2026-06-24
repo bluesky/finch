@@ -3,229 +3,242 @@ import PlotlyHeatmap from './PlotlyHeatmap';
 // import { logNormalizeArray, histEqualizeArray } from '@/utils/plotProcessors';
 import { cn } from '@/lib/utils';
 export type PlotlyHeatmapProps = {
-  /** Tiled metadata URL (e.g. /api/v1/metadata/my_image). Pass null to show an empty placeholder. */
-  url: string | null;
-  /** Additional CSS classes applied to the root section element. */
-  className?: string;
-  /** Controls the fixed dimensions of the component. Defaults to 'medium'. */
-  size?: 'small' | 'medium' | 'large';
-  /** When true, periodically polls the metadata URL to detect shape changes and auto-advance to the latest frame. */
-  enablePolling?: boolean;
-  /** Interval in milliseconds between polling requests. Defaults to 2000. */
-  pollingIntervalMs?: number;
+    /** Tiled metadata URL (e.g. /api/v1/metadata/my_image). Pass null to show an empty placeholder. */
+    url: string | null;
+    /** Additional CSS classes applied to the root section element. */
+    className?: string;
+    /** Controls the fixed dimensions of the component. Defaults to 'medium'. */
+    size?: 'small' | 'medium' | 'large';
+    /** When true, periodically polls the metadata URL to detect shape changes and auto-advance to the latest frame. */
+    enablePolling?: boolean;
+    /** Interval in milliseconds between polling requests. Defaults to 2000. */
+    pollingIntervalMs?: number;
 };
 
-export default function PlotlyHeatmapTiled({ 
-  url, 
-  className, 
-  size='medium', 
-  enablePolling = false,
-  pollingIntervalMs = 2000
+export default function PlotlyHeatmapTiled({
+    url,
+    className,
+    size = 'medium',
+    enablePolling = false,
+    pollingIntervalMs = 2000,
 }: PlotlyHeatmapProps) {
-  const [array, setArray] = useState<number[][] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [sliderIndex, setSliderIndex] = useState<number>(0);
-  const [shape, setShape] = useState<number[] | null>(null);
-  const [fullUrl, setFullUrl] = useState<string | null>(null);
-  const [ metadata, setMetadata ] = useState<Record<string, string> | null>(null);
-  
-  // Track if user has manually interacted with slider
-  const [userHasMovedSlider, setUserHasMovedSlider] = useState<boolean>(false);
-  const initialSliderPosition = useRef<number>(0);
+    const [array, setArray] = useState<number[][] | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [sliderIndex, setSliderIndex] = useState<number>(0);
+    const [shape, setShape] = useState<number[] | null>(null);
+    const [fullUrl, setFullUrl] = useState<string | null>(null);
+    const [metadata, setMetadata] = useState<Record<string, string> | null>(null);
 
-  const sizeClassMap = {
-    small: 'w-[400px] h-[500px]',
-    medium: 'w-[700px] h-[800px]',
-    large: 'w-[1000px] h-[1200px]',
-};
+    // Track if user has manually interacted with slider
+    const [userHasMovedSlider, setUserHasMovedSlider] = useState<boolean>(false);
+    const initialSliderPosition = useRef<number>(0);
 
-  const fetchAndDecodeBlock = async (frameIndex: number, blockUrl: string, shape: number[]) => {
-    try {
-      setError(null);
-
-      // Construct block URL - for 3D array [frames, height, width], we want block=frameIndex,0,0
-      // For 2D array [height, width], we want block=0,0
-      const blockParam = shape.length === 3 ? `${frameIndex},0,0` : '0,0';
-      const fullBlockUrl = `${blockUrl}?block=${blockParam}`;
-
-      const response = await fetch(fullBlockUrl);
-      if (!response.ok) throw new Error(`Failed to fetch block data: ${response.status}`);
-
-      const arrayBuffer = await response.arrayBuffer();
-      
-      // Parse binary data based on structure from metadata
-      // Assuming int32, little-endian
-      const dataView = new DataView(arrayBuffer);
-      const pixelCount = shape.length === 3 ? shape[1] * shape[2] : shape[0] * shape[1];
-      
-      // Read int32 values (4 bytes each) in little-endian format
-      const flatArray: number[] = [];
-      for (let i = 0; i < pixelCount; i++) {
-        const value = dataView.getInt32(i * 4, true); // true for little-endian
-        flatArray.push(value);
-      }
-
-      // Convert flat array to 2D array
-      const height = shape.length === 3 ? shape[1] : shape[0];
-      const width = shape.length === 3 ? shape[2] : shape[1];
-      
-      const array2D: number[][] = [];
-      for (let y = 0; y < height; y++) {
-        const row: number[] = [];
-        for (let x = 0; x < width; x++) {
-          const idx = y * width + x;
-          row.push(flatArray[idx]);
-        }
-        array2D.push(row);
-      }
-
-      setArray(array2D);
-      // Uncomment these for data processing:
-      // setArray(logNormalizeArray(array2D));
-      // setArray(histEqualizeArray(array2D));
-
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      setError(`Failed to load block data: ${msg}`);
-      setArray(null);
-      setSliderIndex(0);
-      setShape(null);
-    }
-  };
-
-  useEffect(() => {
-    if (!url) {
-      // Handle null URL - reset state
-      setError(null);
-      setMetadata(null);
-      setShape(null);
-      setSliderIndex(0);
-      setUserHasMovedSlider(false);
-      initialSliderPosition.current = 0;
-      setArray(null);
-      return;
-    }
-
-    const fetchMetadata = async () => {
-      try {
-        const resp = await fetch(url);
-        const json = await resp.json();
-        const shape = json.data?.attributes?.structure?.shape;
-        const dataFullUrl = json.data?.links?.full;
-        setMetadata(json.data);
-
-        if (!shape || !dataFullUrl) throw new Error('Invalid metadata response');
-
-        setShape(shape);
-        setFullUrl(dataFullUrl);
-        setSliderIndex(0);
-        setUserHasMovedSlider(false);
-        initialSliderPosition.current = 0;
-        
-        fetchAndDecodeBlock(0, dataFullUrl, shape);
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        setError(`Failed to load metadata: ${msg}`);
-        setArray(null);
-      }
+    const sizeClassMap = {
+        small: 'w-[400px] h-[500px]',
+        medium: 'w-[700px] h-[800px]',
+        large: 'w-[1000px] h-[1200px]',
     };
 
-    fetchMetadata();
-  }, [url]);
+    const fetchAndDecodeBlock = async (frameIndex: number, blockUrl: string, shape: number[]) => {
+        try {
+            setError(null);
 
-  // Polling effect for shape updates
-  useEffect(() => {
-    if (!enablePolling || !url) return;
+            // Construct block URL - for 3D array [frames, height, width], we want block=frameIndex,0,0
+            // For 2D array [height, width], we want block=0,0
+            const blockParam = shape.length === 3 ? `${frameIndex},0,0` : '0,0';
+            const fullBlockUrl = `${blockUrl}?block=${blockParam}`;
 
-    const pollForShapeChanges = async () => {
-      try {
-        const resp = await fetch(url);
-        const json = await resp.json();
-        const newShape = json.data?.attributes?.structure?.shape;
-        const fullUrl = json.data?.links?.full;
+            const response = await fetch(fullBlockUrl);
+            if (!response.ok) throw new Error(`Failed to fetch block data: ${response.status}`);
 
-        if (newShape && shape) {
-          // Check if shape has changed (specifically the number of frames for 3D arrays)
-          const shapeChanged = newShape.length !== shape.length || 
-                              (newShape.length === 3 && newShape[0] !== shape[0]);
-          
-          if (shapeChanged) {
-            setShape(newShape);
-            
-            // Only fetch and decode if user hasn't moved the slider
-            if (!userHasMovedSlider && fullUrl) {
-              const latestFrameIndex = newShape.length === 3 ? newShape[0] - 1 : 0;
-              setSliderIndex(latestFrameIndex);
-              initialSliderPosition.current = latestFrameIndex;
-              fetchAndDecodeBlock(latestFrameIndex, fullUrl, newShape);
+            const arrayBuffer = await response.arrayBuffer();
+
+            // Parse binary data based on structure from metadata
+            // Assuming int32, little-endian
+            const dataView = new DataView(arrayBuffer);
+            const pixelCount = shape.length === 3 ? shape[1] * shape[2] : shape[0] * shape[1];
+
+            // Read int32 values (4 bytes each) in little-endian format
+            const flatArray: number[] = [];
+            for (let i = 0; i < pixelCount; i++) {
+                const value = dataView.getInt32(i * 4, true); // true for little-endian
+                flatArray.push(value);
             }
-          }
+
+            // Convert flat array to 2D array
+            const height = shape.length === 3 ? shape[1] : shape[0];
+            const width = shape.length === 3 ? shape[2] : shape[1];
+
+            const array2D: number[][] = [];
+            for (let y = 0; y < height; y++) {
+                const row: number[] = [];
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    row.push(flatArray[idx]);
+                }
+                array2D.push(row);
+            }
+
+            setArray(array2D);
+            // Uncomment these for data processing:
+            // setArray(logNormalizeArray(array2D));
+            // setArray(histEqualizeArray(array2D));
+        } catch (err) {
+            const msg = err instanceof Error ? err.message : String(err);
+            setError(`Failed to load block data: ${msg}`);
+            setArray(null);
+            setSliderIndex(0);
+            setShape(null);
         }
-      } catch (err) {
-        console.warn(`[PlotlyHeatmapTiled] Error polling for shape changes:`, err);
-      }
     };
 
-    const interval = setInterval(pollForShapeChanges, pollingIntervalMs);
-    return () => clearInterval(interval);
-  }, [enablePolling, url, shape, userHasMovedSlider, pollingIntervalMs]);
+    useEffect(() => {
+        if (!url) {
+            // Handle null URL - reset state
+            setError(null);
+            setMetadata(null);
+            setShape(null);
+            setSliderIndex(0);
+            setUserHasMovedSlider(false);
+            initialSliderPosition.current = 0;
+            setArray(null);
+            return;
+        }
 
-  return (
-    <section className={cn(`flex flex-col items-center gap-4 max-h-full max-w-full p-2 rounded-md shadow-md text-slate-700 ${!url ? 'border border-white opacity-70' : ''} ${error ? "border-slate-400 border bg-slate-500" : "bg-white"}  ${sizeClassMap[size]}`, className)}>
-      {(error || !url) && 
-        <div className="flex flex-col">
-          <h2 className="text-5xl font-medium text-center mt-24">Tiled Heatmap Display</h2>
-          <p className="mt-12 text-sm text-center">Current Url: "{url || 'No URL provided'}"</p>
-          <p className="text-sm text-center">{error}</p>
-        </div>
-      }
-      {array && (
-        <>
-          <h3 className="h-8 text-sky-900 text-ellipsis">{metadata?.id || 'No data available'}</h3>
-          <div className={`w-full pb-12 ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}>
-            <PlotlyHeatmap
-              array={array}
-              lockPlotHeightToParent={true}
-              lockPlotWidthHeightToInputArray={false}
-              colorScale='Viridis'
-              showTicks={false}
-              showScale={true}
-              enableLogScale={true}
-              flipYAxis={true}
-              />
-          </div>
-        </>
-      )}
-      {(shape?.length === 3 && shape[0] > 1) && (
-        <div className="w-full px-8 h-12">
-          <input
-            type="range"
-            min={0}
-            max={shape[0] - 1}
-            value={sliderIndex}
-            onChange={(e) => {
-              const newIndex = Number(e.target.value);
-              setSliderIndex(newIndex);
-              if (fullUrl && shape) fetchAndDecodeBlock(newIndex, fullUrl, shape);
+        const fetchMetadata = async () => {
+            try {
+                const resp = await fetch(url);
+                const json = await resp.json();
+                const shape = json.data?.attributes?.structure?.shape;
+                const dataFullUrl = json.data?.links?.full;
+                setMetadata(json.data);
 
-              // Track if user has manually moved the slider
-              if (newIndex !== initialSliderPosition.current) {
-                setUserHasMovedSlider(true);
-                console.log(`[PlotlyHeatmapTiled] User moved slider to position ${newIndex}`);
-              }
-            }}
-            className="w-full"
-          />
-          <div className="text-center text-sm text-gray-600">
-            Z-slice: {sliderIndex} of {shape[0] - 1}
-            {enablePolling && !userHasMovedSlider && (
-              <span className="ml-2 text-xs text-blue-600">
-                (Auto-updating)
-              </span>
+                if (!shape || !dataFullUrl) throw new Error('Invalid metadata response');
+
+                setShape(shape);
+                setFullUrl(dataFullUrl);
+                setSliderIndex(0);
+                setUserHasMovedSlider(false);
+                initialSliderPosition.current = 0;
+
+                fetchAndDecodeBlock(0, dataFullUrl, shape);
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                setError(`Failed to load metadata: ${msg}`);
+                setArray(null);
+            }
+        };
+
+        fetchMetadata();
+    }, [url]);
+
+    // Polling effect for shape updates
+    useEffect(() => {
+        if (!enablePolling || !url) return;
+
+        const pollForShapeChanges = async () => {
+            try {
+                const resp = await fetch(url);
+                const json = await resp.json();
+                const newShape = json.data?.attributes?.structure?.shape;
+                const fullUrl = json.data?.links?.full;
+
+                if (newShape && shape) {
+                    // Check if shape has changed (specifically the number of frames for 3D arrays)
+                    const shapeChanged =
+                        newShape.length !== shape.length ||
+                        (newShape.length === 3 && newShape[0] !== shape[0]);
+
+                    if (shapeChanged) {
+                        setShape(newShape);
+
+                        // Only fetch and decode if user hasn't moved the slider
+                        if (!userHasMovedSlider && fullUrl) {
+                            const latestFrameIndex = newShape.length === 3 ? newShape[0] - 1 : 0;
+                            setSliderIndex(latestFrameIndex);
+                            initialSliderPosition.current = latestFrameIndex;
+                            fetchAndDecodeBlock(latestFrameIndex, fullUrl, newShape);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn(`[PlotlyHeatmapTiled] Error polling for shape changes:`, err);
+            }
+        };
+
+        const interval = setInterval(pollForShapeChanges, pollingIntervalMs);
+        return () => clearInterval(interval);
+    }, [enablePolling, url, shape, userHasMovedSlider, pollingIntervalMs]);
+
+    return (
+        <section
+            className={cn(
+                `flex flex-col items-center gap-4 max-h-full max-w-full p-2 rounded-md shadow-md text-slate-700 ${!url ? 'border border-white opacity-70' : ''} ${error ? 'border-slate-400 border bg-slate-500' : 'bg-white'}  ${sizeClassMap[size]}`,
+                className,
             )}
-          </div>
-        </div>
-      )}
-    </section>
-  );
+        >
+            {(error || !url) && (
+                <div className="flex flex-col">
+                    <h2 className="text-5xl font-medium text-center mt-24">
+                        Tiled Heatmap Display
+                    </h2>
+                    <p className="mt-12 text-sm text-center">
+                        Current Url: "{url || 'No URL provided'}"
+                    </p>
+                    <p className="text-sm text-center">{error}</p>
+                </div>
+            )}
+            {array && (
+                <>
+                    <h3 className="h-8 text-sky-900 text-ellipsis">
+                        {metadata?.id || 'No data available'}
+                    </h3>
+                    <div
+                        className={`w-full pb-12 ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}
+                    >
+                        <PlotlyHeatmap
+                            array={array}
+                            lockPlotHeightToParent={true}
+                            lockPlotWidthHeightToInputArray={false}
+                            colorScale="Viridis"
+                            showTicks={false}
+                            showScale={true}
+                            enableLogScale={true}
+                            flipYAxis={true}
+                        />
+                    </div>
+                </>
+            )}
+            {shape?.length === 3 && shape[0] > 1 && (
+                <div className="w-full px-8 h-12">
+                    <input
+                        type="range"
+                        min={0}
+                        max={shape[0] - 1}
+                        value={sliderIndex}
+                        onChange={(e) => {
+                            const newIndex = Number(e.target.value);
+                            setSliderIndex(newIndex);
+                            if (fullUrl && shape) fetchAndDecodeBlock(newIndex, fullUrl, shape);
+
+                            // Track if user has manually moved the slider
+                            if (newIndex !== initialSliderPosition.current) {
+                                setUserHasMovedSlider(true);
+                                console.log(
+                                    `[PlotlyHeatmapTiled] User moved slider to position ${newIndex}`,
+                                );
+                            }
+                        }}
+                        className="w-full"
+                    />
+                    <div className="text-center text-sm text-gray-600">
+                        Z-slice: {sliderIndex} of {shape[0] - 1}
+                        {enablePolling && !userHasMovedSlider && (
+                            <span className="ml-2 text-xs text-blue-600">(Auto-updating)</span>
+                        )}
+                    </div>
+                </div>
+            )}
+        </section>
+    );
 }

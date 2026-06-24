@@ -1,22 +1,22 @@
-import {cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export type ButtonWithIconProps = {
     /** Callback function triggered when button is clicked */
     onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    /** Text content displayed inside the button alongside the icon */ 
+    /** Text content displayed inside the button alongside the icon */
     text?: string;
-    /** Additional CSS classes applied to the button component */ 
-    styles?: string; 
+    /** Additional CSS classes applied to the button component */
+    styles?: string;
     /** Disables the button and prevents user interaction when true */
     disabled?: boolean;
     /** JSX element displayed as an icon - works best with SVG elements for proper styling  */
-    icon: JSX.Element; 
+    icon: JSX.Element;
     /** Controls whether the icon appears on the left or right side of the text */
     iconPosition?: 'left' | 'right';
     /** Controls the overall size of the button - affects text size, icon size, and padding */
     size?: 'small' | 'medium' | 'large';
     /** Changes button style to transparent background with border and black text when true */
-    isSecondary?: boolean; 
+    isSecondary?: boolean;
     /** Additional CSS classes applied to the button container. To override colors, pass Tailwind classes (e.g. `bg-orange-500 hover:bg-orange-600 text-white`). */
     className?: string;
     /** Additional CSS classes applied to the button text element */
@@ -27,7 +27,7 @@ export type ButtonWithIconProps = {
     active?: boolean;
     /** Legacy callback function, use onClick instead */
     cb?: () => void;
-}
+};
 const buttonVariants = {
     primary: 'bg-sky-500 hover:bg-sky-600 text-white',
     primaryActive: 'bg-sky-700 text-white hover:bg-sky-800',
@@ -45,13 +45,13 @@ const getButtonClasses = (active: boolean | undefined, isSecondary: boolean | un
 const textSizes = {
     small: 'text-sm',
     medium: 'text-md',
-    large: 'text-2xl'
+    large: 'text-2xl',
 };
 
 const iconSizes = {
     small: 'w-4',
     medium: 'w-6',
-    large: 'w-8'
+    large: 'w-8',
 };
 
 const paddingSizes = {
@@ -63,7 +63,7 @@ const paddingSizes = {
 const spacingSizes = {
     small: 'space-x-1',
     medium: 'space-x-2',
-    large: 'space-x-4'
+    large: 'space-x-4',
 };
 
 export default function ButtonWithIcon({
@@ -73,7 +73,7 @@ export default function ButtonWithIcon({
     disabled = false,
     icon,
     iconPosition = 'left',
-    size='medium',
+    size = 'medium',
     isSecondary,
     active,
     className,
@@ -87,26 +87,38 @@ export default function ButtonWithIcon({
         if (onClick) onClick(e);
     };
 
-    const Icon = <div className={cn(`${iconSizes[size]} ${isSecondary ? 'text-black' : 'text-white'} aspect-square `, classNameIcon)}>{icon}</div>;
-
+    const Icon = (
+        <div
+            className={cn(
+                `${iconSizes[size]} ${isSecondary ? 'text-black' : 'text-white'} aspect-square `,
+                classNameIcon,
+            )}
+        >
+            {icon}
+        </div>
+    );
 
     return (
         <button
             aria-pressed={active}
             disabled={disabled}
-            className={cn(`
+            className={cn(
+                `
                 ${getButtonClasses(active, isSecondary)}
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
                 ${textSizes[size]}
                 ${paddingSizes[size]}
-                rounded-lg font-medium w-fit`, className)} 
+                rounded-lg font-medium w-fit`,
+                className,
+            )}
             onClick={handleClick}
-            {...props}>
+            {...props}
+        >
             <div className={`${spacingSizes[size]} flex justify-center items-center`}>
                 {iconPosition === 'left' ? Icon : ''}
                 <p className={classNameText}>{text}</p>
                 {iconPosition === 'right' ? Icon : ''}
             </div>
         </button>
-    )
+    );
 }

@@ -1,32 +1,33 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState } from 'react';
 
-import useOphydDeviceSocket from "@/api/ophyd/useOphydDeviceSocket"
-
+import useOphydDeviceSocket from '@/api/ophyd/useOphydDeviceSocket';
 
 export type UseBeamEnergyOphydProps = {
     deviceName?: string;
     wsUrl?: string;
-}
+};
 /**
  * Custom hook for managing beam energy calculation based on monochromator angle.
  * Utilizes ophyd socket for device communication and retrieves monochromator angle PV.
- * 
+ *
  * @param props - Configuration options for the beam energy hook
  * @param props.deviceName - Name of the ophyd device (default: "mono")
  * @param props.wsUrl - Optional WebSocket URL for device communication
  * @returns Object containing beam energy value and related device data
  */
-export default function useBeamEnergyOphyd({deviceName="mono", wsUrl}:UseBeamEnergyOphydProps) {
-
-    const [ showController, setShowController ] = useState(true);
-    const [ showPlot, setShowPlot ] = useState(false);
-    const [ showAbout, setShowAbout ] = useState(false);
-    const [ isLocked, setIsLocked ] = useState(false);
+export default function useBeamEnergyOphyd({
+    deviceName = 'mono',
+    wsUrl,
+}: UseBeamEnergyOphydProps) {
+    const [showController, setShowController] = useState(true);
+    const [showPlot, setShowPlot] = useState(false);
+    const [showAbout, setShowAbout] = useState(false);
+    const [isLocked, setIsLocked] = useState(false);
 
     const deviceList = useMemo(() => [deviceName], [deviceName]);
     const { devices, handleSetValueRequest } = useOphydDeviceSocket(deviceList, wsUrl);
     const device = devices[deviceName];
-    const currentValueEV = device ? (device.value !== "" ? device.value as number : NaN) : NaN;
+    const currentValueEV = device ? (device.value !== '' ? (device.value as number) : NaN) : NaN;
 
     const handleAbsoluteMove = (targetEnergy: number) => {
         handleSetValueRequest(deviceName, targetEnergy);
@@ -50,8 +51,7 @@ export default function useBeamEnergyOphyd({deviceName="mono", wsUrl}:UseBeamEne
         } else {
             console.log('Cannot stop monochromator move: current value is NaN');
         }
-    }
-
+    };
 
     const handleToggleController = () => {
         if (showAbout && showController) {
@@ -99,5 +99,5 @@ export default function useBeamEnergyOphyd({deviceName="mono", wsUrl}:UseBeamEne
         handleToggleAbout,
         isLocked,
         handleToggleLock,
-    }
+    };
 }

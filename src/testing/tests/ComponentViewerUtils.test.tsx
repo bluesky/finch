@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { initializeTestResults, writeTestResultsToLocalStorage } from '../../features/ComponentViewer/utils';
+import {
+    initializeTestResults,
+    writeTestResultsToLocalStorage,
+} from '../../features/ComponentViewer/utils';
 import { TestItemCollection } from '../../features/ComponentViewer/types';
 
 const makeTestItems = (): TestItemCollection => ({
@@ -68,9 +71,12 @@ describe('ComponentViewer utils', () => {
 
         it('resets when stored keys do not match current test items', () => {
             // Store data for different items
-            localStorage.setItem('componentViewerResults', JSON.stringify({
-                oldKey: { name: 'Old', isPassing: true, comment: 'stale' }
-            }));
+            localStorage.setItem(
+                'componentViewerResults',
+                JSON.stringify({
+                    oldKey: { name: 'Old', isPassing: true, comment: 'stale' },
+                }),
+            );
             const testItems = makeTestItems();
             const results = initializeTestResults(testItems);
 
@@ -80,10 +86,13 @@ describe('ComponentViewer utils', () => {
 
         it('resets when stored names do not match current test item names', () => {
             // Store data with same keys but different names
-            localStorage.setItem('componentViewerResults', JSON.stringify({
-                test1: { name: 'Wrong Name', isPassing: true, comment: '' },
-                test2: { name: 'Test Two', isPassing: false, comment: '' },
-            }));
+            localStorage.setItem(
+                'componentViewerResults',
+                JSON.stringify({
+                    test1: { name: 'Wrong Name', isPassing: true, comment: '' },
+                    test2: { name: 'Test Two', isPassing: false, comment: '' },
+                }),
+            );
             const testItems = makeTestItems();
             const results = initializeTestResults(testItems);
 

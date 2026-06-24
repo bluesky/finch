@@ -1,7 +1,7 @@
-import { HexapodRBVs } from "../types/hexapodTypes";
+import { HexapodRBVs } from '../types/hexapodTypes';
 
 //default prefix for Symetrie Hexapod
-const defaultPrefix = "SYM:HEX01";
+const defaultPrefix = 'SYM:HEX01';
 
 //default suffixes for the Symetrie Hexapod
 const readTx = 's_uto_tx_RBV';
@@ -21,13 +21,13 @@ const setRy = 'MOVE_PTP:Ry';
 const setRz = 'MOVE_PTP:Rz';
 
 //when MOVE_PTP is set to 1, the hexapod will move to all set positions
-const executeAll = "MOVE_PTP"; 
+const executeAll = 'MOVE_PTP';
 //when InPosition is 1, the hexapod is in its set position or stopped
-const inPosition = "s_hexa:InPosition_RBV"; 
+const inPosition = 's_hexa:InPosition_RBV';
 //when set to 1, the hexapod will immediately stop all motion
-const stop = "STOP";
+const stop = 'STOP';
 //0 for absolute, 1 for relative
-const moveType="MOVE_PTP:MoveType";
+const moveType = 'MOVE_PTP:MoveType';
 
 const getSanitizedPrefix = (prefix: string) => {
     let sanitizedPrefix = defaultPrefix;
@@ -45,29 +45,29 @@ const getSanitizedPrefix = (prefix: string) => {
 //Generates a list of PVs for a device given a prefix and a list of suffixes
 export function createDevicePVList(prefix: string, suffixes: string[]): string[] {
     const sanitizedPrefix = getSanitizedPrefix(prefix);
-    return suffixes.map(suffix => `${sanitizedPrefix}:${suffix}`);
-};
-
+    return suffixes.map((suffix) => `${sanitizedPrefix}:${suffix}`);
+}
 
 //for instantiation through useOphydSocket
-export const generateHexapodPVList = (prefix: string) => createDevicePVList(prefix, [
-    readTx,
-    readTy,
-    readTz,
-    readRx,
-    readRy,
-    readRz,
-    setTx,
-    setTy,
-    setTz,
-    setRx,
-    setRy,
-    setRz,
-    executeAll,
-    inPosition,
-    stop,
-    moveType
-]);
+export const generateHexapodPVList = (prefix: string) =>
+    createDevicePVList(prefix, [
+        readTx,
+        readTy,
+        readTz,
+        readRx,
+        readRy,
+        readRz,
+        setTx,
+        setTy,
+        setTz,
+        setRx,
+        setRy,
+        setRz,
+        executeAll,
+        inPosition,
+        stop,
+        moveType,
+    ]);
 
 export const generateHexapodPVs = (prefix: string) => {
     const sanitizedPrefix = getSanitizedPrefix(prefix);
@@ -87,10 +87,9 @@ export const generateHexapodPVs = (prefix: string) => {
         executeAll: `${sanitizedPrefix}:${executeAll}`,
         inPosition: `${sanitizedPrefix}:${inPosition}`,
         stop: `${sanitizedPrefix}:${stop}`,
-        moveType: `${sanitizedPrefix}:${moveType}`
-    }
+        moveType: `${sanitizedPrefix}:${moveType}`,
+    };
 };
-
 
 export const formatCurrentValue = (pv: HexapodRBVs[keyof HexapodRBVs]) => {
     return typeof pv.value === 'number' ? pv.value.toFixed(3) : 'N/A';

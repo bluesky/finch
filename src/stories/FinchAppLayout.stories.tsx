@@ -1,41 +1,41 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import HubAppLayout from '@/components/HubAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout';
 import Paper from '@/components/Paper';
-import { House, Joystick, StackPlus, ImageSquare  } from "@phosphor-icons/react";
+import { House, Joystick, StackPlus, ImageSquare } from '@phosphor-icons/react';
 import { RouteItem } from '@/types/navigationRouterTypes';
 import { MemoryRouter } from 'react-router';
 
 /**
  * Routes Structure Documentation
  * ============================
- * 
- * The HubAppLayout component expects a `routes` prop that is an array of RouteItem objects.
+ *
+ * The FinchAppLayout component expects a `routes` prop that is an array of RouteItem objects.
  * Each RouteItem defines a navigation tab/page with the following structure:
- * 
+ *
  * RouteItem {
  *   element: React.ReactNode   - The component/content to render when this route is active
  *   path: string              - The URL path for this route (e.g., "/", "/control", "/data")
  *   label: string             - The display text shown in the sidebar navigation tab
  *   icon: React.ReactNode     - The icon displayed next to the label in the sidebar
  * }
- * 
+ *
  * Example:
  * const routes: RouteItem[] = [
  *   {
- *     element: <HomePage />, 
- *     path: "/", 
- *     label: "Home", 
+ *     element: <HomePage />,
+ *     path: "/",
+ *     label: "Home",
  *     icon: <House size={32} />
  *   },
  *   {
- *     element: <ControlPage />, 
- *     path: "/control", 
- *     label: "Control", 
+ *     element: <ControlPage />,
+ *     path: "/control",
+ *     label: "Control",
  *     icon: <Joystick size={32} />
  *   }
  * ];
- * 
- * The HubAppLayout component will:
+ *
+ * The FinchAppLayout component will:
  * 1. Create sidebar navigation tabs based on the label and icon
  * 2. Handle routing between different paths
  * 3. Render the corresponding element when a route is selected
@@ -46,19 +46,19 @@ const Page1 = () => {
         <Paper>
             <h2 className="text-xl font-bold mb-2 text-center">Home Page</h2>
             <p className="text-center">Your element for this route will be rendered here.</p>
-            <p>{"<-"} clicking on the tabs changes content</p>
+            <p>{'<-'} clicking on the tabs changes content</p>
         </Paper>
-    )
-}
+    );
+};
 
 const Page2 = () => {
     return (
-        <Paper size='small'>
+        <Paper size="small">
             <h2 className="text-xl font-bold mb-2 text-center">Controller</h2>
             <p className="text-center">A little widget for controls</p>
         </Paper>
-    )
-}
+    );
+};
 
 const Page3 = () => {
     return (
@@ -66,28 +66,28 @@ const Page3 = () => {
             <h2 className="text-xl font-bold mb-2 text-center">Q Server Page</h2>
             <p className="text-center">A page for the queue server.</p>
         </Paper>
-    )
-}
+    );
+};
 
 const Page4 = () => {
     return (
-        <Paper rounded='none'>
+        <Paper rounded="none">
             <h2 className="text-xl font-bold mb-2 text-center">Data Page</h2>
             <p className="text-center">A page for data visualization and analysis tools.</p>
         </Paper>
-    )
-}
+    );
+};
 
 const routes: RouteItem[] = [
-    {element: <Page1 />, path: "/", label: "Home", icon: <House size={32} />},
-    {element: <Page2 />, path: "/control", label: "Control", icon: <Joystick size={32} />},
-    {element: <Page3 />, path: "/qserver", label: "Q Server", icon: <StackPlus size={32} />},
-    {element: <Page4 />, path: "/data", label: "Data", icon: <ImageSquare size={32} />},
+    { element: <Page1 />, path: '/', label: 'Home', icon: <House size={32} /> },
+    { element: <Page2 />, path: '/control', label: 'Control', icon: <Joystick size={32} /> },
+    { element: <Page3 />, path: '/qserver', label: 'Q Server', icon: <StackPlus size={32} /> },
+    { element: <Page4 />, path: '/data', label: 'Data', icon: <ImageSquare size={32} /> },
 ];
 
 const meta = {
-    title: 'Layout Components/HubAppLayout',
-    component: HubAppLayout,
+    title: 'Layout Components/FinchAppLayout',
+    component: FinchAppLayout,
     tags: ['autodocs'],
     parameters: {
         layout: 'fullscreen',
@@ -96,45 +96,104 @@ const meta = {
                 component: `
 ## Routes Structure
 
-The HubAppLayout component expects a \`routes\` prop that is an array of RouteItem objects.
+The FinchAppLayout component expects a \`routes\` prop that is an array of RouteItem objects.
 Each RouteItem defines a navigation tab/page with the following structure:
 
 \`\`\`typescript
 RouteItem {
-  element: React.ReactNode   // The component/content to render when this route is active
-  path: string              // The URL path for this route (e.g., "/", "/control", "/data")
-  label: string             // The display text shown in the sidebar navigation tab
-  icon: React.ReactNode     // The icon displayed next to the label in the sidebar
+  element: React.ReactNode        // The component/content to render when this route is active
+  path: string                    // The URL path for this route (e.g., "/", "/control", "/data")
+  label: string                   // The display text shown in the sidebar navigation tab
+  icon: React.ReactNode           // The icon displayed next to the label in the sidebar
+  isBackgroundTransparent?: boolean  // If true, page background is transparent (default: false)
+  classNameContainer?: string     // Additional CSS classes applied to the page container
 }
 \`\`\`
 
-### Example Usage:
+### Basic Example:
 \`\`\`typescript
 const routes: RouteItem[] = [
   {
-    element: <HomePage />, 
-    path: "/", 
-    label: "Home", 
+    element: <HomePage />,
+    path: "/",
+    label: "Home",
     icon: <House size={32} />
   },
   {
-    element: <ControlPage />, 
-    path: "/control", 
-    label: "Control", 
+    element: <ControlPage />,
+    path: "/control",
+    label: "Control",
     icon: <Joystick size={32} />
   }
 ];
+\`\`\`
+
+### Full App Example (from App.tsx):
+\`\`\`typescript
+import FinchAppLayout from '@/components/FinchAppLayout';
+import { RouteItem } from '@/types/navigationRouterTypes';
+import { House, Table, TestTube, Question } from '@phosphor-icons/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
+function App() {
+  const routes: RouteItem[] = [
+    {
+      element: <AboutFinchPage />,
+      path: '/',
+      label: 'About',
+      icon: <House size={32} />,
+      isBackgroundTransparent: true,   // no background fill — page blends into layout
+    },
+    {
+      element: <AllComponentsPage />,
+      path: '/components',
+      label: 'Review',
+      icon: <Table size={32} />,
+      classNameContainer: 'bg-slate-50',  // custom background color for this page
+    },
+    {
+      element: <TestPage />,
+      path: '/test',
+      label: 'Test',
+      icon: <TestTube size={32} />,
+      isBackgroundTransparent: true,
+    },
+    {
+      element: <Documentation />,
+      path: '/documentation',
+      label: 'Help',
+      icon: <Question size={32} />,
+    },
+  ];
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <FinchAppLayout
+        routes={routes}
+        headerTitle="Finch Dev Mode"
+        headerLogoIcon={
+          <div className="h-12 aspect-square text-sky-950">
+            {finchIcons.finchPortraitFrameless}
+          </div>
+        }
+      />
+    </QueryClientProvider>
+  );
+}
 \`\`\`
 
 ### How it works:
 1. **Creates sidebar navigation tabs** based on the label and icon
 2. **Handles routing** between different paths using React Router
 3. **Renders the corresponding element** when a route is selected
+4. **Applies per-route styling** via \`isBackgroundTransparent\` or \`classNameContainer\`
 
 The component uses React Router internally to manage navigation between different pages/views.
-                `
-            }
-        }
+                `,
+            },
+        },
     },
     decorators: [
         (Story, { args }) => (
@@ -143,7 +202,7 @@ The component uses React Router internally to manage navigation between differen
             </MemoryRouter>
         ),
     ],
-} satisfies Meta<typeof HubAppLayout>;
+} satisfies Meta<typeof FinchAppLayout>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -151,18 +210,18 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
     args: {
         routes: routes,
-        className: 'w-full h-full'
-    }
-}
+        className: 'w-full h-full',
+    },
+};
 
 export const CustomTitle: Story = {
     args: {
         routes: routes,
         headerTitle: 'Custom Header Title with Custom Icon',
         headerLogoUrl: 'https://img.icons8.com/?size=100&id=9243&format=png&color=000000',
-        className: 'w-full h-full'
-    }
-}
+        className: 'w-full h-full',
+    },
+};
 
 export const CustomClasses: Story = {
     args: {
@@ -175,6 +234,6 @@ export const CustomClasses: Story = {
         classNameMainContent: 'bg-red-300',
         classNameHeader: 'bg-red-200',
         classNameHeaderTitle: 'text-red-900',
-        className: 'w-full h-full'
-    }
-}
+        className: 'w-full h-full',
+    },
+};

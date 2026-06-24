@@ -28,7 +28,15 @@ jobs:
         run: npm ci
 
       - name: Run linting
-        run: npm run lint
+        run: |
+          npm run lint 2>&1 | tee lint-output.txt
+          exit ${PIPESTATUS[0]}
+        continue-on-error: true
+
+      - name: Run formatting check
+        run: |
+          npm run format 2>&1 | tee format-output.txt
+          exit ${PIPESTATUS[0]}
         continue-on-error: true
 
       - name: Run type checking and build
@@ -38,48 +46,49 @@ jobs:
       - name: Run specific test suites
         run: |
           echo "Running individual test suites for better visibility..."
+          npm run test:run -- src/testing/tests/BeamEnergy.test.tsx
+          npm run test:run -- src/testing/tests/Bento.test.tsx
           npm run test:run -- src/testing/tests/Button.test.tsx
+          npm run test:run -- src/testing/tests/ButtonCopyToClipboard.test.tsx
           npm run test:run -- src/testing/tests/ButtonIconOnly.test.tsx
           npm run test:run -- src/testing/tests/ButtonWithIcon.test.tsx
-          npm run test:run -- src/testing/tests/ButtonCopyToClipboard.test.tsx
-          npm run test:run -- src/testing/tests/InputCheckBox.test.tsx
-          npm run test:run -- src/testing/tests/InputNumber.test.tsx
-          npm run test:run -- src/testing/tests/InputEnumBoxRounded.test.tsx
-          npm run test:run -- src/testing/tests/InputStringBoxRounded.test.tsx
-          npm run test:run -- src/testing/tests/ColormapPicker.test.tsx
-          npm run test:run -- src/testing/tests/TiledComponents.test.tsx
-          npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
-          npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
-          npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
-          npm run test:run -- src/testing/tests/Sidebar.test.tsx
-          npm run test:run -- src/testing/tests/SidebarItem.test.tsx
-          npm run test:run -- src/testing/tests/HubSidebar.test.tsx
-          npm run test:run -- src/testing/tests/HubAppLayout.test.tsx
-          npm run test:run -- src/testing/tests/HubHeader.test.tsx
-          npm run test:run -- src/testing/tests/HubMainContent.test.tsx
-          npm run test:run -- src/testing/tests/Header.test.tsx
-          npm run test:run -- src/testing/tests/Main.test.tsx
-          npm run test:run -- src/testing/tests/Widget.test.tsx
           npm run test:run -- src/testing/tests/Camera.test.tsx
-          npm run test:run -- src/testing/tests/Shutter.test.tsx
-          npm run test:run -- src/testing/tests/DeviceControllerBox.test.tsx
-          npm run test:run -- src/testing/tests/DeviceControllerBoxSimple.test.tsx
-          npm run test:run -- src/testing/tests/TableDeviceController.test.tsx
+          npm run test:run -- src/testing/tests/ColormapPicker.test.tsx
+          npm run test:run -- src/testing/tests/ComponentViewer.test.tsx
+          npm run test:run -- src/testing/tests/ComponentViewerUtils.test.tsx
           npm run test:run -- src/testing/tests/ControllerAbsoluteMove.test.tsx
           npm run test:run -- src/testing/tests/ControllerRelativeMove.test.tsx
-          npm run test:run -- src/testing/tests/QueueServer.test.tsx
-          npm run test:run -- src/testing/tests/SignalMonitorPlots.test.tsx
-          npm run test:run -- src/testing/tests/Bento.test.tsx
-          npm run test:run -- src/testing/tests/BeamEnergy.test.tsx
+          npm run test:run -- src/testing/tests/DeviceControllerBox.test.tsx
+          npm run test:run -- src/testing/tests/DeviceControllerBoxSimple.test.tsx
+          npm run test:run -- src/testing/tests/Experiment.test.tsx
+          npm run test:run -- src/testing/tests/FinchAppLayout.test.tsx
+          npm run test:run -- src/testing/tests/FinchHeader.test.tsx
+          npm run test:run -- src/testing/tests/FinchMainContent.test.tsx
+          npm run test:run -- src/testing/tests/FinchSidebar.test.tsx
+          npm run test:run -- src/testing/tests/GoogleDoc.test.tsx
+          npm run test:run -- src/testing/tests/Header.test.tsx
           npm run test:run -- src/testing/tests/Hexapod.test.tsx
           npm run test:run -- src/testing/tests/Histogram.test.tsx
           npm run test:run -- src/testing/tests/IFrame.test.tsx
-          npm run test:run -- src/testing/tests/GoogleDoc.test.tsx
+          npm run test:run -- src/testing/tests/InputCheckBox.test.tsx
+          npm run test:run -- src/testing/tests/InputEnumBoxRounded.test.tsx
+          npm run test:run -- src/testing/tests/InputNumber.test.tsx
+          npm run test:run -- src/testing/tests/InputStringBoxRounded.test.tsx
+          npm run test:run -- src/testing/tests/Main.test.tsx
           npm run test:run -- src/testing/tests/Paper.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
+          npm run test:run -- src/testing/tests/QueueServer.test.tsx
           npm run test:run -- src/testing/tests/SelectDropdown.test.tsx
-          npm run test:run -- src/testing/tests/Experiment.test.tsx
-          npm run test:run -- src/testing/tests/ComponentViewer.test.tsx
-          npm run test:run -- src/testing/tests/ComponentViewerUtils.test.tsx
+          npm run test:run -- src/testing/tests/Shutter.test.tsx
+          npm run test:run -- src/testing/tests/Sidebar.test.tsx
+          npm run test:run -- src/testing/tests/SidebarItem.test.tsx
+          npm run test:run -- src/testing/tests/SignalMonitorPlots.test.tsx
+          npm run test:run -- src/testing/tests/TableDeviceController.test.tsx
+          npm run test:run -- src/testing/tests/TiledComponents.test.tsx
+          npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
+          npm run test:run -- src/testing/tests/Widget.test.tsx
         env:
           CI: true
 
@@ -91,6 +100,8 @@ jobs:
           path: |
             coverage/
             test-results/
+            lint-output.txt
+            format-output.txt
           retention-days: 30
 
   test-summary:
@@ -99,10 +110,32 @@ jobs:
     if: always() && github.event_name == 'pull_request'
     
     steps:
+      - name: Download test artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-node-20.x
+        continue-on-error: true
+
       - name: Comment PR with test summary
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs');
+
+            let lintOutput = '';
+            try {
+              lintOutput = fs.readFileSync('lint-output.txt', 'utf8').trim();
+            } catch (e) {
+              // lint output not available
+            }
+
+            let formatOutput = '';
+            try {
+              formatOutput = fs.readFileSync('format-output.txt', 'utf8').trim();
+            } catch (e) {
+              // format output not available
+            }
+
             const testStatus = '${{ needs.test.result }}';
             const emoji = testStatus === 'success' ? '✅' : '❌';
             const message = testStatus === 'success' ? 'All tests passed!' : 'Some tests failed.';
@@ -118,16 +151,38 @@ jobs:
             const steps = testJob ? testJob.steps : [];
             
             const lintStep = steps.find(step => step.name === 'Run linting');
+            const formatStep = steps.find(step => step.name === 'Run formatting check');
             const buildStep = steps.find(step => step.name === 'Run type checking and build');
             const testSuitesStep = steps.find(step => step.name === 'Run specific test suites');
 
             const lintStatus = lintStep ? (lintStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const formatStatus = formatStep ? (formatStep.conclusion === 'success' ? '✅' : '❌') : '❓';
             const buildStatus = buildStep ? (buildStep.conclusion === 'success' ? '✅' : '❌') : '❓';
             const testStepStatus = testSuitesStep ? (testSuitesStep.conclusion === 'success' ? '✅' : '❌') : '❓';
 
             const lintText = lintStep ?
               (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') :
               'ESLint status unknown';
+
+            let lintSection = '';
+            if (lintOutput && lintStep && lintStep.conclusion !== 'success') {
+              const truncated = lintOutput.length > 3000
+                ? lintOutput.substring(0, 3000) + '\n...(output truncated)'
+                : lintOutput;
+              lintSection = `\n\n<details>\n<summary>ESLint Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
+
+            const formatText = formatStep ?
+              (formatStep.conclusion === 'success' ? 'Prettier passed' : 'Prettier failed') :
+              'Formatting status unknown';
+
+            let formatSection = '';
+            if (formatOutput && formatStep && formatStep.conclusion !== 'success') {
+              const truncated = formatOutput.length > 3000
+                ? formatOutput.substring(0, 3000) + '\n...(output truncated)'
+                : formatOutput;
+              formatSection = `\n\n<details>\n<summary>Prettier Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
 
             const buildText = buildStep ?
               (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') :
@@ -146,14 +201,15 @@ jobs:
               `- ${testStepStatus} **Buttons** - Button, ButtonIconOnly, ButtonWithIcon, ButtonCopyToClipboard`,
               `- ${testStepStatus} **Inputs** - InputCheckBox, InputNumber, InputEnumBoxRounded, InputStringBoxRounded`,
               `- ${testStepStatus} **Plots** - PlotlyHeatmap, PlotlyHeatmapTiled, PlotlyScatter, Histogram, ColormapPicker`,
-              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, HubSidebar, HubAppLayout, HubHeader, HubMainContent, Header, Main, Bento, Paper, Widget`,
-              `- ${testStepStatus} **Tiled** - TiledComponents`,
+              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, FinchSidebar, FinchAppLayout, FinchHeader, FinchMainContent, Header, Main, Bento, Paper, Widget`,
+              `- ${testStepStatus} **Tiled** - TiledComponents, TiledLinePlotMaker`,
               `- ${testStepStatus} **Devices** - Camera, Shutter, DeviceControllerBox, DeviceControllerBoxSimple, TableDeviceController, ControllerAbsoluteMove, ControllerRelativeMove, Hexapod, BeamEnergy`,
               `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,
               `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
               ``,
               `**Test Environment:** Node.js 20.x`,
-              `**Linting:** ${lintStatus} ${lintText}`,
+              `**Linting:** ${lintStatus} ${lintText}${lintSection}`,
+              `**Formatting:** ${formatStatus} ${formatText}${formatSection}`,
               `**Type Checking:** ${buildStatus} ${buildText}`,
               `**Build:** ${buildStatus} Production build successful`,
               `**Tests:** ${testStepStatus} ${testText}`

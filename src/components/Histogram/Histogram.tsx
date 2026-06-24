@@ -1,9 +1,9 @@
-import useOphydPVSocket from "@/api/ophyd/useOphydPVSocket";
-import HistogramDeviceController from "./HistogramDeviceController";
-import HistogramPlot from "./HistogramPlot";
+import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
+import HistogramDeviceController from './HistogramDeviceController';
+import HistogramPlot from './HistogramPlot';
 
-import { cn } from "@/lib/utils";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { cn } from '@/lib/utils';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const DEMO_SIZE = 2048;
 
@@ -21,6 +21,8 @@ type HistogramProps = {
     arrayPV: string;
     /** EPICS PV name for the acquire control (1 = start, 0 = stop). */
     acquirePV: string;
+    /** EPICS PV name for the exposure setting (default value is in seconds) */
+    exposurePV: string;
     /** When `true`, renders the `HistogramDeviceController` below the plot. */
     showDeviceController?: boolean;
     /** When `true`, renders plot settings controls inside `HistogramPlot`. */
@@ -37,18 +39,41 @@ type HistogramProps = {
     demo?: boolean;
     /** Number of significant figures for sum displays in the plot. Defaults to `6`. */
     precision?: number;
-}
-export default function Histogram({ arrayPV, acquirePV, showDeviceController, showPlotSettings, classNameContainer, classNameDeviceController, classNameHistogramPlot, classNamePlotSettings, demo, precision }: HistogramProps) {
-    const deviceList = useMemo(() => (demo ? [] : [arrayPV, acquirePV]), [demo, arrayPV, acquirePV]);
+    /** Title displayed at the top of the plot */
+    title?: string;
+};
+export default function Histogram({
+    arrayPV,
+    acquirePV,
+    exposurePV,
+    showDeviceController,
+    showPlotSettings,
+    classNameContainer,
+    classNameDeviceController,
+    classNameHistogramPlot,
+    classNamePlotSettings,
+    demo,
+    precision,
+    title,
+}: HistogramProps) {
+    const deviceList = useMemo(
+        () => (demo ? [] : [arrayPV, acquirePV, exposurePV]),
+        [demo, arrayPV, acquirePV, exposurePV],
+    );
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
+    const acquireDevice = devices[acquirePV];
+    const exposureDevice = devices[exposurePV];
 
+    // Demo mode will eventually be removed in lieu of Ophyd Sim
     const baseRef = useRef<number[]>(generateDemoBase());
     const [demoData, setDemoData] = useState<number[]>(() => baseRef.current);
 
     useEffect(() => {
         if (!demo) return;
         const id = setInterval(() => {
-            setDemoData(baseRef.current.map(v => Math.max(0, v + (Math.random() - 0.5) * v * 0.05)));
+            setDemoData(
+                baseRef.current.map((v) => Math.max(0, v + (Math.random() - 0.5) * v * 0.05)),
+            );
         }, 1000);
         return () => clearInterval(id);
     }, [demo]);
@@ -59,7 +84,9 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
         if (!Array.isArray(value)) {
             return null;
         }
-        return value.filter((item): item is number => typeof item === 'number' && Number.isFinite(item));
+        return value.filter(
+            (item): item is number => typeof item === 'number' && Number.isFinite(item),
+        );
     }, [demo, demoData, arrayPV, devices]);
 
     const handleStartAcquisition = useCallback(() => {
@@ -69,11 +96,63 @@ export default function Histogram({ arrayPV, acquirePV, showDeviceController, sh
     const handleStopAcquisition = useCallback(() => {
         handleSetValueRequest(acquirePV, 0);
     }, [acquirePV, handleSetValueRequest]);
+    const handleSetExposure = useCallback(
+        (newValue: number) => {
+            handleSetValueRequest(exposurePV, newValue);
+        },
+        [exposurePV, handleSetValueRequest],
+    );
+
+    const allConnected = demo || deviceList.every((pv) => devices[pv]?.connected === true);
+
+    if (!allConnected) {
+        const disconnectedPVs = deviceList.filter((pv) => devices[pv]?.connected !== true);
+        return (
+            <section
+                className={cn(
+                    'flex flex-col items-center justify-center gap-2 p-4 bg-slate-200 text-slate-700 w-[70rem] h-96 rounded-lg shadow-lg',
+                    classNameContainer,
+                )}
+            >
+                <p className="font-semibold text-slate-600">
+                    Error: Cannot display Histogram - Devices not connected
+                </p>
+                <ul className="text-sm text-slate-500 list-disc list-inside">
+                    {disconnectedPVs.map((pv) => (
+                        <li key={pv} className="font-mono">
+                            {pv}
+                        </li>
+                    ))}
+                </ul>
+            </section>
+        );
+    }
 
     return (
-        <section className={cn("flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 text-slate-700 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg", classNameContainer)}>
-            <HistogramPlot showPlotSettings={showPlotSettings} className={classNameHistogramPlot} classNameSettings={classNamePlotSettings} arrayData={arrayData} precision={precision} />
-            {showDeviceController && <HistogramDeviceController acquireDevice={devices[acquirePV]} handleStartAcquisition={handleStartAcquisition} handleStopAcquisition={handleStopAcquisition} className={classNameDeviceController} />}
+        <section
+            className={cn(
+                'flex flex-col items-center justify-start gap-4 p-2 bg-slate-200 text-slate-700 min-w-fit h-fit overflow-x-auto overflow-y-hidden rounded-lg shadow-lg',
+                classNameContainer,
+            )}
+        >
+            <HistogramPlot
+                title={title}
+                showPlotSettings={showPlotSettings}
+                className={classNameHistogramPlot}
+                classNameSettings={classNamePlotSettings}
+                arrayData={arrayData}
+                precision={precision}
+            />
+            {showDeviceController && (
+                <HistogramDeviceController
+                    acquireDevice={acquireDevice}
+                    exposureDevice={exposureDevice}
+                    handleStartAcquisition={handleStartAcquisition}
+                    handleStopAcquisition={handleStopAcquisition}
+                    handleSetExposure={handleSetExposure}
+                    className={classNameDeviceController}
+                />
+            )}
         </section>
-    )
+    );
 }

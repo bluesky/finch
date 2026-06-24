@@ -10,7 +10,6 @@ export interface TestItemCollection {
     [key: string]: TestItem;
 }
 
-
 export interface ComponentViewerItemRow extends TestItem {
     comment?: string;
     isPassing: boolean;

@@ -1,4 +1,4 @@
-import { Entry } from "../types/UIEntry";
+import { Entry } from '../types/UIEntry';
 
 export function parseXMLToEntries(xmlString: string): Entry[] {
     const parser = new DOMParser();
@@ -9,23 +9,23 @@ export function parseXMLToEntries(xmlString: string): Entry[] {
     const displayElement = xmlDoc.querySelector('display');
     if (displayElement) {
         const displayEntry: Entry = {
-            var_type: "display",
+            var_type: 'display',
             location: {
                 x: parseInt(getElementText(displayElement, 'x') || '0'),
-                y: parseInt(getElementText(displayElement, 'y') || '0')
+                y: parseInt(getElementText(displayElement, 'y') || '0'),
             },
             size: {
                 width: parseInt(getElementText(displayElement, 'width') || '0'),
-                height: parseInt(getElementText(displayElement, 'height') || '-1')
+                height: parseInt(getElementText(displayElement, 'height') || '-1'),
             },
-            name: "display"
+            name: 'display',
         };
         entries.push(displayEntry);
     }
 
     // Parse all top-level widgets
     const topLevelWidgets = xmlDoc.querySelectorAll('display > widget');
-    topLevelWidgets.forEach(widget => {
+    topLevelWidgets.forEach((widget) => {
         const type = widget.getAttribute('type');
         if (!type) return;
 
@@ -38,7 +38,12 @@ export function parseXMLToEntries(xmlString: string): Entry[] {
     return entries;
 }
 
-function parseWidget(widget: Element, type: string, parentX: number = 0, parentY: number = 0): Entry | null {
+function parseWidget(
+    widget: Element,
+    type: string,
+    parentX: number = 0,
+    parentY: number = 0,
+): Entry | null {
     const name = getElementText(widget, 'name') || '';
     const x = parseInt(getElementText(widget, 'x') || '0');
     const y = parseInt(getElementText(widget, 'y') || '0');
@@ -51,25 +56,25 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
 
     const baseEntry = {
         location: { x: absoluteX, y: absoluteY },
-        size: { width, height }
+        size: { width, height },
     };
 
     switch (type) {
         case 'rectangle':
             return {
-                var_type: "rectangle",
+                var_type: 'rectangle',
                 ...baseEntry,
-                name: "rectangle"
+                name: 'rectangle',
             };
 
         case 'group':
             // Parse child widgets
-            const childWidgets = Array.from(widget.children).filter(child =>
-                child.tagName === 'widget'
+            const childWidgets = Array.from(widget.children).filter(
+                (child) => child.tagName === 'widget',
             );
 
             const children: Entry[] = [];
-            childWidgets.forEach(childWidget => {
+            childWidgets.forEach((childWidget) => {
                 const childType = childWidget.getAttribute('type');
                 if (childType) {
                     // Check if child has its own x/y coordinates
@@ -89,7 +94,12 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
                     }
 
                     // Pass the current widget's absolute position as parent offset for children
-                    const childEntry = parseWidget(childWidget as Element, childType, absoluteX, absoluteY);
+                    const childEntry = parseWidget(
+                        childWidget as Element,
+                        childType,
+                        absoluteX,
+                        absoluteY,
+                    );
                     if (childEntry) {
                         children.push(childEntry);
                     }
@@ -97,19 +107,19 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
             });
 
             return {
-                var_type: "composite",
+                var_type: 'composite',
                 ...baseEntry,
-                name: "",
-                children: children
+                name: '',
+                children: children,
             };
 
         case 'embedded':
             const file = getElementText(widget, 'file') || '';
             return {
-                var_type: "composite",
+                var_type: 'composite',
                 ...baseEntry,
-                name: "",
-                comp_file: file
+                name: '',
+                comp_file: file,
             };
 
         case 'label':
@@ -117,16 +127,16 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
             const horizontalAlignment = getElementText(widget, 'horizontal_alignment');
 
             const labelEntry: Entry = {
-                var_type: "text",
+                var_type: 'text',
                 ...baseEntry,
-                name: text
+                name: text,
             };
 
             // Map horizontal alignment values
             if (horizontalAlignment === '1') {
-                labelEntry.align = "horiz. centered";
+                labelEntry.align = 'horiz. centered';
             } else if (horizontalAlignment === '2') {
-                labelEntry.align = "horiz. right";
+                labelEntry.align = 'horiz. right';
             }
 
             // Handle rules for dynamic attributes
@@ -139,15 +149,15 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
                     // Map rule names to vis values and set appropriate calc values
                     if (ruleName === 'vis_if_zero') {
                         labelEntry.dynamic_attribute = {
-                            vis: "if zero",
-                            calc: "0", // Default calc value
-                            chan: pvName
+                            vis: 'if zero',
+                            calc: '0', // Default calc value
+                            chan: pvName,
                         };
                     } else if (ruleName === 'vis_if_not_zero') {
                         labelEntry.dynamic_attribute = {
-                            vis: "if not zero",
-                            calc: "0",
-                            chan: pvName
+                            vis: 'if not zero',
+                            calc: '0',
+                            chan: pvName,
                         };
                     }
                 }
@@ -158,16 +168,16 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
         case 'textupdate':
             const pvName = getElementText(widget, 'pv_name') || '';
             return {
-                var_type: "update",
+                var_type: 'update',
                 ...baseEntry,
-                name: pvName
+                name: pvName,
             };
         case 'combo':
             const comboPvName = getElementText(widget, 'pv_name') || '';
             return {
-                var_type: "menu",
+                var_type: 'menu',
                 ...baseEntry,
-                name: comboPvName
+                name: comboPvName,
             };
         case 'action_button':
             const buttonPvName = getElementText(widget, 'pv_name') || '';
@@ -179,9 +189,10 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
 
             if (openDisplayActions.length > 0) {
                 // This is a related display
-                const displays: { label: string; file: string; args: Record<string, string> }[] = [];
+                const displays: { label: string; file: string; args: Record<string, string> }[] =
+                    [];
 
-                openDisplayActions.forEach(action => {
+                openDisplayActions.forEach((action) => {
                     const description = getElementText(action, 'description') || '';
                     const file = getElementText(action, 'file') || '';
 
@@ -190,12 +201,12 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
 
                     // Extract macros
                     const args: Record<string, string> = {
-                        "P": "$(P)" // Default P macro
+                        P: '$(P)', // Default P macro
                     };
 
                     const macrosElement = action.querySelector('macros');
                     if (macrosElement) {
-                        Array.from(macrosElement.children).forEach(macro => {
+                        Array.from(macrosElement.children).forEach((macro) => {
                             const key = macro.tagName;
                             const value = macro.textContent?.trim() || '';
                             args[key] = value;
@@ -205,15 +216,15 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
                     displays.push({
                         label: description,
                         file: file,
-                        args: args
+                        args: args,
                     });
                 });
 
                 const relatedDisplayEntry: any = {
-                    var_type: "related display",
+                    var_type: 'related display',
                     ...baseEntry,
-                    name: "related display",
-                    display: displays
+                    name: 'related display',
+                    display: displays,
                 };
 
                 // Add label if button has text
@@ -227,34 +238,34 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
                 const pressMsg = getElementText(writePvAction, 'value') || '';
 
                 return {
-                    var_type: "button",
+                    var_type: 'button',
                     ...baseEntry,
                     name: buttonPvName,
                     label: buttonText,
-                    press_msg: pressMsg
+                    press_msg: pressMsg,
                 };
             }
 
             // Fallback for unknown action types
             return {
-                var_type: "button",
+                var_type: 'button',
                 ...baseEntry,
-                name: buttonPvName || "action_button",
-                label: buttonText
+                name: buttonPvName || 'action_button',
+                label: buttonText,
             };
         case 'textentry':
             const entryPvName = getElementText(widget, 'pv_name') || '';
             const format = getElementText(widget, 'format');
 
             const entryEntry: Entry = {
-                var_type: "entry",
+                var_type: 'entry',
                 ...baseEntry,
-                name: entryPvName
+                name: entryPvName,
             };
 
             // Map format values - format "6" appears to be string format
             if (format === '6') {
-                entryEntry.format = "string";
+                entryEntry.format = 'string';
             }
 
             return entryEntry;
@@ -263,7 +274,7 @@ function parseWidget(widget: Element, type: string, parentX: number = 0, parentY
             return {
                 var_type: type,
                 ...baseEntry,
-                name: name
+                name: name,
             };
     }
 }

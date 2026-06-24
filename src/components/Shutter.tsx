@@ -22,7 +22,7 @@ type ShutterProps = {
     classNameStatusCircleDisconnected?: string;
 };
 
-export default function Shutter({ 
+export default function Shutter({
     pv = 'bl531:LJT4:1:AO0',
     valueWhenOpen = 0,
     valueWhenClosed = 5,
@@ -37,7 +37,7 @@ export default function Shutter({
     const dropdownRef = useRef<HTMLDivElement>(null);
     const deviceList = useMemo(() => [pv], [pv]);
     const { devices, handleSetValueRequest } = useOphydPVSocket(deviceList);
-    
+
     // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -54,31 +54,58 @@ export default function Shutter({
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [isDropdownOpen]);
-    
+
     const shutter = devices[pv];
     const currentValue = useMemo(() => parseFloat(shutter?.value as string) || 0, [shutter?.value]);
     const isOpen = useMemo(() => currentValue === valueWhenOpen, [currentValue, valueWhenOpen]);
-    const isClosed = useMemo(() => currentValue === valueWhenClosed, [currentValue, valueWhenClosed]);
+    const isClosed = useMemo(
+        () => currentValue === valueWhenClosed,
+        [currentValue, valueWhenClosed],
+    );
 
     const getStatusCircle = () => {
         if (shutter?.connected === false) {
             // Disconnected state - gray circle, non-flashing
-            return <div className={cn("w-6 h-6 rounded-full bg-gray-400", classNameStatusCircleDisconnected)} />;
+            return (
+                <div
+                    className={cn(
+                        'w-6 h-6 rounded-full bg-gray-400',
+                        classNameStatusCircleDisconnected,
+                    )}
+                />
+            );
         }
         if (isOpen) {
             return (
-                <div className={cn("w-6 h-6 rounded-full animate-pulse bg-green-500", classNameStatusCircleOpen)} />
+                <div
+                    className={cn(
+                        'w-6 h-6 rounded-full animate-pulse bg-green-500',
+                        classNameStatusCircleOpen,
+                    )}
+                />
             );
         } else if (isClosed) {
             return (
-                <div className={cn("w-6 h-6 rounded-full bg-yellow-300", classNameStatusCircleClosed)} />
+                <div
+                    className={cn(
+                        'w-6 h-6 rounded-full bg-yellow-300',
+                        classNameStatusCircleClosed,
+                    )}
+                />
             );
         } else {
             // Unknown state - gray circle, non-flashing
-            return <div className={cn("w-6 h-6 rounded-full bg-gray-400", classNameStatusCircleDisconnected)} />;
+            return (
+                <div
+                    className={cn(
+                        'w-6 h-6 rounded-full bg-gray-400',
+                        classNameStatusCircleDisconnected,
+                    )}
+                />
+            );
         }
     };
-    
+
     const getStatusText = () => {
         if (shutter?.connected === false) return 'HUTCH SHUTTER DISCONNECTED';
         if (isOpen) return 'HUTCH SHUTTER OPEN';
@@ -99,7 +126,7 @@ export default function Shutter({
         handleSetValueRequest(pv, valueWhenClosed);
         setIsDropdownOpen(false);
     };
-    
+
     return (
         <div className={cn(`relative`, className)} ref={dropdownRef} {...props}>
             <div className="flex items-center gap-3 p-2">
@@ -116,18 +143,23 @@ export default function Shutter({
                     className="p-1 hover:bg-gray-100 rounded transition-colors"
                     aria-label="Open shutter controls"
                 >
-                    <CaretDown 
-                        size={16} 
+                    <CaretDown
+                        size={16}
                         className={`transform transition-transform ${
                             isDropdownOpen ? 'rotate-180' : ''
-                        }`} 
+                        }`}
                     />
                 </button>
             </div>
 
             {/* Dropdown Menu */}
             {isDropdownOpen && (
-                <div className={cn("absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10", classNameDropdown)}>
+                <div
+                    className={cn(
+                        'absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10',
+                        classNameDropdown,
+                    )}
+                >
                     <button
                         onClick={handleOpenShutter}
                         className="w-full flex items-center justify-between px-3 py-2 text-left hover:bg-gray-50 transition-colors"
