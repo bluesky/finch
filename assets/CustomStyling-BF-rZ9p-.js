@@ -1,4 +1,4 @@
-import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-B19T8d9-.js";import{W as s,a5 as r}from"./index-D0tn-N0q.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-U_WlO_lp.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const o=`ReactEDM supports simple custom styling via TailWind classes. Define custom variants in \`ReactEDM/styles.json\` in this simple data structure:
+import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-8M1jyEIn.js";import{W as s,a5 as r}from"./index-BpI1MAx1.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-DTAwIgS5.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const o=`ReactEDM supports simple custom styling via TailWind classes. Define custom variants in \`ReactEDM/styles.json\` in this simple data structure:
 
 \`\`\`javascript
 {

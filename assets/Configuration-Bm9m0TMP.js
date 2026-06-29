@@ -1,4 +1,4 @@
-import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-B19T8d9-.js";import{W as t,a5 as a}from"./index-D0tn-N0q.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-U_WlO_lp.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const s=`# Configuration
+import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-8M1jyEIn.js";import{W as t,a5 as a}from"./index-BpI1MAx1.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-DTAwIgS5.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const s=`# Configuration
 
 Finch components that communicate with backend services (Tiled, Ophyd WebSocket, Queue Server) rely on three providers that must wrap your application.
 
