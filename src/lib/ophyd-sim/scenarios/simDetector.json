@@ -1,0 +1,17 @@
+{
+    "prefix": "13SIM1",
+    "image": {
+        "mode": "noisy",
+        "sizeX": 512,
+        "sizeY": 512,
+        "file": "/images/als_logo_wheel.png"
+    },
+    "modulations": [
+        {
+            "source": "bl531:mono_energy_eV",
+            "effect": "opacity",
+            "from": { "in": 2000, "out": 0.1 },
+            "to": { "in": 7000, "out": 1.0 }
+        }
+    ]
+}
