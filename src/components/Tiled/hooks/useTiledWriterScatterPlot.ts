@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTiledSearchByIdQuery } from '@/api/tiled/hooks';
-import { checkRunCompletion } from '../utils/tiledUtils';
+import { checkRunCompletion, cleanTiledInitialPath } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
     /** Resolved Tiled path to the primary stream data, or `null` while searching. */
@@ -24,13 +24,18 @@ type UseTiledWriterScatterPlotOptions = {
     pollingIntervalMs?: number;
     /** The base url for the tiled server, ex) http://localhost:8000/api/v1 */
     tiledBaseUrl?: string;
+    /** The initial path to use for the tiled search, ex) beamline531 */
+    initialPath?: string;
 };
 
 export const useTiledWriterScatterPlot = (
     blueskyRunId: string,
     options: UseTiledWriterScatterPlotOptions = {},
 ): UseTiledWriterScatterPlotReturn => {
-    const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl } = options;
+    const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl, initialPath } = options;
+
+    const startPath =
+        initialPath && initialPath.trim() ? `${cleanTiledInitialPath(initialPath)}/` : '';
 
     const [enablePolling, setEnablePolling] = useState(!isRunFinished);
     const [pollingInterval, setPollingInterval] = useState<ReturnType<typeof setInterval> | null>(
@@ -42,7 +47,7 @@ export const useTiledWriterScatterPlot = (
 
     // Step 1: Verify the run exists in Tiled. Retries every 2 s until found (unless finished).
     const runQuery = useTiledSearchByIdQuery(
-        { path: blueskyRunId },
+        { path: `${startPath}${blueskyRunId}` },
         {
             enabled: hasRunId,
             retry: false,
@@ -53,7 +58,7 @@ export const useTiledWriterScatterPlot = (
 
     // Step 2: Fetch the primary path directly under the run ID.
     const directQuery = useTiledSearchByIdQuery(
-        { path: `${blueskyRunId}/primary` },
+        { path: `${startPath}${blueskyRunId}/primary` },
         {
             enabled: runExists,
             retry: false,
@@ -63,9 +68,9 @@ export const useTiledWriterScatterPlot = (
     const directFound = directQuery.isSuccess && !!directQuery.data;
 
     const tiledPath = useMemo(() => {
-        if (directFound) return `${blueskyRunId}/primary/internal`;
+        if (directFound) return `${startPath}${blueskyRunId}/primary/internal`;
         return null;
-    }, [directFound, blueskyRunId]);
+    }, [directFound, startPath, blueskyRunId]);
 
     const isLoading = useMemo(() => {
         if (!hasRunId || tiledPath) return false;
