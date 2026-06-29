@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
 import { getSearchResults, TiledSearchConfig } from '@blueskyproject/tiled';
 import { useTiledApiUrls } from 'src/utils/apiUtils';
+import { cleanTiledInitialPath } from 'src/components/Tiled/utils/tiledUtils';
 
 async function searchById(config: TiledSearchConfig): Promise<unknown | null> {
     try {
@@ -23,6 +24,8 @@ type UseTiledWriterMultiScatterPlotReturn = {
 type UseTiledWriterMultiScatterPlotOptions = {
     /** The base URL for the Tiled server, e.g. `http://localhost:8000/api/v1`. */
     tiledBaseUrl?: string;
+    /** The initial path to use for the Tiled search, e.g. `beamline531`. */
+    initialPath?: string;
 };
 
 export const useTiledWriterMultiScatterPlot = (
@@ -32,11 +35,20 @@ export const useTiledWriterMultiScatterPlot = (
     const { httpBaseUrl, apiKey: rawApiKey } = useTiledApiUrls();
     const baseUrl = options.tiledBaseUrl ?? httpBaseUrl;
     const apiKey = rawApiKey ?? undefined;
+    const startPath =
+        options.initialPath && options.initialPath.trim()
+            ? `${cleanTiledInitialPath(options.initialPath)}/`
+            : '';
 
     const primaryQueries = useQueries({
         queries: blueskyRunIds.map((id) => ({
-            queryKey: ['tiled', 'searchById', baseUrl, { path: `${id}/primary` }],
-            queryFn: () => searchById({ baseUrl, apiKey, path: `${id}/primary` }),
+            queryKey: ['tiled', 'searchById', baseUrl, { path: `${startPath}${id}/primary` }],
+            queryFn: () =>
+                searchById({
+                    baseUrl,
+                    apiKey,
+                    path: `${startPath}${id}/primary`,
+                }),
             enabled: !!id?.trim(),
             retry: false,
         })),
@@ -46,7 +58,7 @@ export const useTiledWriterMultiScatterPlot = (
         () =>
             blueskyRunIds.map((id, i) => {
                 const primaryFound = primaryQueries[i]?.isSuccess && !!primaryQueries[i]?.data;
-                return primaryFound ? `${id}/primary/internal` : null;
+                return primaryFound ? `${startPath}${id}/primary/internal` : null;
             }),
         [blueskyRunIds, primaryQueries],
     );

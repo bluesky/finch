@@ -9,6 +9,8 @@ type TiledWriterMultiScatterPlotProps = {
     blueskyRunIds: string[];
     /** Base URL of the Tiled server forwarded to `TiledMultiScatterPlot`. */
     tiledBaseUrl?: string;
+    /** Initial path for the Tiled search. */
+    initialPath?: string;
     /** Additional class names applied to the `TiledMultiScatterPlot` container. */
     className?: string;
     /** Additional class names applied to the plot inside `TiledMultiScatterPlot`. */
@@ -27,9 +29,11 @@ export default function TiledWriterMultiScatterPlot({
     plotClassName,
     title,
     traceNames,
+    initialPath,
 }: TiledWriterMultiScatterPlotProps) {
     const { tiledPaths, isLoading, errors } = useTiledWriterMultiScatterPlot(blueskyRunIds, {
         tiledBaseUrl,
+        initialPath,
     });
     const errorMessage = isLoading
         ? undefined

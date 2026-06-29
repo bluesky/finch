@@ -351,6 +351,8 @@ export default function TiledLinePlotMaker({
                 title={plotTitle || undefined}
                 className={cn('h-full border-2 border-black/20', classNamePlot)}
                 plotClassName="h-full"
+                tiledBaseUrl={tiledBaseUrl}
+                initialPath={initialPath}
             />
         </article>
     );
