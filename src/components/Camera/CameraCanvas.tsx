@@ -31,21 +31,25 @@ export default function CameraCanvas(props: CameraCanvasProps) {
 
     const { canvasSize = 'medium' } = props;
 
+    // `socketStatus` is `'Open'` while streaming and `'closed'` otherwise.
+    const isAcquiring = socketStatus !== 'closed';
+
     return (
-        <div className={`${canvasSize === 'small' ? 'max-w-[256px]' : ''} bg-slate-300 relative`}>
-            {/* Canvas Element - background*/}
-            <canvas
-                id="canvas"
-                className={`${socketStatus === 'closed' ? 'opacity-25' : ''} m-auto border`}
-                ref={canvasRef}
-                width={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
-                height={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
-            />
+        <div className={`${canvasSize === 'small' ? 'max-w-[256px]' : ''} flex flex-col gap-2`}>
+            <div className="bg-slate-300 relative">
+                {/* Canvas Element - background*/}
+                <canvas
+                    id="canvas"
+                    className={`${socketStatus === 'closed' ? 'opacity-25' : ''} m-auto border`}
+                    ref={canvasRef}
+                    width={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
+                    height={sizeDict[canvasSize] ? sizeDict[canvasSize] : 512}
+                />
 
-            {/* FPS counter - top left */}
-            <p className="absolute z-10 top-1 left-2">{fps} fps</p>
+                {/* FPS counter - top left */}
+                <p className="absolute z-10 top-1 left-2">{fps} fps</p>
 
-            <CameraCanvasFeatures
+                <CameraCanvasFeatures
                 socketStatus={socketStatus}
                 isImageLogScale={isImageLogScale}
                 onToggleConnection={socketStatus === 'closed' ? startWebSocket : closeWebSocket}
@@ -54,9 +58,9 @@ export default function CameraCanvas(props: CameraCanvasProps) {
                 prefix={props.prefix}
             />
 
-            {/* Overlay when disconnected */}
+            {/* Overlay on connection error (clean paused/idle state uses the Acquire button instead) */}
             <div
-                className={`${socketStatus === 'closed' ? '' : 'hidden'} absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center group`}
+                className={`${socketError !== null ? '' : 'hidden'} absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center group`}
             >
                 <div className="flex justify-center items-center w-full h-full">
                     <div className="relative group-hover:cursor-pointer w-full max-w-xs h-32">
@@ -88,6 +92,29 @@ export default function CameraCanvas(props: CameraCanvasProps) {
                         </div>
                     </div>
                 </div>
+                </div>
+            </div>
+
+            {/* Acquire / Pause - start and stop the image stream, below the image */}
+            <div className="flex items-center justify-center gap-2">
+                <button
+                    onClick={startWebSocket}
+                    disabled={isAcquiring}
+                    title="Start acquisition"
+                    className="opacity-90 flex items-center gap-2 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium rounded shadow-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-sky-500"
+                >
+                    <span className="w-4 aspect-square">{phosphorIcons.camera}</span>
+                    Acquire
+                </button>
+                <button
+                    onClick={closeWebSocket}
+                    disabled={!isAcquiring}
+                    title="Pause acquisition"
+                    className="opacity-90 flex items-center gap-2 px-3 py-1.5 bg-white/70 hover:bg-slate-200 text-black border text-sm font-medium rounded shadow-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/70"
+                >
+                    <span className="w-4 aspect-square">{phosphorIcons.cameraSlash}</span>
+                    Pause
+                </button>
             </div>
         </div>
     );
