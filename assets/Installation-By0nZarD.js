@@ -1,4 +1,4 @@
-import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-9at3fjuU.js";import{W as r,a5 as a}from"./index-CgY_YV8P.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-CstDe8Ig.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const s=`# Installation
+import{j as n}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as i}from"./index-DI2gBlDf.js";import"./blocks-BuLIi3Pj.js";import{W as r,a5 as a}from"./index-C6riaNic.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-CY6q6zEv.js";import"../sb-preview/runtime.js";import"./index-czWnIymw.js";import"./index-fNjTmf9T.js";import"./index-cS34vJOP.js";import"./index-DrFu-skq.js";const s=`# Installation
 Finch can be installed into existing React applications or cloned directly. For all install methods you will need node/npm, [instructions here](https://nodejs.org/en/download). 
 
 \`\`\`bash
