@@ -31,6 +31,7 @@ createRoot(document.getElementById('root')!).render(
         <FinchConfigProvider config={{
           tiledApiUrl: 'http://localhost:8000/api/v1',
           tiledApiKey: 'your-tiled-key',
+          tiledInitialPath: 'your/beamline',
           ophydApiUrl: 'http://localhost:8001/api/v1',
           qServerApiUrl: 'http://localhost:60610/api',
           qServerApiKey: 'your-api-key',
@@ -52,6 +53,7 @@ FinchConfigProvider accepts a config object with fields for making API calls to 
   <FinchConfigProvider config={{
     tiledApiUrl: 'http://localhost:8000/api/v1',
     tiledApiKey: 'your-tiled-key',
+    tiledInitialPath: 'your/beamline',
     ophydApiUrl: 'http://localhost:8001/api/v1',
     qServerApiUrl: 'http://localhost:60610/api',
     qServerApiKey: 'your-api-key',
@@ -64,6 +66,7 @@ FinchConfigProvider accepts a config object with fields for making API calls to 
 | :--- | :--- | :--- |
 | `tiledApiUrl` | `http://localhost:8000/api/v1` | URL of the Tiled data API |
 | `tiledApiKey` | `undefined` | API key for authenticated Tiled requests |
+| `tiledInitialPath` | `undefined` | Initial path used in all Tiled searches
 | `ophydApiUrl` | `http://localhost:8001/api/v1` | Base URL for the Ophyd WebSocket server |
 | `qServerApiUrl` | `http://localhost:60610/api` | URL of the Bluesky Queue Server HTTP API |
 | `qServerApiKey` | `test` | API key for Queue Server authentication |
@@ -79,6 +82,7 @@ When running the app from the cloned repo or configuring a deployment, the stand
 <FinchConfigProvider config={{
   tiledApiUrl:    import.meta.env.VITE_TILED_API_URL,
   tiledApiKey:    import.meta.env.VITE_TILED_API_KEY,
+  tiledInitialPath: import.meta.emv.VITE_TILED_INITIAL_PATH,
   ophydApiUrl:    import.meta.env.VITE_OPHYD_API_URL,
   qServerApiUrl:  import.meta.env.VITE_QSERVER_API_URL,
   qServerApiKey:  import.meta.env.VITE_QSERVER_API_KEY,
@@ -94,6 +98,7 @@ It is also possible to load in a config based on a JSON file at runtime, which c
 {
   "tiledApiUrl": "http://localhost:8000/api/v1",
   "tiledApiKey": "your-tiled-api-key",
+  "tiledInitialPath": "your/beamline",
   "ophydApiUrl": "http://localhost:8001/api/v1",
   "qServerApiUrl": "http://localhost:60610/api",
   "qServerApiKey": "your-qserver-api-key",

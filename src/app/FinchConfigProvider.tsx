@@ -1,61 +1,30 @@
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useMemo } from 'react';
+import { cleanTiledInitialPath } from 'src/components/Tiled/utils/tiledUtils';
+import { cleanUrl } from 'src/utils/urlUtils';
 
+/**
+ * Configuration for the Finch application, providing API endpoints and credentials
+ * for the various backend services.
+ */
 export type FinchConfig = {
+    /** Base URL for the Tiled data server API (e.g. `http://localhost:8000/api/v1`). */
     tiledApiUrl?: string;
+    /** API key for authenticating with the Tiled server. */
     tiledApiKey?: string;
+    /** Initial node path to open in the Tiled data browser (e.g. `data/mynode`). */
+    tiledInitialPath?: string;
+    /** Base URL for the Ophyd control-layer API. */
     ophydApiUrl?: string;
+    /** Base URL for the Bluesky Queue Server (queueserver) API. */
     qServerApiUrl?: string;
+    /** API key for authenticating with the Queue Server. */
     qServerApiKey?: string;
+    /** Base URL for the Finch backend API. */
     finchApiUrl?: string;
 };
 
 const FinchConfigContext = createContext<FinchConfig | null>(null);
-
-/**
- * Normalizes and validates a URL
- * @param url - Raw URL that might be malformed
- * @param label - Human-readable name for error messages
- * @returns Cleaned URL or undefined if invalid
- */
-function cleanUrl(url: string | undefined, label: string): string | undefined {
-    if (!url || url.trim() === '') {
-        return undefined;
-    }
-
-    try {
-        let cleanedUrl = url.trim();
-
-        // Remove trailing slashes
-        cleanedUrl = cleanedUrl.replace(/\/+$/, '');
-
-        // Add protocol if missing (assume http for local development)
-        if (!cleanedUrl.match(/^https?:\/\//)) {
-            // Check if it looks like a local address
-            if (cleanedUrl.match(/^(localhost|127\.0\.0\.1|\d+\.\d+\.\d+\.\d+)/)) {
-                cleanedUrl = `http://${cleanedUrl}`;
-            } else {
-                cleanedUrl = `https://${cleanedUrl}`;
-            }
-        }
-
-        // Validate by creating URL object
-        const urlObj = new URL(cleanedUrl);
-
-        // Only allow http and https protocols
-        if (!['http:', 'https:'].includes(urlObj.protocol)) {
-            console.warn(
-                `Invalid protocol for ${label}: ${urlObj.protocol}. Only http and https are allowed.`,
-            );
-            return undefined;
-        }
-
-        return urlObj.toString().replace(/\/$/, ''); // Remove trailing slash again
-    } catch (error) {
-        console.error(`Invalid URL format for ${label}: "${url}"`, error);
-        return undefined;
-    }
-}
 
 /**
  * Cleans and validates the entire config object
@@ -64,6 +33,7 @@ function cleanConfig(rawConfig: FinchConfig): FinchConfig {
     return {
         tiledApiUrl: cleanUrl(rawConfig.tiledApiUrl, 'Tiled API URL'),
         tiledApiKey: rawConfig.tiledApiKey?.trim() || undefined,
+        tiledInitialPath: cleanTiledInitialPath(rawConfig.tiledInitialPath),
         ophydApiUrl: cleanUrl(rawConfig.ophydApiUrl, 'Ophyd API URL'),
         qServerApiUrl: cleanUrl(rawConfig.qServerApiUrl, 'QServer API URL'),
         qServerApiKey: rawConfig.qServerApiKey?.trim() || undefined,

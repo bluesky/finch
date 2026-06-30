@@ -55,10 +55,12 @@ export function useTiledApiUrls() {
     const httpBaseUrl =
         config?.tiledApiUrl || `http://${currentAddress}:${DEFAULT_TILED_API_PORT}/api/v1`;
     const apiKey = config?.tiledApiKey || null;
+    const initialPath = config?.tiledInitialPath || null;
 
     return {
         httpBaseUrl,
         apiKey,
+        initialPath,
         getRestUrl: (path: string) => `${httpBaseUrl}/${path}`,
     };
 }

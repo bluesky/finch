@@ -77,5 +77,5 @@ export const cleanTiledInitialPath = (path: string | undefined): string | undefi
     if (!path) return undefined;
     // Remove leading and trailing slashes and whitespace
     const cleanedPath = path.trim().replace(/^\/+|\/+$/g, '');
-    return cleanedPath || undefined; // Return undefined if the cleaned path is empty
+    return cleanedPath.trim() || undefined; // Return undefined if the cleaned path is empty
 };
