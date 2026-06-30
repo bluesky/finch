@@ -14,7 +14,7 @@ type TiledWriterScatterPlotProps = {
     /** Base URL of the Tiled server forwarded to `TiledScatterPlot`. */
     tiledBaseUrl?: string;
     /** Initial path for the Tiled search, e.g. `beamline531`. */
-    initialPath?: string;
+    tiledInitialPath?: string;
     /** Milliseconds between data refetches while the run is ongoing. Defaults to `1000`. */
     pollingIntervalMs?: number;
     /** Additional class names applied to the `TiledScatterPlot` container. */
@@ -31,7 +31,7 @@ export default function TiledWriterScatterPlot({
     isRunFinished = false,
     partition,
     tiledBaseUrl,
-    initialPath,
+    tiledInitialPath,
     pollingIntervalMs,
     className,
     plotClassName,
@@ -42,7 +42,7 @@ export default function TiledWriterScatterPlot({
         isRunFinished,
         pollingIntervalMs,
         tiledBaseUrl,
-        initialPath,
+        tiledInitialPath,
     });
 
     // Determine status text based on current state

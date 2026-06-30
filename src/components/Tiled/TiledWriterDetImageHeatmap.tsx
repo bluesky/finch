@@ -11,6 +11,8 @@ type TiledWriterDetImageHeatmapProps = {
     isRunFinished?: boolean;
     /** Base URL of the Tiled server (e.g. `'http://localhost:8000/api/v1'`). */
     tiledBaseUrl?: string;
+    /** Initial path for the Tiled search, e.g. `beamline531`. */
+    tiledInitialPath?: string;
     /** Milliseconds between Tiled data refetches while the run is ongoing. */
     pollingIntervalMs?: number;
     /** Additional class names applied to the outer container element. */
@@ -25,6 +27,7 @@ export default function TiledWriterDetImageHeatmap({
     blueskyRunId,
     isRunFinished = true,
     tiledBaseUrl,
+    tiledInitialPath,
     pollingIntervalMs,
     className,
     plotClassName,
@@ -36,6 +39,7 @@ export default function TiledWriterDetImageHeatmap({
             isRunFinished,
             pollingIntervalMs,
             tiledBaseUrl,
+            tiledInitialPath,
         },
     );
 
