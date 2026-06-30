@@ -44,16 +44,19 @@ function DevicePanel() {
 
 ### Parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `deviceNameList` | `string[]` | EPICS PV names to subscribe to |
-| `wsUrl` | `string?` | WebSocket URL override. Defaults to `FinchConfigProvider` → env var → `ws://localhost:8001` |
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>deviceNameList</code></td><td><code>string[]</code></td><td>EPICS PV names to subscribe to</td></tr>
+    <tr><td><code>wsUrl</code></td><td><code>string?</code></td><td>WebSocket URL override. Falls back to <code>FinchConfigProvider</code>, then <code>ws://localhost:8001</code></td></tr>
+  </tbody>
+</table>
 
 ### Return value
 
 ```ts
 {
-  devices: Devices;                                                        // keyed by PV name
+  devices: Devices; // keyed by PV name
   handleSetValueRequest: (deviceName: string, value: string | number | boolean) => void;
   toggleDeviceLock: (deviceName: string) => void;
   toggleExpand: (deviceName: string) => void;
@@ -125,10 +128,13 @@ function DevicePanel() {
 
 ### Parameters
 
-| Parameter | Type | Description |
-|---|---|---|
-| `deviceNameList` | `string[]` | Ophyd device names to subscribe to |
-| `wsUrl` | `string?` | WebSocket URL override. Defaults to `FinchConfigProvider` device-socket URL |
+<table>
+  <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><code>deviceNameList</code></td><td><code>string[]</code></td><td>Ophyd device names to subscribe to</td></tr>
+    <tr><td><code>wsUrl</code></td><td><code>string?</code></td><td>WebSocket URL override. Falls back to <code>FinchConfigProvider</code> device-socket URL</td></tr>
+  </tbody>
+</table>
 
 ### Return value
 

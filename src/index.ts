@@ -311,6 +311,14 @@ export type { Device, Devices } from './types/deviceControllerTypes';
 //CONTEXT PROVIDERS
 export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 
+// API URL HOOKS
+export {
+    useOphydApiUrls,
+    useQueueServerApiUrls,
+    useTiledApiUrls,
+    useAllApiUrls,
+} from './utils/apiUtils';
+
 // Tiled API namespace - groups all Tiled functionality under a clear namespace
 import * as TiledAPI from '@blueskyproject/tiled';
 

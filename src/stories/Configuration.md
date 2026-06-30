@@ -171,4 +171,22 @@ function MyWidget() {
 }
 ```
 
-`useOptionalFinchConfig` returns `null` when called outside a `FinchConfigProvider` — useful for components that should gracefully degrade. If your component always requires the provider, throw an error instead (the unexported `useFinchConfig` does this internally).
+## Reading config via convenience hooks
+
+Instead of reading the config directly, there are alternative functions that may be more convenient for building your own requests.
+
+`useTiledApiUrls` resolves the Tiled base URL and API key from config (falling back to `localhost:8000`), and provides a `getRestUrl` helper for building endpoint paths:
+
+```tsx
+import { useTiledApiUrls } from '@blueskyproject/finch';
+
+function MyComponent() {
+  const { httpBaseUrl, initialPath, apiKey, getRestUrl } = useTiledApiUrls();
+  console.log(httpBaseUrl); // 'https://my-website:8000/api/v1'
+  console.log(initialPath); // 'beamline531'
+  console.log(apiKey): // 'my-tiled-api-key'
+  // getRestUrl does not merge the initialPath
+  console.log(getRestUrl(initialPath + '/scan5')); // 'https://my-website:8000/api/v1/beamline531/scan5'
+
+}
+```

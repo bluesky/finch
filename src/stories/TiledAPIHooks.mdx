@@ -354,6 +354,30 @@ console.log(info?.library_version);
 
 ---
 
+## Building custom requests with `useTiledApiUrls`
+
+If the built-in hooks don't cover your use case, `useTiledApiUrls` gives you direct access to the resolved base URL, API key, initial path, and a `getRestUrl` helper:
+
+```tsx
+import { useTiledApiUrls } from '@blueskyproject/finch';
+
+function CustomTiledRequest() {
+  const { initialPath, apiKey, getRestUrl } = useTiledApiUrls();
+
+  const fetchMetadata = async () => {
+    const response = await fetch(getRestUrl(`metadata/${initialPath}`), {
+      headers: apiKey ? { Authorization: `apikey ${apiKey}` } : {},
+    });
+    const data = await response.json();
+    console.log(data);
+  };
+
+  return <button onClick={fetchMetadata}>Fetch metadata</button>;
+}
+```
+
+---
+
 ## Combined example
 
 Searching for runs and loading table data for the selected one:
