@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTiledApiUrls } from '@/utils/apiUtils';
+import { cleanTiledInitialPath } from '../utils/tiledUtils';
 
 type UseTiledWriterDetImageHeatmapOptions = {
     /** When `true`, disables polling because the run is already complete. Defaults to `false`. */
@@ -8,6 +9,8 @@ type UseTiledWriterDetImageHeatmapOptions = {
     pollingIntervalMs?: number;
     /** Base URL of the Tiled server. Defaults to `'http://localhost:8000/api/v1'`. */
     tiledBaseUrl?: string;
+    /** Initial path prefix for Tiled searches (e.g. `'beamline531'`). Falls back to `FinchConfigProvider`, then no prefix. */
+    tiledInitialPath?: string;
 };
 
 export function useTiledWriterDetImageHeatmap(
@@ -21,8 +24,12 @@ export function useTiledWriterDetImageHeatmap(
     const [error, setError] = useState<string | null>(null);
     const [enablePolling, setEnablePolling] = useState<boolean>(!isRunFinished);
 
-    const { httpBaseUrl } = useTiledApiUrls();
+    const { httpBaseUrl, initialPath: configInitialPath } = useTiledApiUrls();
     const tiledBaseUrlFinal = tiledBaseUrl || httpBaseUrl;
+    const resolvedInitialPath = options.tiledInitialPath ?? configInitialPath ?? '';
+    const startPath = resolvedInitialPath.trim()
+        ? `${cleanTiledInitialPath(resolvedInitialPath)}/`
+        : '';
 
     const checkForDetImage = useCallback(async () => {
         try {
@@ -30,7 +37,9 @@ export function useTiledWriterDetImageHeatmap(
             setError(null);
 
             // Check if the run exists and get its metadata
-            const runResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${blueskyRunId}`);
+            const runResponse = await fetch(
+                `${tiledBaseUrlFinal}/metadata/${startPath}${blueskyRunId}`,
+            );
 
             if (!runResponse.ok) {
                 throw new Error(`Run ${blueskyRunId} not found`);
@@ -47,7 +56,7 @@ export function useTiledWriterDetImageHeatmap(
             }
 
             // Construct path to det_image: {id}/primary/det_image
-            const detImagePath = `${blueskyRunId}/primary/det_image`;
+            const detImagePath = `${startPath}${blueskyRunId}/primary/det_image`;
             const detImageResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
 
             if (!detImageResponse.ok) {
@@ -75,7 +84,7 @@ export function useTiledWriterDetImageHeatmap(
         } finally {
             setIsLoading(false);
         }
-    }, [blueskyRunId, tiledBaseUrlFinal, enablePolling]);
+    }, [blueskyRunId, tiledBaseUrlFinal, startPath, enablePolling]);
 
     useEffect(() => {
         if (!blueskyRunId) {

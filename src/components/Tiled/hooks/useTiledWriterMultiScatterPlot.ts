@@ -25,20 +25,20 @@ type UseTiledWriterMultiScatterPlotOptions = {
     /** The base URL for the Tiled server, e.g. `http://localhost:8000/api/v1`. */
     tiledBaseUrl?: string;
     /** The initial path to use for the Tiled search, e.g. `beamline531`. */
-    initialPath?: string;
+    tiledInitialPath?: string;
 };
 
 export const useTiledWriterMultiScatterPlot = (
     blueskyRunIds: string[],
     options: UseTiledWriterMultiScatterPlotOptions = {},
 ): UseTiledWriterMultiScatterPlotReturn => {
-    const { httpBaseUrl, apiKey: rawApiKey } = useTiledApiUrls();
+    const { httpBaseUrl, apiKey: rawApiKey, initialPath: configInitialPath } = useTiledApiUrls();
     const baseUrl = options.tiledBaseUrl ?? httpBaseUrl;
     const apiKey = rawApiKey ?? undefined;
-    const startPath =
-        options.initialPath && options.initialPath.trim()
-            ? `${cleanTiledInitialPath(options.initialPath)}/`
-            : '';
+    const resolvedInitialPath = options.tiledInitialPath ?? configInitialPath ?? '';
+    const startPath = resolvedInitialPath.trim()
+        ? `${cleanTiledInitialPath(resolvedInitialPath)}/`
+        : '';
 
     const primaryQueries = useQueries({
         queries: blueskyRunIds.map((id) => ({

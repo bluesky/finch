@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTiledSearchByIdQuery } from '@/api/tiled/hooks';
 import { checkRunCompletion, cleanTiledInitialPath } from '../utils/tiledUtils';
+import { useTiledApiUrls } from '@/utils/apiUtils';
 
 type UseTiledWriterScatterPlotReturn = {
     /** Resolved Tiled path to the primary stream data, or `null` while searching. */
@@ -25,17 +26,25 @@ type UseTiledWriterScatterPlotOptions = {
     /** The base url for the tiled server, ex) http://localhost:8000/api/v1 */
     tiledBaseUrl?: string;
     /** The initial path to use for the tiled search, ex) beamline531 */
-    initialPath?: string;
+    tiledInitialPath?: string;
 };
 
 export const useTiledWriterScatterPlot = (
     blueskyRunId: string,
     options: UseTiledWriterScatterPlotOptions = {},
 ): UseTiledWriterScatterPlotReturn => {
-    const { isRunFinished = false, pollingIntervalMs = 5000, tiledBaseUrl, initialPath } = options;
+    const {
+        isRunFinished = false,
+        pollingIntervalMs = 5000,
+        tiledBaseUrl,
+        tiledInitialPath,
+    } = options;
 
-    const startPath =
-        initialPath && initialPath.trim() ? `${cleanTiledInitialPath(initialPath)}/` : '';
+    const { initialPath: configInitialPath } = useTiledApiUrls();
+    const resolvedInitialPath = tiledInitialPath ?? configInitialPath ?? '';
+    const startPath = resolvedInitialPath.trim()
+        ? `${cleanTiledInitialPath(resolvedInitialPath)}/`
+        : '';
 
     const [enablePolling, setEnablePolling] = useState(!isRunFinished);
     const [pollingInterval, setPollingInterval] = useState<ReturnType<typeof setInterval> | null>(

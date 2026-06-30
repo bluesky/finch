@@ -7,6 +7,8 @@ type UseTiledMostRecentDetImageOptions = {
     pollingIntervalMs?: number;
     /** Base URL of the Tiled server. Defaults to `'http://localhost:8000/api/v1'`. */
     tiledBaseUrl?: string;
+    /** Initial path for the Tiled search. Default is an empty string. */
+    tiledInitialPath?: string;
     /** When `false`, polling is disabled on mount. Defaults to `true`. */
     enabled?: boolean;
 };
@@ -31,8 +33,9 @@ export const useTiledMostRecentDetImage = (
 ): UseTiledMostRecentDetImageReturn => {
     const { pollingIntervalMs = 2000, tiledBaseUrl, enabled = true } = options;
 
-    const { httpBaseUrl } = useTiledApiUrls();
+    const { httpBaseUrl, initialPath } = useTiledApiUrls();
     const tiledBaseUrlFinal = tiledBaseUrl || httpBaseUrl;
+    const tiledInitialPath = options.tiledInitialPath || initialPath || '';
 
     const [enablePolling, setEnablePolling] = useState(enabled);
     const [isRunFinished, setIsRunFinished] = useState<boolean>(false);
@@ -46,7 +49,7 @@ export const useTiledMostRecentDetImage = (
         try {
             // Get last 10 entries, sorted by most recent
             const searchResponse = await fetch(
-                `${tiledBaseUrlFinal}/search/?sort=-&page[offset]=0&page[limit]=10`,
+                `${tiledBaseUrlFinal}/search/${tiledInitialPath}?sort=-&page[offset]=0&page[limit]=10`,
             );
 
             if (!searchResponse.ok) {

@@ -26,7 +26,7 @@ type Story = StoryObj<typeof meta>;
 export const Primary: Story = {
     args: {
         tiledBaseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1',
-        initialPath: 'bmm',
+        tiledInitialPath: 'bmm',
         classNameContainer: 'flex-wrap justify-center',
         classNameInnerContainer: 'border-r-0',
         classNamePlot: 'w-92',

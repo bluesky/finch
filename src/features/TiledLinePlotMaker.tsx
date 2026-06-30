@@ -33,7 +33,7 @@ export type TiledLinePlotMakerProps = {
     /** Base URL of the Tiled server to search for data to plot. */
     tiledBaseUrl?: string;
     /** Optional initial path used in the Tiled server search. */
-    initialPath?: string;
+    tiledInitialPath?: string;
     /** Optional class name for the component. */
     classNameContainer?: string;
     /** Optional class name for the component. */
@@ -43,7 +43,7 @@ export type TiledLinePlotMakerProps = {
 };
 export default function TiledLinePlotMaker({
     tiledBaseUrl,
-    initialPath,
+    tiledInitialPath,
     classNameContainer,
     classNameInnerContainer,
     classNamePlot,
@@ -70,7 +70,7 @@ export default function TiledLinePlotMaker({
                 filters: {
                     specs: { include: ['BlueskyRun'], exclude: [] },
                 },
-                initialPath,
+                initialPath: tiledInitialPath ?? '',
                 baseUrl: tiledBaseUrl,
             };
             try {
@@ -81,7 +81,7 @@ export default function TiledLinePlotMaker({
             }
         };
         fetchData();
-    }, [initialPath, tiledBaseUrl]);
+    }, [tiledInitialPath, tiledBaseUrl]);
     return (
         <article
             className={cn(
@@ -350,7 +350,7 @@ export default function TiledLinePlotMaker({
                 className={cn('h-full border-2 border-black/20', classNamePlot)}
                 plotClassName="h-full"
                 tiledBaseUrl={tiledBaseUrl}
-                initialPath={initialPath}
+                tiledInitialPath={tiledInitialPath}
             />
         </article>
     );
