@@ -3,7 +3,7 @@ import { useTiledWriterScatterPlot } from './hooks/useTiledWriterScatterPlot';
 import TiledScatterPlot from './TiledScatterPlot';
 
 type TiledWriterScatterPlotProps = {
-    /** Trace descriptor mapping Plotly fields to table column names for x and y axes. */
+    /** Trace descriptor mapping Plotly fields to table column names for x and y axes. eg) { x: 'column_x', y: 'column_y' } */
     tiledTrace: TiledPlotlyTrace;
     /** Bluesky run UID used to locate the primary stream data in Tiled. */
     blueskyRunId: string;

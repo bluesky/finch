@@ -12,6 +12,8 @@ import BeamEnergyOphyd from '@/components/BeamEnergy/BeamEnergyOphyd';
 import Histogram from '@/components/Histogram/Histogram';
 import Beamstop from '../Beamstop';
 import TiledLinePlotMaker from '@/features/TiledLinePlotMaker';
+import TiledWriterMultiScatterPlot from '@/components/Tiled/TiledWriterMultiScatterPlot';
+import TiledWriterDetImageHeatmap from '@/components/Tiled/TiledWriterDetImageHeatmap';
 export default function ComponentViewerExampleReal() {
     const testItems: TestItemCollection = {
         RealCam1: {
@@ -66,6 +68,30 @@ export default function ComponentViewerExampleReal() {
             name: 'Tiled Line Plot Maker',
             element: <TiledLinePlotMaker />,
             info: 'This component allows users to select from available 1D array data in a Tiled server and displays the selected data as a line plot. This test requires a Tiled server containing 1D array data. The Tiled data must be bluesky runs written from Tiled Writer',
+        },
+        RealTiled3: {
+            name: 'Tiled Writer Multi-Scatter Plot',
+            element: (
+                <TiledWriterMultiScatterPlot
+                    blueskyRunIds={['6119e749-d4e6-4e2e-bee9-68375b3087f5']}
+                    tiledBaseUrl="https://tiled-demo.nsls2.bnl.gov/api/v1"
+                    tiledInitialPath="bmm"
+                    tiledTrace={{ x: 'dcm_energy', y: 'Nb1' }}
+                />
+            ),
+            info: 'This component allows users to select from available table data in a Tiled server and displays the selected data as a scatter plot. This test requires a Tiled server containing 1D array data. The Tiled data must be bluesky runs written from Tiled Writer',
+        },
+        RealTiled4: {
+            name: 'Tiled Writer Image Heatmap',
+            element: (
+                <TiledWriterDetImageHeatmap
+                    blueskyRunId="6119e749-d4e6-4e2e-bee9-68375b3087f5"
+                    isRunFinished={true}
+                    tiledBaseUrl="https://tiled-demo.nsls2.bnl.gov/api/v1"
+                    tiledInitialPath="bmm"
+                />
+            ),
+            info: 'This component allows users to select from available 2D array data in a Tiled server and displays the selected data as an image heatmap. This test requires a Tiled server containing 2D array data. The Tiled data must be bluesky runs written from Tiled Writer',
         },
         RealQueue1: {
             name: 'Queue Server Dashboard Interface',
