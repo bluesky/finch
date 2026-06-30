@@ -19,7 +19,7 @@ export function useTiledWriterDetImageHeatmap(
 ) {
     const { isRunFinished = false, pollingIntervalMs = 2000, tiledBaseUrl } = options;
 
-    const [tiledPath, setTiledPath] = useState<string | null>(null);
+    const [tiledPaths, setTiledPaths] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [enablePolling, setEnablePolling] = useState<boolean>(!isRunFinished);
@@ -51,36 +51,44 @@ export function useTiledWriterDetImageHeatmap(
             const hasStopKey = runData.data.attributes?.metadata?.stop !== undefined;
 
             if (hasStopKey && enablePolling) {
-                //console.log(`[useTiledWriterDetImageHeatmap] Stop key found for run ${blueskyRunId}, disabling polling`);
                 setEnablePolling(false);
             }
 
-            // Construct path to det_image: {id}/primary/det_image
-            const detImagePath = `${startPath}${blueskyRunId}/primary/det_image`;
-            const detImageResponse = await fetch(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
+            // Search the primary folder for all array-typed nodes
+            const primarySearchResponse = await fetch(
+                `${tiledBaseUrlFinal}/search/${startPath}${blueskyRunId}/primary`,
+            );
 
-            if (!detImageResponse.ok) {
-                throw new Error(`det_image not found at path: ${detImagePath}`);
+            if (!primarySearchResponse.ok) {
+                throw new Error(`primary stream not found for run: ${blueskyRunId}`);
             }
 
-            const detImageData = await detImageResponse.json();
+            const primarySearchData = await primarySearchResponse.json();
+            const entries: { id: string; attributes?: { structure_family?: string } }[] =
+                primarySearchData.data ?? [];
 
-            // Verify it's an array structure
-            if (detImageData.data.attributes?.structure_family !== 'array') {
-                console.log({ detImageData });
-                throw new Error('det_image is not an array structure');
+            const arrayPaths = entries
+                .filter((entry) => entry.attributes?.structure_family === 'array')
+                .map(
+                    (entry) =>
+                        `${tiledBaseUrlFinal}/metadata/${startPath}${blueskyRunId}/primary/${entry.id}`,
+                );
+
+            if (arrayPaths.length === 0) {
+                throw new Error(
+                    `No array-type signals found in primary stream for run: ${blueskyRunId}`,
+                );
             }
 
-            //console.log(`[useTiledWriterDetImageHeatmap] Found det_image for run ${blueskyRunId} at path: ${detImagePath}`);
-            setTiledPath(`${tiledBaseUrlFinal}/metadata/${detImagePath}`);
+            setTiledPaths(arrayPaths);
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
             console.error(
-                `[useTiledWriterDetImageHeatmap] Error fetching det_image for run ${blueskyRunId}:`,
+                `[useTiledWriterDetImageHeatmap] Error fetching array signals for run ${blueskyRunId}:`,
                 errorMessage,
             );
             setError(errorMessage);
-            setTiledPath(null);
+            setTiledPaths([]);
         } finally {
             setIsLoading(false);
         }
@@ -90,7 +98,7 @@ export function useTiledWriterDetImageHeatmap(
         if (!blueskyRunId) {
             setError('No blueskyRunId provided');
             setIsLoading(false);
-            setTiledPath(null);
+            setTiledPaths([]);
             return;
         }
 
@@ -114,13 +122,12 @@ export function useTiledWriterDetImageHeatmap(
     // Update polling state when isRunFinished changes
     useEffect(() => {
         if (isRunFinished && enablePolling) {
-            //console.log(`[useTiledWriterDetImageHeatmap] Run ${blueskyRunId} marked as finished, disabling polling`);
             setEnablePolling(false);
         }
     }, [isRunFinished, enablePolling, blueskyRunId]);
 
     return {
-        tiledPath,
+        tiledPaths,
         isLoading,
         error,
         enablePolling,
