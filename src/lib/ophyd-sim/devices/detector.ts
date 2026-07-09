@@ -19,13 +19,55 @@ export interface DetectorModulation {
     to: ModulationPoint;
 }
 
+/**
+ * Live binding of one overlay coordinate (center X or Y, in pixels) to a source
+ * PV. The source value is linearly mapped from `from.in→to.in` onto the pixel
+ * range `from.out→to.out`, clamped to that range — identical math to an opacity
+ * modulation, but the output is a pixel coordinate rather than 0–1.
+ */
+export interface AxisBinding {
+    /** PV name whose value drives this coordinate (e.g. a beamstop motor RBV). */
+    source: string;
+    from: ModulationPoint;
+    to: ModulationPoint;
+}
+
+/**
+ * An image layer drawn on top of the base image. Positioned by its center so a
+ * marker (e.g. a beamstop dot) sits where you expect. The center defaults to the
+ * static `x`/`y`; pass `positionX`/`positionY` to drive it from a live PV.
+ */
+export interface DetectorOverlay {
+    /** URL of the overlay image. */
+    file: string;
+    /** Render size in pixels. */
+    width: number;
+    height: number;
+    /** Center position in pixels (initial value; also the fallback if unbound). */
+    x: number;
+    y: number;
+    /** Bind the center X to a source PV. */
+    positionX?: AxisBinding;
+    /** Bind the center Y to a source PV. */
+    positionY?: AxisBinding;
+}
+
 export interface DetectorImageConfig {
     /** Image source: random noise, or a static image file. */
     mode: 'noisy' | 'image_file';
     sizeX: number;
     sizeY: number;
-    /** URL of the image to render when `mode === 'image_file'`. */
+    /** URL of the base (bottom) image to render when `mode === 'image_file'`. */
     file?: string;
+    /**
+     * URLs of base images to cycle through, one per emitted frame (round-robin),
+     * when `mode === 'image_file'`. Takes precedence over `file`; use a single
+     * static base via `file` or a one-element `files`. Lets the stream animate
+     * through a set of frames (e.g. a captured diffraction sequence).
+     */
+    files?: string[];
+    /** Image layers drawn over the base, in order (`image_file` mode only). */
+    overlays?: DetectorOverlay[];
 }
 
 /**
@@ -43,6 +85,15 @@ export interface DetectorConfig {
 export const OPACITY_SUFFIX = 'image1:Opacity';
 /** PV suffix carrying the image value mode (`'noisy' | 'image_file'`). */
 export const MODE_SUFFIX = 'image1:Mode';
+
+/** PV suffix for an overlay's center-X (pixels). `index` is zero-based. */
+export function overlayCenterXSuffix(index: number): string {
+    return `image1:Overlay${index + 1}:CenterX`;
+}
+/** PV suffix for an overlay's center-Y (pixels). `index` is zero-based. */
+export function overlayCenterYSuffix(index: number): string {
+    return `image1:Overlay${index + 1}:CenterY`;
+}
 
 /**
  * Linearly map `value` from `from.in→to.in` onto `from.out→to.out`, clamping
@@ -114,5 +165,24 @@ export function detector(config: DetectorConfig): DeviceFactory {
                 );
             }
         }
+
+        // Seed a pixel coordinate PV at `pixelPV`, then — if `binding` is given —
+        // make it derived so it tracks the source PV (e.g. a beamstop motor). The
+        // seed runs first so the PV always exists with pixel metadata even when
+        // unbound; registerDerived overwrites the value but preserves metadata.
+        const bindAxis = (pixelPV: string, fallback: number, binding?: AxisBinding): void => {
+            reg.seed(pixelPV, fallback, pixelMeta);
+            if (binding) {
+                const { source, from, to } = binding;
+                reg.registerDerived(pixelPV, [source], ({ get }) =>
+                    mapLinearClamped(get.number(source), from, to),
+                );
+            }
+        };
+
+        (image.overlays ?? []).forEach((overlay, i) => {
+            bindAxis(pv(overlayCenterXSuffix(i)), overlay.x, overlay.positionX);
+            bindAxis(pv(overlayCenterYSuffix(i)), overlay.y, overlay.positionY);
+        });
     };
 }

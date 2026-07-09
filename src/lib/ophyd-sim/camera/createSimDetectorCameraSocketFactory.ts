@@ -1,6 +1,11 @@
 import type { OphydSim } from '../core/types';
 import type { DetectorConfig } from '../devices/detector';
-import { MODE_SUFFIX, OPACITY_SUFFIX } from '../devices/detector';
+import {
+    MODE_SUFFIX,
+    OPACITY_SUFFIX,
+    overlayCenterXSuffix,
+    overlayCenterYSuffix,
+} from '../devices/detector';
 import type { CameraFramePayload } from './SimCameraSocket';
 import { SimCameraSocket } from './SimCameraSocket';
 import type { CameraSocketFactory } from './types';
@@ -31,22 +36,36 @@ function loadImageBitmap(url: string): Promise<ImageBitmap | null> {
     return pending;
 }
 
+/** One image layer to composite, in destination (top-left) pixel coordinates. */
+export interface RenderLayer {
+    file: string;
+    /** `globalAlpha` to draw at (0–1). */
+    opacity: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 /**
- * Render one detector frame to a JPEG blob, dimmed by `opacity`.
+ * Render one detector frame to a JPEG blob over a black background.
  *
- * `noisy` scales each grayscale sample by `opacity` (lower energy → darker
- * noise). `image_file` draws the cached bitmap at `globalAlpha = opacity` over a
- * black background (JPEG has no alpha, so compositing over black is what reads
- * as "darker"). Returns `null` when canvas APIs are unavailable (e.g. jsdom).
+ * `noisy` fills grayscale noise scaled by `opacity` (lower energy → darker
+ * noise). `image_file` composites `layers` bottom-first, each drawn at its own
+ * `globalAlpha` and destination rect (JPEG has no alpha, so compositing over
+ * black is what reads as "darker"). Returns `null` when canvas APIs are
+ * unavailable (e.g. jsdom).
  */
 export async function renderDetectorFrame(params: {
     width: number;
     height: number;
     mode: 'noisy' | 'image_file';
-    opacity: number;
-    file?: string;
+    /** Noise dimming for the `noisy` path. Defaults to 1. */
+    opacity?: number;
+    /** Layers to composite for the `image_file` path, bottom-first. */
+    layers?: RenderLayer[];
 }): Promise<CameraFramePayload> {
-    const { width, height, mode, opacity, file } = params;
+    const { width, height, mode, opacity = 1, layers = [] } = params;
     if (typeof OffscreenCanvas === 'undefined') return null;
     const canvas = new OffscreenCanvas(width, height);
     const context = canvas.getContext('2d');
@@ -56,13 +75,14 @@ export async function renderDetectorFrame(params: {
     context.fillStyle = 'black';
     context.fillRect(0, 0, width, height);
 
-    if (mode === 'image_file' && file) {
-        const bitmap = await loadImageBitmap(file);
-        if (bitmap) {
-            context.globalAlpha = opacity;
-            context.drawImage(bitmap, 0, 0, width, height);
-            context.globalAlpha = 1;
+    if (mode === 'image_file') {
+        for (const layer of layers) {
+            const bitmap = await loadImageBitmap(layer.file);
+            if (!bitmap) continue;
+            context.globalAlpha = layer.opacity;
+            context.drawImage(bitmap, layer.x, layer.y, layer.width, layer.height);
         }
+        context.globalAlpha = 1;
     } else {
         const frame = context.createImageData(width, height);
         const data = frame.data;
@@ -93,18 +113,62 @@ export function createSimDetectorCameraSocketFactory(
     const { prefix, image } = config;
     const opacityPV = `${prefix}:${OPACITY_SUFFIX}`;
     const modePV = `${prefix}:${MODE_SUFFIX}`;
+    const overlayPVs = (image.overlays ?? []).map((overlay, i) => ({
+        overlay,
+        xPV: `${prefix}:${overlayCenterXSuffix(i)}`,
+        yPV: `${prefix}:${overlayCenterYSuffix(i)}`,
+    }));
 
-    return (_url: string) =>
-        new SimCameraSocket({
+    const num = (value: unknown, fallback: number): number =>
+        typeof value === 'number' ? value : fallback;
+
+    // Base images to cycle through, one per emitted frame. `files` wins over the
+    // single `file`; an empty list means no base layer (overlays only).
+    const baseFiles =
+        image.files && image.files.length > 0
+            ? image.files
+            : image.file
+              ? [image.file]
+              : [];
+
+    return (_url: string) => {
+        // Per-socket round-robin cursor so each stream advances independently.
+        let frameIndex = 0;
+        return new SimCameraSocket({
             fps: options.fps,
             width: image.sizeX,
             height: image.sizeY,
             generateFrame: ({ width, height }) => {
-                const rawOpacity = sim.get(opacityPV);
-                const opacity = typeof rawOpacity === 'number' ? rawOpacity : 1;
-                const rawMode = sim.get(modePV);
-                const mode = rawMode === 'image_file' ? 'image_file' : 'noisy';
-                return renderDetectorFrame({ width, height, mode, opacity, file: image.file });
+                const opacity = num(sim.get(opacityPV), 1);
+                const mode = sim.get(modePV) === 'image_file' ? 'image_file' : 'noisy';
+                if (mode !== 'image_file') {
+                    return renderDetectorFrame({ width, height, mode, opacity });
+                }
+
+                // Base image fills the canvas, dimmed by the energy-driven opacity.
+                // Cycle to the next base image each frame so the stream animates.
+                const layers: RenderLayer[] = [];
+                if (baseFiles.length > 0) {
+                    const file = baseFiles[frameIndex % baseFiles.length];
+                    frameIndex += 1;
+                    layers.push({ file, opacity, x: 0, y: 0, width, height });
+                }
+                // Overlays composite on top at full opacity, centered on their
+                // (possibly PV-driven) center coordinate.
+                for (const { overlay, xPV, yPV } of overlayPVs) {
+                    const centerX = num(sim.get(xPV), overlay.x);
+                    const centerY = num(sim.get(yPV), overlay.y);
+                    layers.push({
+                        file: overlay.file,
+                        opacity: 1,
+                        x: centerX - overlay.width / 2,
+                        y: centerY - overlay.height / 2,
+                        width: overlay.width,
+                        height: overlay.height,
+                    });
+                }
+                return renderDetectorFrame({ width, height, mode, layers });
             },
         });
+    };
 }

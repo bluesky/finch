@@ -20,11 +20,22 @@ export { signal } from './devices/signal';
 export type { SignalOptions } from './devices/signal';
 export { motor } from './devices/motor';
 export type { MotorOptions } from './devices/motor';
-export { detector, mapLinearClamped, OPACITY_SUFFIX, MODE_SUFFIX } from './devices/detector';
+export { shutter, SHUTTER_OPEN_VALUE, SHUTTER_CLOSED_VALUE } from './devices/shutter';
+export type { ShutterOptions } from './devices/shutter';
+export {
+    detector,
+    mapLinearClamped,
+    OPACITY_SUFFIX,
+    MODE_SUFFIX,
+    overlayCenterXSuffix,
+    overlayCenterYSuffix,
+} from './devices/detector';
 export type {
     DetectorConfig,
     DetectorImageConfig,
     DetectorModulation,
+    DetectorOverlay,
+    AxisBinding,
     ModulationPoint,
 } from './devices/detector';
 
@@ -48,7 +59,10 @@ export {
     createSimDetectorCameraSocketFactory,
     renderDetectorFrame,
 } from './camera/createSimDetectorCameraSocketFactory';
-export type { SimDetectorCameraOptions } from './camera/createSimDetectorCameraSocketFactory';
+export type {
+    SimDetectorCameraOptions,
+    RenderLayer,
+} from './camera/createSimDetectorCameraSocketFactory';
 export type {
     CameraSocketLike,
     CameraSocketFactory,
