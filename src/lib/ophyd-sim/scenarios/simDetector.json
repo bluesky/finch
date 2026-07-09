@@ -1,10 +1,33 @@
 {
     "prefix": "13SIM1",
     "image": {
-        "mode": "noisy",
+        "mode": "image_file",
         "sizeX": 512,
         "sizeY": 512,
-        "file": "/images/als_logo_wheel.png"
+        "files": [
+            "/images/det_1m_1.png",
+            "/images/det_1m_2.png",
+            "/images/det_1m_3.png"
+        ],
+        "overlays": [
+            {
+                "file": "/images/det_1m_beamstop.png",
+                "width": 512,
+                "height": 512,
+                "x": 256,
+                "y": 256,
+                "positionX": {
+                    "source": "bl531_xps2:beamstop_x_mm.RBV",
+                    "from": { "in": -10, "out": -68 },
+                    "to": { "in": 10, "out": 450 }
+                },
+                "positionY": {
+                    "source": "bl531_xps2:beamstop_y_mm.RBV",
+                    "from": { "in": -10, "out": 555.4 },
+                    "to": { "in": 10, "out": 43.4 }
+                }
+            }
+        ]
     },
     "modulations": [
         {

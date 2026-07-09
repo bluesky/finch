@@ -84,6 +84,61 @@ describe('detector', () => {
         const sim = makeSim({ ...config, modulations: [] });
         expect(sim.get('13SIM1:image1:Opacity')).toBeUndefined();
     });
+
+    it('seeds overlay center PVs and binds them to a source PV', () => {
+        const overlayConfig: DetectorConfig = {
+            prefix: '13SIM1',
+            image: {
+                mode: 'image_file',
+                sizeX: 512,
+                sizeY: 512,
+                file: '/base.png',
+                overlays: [
+                    {
+                        file: '/dot.png',
+                        width: 48,
+                        height: 48,
+                        x: 256,
+                        y: 256,
+                        positionX: {
+                            source: 'bl531_xps2:beamstop_x_mm.RBV',
+                            from: { in: -10, out: 0 },
+                            to: { in: 10, out: 512 },
+                        },
+                    },
+                ],
+            },
+        };
+        const sim = createOphydSim({
+            devices: [
+                signal({
+                    name: 'bl531_xps2:beamstop_x_mm.RBV',
+                    initialValue: 0,
+                    writeAccess: true,
+                }),
+                detector(overlayConfig),
+            ],
+        });
+
+        // Bound X: 0 mm maps to the canvas center; the unbound Y keeps its static seed.
+        expect(sim.get('13SIM1:image1:Overlay1:CenterX')).toBeCloseTo(256, 6);
+        expect(sim.get('13SIM1:image1:Overlay1:CenterY')).toBe(256);
+
+        // Moving the source PV drives the bound coordinate (clamped to the px range).
+        sim.set('bl531_xps2:beamstop_x_mm.RBV', 10);
+        expect(sim.get('13SIM1:image1:Overlay1:CenterX')).toBeCloseTo(512, 6);
+        sim.set('bl531_xps2:beamstop_x_mm.RBV', 100);
+        expect(sim.get('13SIM1:image1:Overlay1:CenterX')).toBeCloseTo(512, 6);
+    });
+});
+
+describe('simDetector.json overlay', () => {
+    it('ties the overlay center to the beamstop motor readbacks', () => {
+        const json = simDetectorConfig as DetectorConfig;
+        const overlay = json.image.overlays?.[0];
+        expect(overlay?.positionX?.source).toBe('bl531_xps2:beamstop_x_mm.RBV');
+        expect(overlay?.positionY?.source).toBe('bl531_xps2:beamstop_y_mm.RBV');
+    });
 });
 
 describe('simDetector.json', () => {
