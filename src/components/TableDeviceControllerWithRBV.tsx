@@ -4,12 +4,13 @@ import { Lock, LockOpen, CaretDown } from '@phosphor-icons/react';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './ui/table';
 import ControllerAbsoluteMove from './ControllerAbsoluteMove';
 import ControllerRelativeMove from './ControllerRelativeMove';
-import { Devices } from '@/types/deviceControllerTypes';
+import { Devices, Device } from '@/types/deviceControllerTypes';
 import { cn } from '@/lib/utils';
 
-export type TableDeviceControllerProps = {
+export type TableDeviceControllerWithRBVProps = {
     /** Map of device names to their current state objects. Each entry renders as one table row. */
     devices: Devices;
+    devicesRBV: Devices;
     /** Called when the user submits an absolute or relative move value for a device. */
     handleSetValueRequest: (deviceName: string, value: number) => void;
     /** Called to toggle the locked state for a device, enabling or disabling its move controls. */
@@ -26,21 +27,33 @@ export type TableDeviceControllerProps = {
     className?: string;
 };
 
-export default function TableDeviceController({
+export default function TableDeviceControllerWithRBV({
     devices,
+    devicesRBV,
     handleSetValueRequest,
     toggleDeviceLock,
     toggleExpand,
     collapsibleRelativeMove = false,
     className,
     ...props
-}: TableDeviceControllerProps) {
+}: TableDeviceControllerWithRBVProps) {
     // State to track flashing rows
     const [flashingRows, setFlashingRows] = useState<Record<string, boolean>>({});
     // Relative Move column visibility. When collapsible, it starts hidden; when
     // not, it is permanently open (no toggle rendered).
     const [isRelativeMoveOpen, setIsRelativeMoveOpen] = useState(!collapsibleRelativeMove);
 
+    const getFormattedValue = (device: Device) => {
+        //Returns the formatted valiues of devices RBV, If it exists in device RBV
+        // Otherwise, just returns that devices formatted value.
+        if ((device.pv +'.RBV') in devicesRBV){
+            const readbackDevice = devicesRBV[(device.pv + '.RBV')]
+            return `${typeof readbackDevice.value === 'number' ? readbackDevice.value.toPrecision(4) : readbackDevice.value} ${readbackDevice.units ? readbackDevice.units.slice(0, 3) : 'n/a'}`
+        
+        }else{
+           return  `${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`
+        }
+    }
     useEffect(() => {
         const updatedFlashingRows: Record<string, boolean> = {};
         const currentTime = Date.now() / 1000; // Current time in seconds
@@ -137,7 +150,7 @@ export default function TableDeviceController({
                                     </>
                                 </TableCell>
                                 <TableCell className="text-center text-md text-sky-700 font-medium">
-                                    {`${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`}
+                                        {getFormattedValue(device)}
                                 </TableCell>
                                 <TableCell>
                                     <ControllerAbsoluteMove

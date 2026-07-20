@@ -47,14 +47,14 @@ export const beamstopBeamline = createOphydSim({
         motor({
             name: 'bl531_xps2:beamstop_x_mm',
             initialPosition: -5,
-            velocity: 2,
+            velocity: 0.8,
             limits: [-10, 10],
             units: 'mm',
         }),
         motor({
             name: 'bl531_xps2:beamstop_y_mm',
             initialPosition: 5,
-            velocity: 2,
+            velocity: 0.8,
             limits: [-10, 10],
             units: 'mm',
         }),

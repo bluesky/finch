@@ -18,13 +18,13 @@
                 "y": 256,
                 "positionX": {
                     "source": "bl531_xps2:beamstop_x_mm.RBV",
-                    "from": { "in": -10, "out": -68 },
-                    "to": { "in": 10, "out": 450 }
+                    "from": { "in": -10, "out": 218.5 },
+                    "to": { "in": 10, "out": 278.5 }
                 },
                 "positionY": {
                     "source": "bl531_xps2:beamstop_y_mm.RBV",
-                    "from": { "in": -10, "out": 555.4 },
-                    "to": { "in": 10, "out": 43.4 }
+                    "from": { "in": -10, "out": 290.5 },
+                    "to": { "in": 10, "out": 230.5 }
                 }
             }
         ]

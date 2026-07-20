@@ -12,6 +12,14 @@ export type UseCameraCanvasProps = {
     canvasSize?: CanvasSizes;
     prefix?: string;
     wsUrl?: string;
+    /** Begin acquisition automatically on mount instead of waiting for the Acquire button. */
+    autoStart?: boolean;
+    /**
+     * Externally control acquisition. When provided, the stream starts on `false`
+     * and pauses on `true` — each time the value changes. Leave undefined to keep
+     * acquisition fully manual (Acquire / Pause buttons).
+     */
+    paused?: boolean;
 };
 
 export function useCameraCanvas({
@@ -20,6 +28,8 @@ export function useCameraCanvas({
     canvasSize = 'medium',
     prefix = '',
     wsUrl,
+    autoStart = false,
+    paused,
 }: UseCameraCanvasProps) {
     const socketFactory = useCameraSocketFactory();
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
@@ -263,15 +273,39 @@ export function useCameraCanvas({
     }, [resolvedWsUrl, getImageArrayPV, getSizePVs, canvasSize, socketFactory]);
 
     useEffect(() => {
-        // The stream starts paused — the user begins acquisition via the
-        // Acquire button (startWebSocket). We only register the unmount cleanup
-        // so a socket opened during this mount is torn down on unmount.
+        // By default the stream starts paused — the user begins acquisition via
+        // the Acquire button (startWebSocket). We only register the unmount
+        // cleanup so a socket opened during this mount is torn down on unmount.
         return () => {
             if (ws.current) {
                 ws.current.close();
             }
         };
     }, []); // Empty dependency array — cleanup only; acquisition is user-driven
+
+    // Optionally begin acquisition on mount. Guarded so it fires once and does
+    // not reconnect if startWebSocket's identity changes.
+    const hasAutoStarted = useRef(false);
+    useEffect(() => {
+        if (autoStart && !hasAutoStarted.current) {
+            hasAutoStarted.current = true;
+            startWebSocket();
+        }
+    }, [autoStart, startWebSocket]);
+
+    // Externally-controlled acquisition. Act only on an actual change of `paused`
+    // so unrelated re-renders (or startWebSocket identity changes) don't churn the
+    // socket, and manual Acquire/Pause between changes still works.
+    const prevPaused = useRef<boolean | undefined>(undefined);
+    useEffect(() => {
+        if (paused === undefined || prevPaused.current === paused) return;
+        prevPaused.current = paused;
+        if (paused) {
+            closeWebSocket();
+        } else {
+            startWebSocket();
+        }
+    }, [paused, startWebSocket, closeWebSocket]);
 
     return {
         canvasRef,

@@ -22,6 +22,8 @@ export { motor } from './devices/motor';
 export type { MotorOptions } from './devices/motor';
 export { shutter, SHUTTER_OPEN_VALUE, SHUTTER_CLOSED_VALUE } from './devices/shutter';
 export type { ShutterOptions } from './devices/shutter';
+export { hexapod } from './devices/hexapod';
+export type { HexapodOptions } from './devices/hexapod';
 export {
     detector,
     mapLinearClamped,
@@ -84,6 +86,7 @@ export { withOphydSim } from './storybook/decorator';
 
 // Scenarios
 export { defaultBeamline } from './scenarios/defaultBeamline';
+export { hexapodBeamline } from './scenarios/hexapodBeamline';
 export { beamstopBeamline, simDetectorConfig } from './scenarios/beamstopBeamline';
 export {
     beamstopCurrentModel,

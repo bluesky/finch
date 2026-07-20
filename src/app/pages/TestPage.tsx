@@ -6,6 +6,7 @@ import {
     beamstopCurrentModel,
     simDetectorConfig,
     createSimDetectorCameraSocketFactory,
+    SHUTTER_OPEN_VALUE,
 } from '@/lib/ophyd-sim';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -18,11 +19,15 @@ import EnergyVsCurrentPlotPV from '@/components/EnergyVsCurrentPlotPV';
 import Button from '@/components/Button';
 import { HUB_HEADER_RIGHT_SLOT_ID } from '@/components/HubHeader';
 import EndstationDisplay from '@/components/EndstationDisplay/EndstationDisplay';
+import TableDeviceControllerWithRBV from '@/components/TableDeviceControllerWithRBV';
 
 const BEAMSTOP_CURRENT = 'bl201-beamstop:current';
 const BEAMSTOP_X = 'bl531_xps2:beamstop_x_mm';
 const BEAMSTOP_Y = 'bl531_xps2:beamstop_y_mm';
 const BEAMSTOP_ENERGY = 'bl531:mono_energy_eV';
+/** Shared height for the device table and the beamstop-current plot beside it,
+ *  so the two panels line up. Sized to fit the table's fixed five rows. */
+const PANEL_HEIGHT = 'h-[280px]';
 /** Beamstop motor travel (mm); both axes are symmetric [-LIMIT, +LIMIT]. */
 const BEAMSTOP_LIMIT_MM = 10;
 
@@ -67,22 +72,35 @@ function findPeakPosition(energyEV: number) {
  * camera, so moves made here update those views live.
  */
 const BEAMLINE_DEVICES = [
-    'bl531:mono_energy_eV',
-    'bl531:sample_x_mm',
-    'bl531:sample_y_mm',
     'bl531_xps2:beamstop_x_mm',
     'bl531_xps2:beamstop_y_mm',
+    'bl531:sample_x_mm',
+    'bl531:sample_y_mm',
+    'bl531:mono_energy_eV',
+];
+const BEAMLINE_DEVICES_RBV = [
+    'bl531_xps2:beamstop_x_mm.RBV',
+    'bl531_xps2:beamstop_y_mm.RBV',
+    'bl531:sample_x_mm.RBV',
+    'bl531:sample_y_mm.RBV',
+    'bl531:mono_energy_eV.RBV',
 ];
 
 function BeamlineDeviceTable() {
     const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
         useOphydPVSocket(BEAMLINE_DEVICES);
+
+    const { devices:devicesRBV} =
+        useOphydPVSocket(BEAMLINE_DEVICES_RBV);
     return (
-        <TableDeviceController
+        <TableDeviceControllerWithRBV
             devices={devices}
+            devicesRBV={devicesRBV}
             handleSetValueRequest={handleSetValueRequest}
             toggleDeviceLock={toggleDeviceLock}
             toggleExpand={toggleExpand}
+            collapsibleRelativeMove
+            className={PANEL_HEIGHT}
         />
     );
 }
@@ -133,6 +151,25 @@ function BeamstopBestOption() {
     );
 }
 
+/** Shutter analog-output PV (0 V open / 5 V closed) — matches the <Shutter /> default. */
+const SHUTTER_PV = 'bl531:LJT4:1:AO0';
+
+/**
+ * Simulated detector, paused whenever the beam shutter is not open. Subscribes
+ * to the shutter PV and hands `CameraCanvas` a controlled `paused` flag so the
+ * stream stops when the shutter closes and resumes when it reopens.
+ */
+function SimulatedDetector() {
+    const deviceList = useMemo(() => [SHUTTER_PV], []);
+    const { devices } = useOphydPVSocket(deviceList);
+    const shutterOpen = Number(devices[SHUTTER_PV]?.value) === SHUTTER_OPEN_VALUE;
+    return (
+        <div className="[&_canvas]:h-[340px] [&_canvas]:w-[340px]">
+            <CameraCanvas prefix="13SIM1" canvasSize="medium" paused={!shutterOpen} />
+        </div>
+    );
+}
+
 /**
  * Renders the shutter control into the app header's right-side slot. It stays
  * inside TestPage's Ophyd sim providers (so it keeps driving the simulated
@@ -150,31 +187,46 @@ function HeaderShutter() {
 
 function TestPageBody() {
     return (
-        <div className="flex flex-col items-center justify-start gap-6 py-4">
+        <div className="flex flex-col gap-6 p-4">
             <HeaderShutter />
-            {/* Layered SVG view of the same beamline; reacts to the shutter + beamstop PVs. */}
-            <EndstationDisplay className="w-[485px] rounded" />
-            {/* Beam energy, sample X/Y, and beamstop X/Y controls in one table. */}
-            <BeamlineDeviceTable />
-            {/* Beamstop current over time. */}
-            <SignalMonitorPlotPV
-                pv="bl201-beamstop:current"
-                className="h-fit min-w-96"
-                numVisiblePoints={200}
-                tickTextIntervalSeconds={30}
-            />
-            {/* Beamstop current vs. selected beam energy, keyed by beamstop X/Y position. */}
-            <EnergyVsCurrentPlotPV
-                energyPv="bl531:mono_energy_eV"
-                currentPv="bl201-beamstop:current"
-                beamstopXRbvPv="bl531_xps2:beamstop_x_mm.RBV"
-                beamstopYRbvPv="bl531_xps2:beamstop_y_mm.RBV"
-                className="min-w-96"
-            />
-            {/* Tracks the best beamstop position seen and jumps back to it. */}
-            <BeamstopBestOption />
-            {/* No socketFactory prop — the sim factory is supplied via context below. */}
-            <CameraCanvas prefix="13SIM1" canvasSize="medium" />
+            {/* Top row: endstation graphic top-left, simulated detector to its
+             * right, both image panels pinned to the same height (IMAGE_H). The
+             * graphic's width follows from its 485/215 aspect ratio; the detector
+             * canvas is scaled to match via the child selector. Wraps on narrow
+             * screens. */}
+            <div className="flex flex-wrap items-start gap-6">
+                {/* Layered view of the beamline; reacts to the shutter + beamstop PVs. */}
+                <EndstationDisplay className="h-[340px] w-auto max-w-full rounded" />
+                {/* Simulated detector — scaled to the shared height and paused
+                 * while the shutter is closed. No socketFactory prop — the sim
+                 * factory is supplied via context below. */}
+                <SimulatedDetector />
+            </div>
+            {/* Device table with the live beamstop-current trend to its side. */}
+            <div className="flex flex-wrap items-start gap-6">
+                {/* Beam energy, sample X/Y, and beamstop X/Y controls in one table. */}
+                <BeamlineDeviceTable />
+                {/* Beamstop current over time. */}
+                <SignalMonitorPlotPV
+                    pv="bl201-beamstop:current"
+                    className={`${PANEL_HEIGHT} min-w-96 flex-1`}
+                    numVisiblePoints={200}
+                    tickTextIntervalSeconds={30}
+                />
+            </div>
+            {/* Energy sweep plot and peak-finder. */}
+            <div className="flex flex-wrap items-start gap-6">
+                {/* Beamstop current vs. selected beam energy, keyed by beamstop X/Y position. */}
+                <EnergyVsCurrentPlotPV
+                    energyPv="bl531:mono_energy_eV"
+                    currentPv="bl201-beamstop:current"
+                    beamstopXRbvPv="bl531_xps2:beamstop_x_mm.RBV"
+                    beamstopYRbvPv="bl531_xps2:beamstop_y_mm.RBV"
+                    className="min-w-96"
+                />
+                {/* Finds the peak-current beamstop position and jumps there. */}
+                <BeamstopBestOption />
+            </div>
         </div>
     );
 }
