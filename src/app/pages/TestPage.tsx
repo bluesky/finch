@@ -1,20 +1,15 @@
-import DeviceControllerBox from '@/components/DeviceControllerBox';
-import SignalMonitorPlotDevice from '@/components/SignalMonitorPlotDevice';
-import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
+// import DeviceControllerBox from '@/components/DeviceControllerBox';
+// import SignalMonitorPlotDevice from '@/components/SignalMonitorPlotDevice';
+// import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
+import { TiledWriterDetImageHeatmap } from 'react-vite-library';
 export default function TestPage() {
-    const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydPVSocket([
-        'IOC:m1',
-        'IOC:m1.RBV',
-    ]);
     return (
-        <div className="flex flex-col items-center justify-start gap-4 py-4 max-w-96 mx-auto">
-            <DeviceControllerBox
-                device={devices['IOC:m1']}
-                deviceRBV={devices['IOC:m1.RBV']}
-                handleLockClick={toggleDeviceLock}
-                handleSetValueRequest={handleSetValueRequest}
-            />
-            <SignalMonitorPlotDevice device={devices['IOC:m1.RBV']} />
-        </div>
+        <TiledWriterDetImageHeatmap
+            blueskyRunId="6119e749-d4e6-4e2e-bee9-68375b3087f5"
+            isRunFinished={true}
+            tiledBaseUrl="https://tiled-demo.nsls2.bnl.gov/api/v1"
+            tiledInitialPath="bmm"
+            className="max-w-fit max-h-fit"
+        />
     );
 }

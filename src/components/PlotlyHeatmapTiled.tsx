@@ -13,6 +13,8 @@ export type PlotlyHeatmapProps = {
     enablePolling?: boolean;
     /** Interval in milliseconds between polling requests. Defaults to 2000. */
     pollingIntervalMs?: number;
+    /** Optional Title, defaults to the array name, pass in 'null' to hide */
+    title?: string | null;
 };
 
 export default function PlotlyHeatmapTiled({
@@ -21,6 +23,7 @@ export default function PlotlyHeatmapTiled({
     size = 'medium',
     enablePolling = false,
     pollingIntervalMs = 2000,
+    title,
 }: PlotlyHeatmapProps) {
     const [array, setArray] = useState<number[][] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -32,6 +35,8 @@ export default function PlotlyHeatmapTiled({
     // Track if user has manually interacted with slider
     const [userHasMovedSlider, setUserHasMovedSlider] = useState<boolean>(false);
     const initialSliderPosition = useRef<number>(0);
+
+    const displayTitle = title === null ? null : title || metadata?.id || 'No data available';
 
     const sizeClassMap = {
         small: 'w-[400px] h-[500px]',
@@ -48,7 +53,7 @@ export default function PlotlyHeatmapTiled({
             const blockParam = shape.length === 3 ? `${frameIndex},0,0` : '0,0';
             const fullBlockUrl = `${blockUrl}?block=${blockParam}`;
 
-            const response = await fetch(fullBlockUrl);
+            const response = await fetch(fullBlockUrl); //TODO: change to use tiled API client
             if (!response.ok) throw new Error(`Failed to fetch block data: ${response.status}`);
 
             const arrayBuffer = await response.arrayBuffer();
@@ -190,9 +195,9 @@ export default function PlotlyHeatmapTiled({
             )}
             {array && (
                 <>
-                    <h3 className="h-8 text-sky-900 text-ellipsis">
-                        {metadata?.id || 'No data available'}
-                    </h3>
+                    {displayTitle && (
+                        <h3 className="h-8 text-sky-900 text-ellipsis">{displayTitle}</h3>
+                    )}
                     <div
                         className={`w-full pb-12 ${shape?.length === 3 ? 'h-[calc(100%-6rem)]' : 'h-full'}`}
                     >

@@ -65,7 +65,7 @@ export default function TiledWriterDetImageHeatmap({
 
     return (
         <div className={cn('mb-8 flex-shrink-0 bg-white', className)}>
-            <p className="text-xs text-gray-600 mb-2 text-wrap">{getStatusText()}</p>
+            <p className="text-xs text-gray-600 mb-2 text-wrap text-center">{getStatusText()}</p>
             {tiledPaths.length > 1 && (
                 <SelectDropdown
                     listItems={tiledPaths.map(pathLabel)}
@@ -78,6 +78,7 @@ export default function TiledWriterDetImageHeatmap({
             )}
             <PlotlyHeatmapTiled
                 url={activePath}
+                title={null}
                 className={cn('pb-8', plotClassName)}
                 size={size}
                 enablePolling={blueskyRunId && enablePolling ? true : false}

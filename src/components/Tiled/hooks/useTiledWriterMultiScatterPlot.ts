@@ -60,7 +60,7 @@ export const useTiledWriterMultiScatterPlot = (
                 const primaryFound = primaryQueries[i]?.isSuccess && !!primaryQueries[i]?.data;
                 return primaryFound ? `${startPath}${id}/primary/internal` : null;
             }),
-        [blueskyRunIds, primaryQueries],
+        [blueskyRunIds, primaryQueries, startPath],
     );
 
     const isLoading = primaryQueries.some((q) => q.isLoading);
