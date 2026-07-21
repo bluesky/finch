@@ -11,7 +11,7 @@ import { SimCameraSocket } from './SimCameraSocket';
 import type { CameraSocketFactory } from './types';
 
 export interface SimDetectorCameraOptions {
-    /** Frames per second to emit. Defaults to 30. */
+    /** Frames per second to emit. Defaults to 10 (see `SimCameraSocket`). */
     fps?: number;
 }
 

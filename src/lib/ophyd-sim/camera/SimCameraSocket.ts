@@ -4,7 +4,11 @@ import type { CameraSocketFactory, CameraSocketLike, CameraSocketMessageEvent } 
 export type CameraFramePayload = Blob | ArrayBuffer | null;
 
 export interface SimCameraSocketOptions {
-    /** Frames per second to emit. Defaults to 30. */
+    /**
+     * Frames per second to emit. Defaults to 10 — enough for a simulated
+     * stream to read as live while keeping the browser's per-frame work low
+     * (e.g. on the documentation site).
+     */
     fps?: number;
     /** Generated frame width in pixels. Defaults to 512. */
     width?: number;
@@ -79,7 +83,7 @@ export class SimCameraSocket implements CameraSocketLike {
     private emittingFrame = false;
 
     constructor(options: SimCameraSocketOptions = {}) {
-        this.fps = options.fps ?? 30;
+        this.fps = options.fps ?? 10;
         this.width = options.width ?? 512;
         this.height = options.height ?? 512;
         this.generateFrame = options.generateFrame ?? generateNoiseJpeg;
