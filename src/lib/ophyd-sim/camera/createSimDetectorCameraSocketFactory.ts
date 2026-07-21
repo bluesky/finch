@@ -125,11 +125,7 @@ export function createSimDetectorCameraSocketFactory(
     // Base images to cycle through, one per emitted frame. `files` wins over the
     // single `file`; an empty list means no base layer (overlays only).
     const baseFiles =
-        image.files && image.files.length > 0
-            ? image.files
-            : image.file
-              ? [image.file]
-              : [];
+        image.files && image.files.length > 0 ? image.files : image.file ? [image.file] : [];
 
     return (_url: string) => {
         // Per-socket round-robin cursor so each stream advances independently.

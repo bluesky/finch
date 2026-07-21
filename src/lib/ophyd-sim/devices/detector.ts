@@ -99,7 +99,11 @@ export function overlayCenterYSuffix(index: number): string {
  * Linearly map `value` from `from.in→to.in` onto `from.out→to.out`, clamping
  * the normalized position to [0, 1] so the result never leaves the output range.
  */
-export function mapLinearClamped(value: number, from: ModulationPoint, to: ModulationPoint): number {
+export function mapLinearClamped(
+    value: number,
+    from: ModulationPoint,
+    to: ModulationPoint,
+): number {
     const span = to.in - from.in;
     const t = span === 0 ? 0 : (value - from.in) / span;
     const clamped = Math.max(0, Math.min(1, t));
@@ -144,7 +148,16 @@ export function detector(config: DetectorConfig): DeviceFactory {
         reg.seed(pv('cam1:DataType'), 1, {
             read_access: true,
             write_access: true,
-            enum_strs: ['Int8', 'UInt8', 'Int16', 'UInt16', 'Int32', 'UInt32', 'Float32', 'Float64'],
+            enum_strs: [
+                'Int8',
+                'UInt8',
+                'Int16',
+                'UInt16',
+                'Int32',
+                'UInt32',
+                'Float32',
+                'Float64',
+            ],
         });
         reg.seed(pv('cam1:Acquire'), 0, {
             read_access: true,

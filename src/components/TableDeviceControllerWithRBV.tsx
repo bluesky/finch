@@ -46,14 +46,13 @@ export default function TableDeviceControllerWithRBV({
     const getFormattedValue = (device: Device) => {
         //Returns the formatted valiues of devices RBV, If it exists in device RBV
         // Otherwise, just returns that devices formatted value.
-        if ((device.pv +'.RBV') in devicesRBV){
-            const readbackDevice = devicesRBV[(device.pv + '.RBV')]
-            return `${typeof readbackDevice.value === 'number' ? readbackDevice.value.toPrecision(4) : readbackDevice.value} ${readbackDevice.units ? readbackDevice.units.slice(0, 3) : 'n/a'}`
-        
-        }else{
-           return  `${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`
+        if (device.pv + '.RBV' in devicesRBV) {
+            const readbackDevice = devicesRBV[device.pv + '.RBV'];
+            return `${typeof readbackDevice.value === 'number' ? readbackDevice.value.toPrecision(4) : readbackDevice.value} ${readbackDevice.units ? readbackDevice.units.slice(0, 3) : 'n/a'}`;
+        } else {
+            return `${typeof device.value === 'number' ? device.value.toPrecision(4) : device.value} ${device.units ? device.units.slice(0, 3) : 'n/a'}`;
         }
-    }
+    };
     useEffect(() => {
         const updatedFlashingRows: Record<string, boolean> = {};
         const currentTime = Date.now() / 1000; // Current time in seconds
@@ -150,7 +149,7 @@ export default function TableDeviceControllerWithRBV({
                                     </>
                                 </TableCell>
                                 <TableCell className="text-center text-md text-sky-700 font-medium">
-                                        {getFormattedValue(device)}
+                                    {getFormattedValue(device)}
                                 </TableCell>
                                 <TableCell>
                                     <ControllerAbsoluteMove

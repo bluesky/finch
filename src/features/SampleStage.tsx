@@ -41,7 +41,9 @@ export default function SampleStage({
     if (!xDevice || !yDevice) return null;
 
     return (
-        <section className={`flex gap-4 ${stackVertical ? 'flex-col' : 'flex-wrap justify-center'}`}>
+        <section
+            className={`flex gap-4 ${stackVertical ? 'flex-col' : 'flex-wrap justify-center'}`}
+        >
             <DeviceControllerBox
                 device={xDevice}
                 deviceRBV={devices[sampleXNameRBV]}

@@ -68,9 +68,7 @@ export function OphydTransportProvider({
     const pvValue = useMemo(() => {
         if (!transport) return null;
         if (!fallbackToReal) return transport;
-        return createFallbackTransport(transport, () =>
-            createWebSocketTransport({ url: pvUrl }),
-        );
+        return createFallbackTransport(transport, () => createWebSocketTransport({ url: pvUrl }));
     }, [transport, fallbackToReal, pvUrl]);
 
     const deviceValue = useMemo(() => {

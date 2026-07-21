@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PlotlyScatter from './PlotlyScatter';
 import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
-import {
-    beamstopCurrentModel,
-    ENERGY_MIN_EV,
-    ENERGY_MAX_EV,
-} from '@/lib/ophyd-sim';
+import { beamstopCurrentModel, ENERGY_MIN_EV, ENERGY_MAX_EV } from '@/lib/ophyd-sim';
 import { recencyOpacities } from '@/utils/plotGenerators';
 import { cn } from '@/lib/utils';
 
@@ -49,12 +45,7 @@ export default function EnergyVsCurrentPlotPV({
     expectedCurvePoints = 100,
     className,
 }: EnergyVsCurrentPlotPVProps) {
-    const { devices } = useOphydPVSocket([
-        energyPv,
-        currentPv,
-        beamstopXRbvPv,
-        beamstopYRbvPv,
-    ]);
+    const { devices } = useOphydPVSocket([energyPv, currentPv, beamstopXRbvPv, beamstopYRbvPv]);
 
     const [measured, setMeasured] = useState<Pair[]>([]);
 
@@ -91,8 +82,7 @@ export default function EnergyVsCurrentPlotPV({
         const ys: number[] = [];
         const steps = Math.max(2, expectedCurvePoints);
         for (let i = 0; i < steps; i++) {
-            const energyEV =
-                ENERGY_MIN_EV + ((ENERGY_MAX_EV - ENERGY_MIN_EV) * i) / (steps - 1);
+            const energyEV = ENERGY_MIN_EV + ((ENERGY_MAX_EV - ENERGY_MIN_EV) * i) / (steps - 1);
             xs.push(energyEV);
             ys.push(beamstopCurrentModel({ x, y, energyEV }));
         }

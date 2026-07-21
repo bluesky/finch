@@ -50,10 +50,7 @@ describe('createFallbackTransport', () => {
         const primary = makeFakeTransport();
         const fallback = makeFakeTransport();
 
-        const wrapper = createFallbackTransport(
-            primary.transport,
-            () => fallback.transport,
-        );
+        const wrapper = createFallbackTransport(primary.transport, () => fallback.transport);
 
         const received: unknown[] = [];
         wrapper.onMessage((m) => received.push(m));
