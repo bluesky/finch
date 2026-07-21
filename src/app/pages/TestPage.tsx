@@ -13,11 +13,10 @@ import { createPortal } from 'react-dom';
 import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
 import CameraCanvas from '@/components/Camera/CameraCanvas';
 import Shutter from '@/components/Shutter';
-import TableDeviceController from '@/components/TableDeviceController';
 import SignalMonitorPlotPV from '@/components/SignalMonitorPlotPV';
 import EnergyVsCurrentPlotPV from '@/components/EnergyVsCurrentPlotPV';
 import Button from '@/components/Button';
-import { HUB_HEADER_RIGHT_SLOT_ID } from '@/components/HubHeader';
+import { FINCH_HEADER_RIGHT_SLOT_ID } from '@/components/FinchHeader';
 import EndstationDisplay from '@/components/EndstationDisplay/EndstationDisplay';
 import TableDeviceControllerWithRBV from '@/components/TableDeviceControllerWithRBV';
 
@@ -37,13 +36,7 @@ const BEAMSTOP_LIMIT_MM = 10;
  * sweep across the full travel, then a fine sweep around the coarse winner.
  */
 function findPeakPosition(energyEV: number) {
-    const search = (
-        xMin: number,
-        xMax: number,
-        yMin: number,
-        yMax: number,
-        step: number,
-    ) => {
+    const search = (xMin: number, xMax: number, yMin: number, yMax: number, step: number) => {
         let best = { x: 0, y: 0, current: -Infinity };
         for (let x = xMin; x <= xMax + 1e-9; x += step) {
             for (let y = yMin; y <= yMax + 1e-9; y += step) {
@@ -90,8 +83,7 @@ function BeamlineDeviceTable() {
     const { devices, handleSetValueRequest, toggleDeviceLock, toggleExpand } =
         useOphydPVSocket(BEAMLINE_DEVICES);
 
-    const { devices:devicesRBV} =
-        useOphydPVSocket(BEAMLINE_DEVICES_RBV);
+    const { devices: devicesRBV } = useOphydPVSocket(BEAMLINE_DEVICES_RBV);
     return (
         <TableDeviceControllerWithRBV
             devices={devices}
@@ -178,7 +170,7 @@ function SimulatedDetector() {
 function HeaderShutter() {
     const [slot, setSlot] = useState<HTMLElement | null>(null);
     useEffect(() => {
-        setSlot(document.getElementById(HUB_HEADER_RIGHT_SLOT_ID));
+        setSlot(document.getElementById(FINCH_HEADER_RIGHT_SLOT_ID));
     }, []);
     if (!slot) return null;
     // Drives bl531:LJT4:1:AO0 in beamstopBeamline; closing it (5 V) zeroes the diode.

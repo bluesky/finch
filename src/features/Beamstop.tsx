@@ -42,7 +42,10 @@ export default function Beamstop({
 }: BeamstopProps) {
     const beamstopXNameRBV = useMemo(() => beamstopXName + '.RBV', [beamstopXName]);
     const beamstopYNameRBV = useMemo(() => beamstopYName + '.RBV', [beamstopYName]);
-    const beamstopEnergyRBV = useMemo(() => beamstopEnergyName ? beamstopEnergyName + '.RBV' : undefined, [beamstopEnergyName]);
+    const beamstopEnergyRBV = useMemo(
+        () => (beamstopEnergyName ? beamstopEnergyName + '.RBV' : undefined),
+        [beamstopEnergyName],
+    );
     const deviceNameList = useMemo(
         () => [
             beamstopXName,
@@ -50,7 +53,9 @@ export default function Beamstop({
             beamstopXNameRBV,
             beamstopYNameRBV,
             beamstopCurrentName,
-            ...((beamstopEnergyName && beamstopEnergyRBV) ? [beamstopEnergyName, beamstopEnergyRBV] : []),
+            ...(beamstopEnergyName && beamstopEnergyRBV
+                ? [beamstopEnergyName, beamstopEnergyRBV]
+                : []),
         ],
         [
             beamstopXName,
@@ -59,6 +64,7 @@ export default function Beamstop({
             beamstopYNameRBV,
             beamstopCurrentName,
             beamstopEnergyName,
+            beamstopEnergyRBV,
         ],
     );
     const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydPVSocket(deviceNameList);
@@ -104,14 +110,14 @@ export default function Beamstop({
                 className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full justify-start'}   flex flex-col p-8 min-w-96`}
             >
                 <span className="text-4xl flex justify-start space-x-2 ">
-                    <p> Beamstop Current:{' '} </p>
+                    <p> Beamstop Current: </p>
 
                     <p>
-                        {devices[beamstopCurrentName] && Number(devices[beamstopCurrentName].value).toPrecision(4)}{' '}
+                        {devices[beamstopCurrentName] &&
+                            Number(devices[beamstopCurrentName].value).toPrecision(4)}{' '}
                         {devices[beamstopCurrentName] &&
                             devices[beamstopCurrentName].units?.slice(0, 3)}
                     </p>
-
                 </span>
                 <SignalMonitorPlotPV
                     pv={beamstopCurrentName}

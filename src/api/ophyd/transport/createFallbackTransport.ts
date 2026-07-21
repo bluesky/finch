@@ -73,9 +73,6 @@ export function createFallbackTransport<TOut, TIn>(
     let switched = false;
     let closedByUser = false;
 
-    let detachPrimaryMessage: Unsubscribe | undefined;
-    let detachPrimaryStatus: Unsubscribe | undefined;
-
     const forwardMessage = (message: TIn): void => {
         for (const listener of messageListeners) {
             try {
@@ -129,8 +126,8 @@ export function createFallbackTransport<TOut, TIn>(
         if (!switched) setStatus(next);
     };
 
-    detachPrimaryMessage = primary.onMessage(forwardMessage);
-    detachPrimaryStatus = primary.onStatus(onPrimaryStatus);
+    const detachPrimaryMessage: Unsubscribe | undefined = primary.onMessage(forwardMessage);
+    const detachPrimaryStatus: Unsubscribe | undefined = primary.onStatus(onPrimaryStatus);
 
     return {
         send(message) {

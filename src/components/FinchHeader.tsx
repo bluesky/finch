@@ -1,9 +1,9 @@
 import { cn } from '@/lib/utils';
 
 /** DOM id of the header's right-side slot; pages portal controls into this node. */
-export const HUB_HEADER_RIGHT_SLOT_ID = 'hub-header-right-slot';
+export const FINCH_HEADER_RIGHT_SLOT_ID = 'finch-header-right-slot';
 
-export type HubHeaderProps = {
+export type FinchHeaderProps = {
     /** Title text displayed in the header. */
     title?: string;
     /** URL of the logo image displayed in the header. Ignored when `logoIcon` is provided. */
@@ -29,7 +29,7 @@ export type HubHeaderProps = {
  * Pass `logoIcon` to render a custom React element as the logo.
  * If only `logoUrl` is provided, an `<img>` is rendered instead.
  */
-export default function HubHeader({
+export default function FinchHeader({
     title = 'BEAMLINE APP',
     logoUrl = 'https://img.icons8.com/?size=100&id=11743&format=png&color=000000',
     logoIcon,
@@ -60,7 +60,7 @@ export default function HubHeader({
              * Test page's <Shutter />) into the header without leaving their own
              * provider tree.
              */}
-            <div id={HUB_HEADER_RIGHT_SLOT_ID} className="flex items-center mr-6">
+            <div id={FINCH_HEADER_RIGHT_SLOT_ID} className="flex items-center mr-6">
                 {rightSlot}
             </div>
         </header>

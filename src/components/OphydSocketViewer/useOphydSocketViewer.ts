@@ -1,17 +1,16 @@
 //Instructions
-    // This here is a copy-paste from useOphydPVSocket.tsx
-    // This contains alll the code we need to talk to Ophyd Websocket for EPICS pvs.
-    // Modify this source code so that we return an additional 'messages' state variable
-    // that can then be dispalyed in 'OphydSocketViewer'
+// This here is a copy-paste from useOphydPVSocket.tsx
+// This contains alll the code we need to talk to Ophyd Websocket for EPICS pvs.
+// Modify this source code so that we return an additional 'messages' state variable
+// that can then be dispalyed in 'OphydSocketViewer'
 
+// To do:
+// Modify this code so that first, it prints out every message going
+// out to the websocket, and every message that comes back from the websocket.
 
-// To do: 
-    // Modify this code so that first, it prints out every message going 
-    // out to the websocket, and every message that comes back from the websocket.
-
-    // Once you have that done, the next step is to save each message into a React
-    // state variable, which is returned from this hook.
-    //After that's done, you can wire this hook up in TestPage.tsx to replace useOphydPVSocket
+// Once you have that done, the next step is to save each message into a React
+// state variable, which is returned from this hook.
+//After that's done, you can wire this hook up in TestPage.tsx to replace useOphydPVSocket
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
@@ -22,7 +21,6 @@ import {
     ValueUpdateResponse,
     MetaUpdateResponse,
 } from '@/api/ophyd/ophydPVSocketTypes';
-import { BluetoothSlash } from '@phosphor-icons/react';
 
 /**
  * Custom hook for managing WebSocket connections to Ophyd devices.
@@ -34,7 +32,7 @@ import { BluetoothSlash } from '@phosphor-icons/react';
  */
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]); 
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);
     const configWsUrl = useOphydApiUrls().getWsUrl('pv-socket');
     const apiUrl: string = wsUrl ?? configWsUrl;
 
@@ -57,7 +55,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
     });
 
     // --- NEW STATE FOR MESSAGES ---
-    const [messages, setMessages] = useState<{direction: 'SENT' | 'RCVD'; data: string}[]>([]);
+    const [messages, setMessages] = useState<{ direction: 'SENT' | 'RCVD'; data: string }[]>([]);
 
     const wsRef = useRef<WebSocket | null>(null);
     const hasRenderedOnlyOnce = useRef(false);
@@ -89,7 +87,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                     value: value,
                 };
                 const payload = JSON.stringify(setValueMessage);
-                
+
                 // Log outgoing message
                 logMessage('SENT', payload);
                 wsRef.current.send(payload);
@@ -149,7 +147,7 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
                     pv: deviceName,
                 };
                 const payload = JSON.stringify(subscribeMessage);
-                
+
                 // Log outgoing subscription messages
                 logMessage('SENT', payload);
                 ws.send(payload);
