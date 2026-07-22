@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import PlotlyScatter from './PlotlyScatter';
+import PlotlyScatter from '@/components/PlotlyScatter';
 import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
 import { beamstopCurrentModel, ENERGY_MIN_EV, ENERGY_MAX_EV } from '@/lib/ophyd-sim';
 import { recencyOpacities } from '@/utils/plotGenerators';

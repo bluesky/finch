@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import type { Devices } from '@/types/deviceControllerTypes';
-import { useOphydPVTransport } from './OphydTransportProvider';
+import { useOphydPVTransport } from './OphydTransportContext';
 import type { OphydPVTransport } from './transport/types';
 
 /**

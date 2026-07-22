@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import type { SimValue } from '../core/types';
-import { useOphydSim } from './OphydSimProvider';
+import { useOphydSim } from './OphydSimContext';
 
 /**
  * Subscribe to a single PV's value. Re-renders when it changes; returns the

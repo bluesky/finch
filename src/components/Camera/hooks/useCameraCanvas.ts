@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useOphydApiUrls } from '@/utils/apiUtils';
 import { ophydSocketCameraPath } from '@/api/ophyd/socketPaths';
-import { useCameraSocketFactory } from '@/api/ophyd/OphydTransportProvider';
+import { useCameraSocketFactory } from '@/api/ophyd/OphydTransportContext';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
 import type { CameraSocketLike } from '@/lib/ophyd-sim';

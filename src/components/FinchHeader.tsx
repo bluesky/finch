@@ -1,8 +1,5 @@
 import { cn } from '@/lib/utils';
 
-/** DOM id of the header's right-side slot; pages portal controls into this node. */
-export const FINCH_HEADER_RIGHT_SLOT_ID = 'finch-header-right-slot';
-
 export type FinchHeaderProps = {
     /** Title text displayed in the header. */
     title?: string;
@@ -54,15 +51,7 @@ export default function FinchHeader({
                     {title}
                 </h1>
             </div>
-            {/*
-             * Right-side container. `rightSlot` covers static content passed by the
-             * layout; the stable id lets pages portal their own controls (e.g. the
-             * Test page's <Shutter />) into the header without leaving their own
-             * provider tree.
-             */}
-            <div id={FINCH_HEADER_RIGHT_SLOT_ID} className="flex items-center mr-6">
-                {rightSlot}
-            </div>
+            {rightSlot}
         </header>
     );
 }

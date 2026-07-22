@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 
 import SignalMonitorPlotPV from '@/components/SignalMonitorPlotPV';
 import DeviceControllerBox from '@/components/DeviceControllerBox';
-import EnergyVsCurrentPlotPV from '@/components/EnergyVsCurrentPlotPV';
+import EnergyVsCurrentPlotPV from '@/features/EnergyVsCurrentPlotPV';
 import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
 import Button from '@/components/Button';
 

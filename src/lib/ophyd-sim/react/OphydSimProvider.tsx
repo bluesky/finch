@@ -1,7 +1,6 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import type { OphydSim } from '../core/types';
-
-const OphydSimContext = createContext<OphydSim | null>(null);
+import { OphydSimContext } from './OphydSimContext';
 
 export interface OphydSimProviderProps {
     /**
@@ -19,16 +18,4 @@ export function OphydSimProvider({ sim, children }: OphydSimProviderProps) {
     }, [sim]);
 
     return <OphydSimContext.Provider value={sim}>{children}</OphydSimContext.Provider>;
-}
-
-export function useOphydSim(): OphydSim {
-    const sim = useContext(OphydSimContext);
-    if (!sim) {
-        throw new Error('useOphydSim called outside <OphydSimProvider>');
-    }
-    return sim;
-}
-
-export function useOphydSimOptional(): OphydSim | null {
-    return useContext(OphydSimContext);
 }

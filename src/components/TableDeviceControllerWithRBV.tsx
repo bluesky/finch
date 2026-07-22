@@ -1,11 +1,16 @@
 import { useEffect, useState } from 'react';
 
-import { Lock, LockOpen, CaretDown } from '@phosphor-icons/react';
+import { Lock, LockOpen } from '@phosphor-icons/react';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './ui/table';
 import ControllerAbsoluteMove from './ControllerAbsoluteMove';
 import ControllerRelativeMove from './ControllerRelativeMove';
+import SelectDropdown from './SelectDropdown';
 import { Devices, Device } from '@/types/deviceControllerTypes';
 import { cn } from '@/lib/utils';
+
+const ABSOLUTE_MOVE = 'Absolute Move';
+const RELATIVE_MOVE = 'Relative Move';
+type MoveMode = typeof ABSOLUTE_MOVE | typeof RELATIVE_MOVE;
 
 export type TableDeviceControllerWithRBVProps = {
     /** Map of device names to their current state objects. Each entry renders as one table row. */
@@ -18,9 +23,10 @@ export type TableDeviceControllerWithRBVProps = {
     /** Called to toggle the expanded state for a device row, showing or hiding its raw JSON data. */
     toggleExpand: (deviceName: string) => void;
     /**
-     * When true, the Relative Move column starts collapsed (hidden on render) and
-     * the column header becomes a toggle that reveals it. Defaults to false, so
-     * the relative-move controls are always shown.
+     * When true, the absolute- and relative-move controls share a single "Move"
+     * column whose header is a dropdown for switching between the two, so the
+     * relative-move UI never reserves empty space. Defaults to false, which
+     * renders Absolute Move and Relative Move as two always-visible columns.
      */
     collapsibleRelativeMove?: boolean;
     /** Additional CSS classes applied to the root container. */
@@ -39,9 +45,8 @@ export default function TableDeviceControllerWithRBV({
 }: TableDeviceControllerWithRBVProps) {
     // State to track flashing rows
     const [flashingRows, setFlashingRows] = useState<Record<string, boolean>>({});
-    // Relative Move column visibility. When collapsible, it starts hidden; when
-    // not, it is permanently open (no toggle rendered).
-    const [isRelativeMoveOpen, setIsRelativeMoveOpen] = useState(!collapsibleRelativeMove);
+    // In collapsible mode, which move control the single "Move" column shows.
+    const [moveMode, setMoveMode] = useState<MoveMode>(ABSOLUTE_MOVE);
 
     const getFormattedValue = (device: Device) => {
         //Returns the formatted valiues of devices RBV, If it exists in device RBV
@@ -74,9 +79,34 @@ export default function TableDeviceControllerWithRBV({
 
         setFlashingRows(updatedFlashingRows);
     }, [devices]);
+
+    const renderAbsoluteMove = (deviceName: string, device: Device) => (
+        <ControllerAbsoluteMove
+            handleEnter={(input) => input !== null && handleSetValueRequest(deviceName, input)}
+            inputLabel={device.units && device.units.slice(0, 3)}
+            classNameInput="bg-sky-200 shadow-inner rounded-md"
+            locked={device.locked}
+        />
+    );
+
+    const renderRelativeMove = (deviceName: string, device: Device) => (
+        <ControllerRelativeMove
+            className="justify-center"
+            handleEnter={(input) => input !== null && handleSetValueRequest(deviceName, input)}
+            inputLabel={device.units && device.units.slice(0, 3)}
+            currentValue={typeof device.value === 'number' ? device.value : null}
+            classNameInput="bg-sky-200 shadow-inner rounded-md"
+            resultantTextClassName="hidden"
+            locked={device.locked}
+        />
+    );
+
     return (
         <div
-            className={cn('p-4 w-fit h-fit bg-slate-200 rounded-lg shadow-lg', className)}
+            className={cn(
+                'p-4 w-fit h-fit overflow-auto bg-slate-200 rounded-lg shadow-lg',
+                className,
+            )}
             {...props}
         >
             <Table className="max-w-[900px] m-auto">
@@ -86,30 +116,28 @@ export default function TableDeviceControllerWithRBV({
                         <TableHead className="text-center pr-8 text-sky-900 font-medium">
                             Current Value
                         </TableHead>
-                        <TableHead className="text-left text-sky-900 font-medium">
-                            Absolute Move
-                        </TableHead>
-                        <TableHead className="text-center text-sky-900 font-medium">
-                            {collapsibleRelativeMove ? (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsRelativeMoveOpen((open) => !open)}
-                                    aria-expanded={isRelativeMoveOpen}
-                                    className="mx-auto flex items-center gap-1 font-medium text-sky-900 hover:text-sky-700"
-                                >
-                                    Relative Move
-                                    <CaretDown
-                                        size={14}
-                                        className={cn(
-                                            'transition-transform',
-                                            isRelativeMoveOpen ? '' : '-rotate-90',
-                                        )}
-                                    />
-                                </button>
-                            ) : (
-                                'Relative Move'
-                            )}
-                        </TableHead>
+                        {collapsibleRelativeMove ? (
+                            // Single move column: the header dropdown swaps the cell
+                            // controls between absolute and relative, so the unused
+                            // mode never takes up space.
+                            <TableHead className="text-left text-sky-900 font-medium">
+                                <SelectDropdown
+                                    listItems={[ABSOLUTE_MOVE, RELATIVE_MOVE]}
+                                    initialSelectedItem={moveMode}
+                                    onValueChange={(value) => setMoveMode(value as MoveMode)}
+                                    triggerClassName="ml-0 mr-auto"
+                                />
+                            </TableHead>
+                        ) : (
+                            <>
+                                <TableHead className="text-left text-sky-900 font-medium">
+                                    {ABSOLUTE_MOVE}
+                                </TableHead>
+                                <TableHead className="text-center text-sky-900 font-medium">
+                                    {RELATIVE_MOVE}
+                                </TableHead>
+                            </>
+                        )}
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -151,36 +179,22 @@ export default function TableDeviceControllerWithRBV({
                                 <TableCell className="text-center text-md text-sky-700 font-medium">
                                     {getFormattedValue(device)}
                                 </TableCell>
-                                <TableCell>
-                                    <ControllerAbsoluteMove
-                                        handleEnter={(input) =>
-                                            input !== null &&
-                                            handleSetValueRequest(deviceName, input)
-                                        }
-                                        inputLabel={device.units && device.units.slice(0, 3)}
-                                        classNameInput="bg-sky-200 shadow-inner rounded-md"
-                                        locked={device.locked}
-                                    />
-                                </TableCell>
-                                <TableCell>
-                                    {isRelativeMoveOpen && (
-                                        <ControllerRelativeMove
-                                            className="justify-center"
-                                            handleEnter={(input) =>
-                                                input !== null &&
-                                                handleSetValueRequest(deviceName, input)
-                                            }
-                                            inputLabel={device.units && device.units.slice(0, 3)}
-                                            currentValue={
-                                                typeof device.value === 'number'
-                                                    ? device.value
-                                                    : null
-                                            }
-                                            classNameInput="bg-sky-200 shadow-inner rounded-md"
-                                            locked={device.locked}
-                                        />
-                                    )}
-                                </TableCell>
+                                {collapsibleRelativeMove ? (
+                                    <TableCell>
+                                        {moveMode === ABSOLUTE_MOVE
+                                            ? renderAbsoluteMove(deviceName, device)
+                                            : renderRelativeMove(deviceName, device)}
+                                    </TableCell>
+                                ) : (
+                                    <>
+                                        <TableCell>
+                                            {renderAbsoluteMove(deviceName, device)}
+                                        </TableCell>
+                                        <TableCell>
+                                            {renderRelativeMove(deviceName, device)}
+                                        </TableCell>
+                                    </>
+                                )}
                             </TableRow>
                         );
                     })}

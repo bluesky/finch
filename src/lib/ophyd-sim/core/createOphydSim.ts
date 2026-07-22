@@ -14,7 +14,7 @@ import type {
     Unsubscribe,
 } from './types';
 
-const DEFAULT_TICK_MS = 1000 / 30;
+const DEFAULT_TICK_MS = 100;
 
 /**
  * Build a simulator instance. Wires up shared state, a dependency graph for
