@@ -82,14 +82,16 @@ function SimulatedDetector() {
 }
 
 /**
- * Beam-shutter control floated at the top-right of the viewport. Because it
+ * Beam-shutter control anchored to the top-left of the beamline cartoon. Because it
  * lives inside the widget's Ophyd sim providers it drives the simulated beamline
- * directly; `fixed` positioning + a high z-index lift it over the header without
- * the header having to know anything about it. Drives bl531:LJT4:1:AO0; closing
- * it (5 V) pauses the detector and zeroes the diode current.
+ * directly; `absolute` positioning pins it to the top-left of the endstation graphic's
+ * `relative` container. Drives bl531:LJT4:1:AO0; closing it (5 V) pauses the detector
+ * and zeroes the diode current.
  */
 function FloatingShutter() {
-    return <Shutter className="fixed right-6 top-0 z-50 w-72 scale-90" classNameContent="py-0.5" />;
+    return (
+        <Shutter className="absolute left-0 top-0 z-50 w-72 scale-90" classNameContent="py-0.5" />
+    );
 }
 
 type SimulatedBeamlineProps = {
@@ -118,14 +120,16 @@ export default function SimulatedBeamline({ className }: SimulatedBeamlineProps)
         <OphydSimProvider sim={beamstopBeamline}>
             <OphydTransportProvider transport={transport} cameraSocketFactory={cameraSocketFactory}>
                 <div className={cn('flex flex-col gap-4 p-4', className)}>
-                    <FloatingShutter />
                     {/* Top row: endstation graphic beside the simulated detector, both
                      * pinned to the same height. Wraps on narrow widths. Closing the
                      * shutter (5 V) pauses the detector and zeroes the diode current. */}
                     <div className="flex flex-wrap items-start gap-4">
-                        <EndstationDisplay
-                            className={`${IMAGE_HEIGHT} w-auto max-w-full rounded`}
-                        />
+                        <div className="relative">
+                            <FloatingShutter />
+                            <EndstationDisplay
+                                className={`${IMAGE_HEIGHT} w-auto max-w-full rounded`}
+                            />
+                        </div>
                         <SimulatedDetector />
                     </div>
                     {/* Bottom row: device table beside the live beamstop-current trend. */}

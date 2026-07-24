@@ -1,5 +1,3 @@
-import SimulatedBeamline from '@/features/SimulatedBeamline/SimulatedBeamline';
-
 export default function TestPage() {
-    return <SimulatedBeamline />;
+    return <p> Add your test components here in src/app/pages/TestPage.tsx</p>;
 }

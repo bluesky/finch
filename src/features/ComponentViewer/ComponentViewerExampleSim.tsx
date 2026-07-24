@@ -10,6 +10,7 @@ import Histogram from '@/components/Histogram/Histogram';
 import { CubeTransparent } from '@phosphor-icons/react';
 
 import useSimOphydPVSocket from '@/api/ophyd/useSimOphydPVSocket';
+import SimulatedBeamline from '../SimulatedBeamline/SimulatedBeamline';
 const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
 
 export default function ComponentViewerExampleSim() {
@@ -65,6 +66,11 @@ export default function ComponentViewerExampleSim() {
                     demo={true}
                 />
             ),
+            info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
+        },
+        OphydSim1: {
+            name: 'Simulated Beamline',
+            element: <SimulatedBeamline />,
             info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
         },
     };
