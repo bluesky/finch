@@ -90,7 +90,7 @@ jobs:
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
           echo "Running ophyd sim test suites..."
-          npm run test:run -- src/testing/tests/beamstopModel.test.ts
+          npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
           npm run test:run -- src/testing/tests/simCameraSocket.test.ts
           npm run test:run -- src/testing/tests/ophyd-sim/dependencyGraph.test.ts
