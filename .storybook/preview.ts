@@ -39,7 +39,6 @@ const preview: Preview = {
       },
     },
   },
-  loaders: [],
 };
 
 export default preview;

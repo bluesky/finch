@@ -18,7 +18,7 @@ const config: StorybookConfig = {
     ...config,
     STORYBOOK_FINCH_VERSION: pkg.version,
   }),
-  staticDirs: ['../public'], //added this to support mws for api call mocks, see public/mockServiceWorker.js
+  staticDirs: ['../public'],
   async viteFinal(config) {
     return mergeConfig(config, {
       base: '/finch/',
