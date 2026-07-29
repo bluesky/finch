@@ -9,6 +9,8 @@ type RouteBase = {
     isBackgroundTransparent?: boolean;
     /** Additional CSS classes applied to the inner container of the route element. */
     classNameContainer?: string;
+    /** Whether this route's label is shown in the header. Defaults to `true`, except on `/`. */
+    showPageTitle?: boolean;
 };
 
 /**

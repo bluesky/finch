@@ -1,6 +1,7 @@
 import FinchHeader from '@/components/FinchHeader';
 import FinchMainContent from '@/components/FinchMainContent';
 import FinchSidebar from '@/components/FinchSidebar';
+import { useActiveRoute } from '@/hooks/useActiveRoute';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -12,6 +13,8 @@ export type FinchAppLayoutProps = {
     headerTitle?: string;
     /** Additional CSS classes applied to the header title element. */
     classNameHeaderTitle?: string;
+    /** Additional CSS classes applied to the header page title element. */
+    classNameHeaderPageTitle?: string;
     /** URL of the logo image displayed in the header. Ignored when `headerLogoIcon` is provided. */
     headerLogoUrl?: string;
     /**
@@ -57,6 +60,7 @@ export default function FinchAppLayout({
     classNamePageTabsInactive,
     classNameHeader,
     classNameHeaderTitle,
+    classNameHeaderPageTitle,
     classNameSidebar,
     classNameSidebarActiveLink,
     classNameSidebarInactiveLink,
@@ -64,6 +68,10 @@ export default function FinchAppLayout({
     className,
     ...props
 }: FinchAppLayoutProps) {
+    const activeRoute = useActiveRoute(routes);
+    const showPageTitle = activeRoute?.showPageTitle ?? activeRoute?.path !== '/';
+    const pageTitle = showPageTitle ? activeRoute?.label : undefined;
+
     return (
         <div
             className={cn(
@@ -80,10 +88,12 @@ export default function FinchAppLayout({
             />
             <FinchHeader
                 title={headerTitle}
+                pageTitle={pageTitle}
                 logoUrl={headerLogoUrl}
                 logoIcon={headerLogoIcon}
                 className={classNameHeader}
                 classNameTitle={classNameHeaderTitle}
+                classNamePageTitle={classNameHeaderPageTitle}
                 classNameImage={classNameImage}
             />
             <FinchMainContent
