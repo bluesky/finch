@@ -37,6 +37,9 @@ export type { FinchHeaderProps } from './components/FinchHeader';
 export { default as FinchMainContent } from './components/FinchMainContent';
 export type { FinchMainContentProps } from './components/FinchMainContent';
 
+export { default as FinchPageTabs } from './components/FinchPageTabs';
+export type { FinchPageTabsProps } from './components/FinchPageTabs';
+
 export { default as FinchSidebar } from './components/FinchSidebar';
 export type { FinchSidebarProps } from './components/FinchSidebar';
 
@@ -305,7 +308,7 @@ export type {
 } from './api/qServer/types';
 
 //TYPES
-export type { RouteItem } from './types/navigationRouterTypes';
+export type { RouteItem, RouteTab } from './types/navigationRouterTypes';
 export type { Device, Devices } from './types/deviceControllerTypes';
 
 //CONTEXT PROVIDERS

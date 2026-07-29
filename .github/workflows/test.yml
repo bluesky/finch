@@ -64,6 +64,7 @@ jobs:
           npm run test:run -- src/testing/tests/FinchAppLayout.test.tsx
           npm run test:run -- src/testing/tests/FinchHeader.test.tsx
           npm run test:run -- src/testing/tests/FinchMainContent.test.tsx
+          npm run test:run -- src/testing/tests/FinchPageTabs.test.tsx
           npm run test:run -- src/testing/tests/FinchSidebar.test.tsx
           npm run test:run -- src/testing/tests/GoogleDoc.test.tsx
           npm run test:run -- src/testing/tests/Header.test.tsx
@@ -89,6 +90,7 @@ jobs:
           npm run test:run -- src/testing/tests/TiledComponents.test.tsx
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
+          npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
           echo "Running ophyd sim test suites..."
           npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
@@ -214,7 +216,7 @@ jobs:
               `- ${testStepStatus} **Buttons** - Button, ButtonIconOnly, ButtonWithIcon, ButtonCopyToClipboard`,
               `- ${testStepStatus} **Inputs** - InputCheckBox, InputNumber, InputEnumBoxRounded, InputStringBoxRounded`,
               `- ${testStepStatus} **Plots** - PlotlyHeatmap, PlotlyHeatmapTiled, PlotlyScatter, Histogram, ColormapPicker`,
-              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, FinchSidebar, FinchAppLayout, FinchHeader, FinchMainContent, Header, Main, Bento, Paper, Widget`,
+              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, FinchSidebar, FinchAppLayout, FinchHeader, FinchMainContent, FinchPageTabs, useActiveRoute, Header, Main, Bento, Paper, Widget`,
               `- ${testStepStatus} **Tiled** - TiledComponents, TiledLinePlotMaker`,
               `- ${testStepStatus} **Devices** - Camera, Shutter, DeviceControllerBox, DeviceControllerBoxSimple, TableDeviceController, ControllerAbsoluteMove, ControllerRelativeMove, Hexapod, BeamEnergy`,
               `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,

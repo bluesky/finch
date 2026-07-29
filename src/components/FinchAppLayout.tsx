@@ -21,8 +21,16 @@ export type FinchAppLayoutProps = {
     headerLogoIcon?: React.ReactElement;
     /** Additional CSS classes applied to the outer main content area. */
     classNameMainContent?: string;
+    /** Additional CSS classes applied to the scrolling main content area that holds the page padding. */
+    classNameMainContentScrollContainer?: string;
     /** Additional CSS classes applied to the inner main content area. */
     classNameMainContentInnerContainer?: string;
+    /** Additional CSS classes applied to the page tab strip. */
+    classNamePageTabs?: string;
+    /** Additional CSS classes applied to the active page tab. */
+    classNamePageTabsActive?: string;
+    /** Additional CSS classes applied to inactive page tabs. */
+    classNamePageTabsInactive?: string;
     /** Additional CSS classes applied to the header element. */
     classNameHeader?: string;
     /** Additional CSS classes applied to the sidebar element. */
@@ -42,7 +50,11 @@ export default function FinchAppLayout({
     headerLogoUrl,
     headerLogoIcon,
     classNameMainContent,
+    classNameMainContentScrollContainer,
     classNameMainContentInnerContainer,
+    classNamePageTabs,
+    classNamePageTabsActive,
+    classNamePageTabsInactive,
     classNameHeader,
     classNameHeaderTitle,
     classNameSidebar,
@@ -77,7 +89,11 @@ export default function FinchAppLayout({
             <FinchMainContent
                 routes={routes}
                 className={cn('h-[calc(100vh-4rem)]', classNameMainContent)}
+                classNameScrollContainer={classNameMainContentScrollContainer}
                 classNameInnerContainer={classNameMainContentInnerContainer}
+                classNamePageTabs={classNamePageTabs}
+                classNamePageTabsActive={classNamePageTabsActive}
+                classNamePageTabsInactive={classNamePageTabsInactive}
             />
         </div>
     );
