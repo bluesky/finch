@@ -184,12 +184,38 @@ export default App;
 ```
 
 Each route entry supports:
-- `path` — the URL path (e.g. `"/controls"`)
+- `path` — the URL path, static only (e.g. `"/controls"`)
 - `label` — text shown in the sidebar navigation
-- `element` — the React component to render for that route
+- `element` — the React component to render for that route (omit when `tabs` is set)
+- `tabs` — optional tabs shown in a strip above the page, each with its own URL (omit `element` when set)
 - `icon` — optional React element shown next to the label in the sidebar
 - `isBackgroundTransparent` — when `true`, renders the page with a transparent background and white text as a default (good for separate components on the same page)
 - `classNameContainer` — additional CSS classes for the page container
+- `showPageTitle` — whether this route's label appears in the header (defaults to `true`, except on `/`)
+
+Route paths must be static. The sidebar links to each `path` directly, so a dynamic segment such as `/runs/:uid` would render a link to that literal text.
+
+The header shows the active route's label after the app title. The root route `/` hides it by default, since the app title already names that page. Set `showPageTitle` explicitly to override either way, which is what you want if your landing page is something like `/home`.
+
+### Page tabs
+
+A route can declare `tabs` instead of `element`. Finch draws a tab strip above the page and gives each tab its own URL beneath the route path, so tabs are deep-linkable and survive a refresh. Visiting the bare route path redirects to the first tab.
+
+```tsx
+const routes: RouteItem[] = [
+  {
+    path: '/explorer',
+    label: 'Explorer',
+    icon: <ChartLineIcon size={32} />,
+    tabs: [
+      { path: 'live', label: 'Live', element: <LiveTab /> },        // -> /explorer/live
+      { path: 'replay', label: 'Replay', element: <ReplayTab /> },  // -> /explorer/replay
+    ],
+  },
+];
+```
+
+Each tab takes `path`, `label`, and `element`, plus optional `isBackgroundTransparent` and `classNameContainer`. Both fall back to the parent route's values, and `classNameContainer` is merged on top of the route's rather than replacing it.
 
 
 ## Alternative Installation - Clone This Repo
