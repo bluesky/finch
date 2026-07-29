@@ -1,8 +1,11 @@
 import type { Preview } from "@storybook/react";
 import "../tailwind.css";
+import { withOphydSim, defaultBeamline } from "../src/lib/ophyd-sim";
+
 const version = import.meta.env.STORYBOOK_FINCH_VERSION;
 console.log(`Finch UI version ${version}`);
 const preview: Preview = {
+  decorators: [withOphydSim(defaultBeamline)],
   parameters: {
     controls: {
       matchers: {

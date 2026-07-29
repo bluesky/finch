@@ -1,51 +1,32 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { Devices } from 'src/types/deviceControllerTypes';
-import { useOphydApiUrls } from '@/utils/apiUtils';
-import {
-    MessageResponse,
-    ErrorResponse,
-    ValueUpdateResponse,
-    MetaUpdateResponse,
-} from '@/api/ophyd/ophydPVSocketTypes';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import type { Devices } from '@/types/deviceControllerTypes';
+import { useOphydPVTransport } from './OphydTransportContext';
+import type { OphydPVTransport } from './transport/types';
 
 /**
- * Custom hook for managing WebSocket connections to Ophyd devices.
- * Provides real-time device state management and control functions.
+ * Manage subscriptions to a set of EPICS PVs and surface their values as a
+ * Devices map.
  *
- * @param deviceNameList - Array of EPICS PVs to subscribe to
- * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
- * @returns Object containing device states and control functions
+ * Connection lifecycle is delegated to a transport read from
+ * OphydTransportProvider — see [src/api/ophyd/OphydTransportProvider.tsx].
+ * When no provider is mounted, a fallback transport pointed at the
+ * configured ophyd-websocket backend is created lazily (one per
+ * consumer-URL pair). To make two hook calls observe the same state, wrap
+ * the tree in an OphydTransportProvider with a shared transport.
+ *
+ * @param deviceNameList - EPICS PVs to subscribe to.
+ * @param wsUrl - Optional URL override that builds an ad-hoc WebSocket
+ *   transport for this consumer only. Ignored when an OphydTransportProvider
+ *   supplies a transport.
  */
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]); //device updates can retrigger the hook if inputs aren't memoized
-    const configWsUrl = useOphydApiUrls().getWsUrl('pv-socket');
-    const apiUrl: string = wsUrl ?? configWsUrl;
-    const [devices, setDevices] = useState<Devices>(() => {
-        const initialDevices: Devices = {};
-        memoizedDeviceNames.forEach((deviceName) => {
-            initialDevices[deviceName] = {
-                name: deviceName,
-                value: '',
-                connected: false,
-                locked: false,
-                timestamp: 0,
-                expanded: false,
-                pv: deviceName,
-                read_access: false,
-                write_access: false,
-            };
-        });
-        return initialDevices;
-    });
-    const wsRef = useRef<WebSocket | null>(null);
+    const memoizedDeviceNames = useMemo(() => deviceNameList, [JSON.stringify(deviceNameList)]);
+    const transport: OphydPVTransport = useOphydPVTransport(wsUrl);
+
+    const [devices, setDevices] = useState<Devices>(() => initialDevices(memoizedDeviceNames));
     const hasRenderedOnlyOnce = useRef(false);
 
-    /**
-     * Toggles the lock state of a device between locked and unlocked.
-     * When locked, the device UI will typically be disabled or read-only.
-     * @param deviceName - The name/identifier of the device to toggle
-     */
     const toggleDeviceLock = useCallback((deviceName: string) => {
         setDevices((prevDevices) => ({
             ...prevDevices,
@@ -56,30 +37,13 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         }));
     }, []);
 
-    /**
-     * Sends a device value update request through the WebSocket connection.
-     * @param deviceName - The name/identifier of the device to update
-     * @param value - The new value to set for the device (string, number, or boolean)
-     */
     const handleSetValueRequest = useCallback(
         (deviceName: string, value: string | number | boolean) => {
-            if (wsRef.current) {
-                const setValueMessage = {
-                    action: 'set',
-                    pv: deviceName,
-                    value: value,
-                };
-                wsRef.current.send(JSON.stringify(setValueMessage));
-            }
+            transport.send({ action: 'set', pv: deviceName, value });
         },
-        [],
+        [transport],
     );
 
-    /**
-     * Toggles the expanded state of a device in the UI.
-     * Used to show/hide additional device details or controls.
-     * @param deviceName - The name/identifier of the device to expand/collapse
-     */
     const toggleExpand = useCallback((deviceName: string) => {
         setDevices((prevDevices) => ({
             ...prevDevices,
@@ -92,113 +56,62 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
 
     useEffect(() => {
         if (hasRenderedOnlyOnce.current) {
-            //after the initial render, if the deviceNameList changes, reset the entire devices state
-            const initialDevices: Devices = {};
-            memoizedDeviceNames.forEach((deviceName) => {
-                initialDevices[deviceName] = {
-                    name: deviceName,
-                    value: '',
-                    connected: false,
-                    locked: false,
-                    timestamp: 0,
-                    expanded: false,
-                    pv: deviceName,
-                    read_access: false,
-                    write_access: false,
-                };
-            });
-            setDevices(initialDevices);
+            setDevices(initialDevices(memoizedDeviceNames));
         } else {
             hasRenderedOnlyOnce.current = true;
         }
     }, [memoizedDeviceNames]);
 
-    // Initialize WebSocket connection
     useEffect(() => {
-        // Don't connect if no devices to subscribe to
-        if (memoizedDeviceNames.length === 0) {
-            // Close existing connection if devices list becomes empty
-            if (wsRef.current) {
-                wsRef.current.close();
-                wsRef.current = null;
+        if (memoizedDeviceNames.length === 0) return;
+
+        // Register the message listener before sending subscribe — the sim
+        // transport replays the initial meta+value synchronously inside
+        // send(subscribe), so a listener attached afterward would miss it.
+        const unsubscribeMessages = transport.onMessage((message) => {
+            if ('sub_type' in message && message.sub_type === 'meta') {
+                setDevices((prevDevices) =>
+                    prevDevices[message.pv]
+                        ? {
+                              ...prevDevices,
+                              [message.pv]: {
+                                  ...prevDevices[message.pv],
+                                  ...message,
+                                  min: message.lower_ctrl_limit,
+                                  max: message.upper_ctrl_limit,
+                              },
+                          }
+                        : prevDevices,
+                );
+            } else if ('pv' in message) {
+                const deviceName = message.pv;
+                setDevices((prevDevices) =>
+                    prevDevices[deviceName]
+                        ? {
+                              ...prevDevices,
+                              [deviceName]: {
+                                  ...prevDevices[deviceName],
+                                  ...message,
+                              },
+                          }
+                        : prevDevices,
+                );
+            } else if ('error' in message) {
+                console.error('Ophyd PV socket error:', message.error);
             }
-            return;
+        });
+
+        for (const deviceName of memoizedDeviceNames) {
+            transport.send({ action: 'subscribe', pv: deviceName });
         }
 
-        //console.log('initializing WebSocket connection to', apiUrl);
-        const ws = new WebSocket(apiUrl);
-        wsRef.current = ws;
-
-        // Open WebSocket connection and subscribe to devices
-        ws.onopen = () => {
-            //console.log('WebSocket connection opened');
-            memoizedDeviceNames.forEach((deviceName) => {
-                const subscribeMessage = {
-                    action: 'subscribe',
-                    pv: deviceName,
-                };
-                ws.send(JSON.stringify(subscribeMessage));
-            });
-        };
-
-        // Handle incoming WebSocket messages
-        ws.onmessage = (event) => {
-            try {
-                const message:
-                    | MessageResponse
-                    | ErrorResponse
-                    | ValueUpdateResponse
-                    | MetaUpdateResponse = JSON.parse(event.data);
-                if ('sub_type' in message && message.sub_type === 'meta') {
-                    //meta updates occur when we first subscribe to a device, or if the connection changes (lost or regained EPICS connection)
-                    setDevices((prevDevices) => ({
-                        ...prevDevices,
-                        [message.pv]: {
-                            ...prevDevices[message.pv],
-                            ...message,
-                            //connected: message.connected,
-                            //units: message.units,
-                            min: message.lower_ctrl_limit,
-                            max: message.upper_ctrl_limit,
-                        },
-                    }));
-                } else if ('pv' in message) {
-                    //pv is in the message on regular updates to the device value
-                    const deviceName = message.pv;
-                    setDevices((prevDevices) => ({
-                        ...prevDevices,
-                        [deviceName]: {
-                            ...prevDevices[deviceName],
-                            ...message,
-                        },
-                    }));
-                }
-                if ('error' in message) {
-                    console.error('WebSocket error message:', message.error);
-                }
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-
-        // Handle WebSocket errors
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-
-        // Handle WebSocket closure
-        ws.onclose = () => {
-            //console.log('WebSocket connection closed');
-        };
-
-        // Cleanup WebSocket connection on unmount
         return () => {
-            if (wsRef.current) {
-                wsRef.current.close();
-                wsRef.current = null;
+            unsubscribeMessages();
+            for (const deviceName of memoizedDeviceNames) {
+                transport.send({ action: 'unsubscribe', pv: deviceName });
             }
         };
-    }, [wsUrl, memoizedDeviceNames, apiUrl]);
+    }, [transport, memoizedDeviceNames]);
 
     return {
         devices,
@@ -206,4 +119,22 @@ export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: strin
         handleSetValueRequest,
         toggleExpand,
     };
+}
+
+function initialDevices(names: string[]): Devices {
+    const map: Devices = {};
+    for (const deviceName of names) {
+        map[deviceName] = {
+            name: deviceName,
+            value: '',
+            connected: false,
+            locked: false,
+            timestamp: 0,
+            expanded: false,
+            pv: deviceName,
+            read_access: false,
+            write_access: false,
+        };
+    }
+    return map;
 }

@@ -26,7 +26,7 @@ export type FinchHeaderProps = {
  * Pass `logoIcon` to render a custom React element as the logo.
  * If only `logoUrl` is provided, an `<img>` is rendered instead.
  */
-export default function HubHeader({
+export default function FinchHeader({
     title = 'BEAMLINE APP',
     logoUrl = 'https://img.icons8.com/?size=100&id=11743&format=png&color=000000',
     logoIcon,

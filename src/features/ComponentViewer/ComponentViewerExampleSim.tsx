@@ -10,6 +10,7 @@ import Histogram from '@/components/Histogram/Histogram';
 import { CubeTransparent } from '@phosphor-icons/react';
 
 import useSimOphydPVSocket from '@/api/ophyd/useSimOphydPVSocket';
+import SimulatedBeamline from '../SimulatedBeamline/SimulatedBeamline';
 const SIM_DEVICES = ['sineSignal', 'noisySignal', 'motor1', 'motor2'];
 
 export default function ComponentViewerExampleSim() {
@@ -47,8 +48,8 @@ export default function ComponentViewerExampleSim() {
         },
         SimControl4: {
             name: 'Hexapod Controller',
-            element: <Hexapod prefix="fake hexapod" demo={true} />,
-            info: 'This component accepts a prefix intended for an EPICS hexapod device, and connects via useOphydSocketPV. This display utilizes a demo mode with a simulated device.',
+            element: <Hexapod />,
+            info: 'This component accepts a prefix intended for an EPICS hexapod device, and connects via useOphydSocketPV. This display is wired to the ophyd-sim hexapod (prefix SYM:HEX01) through the OphydSimProvider on this page.',
         },
         SimMonitor1: {
             name: 'Signal Monitor Plot',
@@ -65,6 +66,11 @@ export default function ComponentViewerExampleSim() {
                     demo={true}
                 />
             ),
+            info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
+        },
+        OphydSim1: {
+            name: 'Simulated Beamline',
+            element: <SimulatedBeamline />,
             info: 'This component accepts an array PV and an acquire control PV for EPICS systems to display a histogram plot. This display uses a demo mode with simulated histogram data.',
         },
     };

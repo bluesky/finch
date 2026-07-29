@@ -89,6 +89,19 @@ jobs:
           npm run test:run -- src/testing/tests/TiledComponents.test.tsx
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
+          echo "Running ophyd sim test suites..."
+          npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
+          npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
+          npm run test:run -- src/testing/tests/simCameraSocket.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/dependencyGraph.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/detector.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/hexapod.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/motor.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/shutter.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/signal.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/state.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/transport.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/useOphydPVSocket.integration.test.tsx
         env:
           CI: true
 
@@ -206,6 +219,7 @@ jobs:
               `- ${testStepStatus} **Devices** - Camera, Shutter, DeviceControllerBox, DeviceControllerBoxSimple, TableDeviceController, ControllerAbsoluteMove, ControllerRelativeMove, Hexapod, BeamEnergy`,
               `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,
               `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
+              `- ${testStepStatus} **Ophyd Sim** - beamstopModel, createFallbackTransport, simCameraSocket, dependencyGraph, detector, hexapod, motor, shutter, signal, state, transport, useOphydPVSocket`,
               ``,
               `**Test Environment:** Node.js 20.x`,
               `**Linting:** ${lintStatus} ${lintText}${lintSection}`,
