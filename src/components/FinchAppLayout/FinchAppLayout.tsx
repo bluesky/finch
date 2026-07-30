@@ -11,6 +11,11 @@ export type FinchAppLayoutProps = {
     routes: RouteItem[];
     /** Title text displayed in the header. */
     headerTitle?: string;
+    /**
+     * Whether the active route's label appears in the header, for every route.
+     * A route's own `showPageTitle` overrides this. Defaults to `true`.
+     */
+    showPageTitle?: boolean;
     /** Additional CSS classes applied to the header title element. */
     classNameHeaderTitle?: string;
     /** Additional CSS classes applied to the header page title element. */
@@ -50,6 +55,7 @@ export type FinchAppLayoutProps = {
 export default function FinchAppLayout({
     routes,
     headerTitle,
+    showPageTitle,
     headerLogoUrl,
     headerLogoIcon,
     classNameMainContent,
@@ -69,8 +75,8 @@ export default function FinchAppLayout({
     ...props
 }: FinchAppLayoutProps) {
     const activeRoute = useActiveRoute(routes);
-    const showPageTitle = activeRoute?.showPageTitle ?? activeRoute?.path !== '/';
-    const pageTitle = showPageTitle ? activeRoute?.label : undefined;
+    const isPageTitleShown = activeRoute?.showPageTitle ?? showPageTitle ?? true;
+    const pageTitle = isPageTitleShown ? activeRoute?.label : undefined;
 
     return (
         <div

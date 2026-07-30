@@ -94,18 +94,23 @@ describe('FinchAppLayout Component', () => {
         expect(container.querySelector('header')).not.toHaveTextContent('Home');
     });
 
-    it('renders no header page title at the root route by default', () => {
+    it('renders the header page title at the root route like any other route', () => {
         const rootRoutes: RouteItem[] = [{ path: '/', label: 'Overview', element: <div /> }];
         const { container } = renderLayout({ routes: rootRoutes, path: '/' });
-        expect(container.querySelector('header')).not.toHaveTextContent('Overview');
+        expect(container.querySelector('header')).toHaveTextContent('Overview');
     });
 
-    it('renders the header page title at the root route when it opts in', () => {
-        const rootRoutes: RouteItem[] = [
-            { path: '/', label: 'Overview', element: <div />, showPageTitle: true },
+    it('renders no header page title when the layout opts out', () => {
+        const { container } = renderLayout({ showPageTitle: false });
+        expect(container.querySelector('header')).not.toHaveTextContent('Home');
+    });
+
+    it('renders the header page title for a route that opts in while the layout opts out', () => {
+        const optedIn: RouteItem[] = [
+            { path: '/home', label: 'Home', element: <div />, showPageTitle: true },
         ];
-        const { container } = renderLayout({ routes: rootRoutes, path: '/' });
-        expect(container.querySelector('header')).toHaveTextContent('Overview');
+        const { container } = renderLayout({ routes: optedIn, showPageTitle: false });
+        expect(container.querySelector('header')).toHaveTextContent('Home');
     });
 
     it('applies classNameHeaderPageTitle to the header page title', () => {

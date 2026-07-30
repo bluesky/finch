@@ -20,7 +20,7 @@ import { MemoryRouter } from 'react-router';
  *   icon?: React.ReactNode             - The icon displayed next to the label in the sidebar
  *   isBackgroundTransparent?: boolean  - Renders the page transparent with white text (default: false)
  *   classNameContainer?: string        - Additional CSS classes for the page container
- *   showPageTitle?: boolean            - Shows this route's label in the header (default: true, except on "/")
+ *   showPageTitle?: boolean            - Shows this route's label in the header (default: true)
  * }
  *
  * A route declares either `element` or `tabs`, never both.
@@ -159,7 +159,7 @@ RouteItem {
   tabs?: RouteTab[]               // Tabs shown in a strip above the page (omit \`element\` when set)
   isBackgroundTransparent?: boolean  // If true, page background is transparent (default: false)
   classNameContainer?: string     // Additional CSS classes applied to the page container
-  showPageTitle?: boolean         // Whether the header shows this route's label (default: true, except on "/")
+  showPageTitle?: boolean         // Whether the header shows this route's label (default: true)
 }
 \`\`\`
 
@@ -279,7 +279,7 @@ function App() {
 3. **Renders the corresponding element** when a route is selected
 4. **Applies per-route styling** via \`isBackgroundTransparent\` or \`classNameContainer\`
 5. **Draws a tab strip** above the page for any route that declares \`tabs\`
-6. **Shows the active route label** in the header, after the app title, on every route but \`/\` (override per route with \`showPageTitle\`)
+6. **Shows the active route label** in the header, after the app title (set \`showPageTitle\` on the layout to turn it off everywhere, or on a route to override that)
 
 The component uses React Router internally to manage navigation between different pages/views.
                 `,
@@ -319,6 +319,16 @@ export const WithPageTabs: Story = {
     args: {
         routes: routesWithTabs,
         headerTitle: 'Finch Dev Mode',
+        className: 'w-full h-full',
+    },
+};
+
+export const WithoutPageTitle: Story = {
+    parameters: { initialPath: '/control' },
+    args: {
+        routes: routes,
+        headerTitle: 'Finch Dev Mode',
+        showPageTitle: false,
         className: 'w-full h-full',
     },
 };
