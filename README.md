@@ -184,18 +184,18 @@ export default App;
 ```
 
 Each route entry supports:
-- `path` — the URL path, static only (e.g. `"/controls"`)
+- `path` — the URL path, static only (e.g. `"/controls"`). The leading slash is optional
 - `label` — text shown in the sidebar navigation
 - `element` — the React component to render for that route (omit when `tabs` is set)
 - `tabs` — optional tabs shown in a strip above the page, each with its own URL (omit `element` when set)
 - `icon` — optional React element shown next to the label in the sidebar
 - `isBackgroundTransparent` — when `true`, renders the page with a transparent background and white text as a default (good for separate components on the same page)
 - `classNameContainer` — additional CSS classes for the page container
-- `showPageTitle` — whether this route's label appears in the header (defaults to `true`, except on `/`)
+- `showPageTitle` — whether this route's label appears in the header (defaults to `true`)
 
 Route paths must be static. The sidebar links to each `path` directly, so a dynamic segment such as `/runs/:uid` would render a link to that literal text.
 
-The header shows the active route's label after the app title. The root route `/` hides it by default, since the app title already names that page. Set `showPageTitle` explicitly to override either way, which is what you want if your landing page is something like `/home`.
+The header shows the active route's label after the app title, on every route. Pass `showPageTitle` to the layout to turn that off everywhere, and set `showPageTitle` on a route to override the layout either way. That is how you hide the label on a landing page whose app title already names it.
 
 ### Page tabs
 
@@ -216,6 +216,40 @@ const routes: RouteItem[] = [
 ```
 
 Each tab takes `path`, `label`, and `element`, plus optional `isBackgroundTransparent` and `classNameContainer`. Both fall back to the parent route's values, and `classNameContainer` is merged on top of the route's rather than replacing it.
+
+A leading slash on a tab `path` is optional and ignored, so `'live'` and `'/live'` both land on `/explorer/live`. Trailing slashes are ignored too, repeated slashes collapse, and the route's own `path` works the same way. Case is ignored when matching, so someone who types `/Explorer/Live` lands on that same page.
+
+The root route can declare tabs, and they sit under a reserved `-` segment:
+
+```tsx
+const routes: RouteItem[] = [
+  {
+    path: '/',
+    label: 'Home',
+    tabs: [
+      { path: 'live', label: 'Live', element: <LiveTab /> },        // -> /-/live
+      { path: 'replay', label: 'Replay', element: <ReplayTab /> },  // -> /-/replay
+    ],
+  },
+];
+```
+
+Visiting `/` redirects to `/-/live`. The `-` keeps the root's tabs out of the top level, where `/live` would shadow a real `/live` route and leave the sidebar with no entry highlighted. It also keeps the tab catch-all scoped, so an unknown `/-/…` URL falls back to the first tab while the rest of your URLs are untouched. Leave `-` to the root's tabs.
+
+Finch rejects a couple of configurations with an error rather than failing quietly.
+
+A tab `path` cannot be empty or a bare `/`. Every tab needs its own segment beneath the route, so give it something like `path: 'overview'`.
+
+No two pages can land on the same URL. Routes and tabs share one URL space, so a route at `/explorer/live` collides with the Live tab of `/explorer` exactly as two `live` tabs collide with each other. Because slashes are trimmed and case is ignored, `'live'`, `'/live'` and `'Live'` all mean `/explorer/live`, so this is an error:
+
+```tsx
+tabs: [
+  { path: 'live', label: 'Live', element: <LiveTab /> },
+  { path: '/live', label: 'Replay', element: <ReplayTab /> },  // error: same URL as Live
+];
+```
+
+Without the check the Replay tab would be dead weight: both tabs would link to `/explorer/live`, both would draw as active, and only `<LiveTab />` would ever render.
 
 
 ## Alternative Installation - Clone This Repo
