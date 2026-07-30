@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import FinchPageTabs from '../../components/FinchPageTabs';
+import FinchPageTabs from '../../components/FinchAppLayout/FinchPageTabs';
 import { RouteTab } from '../../types/navigationRouterTypes';
 
 const mockTabs: RouteTab[] = [

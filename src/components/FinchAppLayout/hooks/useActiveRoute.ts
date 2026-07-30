@@ -1,6 +1,6 @@
 import { matchRoutes, useLocation } from 'react-router';
 
-import { buildPageRoutes } from '@/lib/pageRoutes';
+import { buildPageRoutes } from '../utils/pageRoutes';
 import { RouteItem } from '@/types/navigationRouterTypes';
 
 /**

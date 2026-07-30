@@ -1,7 +1,9 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import FinchAppLayout, { FinchAppLayoutProps } from '../../components/FinchAppLayout';
+import FinchAppLayout, {
+    FinchAppLayoutProps,
+} from '../../components/FinchAppLayout/FinchAppLayout';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const mockRoutes: RouteItem[] = [

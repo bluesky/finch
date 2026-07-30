@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import FinchSidebar from '../../components/FinchSidebar';
+import FinchSidebar from '../../components/FinchAppLayout/FinchSidebar';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const mockRoutes: RouteItem[] = [

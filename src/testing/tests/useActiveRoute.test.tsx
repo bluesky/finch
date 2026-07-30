@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
-import { useActiveRoute } from '../../hooks/useActiveRoute';
+import { useActiveRoute } from '../../components/FinchAppLayout/hooks/useActiveRoute';
 import { RouteItem } from '../../types/navigationRouterTypes';
 
 const withCatchAll: RouteItem[] = [

@@ -1,7 +1,7 @@
-import FinchHeader from '@/components/FinchHeader';
-import FinchMainContent from '@/components/FinchMainContent';
-import FinchSidebar from '@/components/FinchSidebar';
-import { useActiveRoute } from '@/hooks/useActiveRoute';
+import FinchHeader from './FinchHeader';
+import FinchMainContent from './FinchMainContent';
+import FinchSidebar from './FinchSidebar';
+import { useActiveRoute } from './hooks/useActiveRoute';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';

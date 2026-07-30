@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import FinchAppLayout from '@/components/FinchAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
 import Paper from '@/components/Paper';
 import { House, Joystick, StackPlus, ImageSquare, ChartScatter } from '@phosphor-icons/react';
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -219,7 +219,7 @@ const routes: RouteItem[] = [
 
 ### Full App Example (from App.tsx):
 \`\`\`typescript
-import FinchAppLayout from '@/components/FinchAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
 import { RouteItem } from '@/types/navigationRouterTypes';
 import { House, Table, TestTube, Question } from '@phosphor-icons/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

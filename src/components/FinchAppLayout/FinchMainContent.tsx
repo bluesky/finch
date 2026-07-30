@@ -1,7 +1,7 @@
 import { useRoutes } from 'react-router';
-import FinchPageTabs from '@/components/FinchPageTabs';
-import { useActiveRoute } from '@/hooks/useActiveRoute';
-import { buildPageRoutes } from '@/lib/pageRoutes';
+import FinchPageTabs from './FinchPageTabs';
+import { useActiveRoute } from './hooks/useActiveRoute';
+import { buildPageRoutes } from './utils/pageRoutes';
 import { cn } from '@/lib/utils';
 
 import { RouteItem, RouteTab } from '@/types/navigationRouterTypes';

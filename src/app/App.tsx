@@ -7,7 +7,7 @@ import AllComponentsPage from './pages/AllComponentsPage';
 import TestPage from './pages/TestPage';
 import Documentation from './pages/Documentation';
 
-import FinchAppLayout from '@/components/FinchAppLayout';
+import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
 

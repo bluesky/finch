@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import FinchHeader from '../../components/FinchHeader';
+import FinchHeader from '../../components/FinchAppLayout/FinchHeader';
 
 describe('FinchHeader Component', () => {
     it('renders without crashing', () => {
