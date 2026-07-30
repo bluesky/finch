@@ -1,4 +1,5 @@
-import { NavLink, resolvePath } from 'react-router';
+import { NavLink } from 'react-router';
+import { toTabPath } from './utils/pageRoutes';
 import { cn } from '@/lib/utils';
 
 import { RouteTab } from '@/types/navigationRouterTypes';
@@ -38,7 +39,8 @@ export default function FinchPageTabs({
             {tabs.map((tab) => (
                 <NavLink
                     key={tab.path}
-                    to={resolvePath(tab.path, basePath)}
+                    to={toTabPath({ basePath, tab })}
+                    end
                     className={({ isActive }) =>
                         cn(
                             tabStyles,

@@ -1,5 +1,5 @@
 type RouteBase = {
-    /** The URL path for this route (e.g. `"/dashboard"`). Must be static; dynamic segments like `:id` are not supported, since the sidebar links straight to this path. */
+    /** The URL path for this route (e.g. `"/dashboard"`). The leading slash is optional and repeated slashes collapse. Must be static; dynamic segments like `:id` are not supported, since the sidebar links straight to this path. */
     path: string;
     /** Human-readable label shown in navigation UI. */
     label: string;
@@ -27,14 +27,14 @@ export type RouteItem = RouteBase &
           }
         | {
               element?: never;
-              /** Tabs rendered in a strip above the page. Each tab becomes a nested route. */
+              /** Tabs rendered in a strip above the page. Each tab becomes a nested route. On the root route `"/"` they sit under a reserved `-` segment, so `"live"` lands at `/-/live`. */
               tabs: RouteTab[];
           }
     );
 
 /** A single tab belonging to a route that declares `tabs`. */
 export type RouteTab = {
-    /** Path segment appended to the parent route path (e.g. `"live"` under `"/explorer"`). */
+    /** Path appended to the parent route path (e.g. `"live"` or `"/live"` under `"/explorer"`). Leading and trailing slashes are optional and repeated ones collapse, but the path cannot be empty. */
     path: string;
     /** Label shown on the tab. */
     label: string;

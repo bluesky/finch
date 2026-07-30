@@ -23,6 +23,17 @@ const tabbedRoutes: RouteItem[] = [
     },
 ];
 
+const slashedTabRoutes: RouteItem[] = [
+    {
+        path: '/test',
+        label: 'Test',
+        tabs: [
+            { path: '/testing', label: 'Test Page', element: <div>Test Page Body</div> },
+            { path: 'docs', label: 'Docs', element: <div>Docs Body</div> },
+        ],
+    },
+];
+
 type RenderContentOptions = Partial<FinchMainContentProps> & { path?: string };
 
 function renderContent({
@@ -171,7 +182,7 @@ describe('FinchMainContent Component', () => {
         expect(container.querySelector('nav')).not.toBeInTheDocument();
     });
 
-    it('redirects a tabbed route at the root path to its first tab', () => {
+    it('redirects a tabbed root route to its first tab beneath the dash segment', () => {
         const rootTabbed: RouteItem[] = [
             {
                 path: '/',
@@ -184,7 +195,26 @@ describe('FinchMainContent Component', () => {
         ];
         renderContent({ routes: rootTabbed, path: '/' });
         expect(screen.getByText('Live Tab')).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'Live' })).toHaveAttribute('href', '/live');
+        expect(screen.getByRole('link', { name: 'Live' })).toHaveAttribute('href', '/-/live');
+    });
+
+    it('renders the tab page when the tab path carries a leading slash', () => {
+        renderContent({ routes: slashedTabRoutes, path: '/test/testing' });
+        expect(screen.getByText('Test Page Body')).toBeInTheDocument();
+        expect(screen.queryByText('Docs Body')).not.toBeInTheDocument();
+    });
+
+    it('links a leading-slash tab beneath its route rather than to the site root', () => {
+        renderContent({ routes: slashedTabRoutes, path: '/test/testing' });
+        expect(screen.getByRole('link', { name: 'Test Page' })).toHaveAttribute(
+            'href',
+            '/test/testing',
+        );
+    });
+
+    it('redirects the bare route path to a first tab that carries a leading slash', () => {
+        renderContent({ routes: slashedTabRoutes, path: '/test' });
+        expect(screen.getByText('Test Page Body')).toBeInTheDocument();
     });
 
     it('renders a static route that outranks a tabbed route sharing its prefix', () => {

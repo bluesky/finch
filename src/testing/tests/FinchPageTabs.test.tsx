@@ -60,13 +60,30 @@ describe('FinchPageTabs Component', () => {
         expect(container.querySelector('nav')).toBeInTheDocument();
     });
 
-    it('links tabs to a single-slash path when the base path is the root', () => {
-        render(
-            <MemoryRouter initialEntries={['/live']}>
-                <FinchPageTabs basePath="/" tabs={mockTabs} />
-            </MemoryRouter>,
-        );
-        expect(screen.getByText('Live').closest('a')).toHaveAttribute('href', '/live');
+    it('links a root route tab beneath the reserved dash segment', () => {
+        renderTabs('/-/live', { basePath: '/' });
+        expect(screen.getByText('Live').closest('a')).toHaveAttribute('href', '/-/live');
+    });
+
+    it('marks only the exact tab active when another tab nests beneath it', () => {
+        const nestedTabs: RouteTab[] = [
+            { path: 'live', label: 'Live', element: <div /> },
+            { path: 'live/detail', label: 'Detail', element: <div /> },
+        ];
+        renderTabs('/explorer/live/detail', {
+            tabs: nestedTabs,
+            classNameActiveTab: 'active-test-class',
+        });
+        expect(screen.getByText('Detail').closest('a')).toHaveClass('active-test-class');
+        expect(screen.getByText('Live').closest('a')).not.toHaveClass('active-test-class');
+    });
+
+    it('links a tab to the same url whether or not its path carries a leading slash', () => {
+        const slashedTabs: RouteTab[] = mockTabs.map((tab) => ({ ...tab, path: `/${tab.path}` }));
+        renderTabs('/explorer/live', { tabs: slashedTabs });
+        const links = screen.getAllByRole('link');
+        expect(links[0]).toHaveAttribute('href', '/explorer/live');
+        expect(links[1]).toHaveAttribute('href', '/explorer/explore');
     });
 
     it('renders no links when tabs is an empty array', () => {
