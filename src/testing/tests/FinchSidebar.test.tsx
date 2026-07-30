@@ -57,6 +57,38 @@ describe('FinchSidebar Component', () => {
         expect(settingsLink).toHaveClass('inactive-test-class');
     });
 
+    it('applies the active class to a route link while one of its tabs is showing', () => {
+        const tabbedRoutes: RouteItem[] = [
+            {
+                path: '/explorer',
+                label: 'Explorer',
+                tabs: [{ path: 'live', label: 'Live', element: <div /> }],
+            },
+            { path: '/settings', label: 'Settings', element: <div /> },
+        ];
+        renderSidebar('/explorer/live', {
+            routes: tabbedRoutes,
+            classNameActiveLink: 'active-test-class',
+        });
+        expect(screen.getByText('Explorer').closest('a')).toHaveClass('active-test-class');
+    });
+
+    it('applies the active class to the root link while one of its tabs is showing', () => {
+        const rootTabbedRoutes: RouteItem[] = [
+            {
+                path: '/',
+                label: 'Home',
+                tabs: [{ path: 'live', label: 'Live', element: <div /> }],
+            },
+            { path: '/settings', label: 'Settings', element: <div /> },
+        ];
+        renderSidebar('/-/live', {
+            routes: rootTabbedRoutes,
+            classNameActiveLink: 'active-test-class',
+        });
+        expect(screen.getByText('Home').closest('a')).toHaveClass('active-test-class');
+    });
+
     it('renders route icons when provided', () => {
         const routesWithIcons: RouteItem[] = [
             {

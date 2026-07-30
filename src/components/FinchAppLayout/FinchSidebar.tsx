@@ -1,4 +1,6 @@
-import { NavLink } from 'react-router';
+import { Link } from 'react-router';
+import { useActiveRoute } from './hooks/useActiveRoute';
+import { toRoutePath } from './utils/pageRoutes';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -20,6 +22,7 @@ export default function FinchSidebar({
     classNameInactiveLink,
     ...props
 }: FinchSidebarProps) {
+    const activeRoute = useActiveRoute(routes);
     const navStyles = cn(
         'flex flex-col items-center justify-center h-20 aspect-square rounded-lg text-white hover:bg-sky-800 cursor-pointer',
         classNameInactiveLink,
@@ -29,22 +32,26 @@ export default function FinchSidebar({
             className={cn('row-span-2 bg-sky-950 flex flex-col py-4 overflow-y-auto', className)}
             {...props}
         >
-            {routes.map((item, index) => (
-                <div key={index} className="flex flex-col items-center">
-                    <NavLink
-                        to={item.path}
-                        className={({ isActive }) =>
-                            isActive
-                                ? cn(navStyles, cn('bg-sky-300 text-black', classNameActiveLink))
-                                : navStyles
-                        }
-                    >
-                        {item.icon}
-                        <span className="font-light text-center">{item.label}</span>
-                    </NavLink>
-                    <div className="h-[1px] w-10/12 border-b border-white/50 my-4"></div>
-                </div>
-            ))}
+            {routes.map((item, index) => {
+                const isActive = item === activeRoute;
+                return (
+                    <div key={index} className="flex flex-col items-center">
+                        <Link
+                            to={toRoutePath(item.path)}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={
+                                isActive
+                                    ? cn(navStyles, 'bg-sky-300 text-black', classNameActiveLink)
+                                    : navStyles
+                            }
+                        >
+                            {item.icon}
+                            <span className="font-light text-center">{item.label}</span>
+                        </Link>
+                        <div className="h-[1px] w-10/12 border-b border-white/50 my-4"></div>
+                    </div>
+                );
+            })}
         </aside>
     );
 }
