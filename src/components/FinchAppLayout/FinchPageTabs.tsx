@@ -16,8 +16,7 @@ export type FinchPageTabsProps = {
     classNameInactiveTab?: string;
 };
 
-const tabStyles =
-    'self-end px-[18px] pt-[11px] pb-3 text-[15px] font-medium border-b-[3px] transition-colors';
+const tabStyles = 'self-end px-4 py-3 text-sm font-medium border-b-2 transition-colors';
 
 /** Strip of tab links rendered above a page whose route declares `tabs`. */
 export default function FinchPageTabs({
@@ -31,7 +30,7 @@ export default function FinchPageTabs({
     return (
         <nav
             className={cn(
-                'flex gap-1 px-7 h-[52px] items-stretch shrink-0 bg-black/[0.14] border-b border-white/10',
+                'flex gap-1 px-7 h-12 items-stretch shrink-0 bg-black/[0.14] border-b border-white/10',
                 className,
             )}
             {...props}
