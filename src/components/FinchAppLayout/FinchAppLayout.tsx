@@ -1,6 +1,7 @@
-import FinchHeader from '@/components/FinchHeader';
-import FinchMainContent from '@/components/FinchMainContent';
-import FinchSidebar from '@/components/FinchSidebar';
+import FinchHeader from './FinchHeader';
+import FinchMainContent from './FinchMainContent';
+import FinchSidebar from './FinchSidebar';
+import { useActiveRoute } from './hooks/useActiveRoute';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -10,8 +11,15 @@ export type FinchAppLayoutProps = {
     routes: RouteItem[];
     /** Title text displayed in the header. */
     headerTitle?: string;
+    /**
+     * Whether the active route's label appears in the header, for every route.
+     * A route's own `showPageTitle` overrides this. Defaults to `true`.
+     */
+    showPageTitle?: boolean;
     /** Additional CSS classes applied to the header title element. */
     classNameHeaderTitle?: string;
+    /** Additional CSS classes applied to the header page title element. */
+    classNameHeaderPageTitle?: string;
     /** URL of the logo image displayed in the header. Ignored when `headerLogoIcon` is provided. */
     headerLogoUrl?: string;
     /**
@@ -21,8 +29,16 @@ export type FinchAppLayoutProps = {
     headerLogoIcon?: React.ReactElement;
     /** Additional CSS classes applied to the outer main content area. */
     classNameMainContent?: string;
+    /** Additional CSS classes applied to the scrolling main content area that holds the page padding. */
+    classNameMainContentScrollContainer?: string;
     /** Additional CSS classes applied to the inner main content area. */
     classNameMainContentInnerContainer?: string;
+    /** Additional CSS classes applied to the page tab strip. */
+    classNamePageTabs?: string;
+    /** Additional CSS classes applied to the active page tab. */
+    classNamePageTabsActive?: string;
+    /** Additional CSS classes applied to inactive page tabs. */
+    classNamePageTabsInactive?: string;
     /** Additional CSS classes applied to the header element. */
     classNameHeader?: string;
     /** Additional CSS classes applied to the sidebar element. */
@@ -39,12 +55,18 @@ export type FinchAppLayoutProps = {
 export default function FinchAppLayout({
     routes,
     headerTitle,
+    showPageTitle,
     headerLogoUrl,
     headerLogoIcon,
     classNameMainContent,
+    classNameMainContentScrollContainer,
     classNameMainContentInnerContainer,
+    classNamePageTabs,
+    classNamePageTabsActive,
+    classNamePageTabsInactive,
     classNameHeader,
     classNameHeaderTitle,
+    classNameHeaderPageTitle,
     classNameSidebar,
     classNameSidebarActiveLink,
     classNameSidebarInactiveLink,
@@ -52,6 +74,10 @@ export default function FinchAppLayout({
     className,
     ...props
 }: FinchAppLayoutProps) {
+    const activeRoute = useActiveRoute(routes);
+    const isPageTitleShown = activeRoute?.showPageTitle ?? showPageTitle ?? true;
+    const pageTitle = isPageTitleShown ? activeRoute?.label : undefined;
+
     return (
         <div
             className={cn(
@@ -68,16 +94,22 @@ export default function FinchAppLayout({
             />
             <FinchHeader
                 title={headerTitle}
+                pageTitle={pageTitle}
                 logoUrl={headerLogoUrl}
                 logoIcon={headerLogoIcon}
                 className={classNameHeader}
                 classNameTitle={classNameHeaderTitle}
+                classNamePageTitle={classNameHeaderPageTitle}
                 classNameImage={classNameImage}
             />
             <FinchMainContent
                 routes={routes}
                 className={cn('h-[calc(100vh-4rem)]', classNameMainContent)}
+                classNameScrollContainer={classNameMainContentScrollContainer}
                 classNameInnerContainer={classNameMainContentInnerContainer}
+                classNamePageTabs={classNamePageTabs}
+                classNamePageTabsActive={classNamePageTabsActive}
+                classNamePageTabsInactive={classNamePageTabsInactive}
             />
         </div>
     );

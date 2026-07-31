@@ -3,6 +3,8 @@ import { cn } from '@/lib/utils';
 export type FinchHeaderProps = {
     /** Title text displayed in the header. */
     title?: string;
+    /** Name of the active page, rendered after the title and a divider. */
+    pageTitle?: string;
     /** URL of the logo image displayed in the header. Ignored when `logoIcon` is provided. */
     logoUrl?: string;
     /**
@@ -16,6 +18,8 @@ export type FinchHeaderProps = {
     classNameImage?: string;
     /** Additional CSS classes applied to the title element. */
     classNameTitle?: string;
+    /** Additional CSS classes applied to the page title element. */
+    classNamePageTitle?: string;
     /** Arbitrary JSX rendered on the right side of the header. */
     rightSlot?: React.ReactNode;
 };
@@ -28,11 +32,13 @@ export type FinchHeaderProps = {
  */
 export default function FinchHeader({
     title = 'BEAMLINE APP',
+    pageTitle,
     logoUrl = 'https://img.icons8.com/?size=100&id=11743&format=png&color=000000',
     logoIcon,
     className,
     classNameImage,
     classNameTitle,
+    classNamePageTitle,
     rightSlot,
     ...props
 }: FinchHeaderProps) {
@@ -50,6 +56,19 @@ export default function FinchHeader({
                 <h1 className={cn('text-sky-950 text-2xl font-semibold', classNameTitle)}>
                     {title}
                 </h1>
+                {pageTitle && (
+                    <>
+                        <span className="w-px h-6 bg-sky-950/20" />
+                        <span
+                            className={cn(
+                                'text-xl font-medium text-sky-950/70',
+                                classNamePageTitle,
+                            )}
+                        >
+                            {pageTitle}
+                        </span>
+                    </>
+                )}
             </div>
             {rightSlot}
         </header>
