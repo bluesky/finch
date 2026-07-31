@@ -26,8 +26,7 @@ Top-level structure
 
 `public/`
     Static assets used by the demo app and Storybook, including Finch images,
-    icons, `finch.config.json`, and `mockServiceWorker.js` for MSW-backed
-    Storybook or test mocks.
+    icons, and `finch.config.json`.
 
 `src/`
     Main source tree for the library, demo app, API hooks, components, features,
