@@ -6,8 +6,6 @@ type TiledWriterMultiScatterPlotProps = {
     blueskyRunIds: string[];
     /** Base URL of the Tiled server forwarded to `TiledMultiScatterPlot`. */
     tiledBaseUrl?: string;
-    /** Initial path for the Tiled search. */
-    initialPath?: string;
     /** Additional class names applied to the `TiledMultiScatterPlot` container. */
     className?: string;
     /** Additional class names applied to the plot inside `TiledMultiScatterPlot`. */
@@ -17,6 +15,6 @@ type TiledWriterMultiScatterPlotProps = {
     /** Explicit legend names for each trace, parallel to `blueskyRunIds`. */
     traceNames?: string[];
 };
-export default function TiledWriterMultiScatterPlot({ tiledTrace, blueskyRunIds, tiledBaseUrl, className, plotClassName, title, traceNames, initialPath, }: TiledWriterMultiScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledWriterMultiScatterPlot({ tiledTrace, blueskyRunIds, tiledBaseUrl, className, plotClassName, title, traceNames, }: TiledWriterMultiScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledWriterMultiScatterPlot.d.ts.map

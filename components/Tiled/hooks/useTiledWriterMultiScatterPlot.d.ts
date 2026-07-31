@@ -9,8 +9,6 @@ type UseTiledWriterMultiScatterPlotReturn = {
 type UseTiledWriterMultiScatterPlotOptions = {
     /** The base URL for the Tiled server, e.g. `http://localhost:8000/api/v1`. */
     tiledBaseUrl?: string;
-    /** The initial path to use for the Tiled search, e.g. `beamline531`. */
-    initialPath?: string;
 };
 export declare const useTiledWriterMultiScatterPlot: (blueskyRunIds: string[], options?: UseTiledWriterMultiScatterPlotOptions) => UseTiledWriterMultiScatterPlotReturn;
 export {};
