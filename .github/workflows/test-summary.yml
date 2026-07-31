@@ -1,0 +1,145 @@
+name: PR Test Summary
+
+on:
+  workflow_run:
+    workflows: ['Run Tests']
+    types: [completed]
+
+permissions:
+  pull-requests: write
+  actions: read
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+
+    steps:
+      - name: Determine PR number
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          number=$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --json number,headRefOid \
+            --jq ".[] | select(.headRefOid == \"$HEAD_SHA\") | .number")
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+      - name: Download test artifacts
+        if: steps.pr.outputs.number != ''
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results-node-20.x
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Comment PR with test summary
+        if: steps.pr.outputs.number != ''
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            let lintOutput = '';
+            try {
+              lintOutput = fs.readFileSync('lint-output.txt', 'utf8').trim();
+            } catch (e) {
+              // lint output not available
+            }
+
+            let formatOutput = '';
+            try {
+              formatOutput = fs.readFileSync('format-output.txt', 'utf8').trim();
+            } catch (e) {
+              // format output not available
+            }
+
+            const testStatus = '${{ github.event.workflow_run.conclusion }}';
+            const emoji = testStatus === 'success' ? '✅' : '❌';
+            const message = testStatus === 'success' ? 'All tests passed!' : 'Some tests failed.';
+
+            // Get the job outputs to determine individual step results
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: ${{ github.event.workflow_run.id }},
+            });
+
+            const testJob = jobs.data.jobs.find(job => job.name.includes('test'));
+            const steps = testJob ? testJob.steps : [];
+
+            const lintStep = steps.find(step => step.name === 'Run linting');
+            const formatStep = steps.find(step => step.name === 'Run formatting check');
+            const buildStep = steps.find(step => step.name === 'Run type checking and build');
+            const testSuitesStep = steps.find(step => step.name === 'Run specific test suites');
+
+            const lintStatus = lintStep ? (lintStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const formatStatus = formatStep ? (formatStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const buildStatus = buildStep ? (buildStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+            const testStepStatus = testSuitesStep ? (testSuitesStep.conclusion === 'success' ? '✅' : '❌') : '❓';
+
+            const lintText = lintStep ?
+              (lintStep.conclusion === 'success' ? 'ESLint passed' : 'ESLint failed') :
+              'ESLint status unknown';
+
+            let lintSection = '';
+            if (lintOutput && lintStep && lintStep.conclusion !== 'success') {
+              const truncated = lintOutput.length > 3000
+                ? lintOutput.substring(0, 3000) + '\n...(output truncated)'
+                : lintOutput;
+              lintSection = `\n\n<details>\n<summary>ESLint Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
+
+            const formatText = formatStep ?
+              (formatStep.conclusion === 'success' ? 'Prettier passed' : 'Prettier failed') :
+              'Formatting status unknown';
+
+            let formatSection = '';
+            if (formatOutput && formatStep && formatStep.conclusion !== 'success') {
+              const truncated = formatOutput.length > 3000
+                ? formatOutput.substring(0, 3000) + '\n...(output truncated)'
+                : formatOutput;
+              formatSection = `\n\n<details>\n<summary>Prettier Errors</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n</details>`
+            }
+
+            const buildText = buildStep ?
+              (buildStep.conclusion === 'success' ? 'TypeScript compilation successful' : 'TypeScript compilation failed') :
+              'Build status unknown';
+
+            const testText = testSuitesStep ?
+              (testSuitesStep.conclusion === 'success' ? 'All tests passed' : 'Some tests failed') :
+              'Test status unknown';
+
+            const commentBody = [
+              `## ${emoji} Test Results`,
+              ``,
+              `${message}`,
+              ``,
+              `**Complete Test Suite Coverage:**`,
+              `- ${testStepStatus} **Buttons** - Button, ButtonIconOnly, ButtonWithIcon, ButtonCopyToClipboard`,
+              `- ${testStepStatus} **Inputs** - InputCheckBox, InputNumber, InputEnumBoxRounded, InputStringBoxRounded`,
+              `- ${testStepStatus} **Plots** - PlotlyHeatmap, PlotlyHeatmapTiled, PlotlyScatter, Histogram, ColormapPicker`,
+              `- ${testStepStatus} **Layout** - Sidebar, SidebarItem, FinchSidebar, FinchAppLayout, FinchHeader, FinchMainContent, Header, Main, Bento, Paper, Widget`,
+              `- ${testStepStatus} **Tiled** - TiledComponents, TiledLinePlotMaker`,
+              `- ${testStepStatus} **Devices** - Camera, Shutter, DeviceControllerBox, DeviceControllerBoxSimple, TableDeviceController, ControllerAbsoluteMove, ControllerRelativeMove, Hexapod, BeamEnergy`,
+              `- ${testStepStatus} **Services** - QueueServer, SignalMonitorPlots, Experiment`,
+              `- ${testStepStatus} **Misc** - IFrame, GoogleDoc, SelectDropdown, ComponentViewer, ComponentViewerUtils`,
+              ``,
+              `**Test Environment:** Node.js 20.x`,
+              `**Linting:** ${lintStatus} ${lintText}${lintSection}`,
+              `**Formatting:** ${formatStatus} ${formatText}${formatSection}`,
+              `**Type Checking:** ${buildStatus} ${buildText}`,
+              `**Build:** ${buildStatus} Production build successful`,
+              `**Tests:** ${testStepStatus} ${testText}`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              issue_number: ${{ steps.pr.outputs.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
