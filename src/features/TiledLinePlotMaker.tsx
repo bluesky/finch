@@ -51,10 +51,8 @@ export default function TiledLinePlotMaker({
     const [blueskyIds, setBlueskyIds] = useState<string[]>([]);
     const [traceNames, setTraceNames] = useState<Record<string, string>>({});
     const [plotTitle, setPlotTitle] = useState('');
-    const [xAxis, setXAxis] = useState(
-        import.meta.env.VITE_XAS_SCATTER_X ?? 'mono_energy_energy_eV',
-    );
-    const [yAxis, setYAxis] = useState(import.meta.env.VITE_XAS_SCATTER_Y ?? 'amptek_fluo_roi_sum');
+    const [xAxis, setXAxis] = useState('seq_num');
+    const [yAxis, setYAxis] = useState('time');
     const handleIDSelect = (id: string) => {
         setBlueskyIds((prev) => [...prev, id]);
     };
@@ -351,6 +349,8 @@ export default function TiledLinePlotMaker({
                 title={plotTitle || undefined}
                 className={cn('h-full border-2 border-black/20', classNamePlot)}
                 plotClassName="h-full"
+                tiledBaseUrl={tiledBaseUrl}
+                initialPath={initialPath}
             />
         </article>
     );

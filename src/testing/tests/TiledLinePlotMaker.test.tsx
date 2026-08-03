@@ -83,8 +83,8 @@ describe('TiledLinePlotMaker', () => {
         render(<TiledLinePlotMaker />);
         await waitFor(() => expect(getSearchResults).toHaveBeenCalled());
         const plot = screen.getByTestId('multi-scatter-plot');
-        expect(plot).toHaveAttribute('data-x', 'mono_energy_energy_eV');
-        expect(plot).toHaveAttribute('data-y', 'amptek_fluo_roi_sum');
+        expect(plot).toHaveAttribute('data-x', 'seq_num');
+        expect(plot).toHaveAttribute('data-y', 'time');
     });
 
     it('forwards the plot title from the title input', async () => {

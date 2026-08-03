@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useOphydApiUrls } from '@/utils/apiUtils';
 import { ophydSocketCameraPath } from '@/api/ophyd/socketPaths';
+import { useCameraSocketFactory } from '@/api/ophyd/OphydTransportContext';
 import { CanvasSizes } from '../CameraCanvas';
 import { getErrorMessage } from '@/utils/errorHandling';
+import type { CameraSocketLike } from '@/lib/ophyd-sim';
 
 export type UseCameraCanvasProps = {
     imageArrayPV?: string;
@@ -10,6 +12,14 @@ export type UseCameraCanvasProps = {
     canvasSize?: CanvasSizes;
     prefix?: string;
     wsUrl?: string;
+    /** Begin acquisition automatically on mount instead of waiting for the Acquire button. */
+    autoStart?: boolean;
+    /**
+     * Externally control acquisition. When provided, the stream starts on `false`
+     * and pauses on `true` — each time the value changes. Leave undefined to keep
+     * acquisition fully manual (Acquire / Pause buttons).
+     */
+    paused?: boolean;
 };
 
 export function useCameraCanvas({
@@ -18,16 +28,18 @@ export function useCameraCanvas({
     canvasSize = 'medium',
     prefix = '',
     wsUrl,
+    autoStart = false,
+    paused,
 }: UseCameraCanvasProps) {
+    const socketFactory = useCameraSocketFactory();
     const canvasRef = useRef<null | HTMLCanvasElement>(null);
     const [fps, setFps] = useState<string>('0');
     const [socketStatus, setSocketStatus] = useState('closed');
     const [isImageLogScale, setIsImageLogScale] = useState(true);
     const [socketError, setSocketError] = useState<null | string>(null);
-    const ws = useRef<null | WebSocket>(null);
+    const ws = useRef<null | CameraSocketLike>(null);
     const frameCount = useRef<null | number>(null);
     const startTime = useRef<null | Date>(null);
-    const isInitialized = useRef(false);
     const configWsUrl = useOphydApiUrls().getWsUrl(ophydSocketCameraPath);
     const resolvedWsUrl = wsUrl ?? configWsUrl;
 
@@ -167,7 +179,7 @@ export function useCameraCanvas({
 
         try {
             const url = resolvedWsUrl;
-            ws.current = new WebSocket(url);
+            ws.current = socketFactory(url);
         } catch (error) {
             //This catch block only handles synchronous errors thrown during the WebSocket constructor call (invalid url, protocol), most other errors will be in the ws.onerror callback
             console.log({ error });
@@ -258,20 +270,42 @@ export function useCameraCanvas({
             setSocketStatus('closed');
             frameCount.current = 0;
         };
-    }, [resolvedWsUrl, getImageArrayPV, getSizePVs, canvasSize]);
+    }, [resolvedWsUrl, getImageArrayPV, getSizePVs, canvasSize, socketFactory]);
 
     useEffect(() => {
-        if (!isInitialized.current) {
-            isInitialized.current = true;
-            startWebSocket();
-        }
+        // By default the stream starts paused — the user begins acquisition via
+        // the Acquire button (startWebSocket). We only register the unmount
+        // cleanup so a socket opened during this mount is torn down on unmount.
         return () => {
             if (ws.current) {
                 ws.current.close();
             }
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array for initialization only
+    }, []); // Empty dependency array — cleanup only; acquisition is user-driven
+
+    // Optionally begin acquisition on mount. Guarded so it fires once and does
+    // not reconnect if startWebSocket's identity changes.
+    const hasAutoStarted = useRef(false);
+    useEffect(() => {
+        if (autoStart && !hasAutoStarted.current) {
+            hasAutoStarted.current = true;
+            startWebSocket();
+        }
+    }, [autoStart, startWebSocket]);
+
+    // Externally-controlled acquisition. Act only on an actual change of `paused`
+    // so unrelated re-renders (or startWebSocket identity changes) don't churn the
+    // socket, and manual Acquire/Pause between changes still works.
+    const prevPaused = useRef<boolean | undefined>(undefined);
+    useEffect(() => {
+        if (paused === undefined || prevPaused.current === paused) return;
+        prevPaused.current = paused;
+        if (paused) {
+            closeWebSocket();
+        } else {
+            startWebSocket();
+        }
+    }, [paused, startWebSocket, closeWebSocket]);
 
     return {
         canvasRef,

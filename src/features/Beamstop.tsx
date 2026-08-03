@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 
 import SignalMonitorPlotPV from '@/components/SignalMonitorPlotPV';
 import DeviceControllerBox from '@/components/DeviceControllerBox';
+import EnergyVsCurrentPlotPV from '@/features/EnergyVsCurrentPlotPV';
 import useOphydPVSocket from '@/api/ophyd/useOphydPVSocket';
 import Button from '@/components/Button';
 
@@ -11,10 +12,17 @@ export type BeamstopProps = {
     beamstopXName: string;
     beamstopYName: string;
     beamstopCurrentName: string;
+    /**
+     * Optional writable beam-energy PV. When provided, an energy control and a
+     * live Energy-vs-Current plot are rendered. Selecting an energy shifts the
+     * beam (via the DCM Bragg angle), changing the diode current.
+     */
+    beamstopEnergyName?: string;
     beamstopXIcon?: JSX.Element;
     beamstopYIcon?: JSX.Element;
     beamstopXTitle?: string;
     beamstopYTitle?: string;
+    beamstopEnergyTitle?: string;
     enableBestOption?: boolean;
     stackVertical?: boolean;
 };
@@ -23,15 +31,21 @@ export default function Beamstop({
     beamstopXName,
     beamstopYName,
     beamstopCurrentName,
+    beamstopEnergyName,
     beamstopXIcon = deviceIcons.beamstopX,
     beamstopYIcon = deviceIcons.beamstopY,
     beamstopXTitle,
     beamstopYTitle,
+    beamstopEnergyTitle = 'Beam Energy',
     enableBestOption,
     stackVertical = true,
 }: BeamstopProps) {
     const beamstopXNameRBV = useMemo(() => beamstopXName + '.RBV', [beamstopXName]);
     const beamstopYNameRBV = useMemo(() => beamstopYName + '.RBV', [beamstopYName]);
+    const beamstopEnergyRBV = useMemo(
+        () => (beamstopEnergyName ? beamstopEnergyName + '.RBV' : undefined),
+        [beamstopEnergyName],
+    );
     const deviceNameList = useMemo(
         () => [
             beamstopXName,
@@ -39,8 +53,19 @@ export default function Beamstop({
             beamstopXNameRBV,
             beamstopYNameRBV,
             beamstopCurrentName,
+            ...(beamstopEnergyName && beamstopEnergyRBV
+                ? [beamstopEnergyName, beamstopEnergyRBV]
+                : []),
         ],
-        [beamstopXName, beamstopYName, beamstopXNameRBV, beamstopYNameRBV, beamstopCurrentName],
+        [
+            beamstopXName,
+            beamstopYName,
+            beamstopXNameRBV,
+            beamstopYNameRBV,
+            beamstopCurrentName,
+            beamstopEnergyName,
+            beamstopEnergyRBV,
+        ],
     );
     const { devices, handleSetValueRequest, toggleDeviceLock } = useOphydPVSocket(deviceNameList);
     const [bestCurrent, setBestCurrent] = useState<number | null>(null);
@@ -84,15 +109,19 @@ export default function Beamstop({
             <article
                 className={`${stackVertical ? 'w-full h-1/2' : 'w-1/2 h-full justify-start'}   flex flex-col p-8 min-w-96`}
             >
-                <h3 className="text-4xl text-center">
-                    Beamstop Current:{' '}
-                    {devices[beamstopCurrentName] && devices[beamstopCurrentName].value}{' '}
-                    {devices[beamstopCurrentName] &&
-                        devices[beamstopCurrentName].units?.slice(0, 3)}
-                </h3>
+                <span className="text-4xl flex justify-start space-x-2 ">
+                    <p> Beamstop Current: </p>
+
+                    <p>
+                        {devices[beamstopCurrentName] &&
+                            Number(devices[beamstopCurrentName].value).toPrecision(4)}{' '}
+                        {devices[beamstopCurrentName] &&
+                            devices[beamstopCurrentName].units?.slice(0, 3)}
+                    </p>
+                </span>
                 <SignalMonitorPlotPV
                     pv={beamstopCurrentName}
-                    className={`${stackVertical ? 'h-full' : 'h-1/2'} min-w-96`}
+                    className={`${stackVertical ? 'h-full' : 'h-fit'} min-w-96`}
                     numVisiblePoints={200}
                     tickTextIntervalSeconds={30}
                 />
@@ -118,7 +147,7 @@ export default function Beamstop({
                 )}
             </article>
             <article
-                className={`${stackVertical ? 'w-full pt-4 max-h-1/2 flex flex-row justify-center gap-8' : 'w-1/2 h-full flex flex-col items-center justify-between gap-6'} `}
+                className={`${stackVertical ? 'w-full pt-4 max-h-1/2 flex flex-row justify-center gap-8' : 'w-1/2 h-full flex flex-col items-center justify-start gap-6'} `}
             >
                 <DeviceControllerBox
                     title={beamstopXTitle}
@@ -136,7 +165,29 @@ export default function Beamstop({
                     handleLockClick={toggleDeviceLock}
                     handleSetValueRequest={handleSetValueRequest}
                 />
+                {beamstopEnergyName && (
+                    <DeviceControllerBox
+                        title={beamstopEnergyTitle}
+                        device={devices[beamstopEnergyName]}
+                        deviceRBV={beamstopEnergyRBV ? devices[beamstopEnergyRBV] : undefined}
+                        handleLockClick={toggleDeviceLock}
+                        handleSetValueRequest={handleSetValueRequest}
+                    />
+                )}
             </article>
+            {beamstopEnergyName && (
+                <article
+                    className={`${stackVertical ? 'w-full' : 'w-full'} flex flex-col p-8 min-w-96`}
+                >
+                    <EnergyVsCurrentPlotPV
+                        energyPv={beamstopEnergyName}
+                        currentPv={beamstopCurrentName}
+                        beamstopXRbvPv={beamstopXNameRBV}
+                        beamstopYRbvPv={beamstopYNameRBV}
+                        className="min-w-96"
+                    />
+                </article>
+            )}
         </section>
     );
 }

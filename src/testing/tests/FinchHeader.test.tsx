@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import FinchHeader from '../../components/FinchHeader';
+import FinchHeader from '../../components/FinchAppLayout/FinchHeader';
 
 describe('FinchHeader Component', () => {
     it('renders without crashing', () => {
@@ -56,5 +56,22 @@ describe('FinchHeader Component', () => {
     it('applies classNameImage to the logo image', () => {
         const { container } = render(<FinchHeader classNameImage="rounded-full" />);
         expect(container.querySelector('img')).toHaveClass('rounded-full');
+    });
+
+    it('renders the page title after the title', () => {
+        render(<FinchHeader title="My Beamline" pageTitle="Explorer" />);
+        const title = screen.getByText('My Beamline');
+        const pageTitle = screen.getByText('Explorer');
+        expect(title.compareDocumentPosition(pageTitle)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    it('renders no page title when pageTitle is not provided', () => {
+        render(<FinchHeader title="My Beamline" />);
+        expect(screen.queryByText('Explorer')).not.toBeInTheDocument();
+    });
+
+    it('applies classNamePageTitle to the page title element', () => {
+        render(<FinchHeader pageTitle="Explorer" classNamePageTitle="text-red-500" />);
+        expect(screen.getByText('Explorer')).toHaveClass('text-red-500');
     });
 });
