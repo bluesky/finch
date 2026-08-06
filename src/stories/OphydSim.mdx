@@ -1,0 +1,31 @@
+import { Markdown, Meta } from '@storybook/addon-docs/blocks';
+import OphydSimDoc from './OphydSim.md?raw';
+import OphydSimDemo from './demos/OphydSimDemo';
+
+<Meta title="Documentation/Ophyd Sim" />
+
+# Ophyd Sim
+
+A browser-side simulator for Ophyd beamline devices — motors, shutters,
+detectors, and derived signals — that drives finch's normal Ophyd hooks without
+a real IOC or WebSocket backend.
+
+## Live demo
+
+The motor-controller components below are wired to an in-browser simulator. Move
+a motor and its readback animates toward the setpoint; nudging <code>demo:m1</code>
+toward 2&nbsp;mm drives the derived diode reading. No backend is involved.
+
+<div
+    style={{
+        padding: '1.5rem',
+        background: '#f8fafc',
+        borderRadius: '8px',
+        border: '1px solid #e2e8f0',
+        margin: '1rem 0 2rem',
+    }}
+>
+    <OphydSimDemo />
+</div>
+
+<Markdown>{OphydSimDoc}</Markdown>
