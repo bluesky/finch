@@ -32,6 +32,8 @@ export type CameraContainerProps = {
     cameraImageWsUrl?: string;
     /** WebSocket URL for the camera control PV subscription. Falls back to the application default when omitted. */
     cameraControlWsUrl?: string;
+    /** Begin streaming frames automatically on mount instead of waiting for the Acquire button. Defaults to `false`. */
+    autoStart?: boolean;
 };
 export default function CameraContainer({
     prefix = '13SIM1',
@@ -43,6 +45,7 @@ export default function CameraContainer({
     sizePVs,
     cameraImageWsUrl,
     cameraControlWsUrl,
+    autoStart = false,
 }: CameraContainerProps) {
     const { devices, startAcquire, stopAcquire, onSubmitSettings, cameraControlPV } =
         useCameraContainer({ prefix, settings, enableControlPanel, cameraControlWsUrl });
@@ -56,6 +59,7 @@ export default function CameraContainer({
                     sizePVs={sizePVs}
                     prefix={prefix}
                     wsUrl={cameraImageWsUrl}
+                    autoStart={autoStart}
                 />
                 {enableControlPanel ? (
                     <CameraControlPanel
