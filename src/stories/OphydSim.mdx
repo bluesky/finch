@@ -1,6 +1,7 @@
 import { Markdown, Meta } from '@storybook/addon-docs/blocks';
 import OphydSimDoc from './OphydSim.md?raw';
 import OphydSimDemo from './demos/OphydSimDemo';
+import EndstationDisplayDemo from './demos/EndstationDisplayDemo';
 
 <Meta title="Documentation/Ophyd Sim" />
 
@@ -9,6 +10,10 @@ import OphydSimDemo from './demos/OphydSimDemo';
 A browser-side simulator for Ophyd beamline devices — motors, shutters,
 detectors, and derived signals — that drives finch's normal Ophyd hooks without
 a real IOC or WebSocket backend.
+
+<div style={{ display: 'flex', justifyContent: 'center', margin: '1rem 0 2rem' }}>
+    <EndstationDisplayDemo />
+</div>
 
 ## Live demo
 
