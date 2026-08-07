@@ -11,9 +11,10 @@ import { withCameraSim } from '../demos/ophydSimDecorators';
  * Driven by the `beamstopBeamline` sim's `13SIM1` detector: the `withCameraSim`
  * decorator supplies both the PV transport and a simulated camera-socket factory,
  * so the canvas renders live derived frames with no backend. `autoStart` begins
- * the stream on mount (otherwise press **Acquire**); the settings panel is
- * disabled to keep the demo focused on the image. The sample code shows only the
- * component.
+ * the stream on mount (otherwise press **Acquire**). The settings panel and the
+ * PV-acquire control panel are disabled here, leaving the canvas's own
+ * Acquire/Pause stream controls, to keep the demo focused on the image. The
+ * sample code shows only the component.
  */
 const meta = {
     title: 'Ophyd Components/CameraContainer',
@@ -32,6 +33,7 @@ export const Default: Story = {
             prefix="13SIM1"
             imageArrayPV="13SIM1:image1:ArrayData"
             enableSettings={false}
+            enableControlPanel={false}
             autoStart
         />
     ),
@@ -42,6 +44,7 @@ export const Default: Story = {
     prefix="13SIM1"
     imageArrayPV="13SIM1:image1:ArrayData"
     enableSettings={false}
+    enableControlPanel={false}
     autoStart
 />`,
                 language: 'tsx',
