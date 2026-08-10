@@ -22,6 +22,7 @@ const preview: Preview = {
             "Installation",
             "Configuration",
             "BackendSetup",
+            "Ophyd Sim",
             "API Hooks",
           ],
           "Bluesky Components",  [
@@ -33,6 +34,7 @@ const preview: Preview = {
               ]
             ]
           ],
+          "Ophyd Components",
           "Layout Components",
           "General Components",
         ],
