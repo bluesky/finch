@@ -19,6 +19,17 @@ const config: StorybookConfig = {
     STORYBOOK_FINCH_VERSION: pkg.version,
   }),
   staticDirs: ['../public'],
+  typescript: {
+    // The default (react-docgen) can't resolve mapped types like
+    // `Omit<OtherProps, 'device'> & { pv: string }`, so components that build
+    // their props that way only showed their inline-declared props in autodocs.
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      shouldRemoveUndefinedFromOptional: true,
+      propFilter: (prop) => !prop.parent?.fileName.includes('node_modules'),
+    },
+  },
   async viteFinal(config) {
     return mergeConfig(config, {
       base: '/finch/',

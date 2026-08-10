@@ -7,8 +7,7 @@ be driven without a real IOC or WebSocket backend. It powers Storybook stories,
 tests, and the [`SimulatedBeamline`](https://github.com/bluesky/finch/blob/main/src/features/SimulatedBeamline/SimulatedBeamline.tsx)
 widget.
 
-The **Live demo** at the top of this page is exactly that: two motor-controller
-components wired to an in-browser sim, with no backend behind them.
+The **Live demo** at the top of this page is an example of multiple Finch components utilizing Ophyd Sim to mimic and actual beamline.
 
 Everything is re-exported from the package root ([index.ts](https://github.com/bluesky/finch/blob/main/src/lib/ophyd-sim/index.ts));
 import from `@/lib/ophyd-sim`, never from subfolders.

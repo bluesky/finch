@@ -8,10 +8,6 @@ import { withOphydSim, beamstopBeamline } from '@/lib/ophyd-sim';
  * `devices` map (setpoints) and a `devicesRBV` map (readbacks) plus the move /
  * lock / expand callbacks.
  *
- * Build both maps from `useOphydPVSocket` — one subscription for the setpoints
- * and one for the `.RBV` readbacks. The `beamstopBeamline` sim serves the two
- * beamstop motors below, so each move animates its readback live. The sim
- * providers are a decorator; the sample code shows only the hook + component.
  */
 const meta = {
     title: 'Ophyd Components/TableDeviceControllerWithRBV',

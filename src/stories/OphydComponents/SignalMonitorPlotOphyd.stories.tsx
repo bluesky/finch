@@ -34,23 +34,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-    render: () => (
-        <SignalMonitorPlotOphyd
-            deviceName="beamstop_current"
-            className="h-96 w-[640px]"
-            numVisiblePoints={60}
-        />
-    ),
-    parameters: {
-        docs: {
-            source: {
-                code: `<SignalMonitorPlotOphyd
-    deviceName="beamstop_current"
-    className="h-96 w-[640px]"
-    numVisiblePoints={60}
-/>`,
-                language: 'tsx',
-            },
-        },
+    args: {
+        deviceName: 'beamstop_current',
+        className: 'h-96 w-[640px]',
+        numVisiblePoints: 60,
     },
 };
