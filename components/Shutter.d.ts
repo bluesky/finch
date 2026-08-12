@@ -7,6 +7,8 @@ type ShutterProps = {
     valueWhenClosed?: number;
     /** Additional CSS classes applied to the root container div. */
     className?: string;
+    /** Additional CSS classes applied to the inner content row (e.g. to adjust padding/height). */
+    classNameContent?: string;
     /** Additional CSS classes applied to the dropdown control panel. */
     classNameDropdown?: string;
     /** Additional CSS classes applied to the status circle when the shutter is open. */
@@ -16,6 +18,6 @@ type ShutterProps = {
     /** Additional CSS classes applied to the status circle when the device is disconnected or in an unknown state. */
     classNameStatusCircleDisconnected?: string;
 };
-export default function Shutter({ pv, valueWhenOpen, valueWhenClosed, className, classNameDropdown, classNameStatusCircleOpen, classNameStatusCircleClosed, classNameStatusCircleDisconnected, ...props }: ShutterProps): import("react/jsx-runtime").JSX.Element;
+export default function Shutter({ pv, valueWhenOpen, valueWhenClosed, className, classNameContent, classNameDropdown, classNameStatusCircleOpen, classNameStatusCircleClosed, classNameStatusCircleDisconnected, ...props }: ShutterProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=Shutter.d.ts.map

@@ -1,11 +1,19 @@
-import { Devices } from 'src/types/deviceControllerTypes';
+import { Devices } from '../../types/deviceControllerTypes';
 /**
- * Custom hook for managing WebSocket connections to Ophyd devices.
- * Provides real-time device state management and control functions.
+ * Manage subscriptions to a set of EPICS PVs and surface their values as a
+ * Devices map.
  *
- * @param deviceNameList - Array of EPICS PVs to subscribe to
- * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
- * @returns Object containing device states and control functions
+ * Connection lifecycle is delegated to a transport read from
+ * OphydTransportProvider — see [src/api/ophyd/OphydTransportProvider.tsx].
+ * When no provider is mounted, a fallback transport pointed at the
+ * configured ophyd-websocket backend is created lazily (one per
+ * consumer-URL pair). To make two hook calls observe the same state, wrap
+ * the tree in an OphydTransportProvider with a shared transport.
+ *
+ * @param deviceNameList - EPICS PVs to subscribe to.
+ * @param wsUrl - Optional URL override that builds an ad-hoc WebSocket
+ *   transport for this consumer only. Ignored when an OphydTransportProvider
+ *   supplies a transport.
  */
 export default function useOphydPVSocket(deviceNameList: string[], wsUrl?: string): {
     devices: Devices;

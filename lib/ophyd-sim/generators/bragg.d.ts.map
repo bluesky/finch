@@ -1,0 +1,1 @@
+{"version":3,"file":"bragg.d.ts","sourceRoot":"","sources":["../../../../src/lib/ophyd-sim/generators/bragg.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,iBAAiB;IAC9B,uCAAuC;IACvC,QAAQ,EAAE,MAAM,CAAC;IACjB;;;OAGG;IACH,IAAI,CAAC,EAAE,MAAM,CAAC;CACjB;AAKD;;;;;;;;;;GAUG;AACH,wBAAgB,UAAU,CAAC,EAAE,QAAQ,EAAE,IAAY,EAAE,EAAE,iBAAiB,GAAG,MAAM,CAIhF"}

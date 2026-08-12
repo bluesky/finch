@@ -1,0 +1,1 @@
+const c={x:[],y:[],type:"scatter",mode:"lines+markers",marker:{color:"grey",size:[]}};function o(r,e=0,t=4){return r<=0?[]:r===1?[1]:Array.from({length:r},(s,a)=>{const n=a/(r-1);return e+Math.pow(n,t)*(1-e)})}export{c as b,o as r};

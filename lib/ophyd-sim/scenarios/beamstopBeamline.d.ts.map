@@ -1,0 +1,1 @@
+{"version":3,"file":"beamstopBeamline.d.ts","sourceRoot":"","sources":["../../../../src/lib/ophyd-sim/scenarios/beamstopBeamline.ts"],"names":[],"mappings":"AAIA,OAAO,EAAY,KAAK,cAAc,EAAE,MAAM,qBAAqB,CAAC;AAWpE,oEAAoE;AACpE,eAAO,MAAM,iBAAiB,EAA2B,cAAc,CAAC;AAExE;;;;;;;;;;;;;;;;;;;;;;;;GAwBG;AACH,eAAO,MAAM,UAAU,qBAAqB,CAAC;AAC7C,eAAO,MAAM,gBAAgB,uBA0E3B,CAAC"}

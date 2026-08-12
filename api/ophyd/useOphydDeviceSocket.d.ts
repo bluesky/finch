@@ -1,11 +1,10 @@
-import { OphydDevices } from 'src/types/deviceControllerTypes';
+import { OphydDevices } from '../../types/deviceControllerTypes';
 /**
- * Custom hook for managing WebSocket connections to Ophyd devices.
- * Provides real-time device state management and control functions.
+ * Device-socket counterpart of {@link useOphydPVSocket}. Uses the
+ * device-channel protocol where messages key on `device` instead of `pv`.
  *
- * @param deviceNameList - Array of Ophyd device names to subscribe to
- * @param wsUrl - Optional WebSocket URL. If not provided, will use environment variables or default to localhost:8001
- * @returns Object containing device states and control functions
+ * See OphydTransportProvider for the transport context. When no provider is
+ * mounted, a fallback WebSocket transport is constructed lazily.
  */
 export default function useOphydDeviceSocket(deviceNameList: string[], wsUrl?: string): {
     devices: OphydDevices;

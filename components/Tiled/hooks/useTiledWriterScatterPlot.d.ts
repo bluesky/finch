@@ -19,6 +19,8 @@ type UseTiledWriterScatterPlotOptions = {
     pollingIntervalMs?: number;
     /** The base url for the tiled server, ex) http://localhost:8000/api/v1 */
     tiledBaseUrl?: string;
+    /** The initial path to use for the tiled search, ex) beamline531 */
+    initialPath?: string;
 };
 export declare const useTiledWriterScatterPlot: (blueskyRunId: string, options?: UseTiledWriterScatterPlotOptions) => UseTiledWriterScatterPlotReturn;
 export {};

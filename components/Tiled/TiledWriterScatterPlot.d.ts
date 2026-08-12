@@ -10,6 +10,8 @@ type TiledWriterScatterPlotProps = {
     partition?: number;
     /** Base URL of the Tiled server forwarded to `TiledScatterPlot`. */
     tiledBaseUrl?: string;
+    /** Initial path for the Tiled search, e.g. `beamline531`. */
+    initialPath?: string;
     /** Milliseconds between data refetches while the run is ongoing. Defaults to `1000`. */
     pollingIntervalMs?: number;
     /** Additional class names applied to the `TiledScatterPlot` container. */
@@ -19,6 +21,6 @@ type TiledWriterScatterPlotProps = {
     /** When `true`, renders a status/error text line above the plot. Defaults to `true`. */
     showStatusText?: boolean;
 };
-export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, pollingIntervalMs, className, plotClassName, showStatusText, }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, initialPath, pollingIntervalMs, className, plotClassName, showStatusText, }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledWriterScatterPlot.d.ts.map

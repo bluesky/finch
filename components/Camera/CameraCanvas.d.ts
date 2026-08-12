@@ -12,6 +12,13 @@ export type CameraCanvasProps = {
     prefix?: string;
     /** WebSocket URL for the image stream. Falls back to the application default when omitted. */
     wsUrl?: string;
+    /** Begin acquisition automatically on mount instead of waiting for the Acquire button. */
+    autoStart?: boolean;
+    /**
+     * Externally control acquisition: pauses the stream when `true`, resumes when
+     * `false`, on each change. Leave undefined for fully manual control.
+     */
+    paused?: boolean;
 };
 export default function CameraCanvas(props: CameraCanvasProps): import("react/jsx-runtime").JSX.Element;
 //# sourceMappingURL=CameraCanvas.d.ts.map

@@ -1,0 +1,1 @@
+import{u as n}from"./useOphydPVSocket-Dd5zlKo0.js";function d(e,t){const{devices:o,toggleDeviceLock:u,handleSetValueRequest:c,toggleExpand:s}=n(e,t);return{devices:o,toggleDeviceLock:u,handleSetValueRequest:c,toggleExpand:s}}export{d as u};

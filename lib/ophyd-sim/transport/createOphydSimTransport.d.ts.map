@@ -1,0 +1,1 @@
+{"version":3,"file":"createOphydSimTransport.d.ts","sourceRoot":"","sources":["../../../../src/lib/ophyd-sim/transport/createOphydSimTransport.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAIR,gBAAgB,EAGnB,MAAM,6BAA6B,CAAC;AAErC,OAAO,KAAK,EAAE,QAAQ,EAAwB,MAAM,eAAe,CAAC;AAEpE;;;;;;;;;;;;;GAaG;AACH,wBAAgB,uBAAuB,CAAC,GAAG,EAAE,QAAQ,GAAG,gBAAgB,CAsFvE"}
