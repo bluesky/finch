@@ -59,3 +59,23 @@ export const checkRunCompletion = async (path: string, url?: string): Promise<bo
         return false;
     }
 };
+
+/**
+ * Returns a cleaned version of the initial path for Tiled searches.
+ * Removes leading and trailing slashes and whitespace.
+ * Returns `undefined` if the cleaned path is empty or if the input is `undefined`.
+ *
+ * @example
+ * cleanTiledInitialPath('  /beamline531/  ') // returns 'beamline531'
+ * cleanTiledInitialPath('/beamline531/') // returns 'beamline531'
+ * cleanTiledInitialPath('') // returns undefined
+ * cleanTiledInitialPath(undefined) // returns undefined
+ * @param path
+ * @returns
+ */
+export const cleanTiledInitialPath = (path: string | undefined): string | undefined => {
+    if (!path) return undefined;
+    // Remove leading and trailing slashes and whitespace
+    const cleanedPath = path.trim().replace(/^\/+|\/+$/g, '');
+    return cleanedPath || undefined; // Return undefined if the cleaned path is empty
+};

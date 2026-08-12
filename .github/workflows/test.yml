@@ -64,6 +64,7 @@ jobs:
           npm run test:run -- src/testing/tests/FinchAppLayout.test.tsx
           npm run test:run -- src/testing/tests/FinchHeader.test.tsx
           npm run test:run -- src/testing/tests/FinchMainContent.test.tsx
+          npm run test:run -- src/testing/tests/FinchPageTabs.test.tsx
           npm run test:run -- src/testing/tests/FinchSidebar.test.tsx
           npm run test:run -- src/testing/tests/GoogleDoc.test.tsx
           npm run test:run -- src/testing/tests/Header.test.tsx
@@ -89,6 +90,20 @@ jobs:
           npm run test:run -- src/testing/tests/TiledComponents.test.tsx
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
+          npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
+          echo "Running ophyd sim test suites..."
+          npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
+          npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
+          npm run test:run -- src/testing/tests/simCameraSocket.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/dependencyGraph.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/detector.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/hexapod.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/motor.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/shutter.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/signal.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/state.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/transport.test.ts
+          npm run test:run -- src/testing/tests/ophyd-sim/useOphydPVSocket.integration.test.tsx
         env:
           CI: true
 

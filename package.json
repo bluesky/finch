@@ -1,7 +1,7 @@
 {
   "name": "@blueskyproject/finch",
   "private": false,
-  "version": "0.1.9",
+  "version": "0.1.10",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -89,8 +89,6 @@
     "happy-dom": "^20.8.3",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
-    "msw": "^2.8.4",
-    "msw-storybook-addon": "^2.0.4",
     "postcss": "^8.4.49",
     "prettier": "^3.8.3",
     "react": "^18.3.1",
@@ -115,10 +113,5 @@
   },
   "homepage": "https://github.com/bluesky/finch#readme",
   "author": "Seij De Leon",
-  "license": "BSD-3-Clause",
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
-  }
+  "license": "BSD-3-Clause"
 }

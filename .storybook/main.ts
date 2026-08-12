@@ -18,7 +18,18 @@ const config: StorybookConfig = {
     ...config,
     STORYBOOK_FINCH_VERSION: pkg.version,
   }),
-  staticDirs: ['../public'], //added this to support mws for api call mocks, see public/mockServiceWorker.js
+  staticDirs: ['../public'],
+  typescript: {
+    // The default (react-docgen) can't resolve mapped types like
+    // `Omit<OtherProps, 'device'> & { pv: string }`, so components that build
+    // their props that way only showed their inline-declared props in autodocs.
+    reactDocgen: 'react-docgen-typescript',
+    reactDocgenTypescriptOptions: {
+      shouldExtractLiteralValuesFromEnum: true,
+      shouldRemoveUndefinedFromOptional: true,
+      propFilter: (prop) => !prop.parent?.fileName.includes('node_modules'),
+    },
+  },
   async viteFinal(config) {
     return mergeConfig(config, {
       base: '/finch/',

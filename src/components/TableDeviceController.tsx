@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-import { Lock, LockOpen } from '@phosphor-icons/react';
+import { Lock, LockOpen, CaretDown } from '@phosphor-icons/react';
 import { Table, TableHeader, TableHead, TableBody, TableRow, TableCell } from './ui/table';
 import ControllerAbsoluteMove from './ControllerAbsoluteMove';
 import ControllerRelativeMove from './ControllerRelativeMove';
@@ -16,6 +16,12 @@ export type TableDeviceControllerProps = {
     toggleDeviceLock: (deviceName: string, locked: boolean) => void;
     /** Called to toggle the expanded state for a device row, showing or hiding its raw JSON data. */
     toggleExpand: (deviceName: string) => void;
+    /**
+     * When true, the Relative Move column starts collapsed (hidden on render) and
+     * the column header becomes a toggle that reveals it. Defaults to false, so
+     * the relative-move controls are always shown.
+     */
+    collapsibleRelativeMove?: boolean;
     /** Additional CSS classes applied to the root container. */
     className?: string;
 };
@@ -25,11 +31,15 @@ export default function TableDeviceController({
     handleSetValueRequest,
     toggleDeviceLock,
     toggleExpand,
+    collapsibleRelativeMove = false,
     className,
     ...props
 }: TableDeviceControllerProps) {
     // State to track flashing rows
     const [flashingRows, setFlashingRows] = useState<Record<string, boolean>>({});
+    // Relative Move column visibility. When collapsible, it starts hidden; when
+    // not, it is permanently open (no toggle rendered).
+    const [isRelativeMoveOpen, setIsRelativeMoveOpen] = useState(!collapsibleRelativeMove);
 
     useEffect(() => {
         const updatedFlashingRows: Record<string, boolean> = {};
@@ -68,7 +78,25 @@ export default function TableDeviceController({
                             Absolute Move
                         </TableHead>
                         <TableHead className="text-center text-sky-900 font-medium">
-                            Relative Move
+                            {collapsibleRelativeMove ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsRelativeMoveOpen((open) => !open)}
+                                    aria-expanded={isRelativeMoveOpen}
+                                    className="mx-auto flex items-center gap-1 font-medium text-sky-900 hover:text-sky-700"
+                                >
+                                    Relative Move
+                                    <CaretDown
+                                        size={14}
+                                        className={cn(
+                                            'transition-transform',
+                                            isRelativeMoveOpen ? '' : '-rotate-90',
+                                        )}
+                                    />
+                                </button>
+                            ) : (
+                                'Relative Move'
+                            )}
                         </TableHead>
                     </TableRow>
                 </TableHeader>
@@ -123,19 +151,23 @@ export default function TableDeviceController({
                                     />
                                 </TableCell>
                                 <TableCell>
-                                    <ControllerRelativeMove
-                                        className="justify-center"
-                                        handleEnter={(input) =>
-                                            input !== null &&
-                                            handleSetValueRequest(deviceName, input)
-                                        }
-                                        inputLabel={device.units && device.units.slice(0, 3)}
-                                        currentValue={
-                                            typeof device.value === 'number' ? device.value : null
-                                        }
-                                        classNameInput="bg-sky-200 shadow-inner rounded-md"
-                                        locked={device.locked}
-                                    />
+                                    {isRelativeMoveOpen && (
+                                        <ControllerRelativeMove
+                                            className="justify-center"
+                                            handleEnter={(input) =>
+                                                input !== null &&
+                                                handleSetValueRequest(deviceName, input)
+                                            }
+                                            inputLabel={device.units && device.units.slice(0, 3)}
+                                            currentValue={
+                                                typeof device.value === 'number'
+                                                    ? device.value
+                                                    : null
+                                            }
+                                            classNameInput="bg-sky-200 shadow-inner rounded-md"
+                                            locked={device.locked}
+                                        />
+                                    )}
                                 </TableCell>
                             </TableRow>
                         );

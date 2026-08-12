@@ -65,7 +65,7 @@ vi.mock('../../components/Camera/hooks/useCameraDraw', () => ({
     })),
 }));
 
-vi.mock('@/hooks/useOphydSocket', () => ({
+vi.mock('@/api/ophyd/useOphydSocket', () => ({
     default: vi.fn(() => ({
         devices: {},
         handleSetValueRequest: vi.fn(),

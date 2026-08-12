@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
@@ -11,6 +11,7 @@ vi.mock('react-plotly.js', () => ({
 // both when tested directly and when rendered inside TiledWriterScatterPlot.
 vi.mock('@tanstack/react-query', () => ({
     useQuery: vi.fn(),
+    useQueries: vi.fn(),
 }));
 
 vi.mock('../../components/PlotlyScatter', () => ({
@@ -69,7 +70,17 @@ vi.mock('../../components/Tiled/TiledMultiScatterPlot', () => ({
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
+
+// Loaded via vi.importActual so the real component runs against the mocked hooks above.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let RealTiledMultiScatterPlot: any;
+beforeAll(async () => {
+    const mod = await vi.importActual<{ default: unknown }>(
+        '../../components/Tiled/TiledMultiScatterPlot',
+    );
+    RealTiledMultiScatterPlot = mod.default;
+});
 import { useTiledWriterDetImageHeatmap } from '../../components/Tiled/hooks/useTiledWriterDetImageHeatmap';
 import { useTiledWriterScatterPlot } from '../../components/Tiled/hooks/useTiledWriterScatterPlot';
 import { useTiledWriterMultiScatterPlot } from '../../components/Tiled/hooks/useTiledWriterMultiScatterPlot';
@@ -474,5 +485,71 @@ describe('TiledWriterMultiScatterPlot', () => {
             />,
         );
         expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-title', 'My Scans');
+    });
+});
+
+// ── TiledMultiScatterPlot ─────────────────────────────────────────────────────
+
+describe('TiledMultiScatterPlot', () => {
+    function makeResult(
+        overrides: Partial<{ data: unknown; isLoading: boolean; error: unknown }> = {},
+    ) {
+        return { data: undefined, isLoading: false, error: null, ...overrides };
+    }
+
+    beforeEach(() => {
+        vi.mocked(useQueries).mockReturnValue([makeResult()]);
+    });
+
+    it('renders the PlotlyScatter component', () => {
+        render(<RealTiledMultiScatterPlot tiledTrace={trace} paths={[null]} />);
+        expect(screen.getByTestId('plotly-scatter')).toBeInTheDocument();
+    });
+
+    it('shows waiting overlay when all paths are null', () => {
+        vi.mocked(useQueries).mockReturnValue([makeResult(), makeResult()]);
+        render(<RealTiledMultiScatterPlot tiledTrace={trace} paths={[null, null]} />);
+        expect(screen.getByText('No data paths provided - waiting for paths')).toBeInTheDocument();
+    });
+
+    it('shows loading overlay when any query is loading', () => {
+        vi.mocked(useQueries).mockReturnValue([makeResult({ isLoading: true })]);
+        render(<RealTiledMultiScatterPlot tiledTrace={trace} paths={['/some/path']} />);
+        expect(screen.getByText('Loading data...')).toBeInTheDocument();
+    });
+
+    it('shows error overlay when a query fails', () => {
+        vi.mocked(useQueries).mockReturnValue([
+            makeResult({ error: new Error('network timeout') }),
+        ]);
+        render(<RealTiledMultiScatterPlot tiledTrace={trace} paths={['/some/path']} />);
+        expect(screen.getByText('Error loading data: network timeout')).toBeInTheDocument();
+    });
+
+    it('shows popupMessage overlay and suppresses other overlays', () => {
+        vi.mocked(useQueries).mockReturnValue([makeResult({ isLoading: true })]);
+        render(
+            <RealTiledMultiScatterPlot
+                tiledTrace={trace}
+                paths={['/some/path']}
+                popupMessage="Something went wrong"
+            />,
+        );
+        expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+        expect(screen.queryByText('Loading data...')).not.toBeInTheDocument();
+    });
+
+    it('shows column-mismatch overlay when x or y column is absent from data', () => {
+        vi.mocked(useQueries).mockReturnValue([makeResult({ data: { other: [1, 2] } })]);
+        render(<RealTiledMultiScatterPlot tiledTrace={trace} paths={['/some/path']} />);
+        expect(screen.getByText(/Column not found/)).toBeInTheDocument();
+        expect(screen.getByText('other')).toBeInTheDocument();
+    });
+
+    it('applies custom className to the container', () => {
+        const { container } = render(
+            <RealTiledMultiScatterPlot tiledTrace={trace} paths={[null]} className="my-class" />,
+        );
+        expect(container.firstChild).toHaveClass('my-class');
     });
 });

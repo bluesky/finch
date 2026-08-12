@@ -1,0 +1,40 @@
+{
+    "prefix": "13SIM1",
+    "image": {
+        "mode": "image_file",
+        "sizeX": 512,
+        "sizeY": 512,
+        "files": [
+            "/images/det_1m_1.png",
+            "/images/det_1m_2.png",
+            "/images/det_1m_3.png"
+        ],
+        "overlays": [
+            {
+                "file": "/images/det_1m_beamstop.png",
+                "width": 512,
+                "height": 512,
+                "x": 256,
+                "y": 256,
+                "positionX": {
+                    "source": "bl531_xps2:beamstop_x_mm.RBV",
+                    "from": { "in": -10, "out": 218.5 },
+                    "to": { "in": 10, "out": 278.5 }
+                },
+                "positionY": {
+                    "source": "bl531_xps2:beamstop_y_mm.RBV",
+                    "from": { "in": -10, "out": 290.5 },
+                    "to": { "in": 10, "out": 230.5 }
+                }
+            }
+        ]
+    },
+    "modulations": [
+        {
+            "source": "bl531:mono_energy_eV",
+            "effect": "opacity",
+            "from": { "in": 2000, "out": 0.1 },
+            "to": { "in": 7000, "out": 1.0 }
+        }
+    ]
+}

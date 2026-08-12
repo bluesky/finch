@@ -83,7 +83,7 @@ The build can be viewed at [https://www.npmjs.com/package/@blueskyproject/finch]
 ### Updating Storybook on GH Pages
 Storybook is updated automatically via github actions on merges into main. Manual update methods are shown below.
 
-Please note that storybook on gh pages is hosted with a /finch path, and local development is served at /. The storybook manager and service worker are configured to look at the current path before deciding where to make files available at.
+Please note that storybook on gh pages is hosted with a /finch path, and local development is served at /. The storybook manager is configured to look at the current path before deciding where to make files available at.
 
 After making changes to Storybook, commit.
 

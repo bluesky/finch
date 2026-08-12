@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import ComponentViewerExampleReal from '@/features/ComponentViewer/ComponentViewerExampleReal';
 import ComponentViewerExampleSim from '@/features/ComponentViewer/ComponentViewerExampleSim';
+import { OphydTransportProvider } from '@/api/ophyd/OphydTransportProvider';
+import { OphydSimProvider, createOphydSimTransport, hexapodBeamline } from '@/lib/ophyd-sim';
 import { Cube, CubeTransparent } from '@phosphor-icons/react';
 
 export default function AllComponentsPage() {
     const [mode, setMode] = useState<'real' | 'sim'>('sim');
+    // The sim <Hexapod /> connects through useOphydSocket, so it needs a sim
+    // transport in context — otherwise it opens a real WebSocket. Scope the
+    // providers to the sim view only, so real mode keeps its live backend.
+    const hexapodTransport = useMemo(() => createOphydSimTransport(hexapodBeamline), []);
 
     return (
         <section className="flex flex-col h-full overflow-auto space-y-8">
@@ -38,7 +44,15 @@ export default function AllComponentsPage() {
                     </span>
                 </button>
             </div>
-            {mode === 'real' ? <ComponentViewerExampleReal /> : <ComponentViewerExampleSim />}
+            {mode === 'real' ? (
+                <ComponentViewerExampleReal />
+            ) : (
+                <OphydSimProvider sim={hexapodBeamline}>
+                    <OphydTransportProvider transport={hexapodTransport}>
+                        <ComponentViewerExampleSim />
+                    </OphydTransportProvider>
+                </OphydSimProvider>
+            )}
         </section>
     );
 }
