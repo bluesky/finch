@@ -2,19 +2,20 @@
 export type QServerSocketChannel = 'console' | 'status' | 'info';
 
 /**
- * `'authenticating'` only occurs in first-message auth mode: the socket is open but the
- * server has not yet accepted the credentials frame.
+ * `'authenticating'` only occurs in first-message auth mode: the credentials frame has been
+ * sent and the server's auth window has not yet elapsed. It becomes `'open'` on the first
+ * frame, or once the window passes without the server closing the socket.
  */
 export type QServerSocketStatus = 'connecting' | 'authenticating' | 'open' | 'closed' | 'error';
 
 export type Unsubscribe = () => void;
 
-export type QServerSocketErrorKind =
-    | 'auth'
-    | 'auth-timeout'
-    | 'transport'
-    | 'parse'
-    | 'reconnect-exhausted';
+/**
+ * `'auth'` covers a rejected credentials frame or an auth-related close code. There is no
+ * "auth timed out" kind: the server acknowledges a successful handshake with silence, so the
+ * only negative signal is a close.
+ */
+export type QServerSocketErrorKind = 'auth' | 'transport' | 'parse' | 'reconnect-exhausted';
 
 export interface QServerSocketError {
     kind: QServerSocketErrorKind;

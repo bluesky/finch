@@ -80,6 +80,9 @@ sockets/
   Verified against RE Manager v0.0.19 in `UNAUTHENTICATED_SINGLE_USER` mode: no credentials
   and a *wrong* `?api_key` both get 101, a real key or any token gets 500. Use
   `authMode: 'none'` there. The client never drops credentials on its own.
+- **Successful first-message auth is silent.** Do not treat "no frames yet" as a failure:
+  promote to `'open'` when the auth window elapses with the socket still up. Only a close
+  (4401/4001) means rejection.
 - **Do not send websocket keepalives.** The server ignores client frames and has no
   application-level ping/pong.
 - **`re/metadata` answers 400** on RE Manager v0.0.19; the method is correct, the server is

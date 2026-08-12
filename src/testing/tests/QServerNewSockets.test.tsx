@@ -141,18 +141,44 @@ describe('first-message auth mode', () => {
         expect(ws.sent).toHaveLength(1);
     });
 
-    it('reports an auth timeout matching the server window', () => {
+    it('treats a socket still open after the auth window as authenticated', () => {
+        // The server acknowledges a good credentials frame with silence, and a quiet channel
+        // may send no frames for minutes — so surviving the window IS the success signal.
         const errors: QServerSocketError[] = [];
-        createQServerSocket({
+        const socket = createQServerSocket({
             url: 'ws://host/api/status/ws',
             auth: { apiKey: 'k', mode: 'message' },
             socketFactory: factory,
-        }).onError((error) => errors.push(error));
+        });
+        socket.onError((error) => errors.push(error));
 
         latest().open();
+        expect(socket.getStatus()).toBe('authenticating');
+
         vi.advanceTimersByTime(QSERVER_WS_AUTH_TIMEOUT_MS);
 
-        expect(errors.map((error) => error.kind)).toContain('auth-timeout');
+        expect(socket.getStatus()).toBe('open');
+        expect(errors).toEqual([]);
+    });
+
+    it('reports a rejected credentials frame, not a timeout, when the server closes', () => {
+        const errors: QServerSocketError[] = [];
+        const socket = createQServerSocket({
+            url: 'ws://host/api/status/ws',
+            auth: { apiKey: 'bad', mode: 'message' },
+            socketFactory: factory,
+        });
+        socket.onError((error) => errors.push(error));
+
+        latest().open();
+        latest().serverClose(QSERVER_WS_CLOSE_INVALID_TOKEN);
+        vi.advanceTimersByTime(QSERVER_WS_AUTH_TIMEOUT_MS * 2);
+
+        expect(socket.getStatus()).toBe('error');
+        expect(errors).toHaveLength(1);
+        expect(errors[0]).toMatchObject({ kind: 'auth', code: QSERVER_WS_CLOSE_INVALID_TOKEN });
+        // The pending window timer must not resurrect the socket after a close.
+        expect(FakeSocket.instances).toHaveLength(1);
     });
 });
 

@@ -145,21 +145,21 @@ export function createQServerSocket<TFrame>(
                 setStatus('open');
                 return;
             }
-            // The server accepts a credentials frame within 10s of accepting the socket, and
-            // promotion to 'open' is only observable once real frames start arriving.
             setStatus('authenticating');
             try {
                 ws.send(JSON.stringify(buildAuthMessage(options.auth)));
             } catch (error) {
                 emitError({ kind: 'auth', message: describeError(error) });
             }
+            // The server sends nothing back when it accepts the credentials frame — success is
+            // simply "the socket is still open". Rejection is a close with 4401/4001, handled in
+            // onclose. So once the server's auth window has elapsed with the socket still up, the
+            // connection is authenticated, even on a channel that has yet to emit a frame.
             authTimer = setTimeout(() => {
                 authTimer = null;
-                if (status === 'authenticating') {
-                    emitError({
-                        kind: 'auth-timeout',
-                        message: 'No frames received within the server auth window.',
-                    });
+                if (status === 'authenticating' && socket === ws) {
+                    attempt = 0;
+                    setStatus('open');
                 }
             }, QSERVER_WS_AUTH_TIMEOUT_MS);
         };

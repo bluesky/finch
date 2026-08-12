@@ -74,7 +74,9 @@ export default function TestQserver({
     };
 
     return (
-        <div className={`mx-auto max-w-5xl pb-16 text-slate-900 dark:text-slate-100 ${className}`}>
+        <div
+            className={`mx-auto max-w-5xl pb-16 text-slate-900 dark:text-slate-100 bg-white ${className}`}
+        >
             <ConnectionBar
                 key={configVersion}
                 client={client}

@@ -157,6 +157,12 @@ keep the socket closed.
 | `'query'` (default) | `?api_key=…` or `?access_token=…` | yes |
 | `'message'` | connect bare, then send `{"type":"auth","api_key":"…"}` within 10 s | yes |
 
+In `'message'` mode the server **acknowledges a successful handshake with silence** — it only
+responds by closing (4401/4001) if the credentials are bad. The status therefore reads
+`'authenticating'` until either the first frame arrives or the 10 s window elapses with the
+socket still up, whichever comes first; both mean authenticated. A quiet channel is not an
+error.
+
 **Servers without authentication reject credentials on the handshake.** Probed against
 RE Manager v0.0.19 running in `UNAUTHENTICATED_SINGLE_USER` mode:
 

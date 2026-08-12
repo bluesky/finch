@@ -127,13 +127,17 @@ export default function SocketPane({ channel, baseUrl, apiKey }: SocketPaneProps
                 </p>
             )}
 
-            {socket.error && authMode !== 'none' && apiKey && (
-                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                    A queue server running without authentication rejects the handshake when
-                    credentials are supplied (it answers 500). Disconnect and switch auth to{' '}
-                    <code>none</code> if that is your setup.
-                </p>
-            )}
+            {/* Only for a socket that actually failed to stay connected — never for a live one. */}
+            {socket.connectionStatus === 'error' &&
+                socket.error?.kind === 'auth' &&
+                authMode !== 'none' &&
+                apiKey && (
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                        A queue server running without authentication rejects the handshake when
+                        credentials are supplied (it answers 500). Disconnect and switch auth to{' '}
+                        <code>none</code> if that is your setup.
+                    </p>
+                )}
 
             {connected && (
                 <div className="mt-2">
