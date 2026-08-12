@@ -91,6 +91,10 @@ jobs:
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
           npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
+          echo "Running queue server client test suites..."
+          npm run test:run -- src/testing/tests/QServerNewRegistry.test.tsx
+          npm run test:run -- src/testing/tests/QServerNewClient.test.tsx
+          npm run test:run -- src/testing/tests/QServerNewSockets.test.tsx
           echo "Running ophyd sim test suites..."
           npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
