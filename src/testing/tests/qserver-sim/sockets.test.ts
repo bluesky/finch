@@ -102,11 +102,37 @@ describe('console channel', () => {
         sim.startQueue();
         await flush();
 
-        expect(frames.map((frame) => frame.msg.trim())).toEqual([
-            SIM_CONSOLE.startingQueue,
-            SIM_CONSOLE.processingNextItem(2),
-            SIM_CONSOLE.startingPlan('count'),
-        ]);
+        // Realistic output: the two manager lines, then the whole plan-start block.
+        const text = frames.map((frame) => frame.msg).join('');
+        expect(text).toContain(SIM_CONSOLE.startingQueue);
+        expect(text).toContain(SIM_CONSOLE.processingNextItem(2));
+        expect(text).toContain('Starting the plan:');
+        expect(text).toContain("New run was open: 'sim-run-1'");
+        expect(frames.length).toBeGreaterThan(3);
+
+        // Prefixed like the real server, except for bluesky's own bare output.
+        expect(frames[0].msg).toMatch(/^\[I .+ bluesky_queueserver\.manager\.manager\] /);
+        expect(frames.some((frame) => frame.msg.startsWith('Transient Scan ID:'))).toBe(true);
+    });
+
+    it('reports the run finishing', async () => {
+        const sim = defaultQServer();
+        const socketFactory = createQServerSimSocketFactory(sim, { replayConsoleOnOpen: false });
+        const frames: QServerConsoleFrame[] = [];
+
+        createQServerConsoleSocket({ baseUrl: BASE_URL, socketFactory }).onMessage((frame) =>
+            frames.push(frame),
+        );
+        sim.startQueue();
+        await flush();
+        frames.length = 0;
+
+        sim.advance(sim.getBehavior().runDurationMs);
+        await flush();
+
+        const text = frames.map((frame) => frame.msg).join('');
+        expect(text).toContain("Run was closed: 'sim-run-1'");
+        expect(text).toContain(SIM_CONSOLE.planExited('completed'));
     });
 
     it('replays a bounded backlog on connect', async () => {
@@ -125,7 +151,8 @@ describe('console channel', () => {
         await flush();
 
         expect(frames).toHaveLength(2);
-        expect(frames.at(-1)?.msg.trim()).toBe(SIM_CONSOLE.startingPlan('count'));
+        // The tail of the backlog: the last two messages the queue start produced.
+        expect(frames.at(-1)?.msg).toContain("New stream: 'primary'");
     });
 });
 

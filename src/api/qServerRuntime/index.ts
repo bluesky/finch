@@ -11,5 +11,6 @@ export {
     QServerApiProvider,
     useQServerApiClient,
     useQServerApiClientOptional,
+    useQServerSocketFactory,
 } from './QServerApiProvider';
-export type { QServerApiProviderProps } from './QServerApiProvider';
+export type { QServerApiProviderProps, QServerSocketFactory } from './QServerApiProvider';

@@ -8,11 +8,11 @@ powers Storybook stories and tests, and it is the fastest way to develop queue U
 
 It is the sibling of [Ophyd Sim](?path=/docs/documentation-ophyd-sim--docs): ophyd-sim simulates
 the devices, qserver-sim simulates the thing that runs plans against them. The two compose — mount
-both sets of providers and a story has live device values *and* a working queue.
+both sets of providers and a story has live device values _and_ a working queue.
 
 The **live demo** at the top of this page is the real
 [`QServerSimDemo`](https://github.com/bluesky/finch/blob/main/src/components/QServerSimDemo/QServerSimDemo.tsx)
-component talking to a simulator built with a *custom* plan and device catalog — exactly what
+component talking to a simulator built with a _custom_ plan and device catalog — exactly what
 [Bringing your own plans and devices](#bringing-your-own-plans-and-devices) walks through. Pick a
 plan, press **Run plan**, and watch it move from the queue to history.
 
@@ -32,11 +32,7 @@ The bare minimum: build a sim, wrap the tree in the two providers, and let a com
 through the ordinary queue-server client.
 
 ```tsx
-import {
-    QServerSimProvider,
-    createQServerSimClient,
-    defaultQServer,
-} from '@/lib/qserver-sim';
+import { QServerSimProvider, createQServerSimClient, defaultQServer } from '@/lib/qserver-sim';
 import { QServerApiProvider, useQServerApiClient } from '@/api/qServerRuntime';
 
 // 1. Build a sim. Keep it stable across renders (module scope, or useMemo).
@@ -133,19 +129,19 @@ stories share queue state. See
 Five ready-made starting states. Each is a function returning a fresh simulator, and each accepts
 per-field overrides.
 
-| Scenario | Environment | Manager / RE | Queue | History |
-| --- | --- | --- | --- | --- |
-| `defaultQServer()` | open, idle | idle / idle | 3 | 2 |
-| `emptyQServer()` | closed | idle / — | 0 | 0 |
-| `runningQServer()` | executing | executing_queue / running | 2 | 2 |
-| `pausedQServer()` | executing | paused / paused | 2 | 2 |
-| `errorQServer()` | open, idle | idle / idle | 1 | 3, next run fails |
+| Scenario           | Environment | Manager / RE              | Queue | History           |
+| ------------------ | ----------- | ------------------------- | ----- | ----------------- |
+| `defaultQServer()` | open, idle  | idle / idle               | 3     | 2                 |
+| `emptyQServer()`   | closed      | idle / —                  | 0     | 0                 |
+| `runningQServer()` | executing   | executing_queue / running | 2     | 2                 |
+| `pausedQServer()`  | executing   | paused / paused           | 2     | 2                 |
+| `errorQServer()`   | open, idle  | idle / idle               | 1     | 3, next run fails |
 
 ```ts
-defaultQServer();                                 // the everyday baseline
-defaultQServer({ runDurationMs: 500 });           // faster runs
-defaultQServer({ queue: [], history: [] });       // empty, but environment still open
-pausedQServer();                                  // the only state where abort/stop/halt work
+defaultQServer(); // the everyday baseline
+defaultQServer({ runDurationMs: 500 }); // faster runs
+defaultQServer({ queue: [], history: [] }); // empty, but environment still open
+pausedQServer(); // the only state where abort/stop/halt work
 ```
 
 `emptyQServer()` starts with the environment **closed**, which is the honest cold-start state: any
@@ -212,10 +208,10 @@ That is the entire setup for a custom beamline — it is what the demo at the to
 built from them:
 
 ```ts
-parameter({ name: 'num', default: '101' });                              // plain value
-parameter({ name: 'md', kind: 'KEYWORD_ONLY', default: 'None' });        // keyword-only
-parameter({ name: 'mode', default: 'fast', enums: ['fast', 'slow'] });   // enum → select
-parameter({ name: 'detector', annotation: deviceAnnotation(['I0']) });   // one device → dropdown
+parameter({ name: 'num', default: '101' }); // plain value
+parameter({ name: 'md', kind: 'KEYWORD_ONLY', default: 'None' }); // keyword-only
+parameter({ name: 'mode', default: 'fast', enums: ['fast', 'slow'] }); // enum → select
+parameter({ name: 'detector', annotation: deviceAnnotation(['I0']) }); // one device → dropdown
 parameter({ name: 'detectors', annotation: deviceListAnnotation(['I0', 'diode']) }); // many
 ```
 
@@ -254,7 +250,7 @@ device({
 ```
 
 Device names in `annotation` are just strings — the simulator does not check that a plan's
-annotated devices exist. Plan *names*, by contrast, are validated on `addQueueItem` (turn that off
+annotated devices exist. Plan _names_, by contrast, are validated on `addQueueItem` (turn that off
 with `validatePlanNames: false`).
 
 ### Queue and history
@@ -286,22 +282,23 @@ anything added at runtime gets a minted uid (`sim-item-1`, `sim-item-2`, …).
 
 ## Behaviour options
 
-Everything about *how* the simulator behaves is one flat set of options, passed to
+Everything about _how_ the simulator behaves is one flat set of options, passed to
 `createQServerSim` or any scenario, and changeable at runtime with `sim.setBehavior({ … })`:
 
-| Option | Default | Effect |
-| --- | --- | --- |
-| `runDurationMs` | `3000` | Simulated length of one run |
-| `runDurationByPlan` | `{}` | Per-plan overrides, e.g. `{ count: 500 }` |
-| `autoCompleteRuns` | `true` | When false, runs start but never finish |
-| `failNextRun` | `false` | Arms the next run to fail; consumed when it starts |
-| `failMessage` | — | Message recorded in the failed result |
-| `latencyMs` | `0` | Delays the response, never the state change |
-| `consoleOutput` | `true` | Emit console lines on transitions |
-| `environmentOpenMs` | `500` | Time `openEnvironment()` takes (scenarios use `0`) |
-| `tickMs` | `100` | Live tick interval |
-| `validatePlanNames` | `true` | Reject items whose plan is not in the catalog |
-| `user` / `userGroup` | `UNAUTHENTICATED_SINGLE_USER` / `primary` | Stamped on accepted items |
+| Option               | Default                                   | Effect                                                           |
+| -------------------- | ----------------------------------------- | ---------------------------------------------------------------- |
+| `runDurationMs`      | `3000`                                    | Simulated length of one run                                      |
+| `runDurationByPlan`  | `{}`                                      | Per-plan overrides, e.g. `{ count: 500 }`                        |
+| `autoCompleteRuns`   | `true`                                    | When false, runs start but never finish                          |
+| `failNextRun`        | `false`                                   | Arms the next run to fail; consumed when it starts               |
+| `failMessage`        | —                                         | Message recorded in the failed result                            |
+| `latencyMs`          | `0`                                       | Delays the response, never the state change                      |
+| `consoleOutput`      | `true`                                    | Emit console lines on transitions                                |
+| `consolePrefix`      | `true`                                    | Prefix lines with `[I <timestamp> <logger>]`, as the server does |
+| `environmentOpenMs`  | `500`                                     | Time `openEnvironment()` takes (scenarios use `0`)               |
+| `tickMs`             | `100`                                     | Live tick interval                                               |
+| `validatePlanNames`  | `true`                                    | Reject items whose plan is not in the catalog                    |
+| `user` / `userGroup` | `UNAUTHENTICATED_SINGLE_USER` / `primary` | Stamped on accepted items                                        |
 
 Arming a failure from a story button, for instance:
 
@@ -329,8 +326,10 @@ status can never disagree with each other.
   `ignore_failures`.
 - **Environment lifecycle** — open, close (refused while a plan is running), and destroy (allowed
   mid-plan, failing the run).
-- **Console output** — the exact lines the real server emits, including the substrings existing
-  Finch console UI watches for.
+- **Console output** — the lines the real server emits, wording and all, taken from captured
+  `/api/console_output/ws` traffic: the worker-startup narration when an environment opens, the
+  item dictionary and scan identifiers when a plan starts, the run-closed and plan-state lines
+  when it ends. Enough to watch a run happen; not a full transcript (no live data table).
 - **Failures** — `failNextRun` for the next run, or `sim.panic()` to fail immediately.
 
 ### Not simulated
@@ -373,12 +372,31 @@ function LiveStatus() {
 
     return (
         <>
-            <p>{connectionStatus}: {status?.manager_state}</p>
+            <p>
+                {connectionStatus}: {status?.manager_state}
+            </p>
             <pre>{text}</pre>
         </>
     );
 }
 ```
+
+Most of the time you do not pass `socketFactory` by hand. `QServerApiProvider` accepts one
+alongside the client, `withQServerSim` supplies the simulator's, and a component just asks for it:
+
+```tsx
+import { useQServerSocketFactory } from '@/api/qServerRuntime';
+import { useQServerConsoleSocket } from '@/api/qServer_new';
+
+function ConsoleView() {
+    const socketFactory = useQServerSocketFactory(); // undefined against a real server
+    const { lines } = useQServerConsoleSocket({ socketFactory });
+    return <pre>{lines.map((line) => line.msg)}</pre>;
+}
+```
+
+That is exactly what the console panel in the demo above does — the same component opens a real
+websocket in the app and a simulated one here.
 
 Status frames are pushed on every real status change and **never** for a run merely progressing.
 Console frames stream as lines are emitted, with the recent backlog replayed on connect. Setting
@@ -400,9 +418,9 @@ const sim = defaultQServer();
 sim.startQueue();
 expect(sim.getStatus().manager_state).toBe('executing_queue');
 
-sim.advance(3000);                                   // exactly one run completes
+sim.advance(3000); // exactly one run completes
 expect(sim.getState().history).toHaveLength(3);
-expect(sim.getState().running?.item.name).toBe('scan');   // the next one already started
+expect(sim.getState().running?.item.name).toBe('scan'); // the next one already started
 ```
 
 `advance(ms)` is **one** tick, not a subdivision, and surplus time is not carried past a
@@ -436,7 +454,7 @@ const client = new QServerApiClient({
     client: axios.create({ adapter: createQServerSimAdapter(sim) }),
 });
 
-await client.getStatus();   // real client, real interceptors, no network
+await client.getStatus(); // real client, real interceptors, no network
 ```
 
 Either way, failures are the real `QServerApiError`, so component error handling behaves the same

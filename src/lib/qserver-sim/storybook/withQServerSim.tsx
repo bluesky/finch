@@ -22,8 +22,8 @@ export interface QServerSimDecoratorContext {
  * Build a Storybook decorator that runs a story entirely against the simulator.
  *
  * It wires both providers: `QServerSimProvider` (so story-only controls can drive the sim) and
- * `QServerApiProvider` with a simulator-backed client (so the component under test uses its
- * normal client). No request leaves the page.
+ * `QServerApiProvider` with a simulator-backed client *and* socket factory (so the component under
+ * test uses its normal client and its normal socket hooks). Nothing leaves the page.
  *
  * ```ts
  * const meta = {
@@ -52,13 +52,14 @@ export function withQServerSim(
             ? scenarioOrOptions(overrides)
             : defaultQServer({ ...scenarioOrOptions, ...overrides });
 
-    // Built once, outside the render function, so it stays stable across story re-renders.
+    // Built once, outside the render function, so they stay stable across story re-renders.
     const client = createQServerSimClient(sim);
+    const socketFactory = createQServerSimSocketFactory(sim);
 
     return function QServerSimDecorator(Story) {
         return (
             <QServerSimProvider sim={sim}>
-                <QServerApiProvider client={client}>
+                <QServerApiProvider client={client} socketFactory={socketFactory}>
                     <Story />
                 </QServerApiProvider>
             </QServerSimProvider>

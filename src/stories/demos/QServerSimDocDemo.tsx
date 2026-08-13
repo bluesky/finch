@@ -2,6 +2,7 @@ import { QServerApiProvider } from '@/api/qServerRuntime';
 import {
     createQServerSim,
     createQServerSimClient,
+    createQServerSimSocketFactory,
     device,
     deviceAnnotation,
     deviceListAnnotation,
@@ -65,14 +66,21 @@ const docSim = createQServerSim({
     ],
     runDurationMs: 2500,
     environmentOpenMs: 0,
+    // Start closed and open it below, so the console has the worker-startup narration in it by the
+    // time the page loads — otherwise the panel is empty until someone presses a button.
+    environmentState: 'closed',
 });
 
+docSim.openEnvironment();
+
 const docClient = createQServerSimClient(docSim);
+// Without this the console panel would try to open a real websocket and sit at "connecting".
+const docSocketFactory = createQServerSimSocketFactory(docSim);
 
 export default function QServerSimDocDemo() {
     return (
         <QServerSimProvider sim={docSim}>
-            <QServerApiProvider client={docClient}>
+            <QServerApiProvider client={docClient} socketFactory={docSocketFactory}>
                 <QServerSimDemo />
             </QServerApiProvider>
         </QServerSimProvider>

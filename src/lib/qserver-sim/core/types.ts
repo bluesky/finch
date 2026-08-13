@@ -168,6 +168,13 @@ export interface QServerSimBehaviorOptions {
     latencyMs?: number;
     /** Emit console lines on transitions. Default true. */
     consoleOutput?: boolean;
+    /**
+     * Prefix lines with `[I <timestamp> <logger>]`, as the real server does. Default true.
+     *
+     * Consumers that match on message text should strip the bracket block first (which
+     * `QSConsole` does); turn this off only if you want bare message bodies.
+     */
+    consolePrefix?: boolean;
     /** Max console lines retained. Default 1000, matching the server's own bound. */
     consoleBufferSize?: number;
     /** Simulated ms for `environment/open` to become idle. Default 500. */

@@ -31,18 +31,18 @@ Rules that keep it coherent:
 
 ## Building blocks
 
-| File | Contents |
-| --- | --- |
-| `core/types.ts` | `QServerSimState`, options, sim-internal bookkeeping types |
-| `core/status.ts` | `deriveStatus()` + `STATUS_KEYS` (the field contract) |
-| `core/consoleMessages.ts` | Exact console strings + the legacy prefixes they must satisfy |
-| `core/uid.ts` | Counter (default) and uuid identifier factories |
-| `core/events.ts` | `SimEmitter`: replay-on-subscribe, per-listener try/catch |
-| `core/scheduler.ts` | `setInterval` loop + `advance(ms)` |
-| `core/QServerSim.ts` | The state machine: transitions, subscriptions, `request()` |
-| `client/routes.ts` | `SIM_ROUTES` keyed `` `${METHOD} ${path}` `` + `SIM_SUPPORTED_ENDPOINT_IDS` |
-| `client/handleRequest.ts` | Lookup, 500 on throw, 501 on unknown |
-| `sockets/` | `WebSocketLike` fakes for the three channels |
+| File                      | Contents                                                                    |
+| ------------------------- | --------------------------------------------------------------------------- |
+| `core/types.ts`           | `QServerSimState`, options, sim-internal bookkeeping types                  |
+| `core/status.ts`          | `deriveStatus()` + `STATUS_KEYS` (the field contract)                       |
+| `core/consoleMessages.ts` | Console strings, logger names, prefix formatting, multi-line sequences      |
+| `core/uid.ts`             | Counter (default) and uuid identifier factories                             |
+| `core/events.ts`          | `SimEmitter`: replay-on-subscribe, per-listener try/catch                   |
+| `core/scheduler.ts`       | `setInterval` loop + `advance(ms)`                                          |
+| `core/QServerSim.ts`      | The state machine: transitions, subscriptions, `request()`                  |
+| `client/routes.ts`        | `SIM_ROUTES` keyed `` `${METHOD} ${path}` `` + `SIM_SUPPORTED_ENDPOINT_IDS` |
+| `client/handleRequest.ts` | Lookup, 500 on throw, 501 on unknown                                        |
+| `sockets/`                | `WebSocketLike` fakes for the three channels                                |
 
 ## Adding an endpoint
 
@@ -79,7 +79,7 @@ registry, so a half-finished addition cannot pass CI.
 - **Fixtures are deep-cloned at construction.** Skip that and two sims built from `defaultQueue`
   mutate one shared array — the exact cross-story bleed that scenarios-as-functions prevents.
 - **Socket fakes must defer every callback to a `queueMicrotask`.** `createQServerSocket` assigns
-  `onopen`/`onmessage` *after* the factory returns, so a synchronous emit is lost. A microtask
+  `onopen`/`onmessage` _after_ the factory returns, so a synchronous emit is lost. A microtask
   (not a timer) keeps fake-timer tests simple.
 - **Do not emit an initial status frame in the socket.** `subscribeStatus` already replays
   synchronously on subscribe; doing both double-emits.
@@ -90,6 +90,14 @@ registry, so a half-finished addition cannot pass CI.
   not off object identity; do not `memo` on the state object.
 - **`environmentOpenMs: 0` makes opening synchronous.** Scenarios use it so a test need not
   `advance()` just to open the environment; the non-zero default exists for visible transitions.
-- **Console lines end with `\n`**, matching the server, so `getConsoleText()` joins cleanly.
+- **Console lines end with `\n`**, matching the server, so `getConsoleText()` concatenates rather
+  than joins. `getConsoleText(nlines)` counts _rendered lines_, not messages — the item dictionary
+  logged at plan start is one message spanning several lines.
+- **Console wording is copied from real traffic** captured in
+  `src/api/qServer_new/references/console_output_ws.txt`. Lines carry an
+  `[I <timestamp> <logger>]` prefix (suppressible with `consolePrefix: false`), and bluesky's own
+  output — scan ids, stream names, the `generator …` summary — is emitted `bare`, with no prefix.
+  Consumers that match on text must strip the bracket block first, which is what `QSConsole` does
+  and what `consoleMessages.test.ts` mirrors.
 - Prefer `subscribeStatus` over `subscribeState` for anything user-visible — state fires on every
   tick, status only on real change.

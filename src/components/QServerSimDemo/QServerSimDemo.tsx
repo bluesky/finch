@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQServerApiClient } from '@/api/qServerRuntime';
+import QServerConsoleOutput from './QServerConsoleOutput';
 import type { GetStatusResponse } from '@/api/qServer_new/types/status';
 import type { HistoryItem } from '@/api/qServer_new/types/history';
 import type { Plan } from '@/api/qServer_new/types/plansDevices';
@@ -8,6 +9,8 @@ import type { QueueItem, RunningQueueItem } from '@/api/qServer_new/types/queue'
 export interface QServerSimDemoProps {
     /** Poll interval in ms. Set to 0 to refresh only on demand. */
     pollIntervalMs?: number;
+    /** Show the live console-output websocket panel. Default true. */
+    showConsole?: boolean;
     className?: string;
 }
 
@@ -30,6 +33,7 @@ const EMPTY: Snapshot = { status: null, queue: [], running: null, history: [], p
  */
 export default function QServerSimDemo({
     pollIntervalMs = 1000,
+    showConsole = true,
     className = '',
 }: QServerSimDemoProps) {
     const client = useQServerApiClient();
@@ -86,6 +90,27 @@ export default function QServerSimDemo({
     const planNames = Object.keys(snapshot.plans);
     const planToRun = selectedPlan || planNames[0] || '';
 
+    /** Queue the selected plan without starting it. */
+    const addPlan = async () => {
+        if (!planToRun) return;
+        setBusy(true);
+        try {
+            const added = await client.addQueueItem({
+                item: { name: planToRun, item_type: 'plan' },
+            });
+            setMessage(
+                added.success
+                    ? `Added ${planToRun} to the queue (${added.qsize} queued).`
+                    : `Could not add ${planToRun}: ${added.msg}`,
+            );
+        } catch (error) {
+            setMessage(describe(error));
+        } finally {
+            setBusy(false);
+            await refresh();
+        }
+    };
+
     /** Queue the selected plan, then start the queue if it is not already running. */
     const runPlan = async () => {
         if (!planToRun) return;
@@ -136,7 +161,10 @@ export default function QServerSimDemo({
     return (
         <div
             data-testid="qserver-sim-demo"
-            className={`mx-auto max-w-4xl space-y-4 p-4 text-slate-900 dark:text-slate-100 ${className}`}
+            className={
+                'mx-auto max-w-4xl space-y-4 rounded-lg border border-slate-300 bg-slate-50 p-4 ' +
+                `text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 ${className}`
+            }
         >
             <header className="space-y-1">
                 <h2 className="text-lg font-semibold">Queue Server client demo</h2>
@@ -164,6 +192,14 @@ export default function QServerSimDemo({
                 </select>
                 <button
                     type="button"
+                    onClick={() => void addPlan()}
+                    disabled={busy || !planToRun}
+                    className="rounded border border-slate-400 px-3 py-1 text-sm disabled:opacity-40 dark:border-slate-600"
+                >
+                    Add plan
+                </button>
+                <button
+                    type="button"
                     onClick={() => void runPlan()}
                     disabled={busy || !planToRun}
                     className="rounded bg-slate-800 px-3 py-1 text-sm font-medium text-white disabled:opacity-40 dark:bg-slate-200 dark:text-slate-900"
@@ -177,6 +213,14 @@ export default function QServerSimDemo({
                     className="rounded border border-slate-400 px-3 py-1 text-sm disabled:opacity-40 dark:border-slate-600"
                 >
                     Open environment
+                </button>
+                <button
+                    type="button"
+                    onClick={() => void act('Close environment', () => client.closeEnvironment())}
+                    disabled={busy}
+                    className="rounded border border-slate-400 px-3 py-1 text-sm disabled:opacity-40 dark:border-slate-600"
+                >
+                    Close environment
                 </button>
                 <button
                     type="button"
@@ -195,38 +239,70 @@ export default function QServerSimDemo({
                 </button>
             </div>
 
-            {message && (
-                <p className="font-mono text-xs text-slate-600 dark:text-slate-300">{message}</p>
-            )}
+            {/* Always rendered at a fixed height: appearing and disappearing shifted everything below. */}
+            <p
+                title={message}
+                className="h-4 truncate font-mono text-xs leading-4 text-slate-600 dark:text-slate-300"
+            >
+                {message}
+            </p>
 
-            {snapshot.running && (
-                <section className="rounded border border-emerald-400 bg-emerald-50 p-3 dark:border-emerald-700 dark:bg-emerald-950">
-                    <h3 className="text-sm font-medium">Running</h3>
-                    <p className="font-mono text-xs">
-                        {snapshot.running.name} · {formatKwargs(snapshot.running)}
-                    </p>
-                </section>
-            )}
+            {/* Reserved whether or not a plan is running, for the same reason. */}
+            <section
+                className={
+                    'h-20 rounded border p-3 ' +
+                    (snapshot.running
+                        ? 'border-emerald-400 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950'
+                        : 'border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-950')
+                }
+            >
+                <h3 className="text-sm font-medium">Running</h3>
+                <p className="truncate font-mono text-xs">
+                    {snapshot.running
+                        ? `${snapshot.running.name} · ${formatKwargs(snapshot.running)}`
+                        : '—'}
+                </p>
+            </section>
 
             <section>
                 <h3 className="mb-1 text-sm font-medium">Queue ({snapshot.queue.length})</h3>
-                <ItemTable
-                    items={snapshot.queue}
-                    empty="Nothing queued."
-                    testId="qserver-sim-demo-queue"
-                />
+                <ScrollBox>
+                    <ItemTable
+                        items={snapshot.queue}
+                        empty="Nothing queued."
+                        testId="qserver-sim-demo-queue"
+                    />
+                </ScrollBox>
             </section>
 
             <section>
                 <h3 className="mb-1 text-sm font-medium">History ({snapshot.history.length})</h3>
-                <ItemTable
-                    items={snapshot.history}
-                    empty="No completed plans yet."
-                    testId="qserver-sim-demo-history"
-                    renderExtra={(item) => (item as HistoryItem).result?.exit_status ?? ''}
-                    extraHeader="Exit status"
-                />
+                <ScrollBox>
+                    <ItemTable
+                        items={snapshot.history}
+                        empty="No completed plans yet."
+                        testId="qserver-sim-demo-history"
+                        renderExtra={(item) => (item as HistoryItem).result?.exit_status ?? ''}
+                        extraHeader="Exit status"
+                    />
+                </ScrollBox>
             </section>
+
+            {showConsole && <QServerConsoleOutput />}
+        </div>
+    );
+}
+
+/**
+ * Fixed-height, vertically scrolling container.
+ *
+ * The queue and history both grow as plans move through them; letting them size to content pushed
+ * everything below around on every poll.
+ */
+function ScrollBox({ children }: { children: ReactNode }) {
+    return (
+        <div className="h-40 overflow-y-auto rounded border border-slate-300 bg-white px-2 py-1 dark:border-slate-700 dark:bg-slate-950">
+            {children}
         </div>
     );
 }
@@ -250,7 +326,8 @@ function ItemTable({
 
     return (
         <table data-testid={testId} className="w-full text-left text-xs">
-            <thead className="text-slate-500 dark:text-slate-400">
+            {/* Sticky so the column labels survive scrolling inside the fixed-height box. */}
+            <thead className="sticky top-0 bg-white text-slate-500 dark:bg-slate-950 dark:text-slate-400">
                 <tr>
                     <th className="py-1 pr-2">Plan</th>
                     <th className="py-1 pr-2">Arguments</th>

@@ -26,7 +26,17 @@ import type { ReControlResponse } from '@/api/qServer_new/types/runEngine';
 import { handleRequest } from '../client/handleRequest';
 import { defaultDevices } from '../fixtures/defaultDevices';
 import { defaultPlans } from '../fixtures/defaultPlans';
-import { SIM_CONSOLE } from './consoleMessages';
+import {
+    environmentOpenBeginSequence,
+    environmentOpenFinishSequence,
+    formatClockTime,
+    formatConsolePrefix,
+    planEndSequence,
+    planStartSequence,
+    SIM_CONSOLE,
+    SIM_LOGGERS,
+    type SimConsoleLine,
+} from './consoleMessages';
 import { SimEmitter } from './events';
 import { SimScheduler } from './scheduler';
 import { deriveStatus } from './status';
@@ -53,6 +63,7 @@ const DEFAULT_BEHAVIOR: ResolvedBehavior = {
     failMessage: 'Simulated plan failure.',
     latencyMs: 0,
     consoleOutput: true,
+    consolePrefix: true,
     consoleBufferSize: 1000,
     environmentOpenMs: 500,
     environmentCloseMs: 250,
@@ -324,7 +335,7 @@ export class QServerSimulator {
         this.state.environmentState = 'initializing';
         this.state.managerState = 'creating_environment';
         this.state.reState = null;
-        this.console(SIM_CONSOLE.openingEnvironment);
+        this.consoleLines(environmentOpenBeginSequence());
 
         if (this.behavior.environmentOpenMs <= 0) {
             this.finishEnvironmentOpen();
@@ -384,7 +395,7 @@ export class QServerSimulator {
         this.state.environmentState = 'idle';
         this.state.managerState = 'idle';
         this.state.reState = 'idle';
-        this.console(SIM_CONSOLE.environmentReady);
+        this.consoleLines(environmentOpenFinishSequence());
     }
 
     private finishEnvironmentClose(): void {
@@ -484,7 +495,7 @@ export class QServerSimulator {
         const item = this.stampItem(validation.item, body);
         insertItem(this.state.queue, item, body);
         this.bump('plan_queue_uid');
-        this.console(SIM_CONSOLE.itemAdded(item));
+        this.console(SIM_CONSOLE.itemAdded(item, this.state.queue.length));
 
         if (
             this.state.queueAutostartEnabled &&
@@ -513,7 +524,7 @@ export class QServerSimulator {
             insertItem(this.state.queue, item, body);
             items.push(item);
             results.push({ success: true, msg: '' });
-            this.console(SIM_CONSOLE.itemAdded(item));
+            this.console(SIM_CONSOLE.itemAdded(item, this.state.queue.length));
             anyAccepted = true;
         }
 
@@ -569,7 +580,7 @@ export class QServerSimulator {
         }
         const [removed] = this.state.queue.splice(index, 1);
         this.bump('plan_queue_uid');
-        this.console(SIM_CONSOLE.removingItem(removed.item_uid));
+        this.console(SIM_CONSOLE.removingItem);
         this.notify();
         return { ...ok(), item: removed, qsize: this.state.queue.length };
     }
@@ -591,7 +602,7 @@ export class QServerSimulator {
             const [removed] = this.state.queue.splice(index, 1);
             items.push(removed);
             results.push({ success: true, msg: '' });
-            this.console(SIM_CONSOLE.removingItem(removed.item_uid));
+            this.console(SIM_CONSOLE.removingItem);
             removedAny = true;
         }
 
@@ -769,7 +780,7 @@ export class QServerSimulator {
         if (this.state.running) {
             this.finishRun('failed', msg, simTraceback('panic'), false, { continueQueue: false });
         } else {
-            this.console(SIM_CONSOLE.planFailed(msg));
+            this.console({ text: SIM_CONSOLE.planFailed(msg), logger: SIM_LOGGERS.worker });
         }
         this.state.reState = this.state.environmentState === 'closed' ? null : 'panicked';
         this.state.managerState = 'idle';
@@ -788,11 +799,22 @@ export class QServerSimulator {
 
     // #region console
 
-    /** Recent console text, newest last, joined the way the real endpoint joins it. */
+    /**
+     * Recent console text, newest last.
+     *
+     * Messages already carry their own trailing newline, so they are concatenated rather than
+     * joined. `nlines` counts rendered *lines*, not messages — a single message can span several
+     * (the item dictionary logged when a plan starts is one), and that is what the real endpoint
+     * counts too.
+     */
     getConsoleText(nlines?: number): string {
-        const lines = this.state.console.map((message) => message.msg);
-        const tail = nlines && nlines > 0 ? lines.slice(-nlines) : lines;
-        return tail.join('\n');
+        const text = this.state.console.map((message) => message.msg).join('');
+        if (!nlines || nlines <= 0) return text;
+
+        const lines = text.split('\n');
+        // The final newline leaves an empty trailing element; drop it before slicing.
+        if (lines.at(-1) === '') lines.pop();
+        return lines.slice(-nlines).join('\n');
     }
 
     /** Messages appended after `lastMsgUid`, for `console_output_update`. */
@@ -807,11 +829,24 @@ export class QServerSimulator {
         };
     }
 
-    private console(msg: string): void {
+    /**
+     * Append one console line.
+     *
+     * A bare string is emitted under the manager logger, matching the majority of real output;
+     * pass a `SimConsoleLine` to change the logger, the level, or to skip the bracket prefix the
+     * way bluesky's own output does.
+     */
+    private console(line: string | SimConsoleLine): void {
         if (this.silent || !this.behavior.consoleOutput) return;
+
+        const entry: SimConsoleLine = typeof line === 'string' ? { text: line } : line;
+        const timeMs = this.clock();
+        const prefix =
+            this.behavior.consolePrefix && !entry.bare ? formatConsolePrefix(timeMs, entry) : '';
+
         const message: SimConsoleMessage = {
-            time: this.clock() / 1000,
-            msg: `${msg}\n`,
+            time: timeMs / 1000,
+            msg: `${prefix}${entry.text}\n`,
             uid: this.uidFactory('console-msg'),
         };
         this.state.console.push(message);
@@ -823,6 +858,11 @@ export class QServerSimulator {
         }
         this.state.uids.console_output_uid = message.uid;
         this.consoleEmitter.emit(message);
+    }
+
+    /** Append a whole sequence of lines, in order. */
+    private consoleLines(lines: SimConsoleLine[]): void {
+        for (const line of lines) this.console(line);
     }
 
     // #endregion
@@ -921,7 +961,14 @@ export class QServerSimulator {
         ];
         this.bump('run_list_uid');
         this.bump('plan_queue_uid');
-        this.console(SIM_CONSOLE.startingPlan(item.name));
+        this.consoleLines(
+            planStartSequence({
+                item: slot.item,
+                scanId: slot.scanId,
+                runUid: slot.runUid,
+                timeLabel: formatClockTime(this.clock()),
+            }),
+        );
     }
 
     /**
@@ -976,7 +1023,16 @@ export class QServerSimulator {
 
         this.state.running = null;
         this.bump('plan_queue_uid');
-        this.console(failed ? SIM_CONSOLE.planFailed(msg) : SIM_CONSOLE.planExited(exitStatus));
+        if (failed) this.console(SIM_CONSOLE.planFailed(msg));
+        this.consoleLines(
+            planEndSequence({
+                runUid: slot.runUid,
+                planState: exitStatus,
+                scanId: slot.scanId,
+                planName: slot.item.name,
+                failed,
+            }),
+        );
 
         if (options.continueQueue === false) {
             this.goIdle();
@@ -1008,6 +1064,7 @@ export class QServerSimulator {
             return;
         }
         this.goIdle();
+        this.console(SIM_CONSOLE.noItemsLeft);
         this.console(SIM_CONSOLE.queueEmpty);
     }
 
@@ -1198,6 +1255,7 @@ function resolveBehavior(options: QServerSimBehaviorOptions): ResolvedBehavior {
         failMessage: options.failMessage ?? DEFAULT_BEHAVIOR.failMessage,
         latencyMs: options.latencyMs ?? DEFAULT_BEHAVIOR.latencyMs,
         consoleOutput: options.consoleOutput ?? DEFAULT_BEHAVIOR.consoleOutput,
+        consolePrefix: options.consolePrefix ?? DEFAULT_BEHAVIOR.consolePrefix,
         consoleBufferSize: options.consoleBufferSize ?? DEFAULT_BEHAVIOR.consoleBufferSize,
         environmentOpenMs: options.environmentOpenMs ?? DEFAULT_BEHAVIOR.environmentOpenMs,
         environmentCloseMs: options.environmentCloseMs ?? DEFAULT_BEHAVIOR.environmentCloseMs,

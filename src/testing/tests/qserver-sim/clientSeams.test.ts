@@ -129,9 +129,9 @@ function assertSharedBehavior(name: string, build: (sim: QServerSim) => QServerC
             expect((await client.getRunsClosed()).run_list).toHaveLength(0);
             expect(await client.getRuns({ option: 'active' })).toMatchObject({ success: true });
 
-            expect((await client.getConsoleOutput({ nlines: 1 })).text).toContain(
-                'Starting the plan',
-            );
+            expect((await client.getConsoleOutput()).text).toContain('Starting the plan');
+            // `nlines` counts rendered lines from the end of the buffer.
+            expect((await client.getConsoleOutput({ nlines: 1 })).text.split('\n')).toHaveLength(1);
             const uid = await client.getConsoleOutputUID();
             expect(uid.console_output_uid).toBeTruthy();
             expect(

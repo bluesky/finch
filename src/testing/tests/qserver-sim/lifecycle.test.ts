@@ -357,7 +357,8 @@ describe('the environment', () => {
 
         sim.advance(250);
         expect(sim.getStatus().worker_environment_state).toBe('idle');
-        expect(sim.getConsoleText()).toContain('RE environment is ready.');
+        expect(sim.getConsoleText()).toContain('RE Environment is ready');
+        expect(sim.getConsoleText()).toContain('Worker started successfully.');
     });
 
     it('refuses to open twice, or to close when already closed', () => {
@@ -539,7 +540,7 @@ describe('subscriptions', () => {
         expect(lines).toEqual([]);
 
         sim.clearQueue();
-        expect(lines.join('')).toContain('Clearing the queue.');
+        expect(lines.join('')).toContain('Clearing the queue ...');
     });
 
     it('releases listeners on unsubscribe', () => {
