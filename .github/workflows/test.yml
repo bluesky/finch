@@ -95,6 +95,7 @@ jobs:
           npm run test:run -- src/testing/tests/QServerNewRegistry.test.tsx
           npm run test:run -- src/testing/tests/QServerNewClient.test.tsx
           npm run test:run -- src/testing/tests/QServerNewSockets.test.tsx
+          npm run test:run -- src/testing/tests/QServerNewHooks.test.tsx
           echo "Running qserver sim test suites..."
           npm run test:run -- src/testing/tests/qserver-sim/status.test.ts
           npm run test:run -- src/testing/tests/qserver-sim/uids.test.ts
@@ -104,6 +105,7 @@ jobs:
           npm run test:run -- src/testing/tests/qserver-sim/clientSeams.test.ts
           npm run test:run -- src/testing/tests/qserver-sim/sockets.test.ts
           npm run test:run -- src/testing/tests/qserver-sim/QServerSimDemo.test.tsx
+          npm run test:run -- src/testing/tests/qserver-sim/hooks.test.tsx
           echo "Running ophyd sim test suites..."
           npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts

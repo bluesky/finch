@@ -162,6 +162,11 @@ interface RetryableConfig extends InternalAxiosRequestConfig {
     __qsRetried?: boolean;
 }
 
+/** Marks a request that opted out of auth via `options.apiKey === null`. */
+interface AuthAwareConfig extends InternalAxiosRequestConfig {
+    __qsNoAuth?: boolean;
+}
+
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 /**
@@ -431,6 +436,9 @@ export class QServerApiClient implements QServerEndpoints {
      * set by `buildConfig`, or a header supplied by the caller).
      */
     private applyAuth(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+        // `options.apiKey: null` opted this call out of auth entirely.
+        if ((config as AuthAwareConfig).__qsNoAuth) return config;
+
         const params = (config.params ?? {}) as Record<string, unknown>;
         const alreadyAuthorized = !!config.headers?.Authorization || params.api_key !== undefined;
         if (alreadyAuthorized) return config;
@@ -537,7 +545,10 @@ export class QServerApiClient implements QServerEndpoints {
             signal: options?.signal ?? this.signal,
             headers,
             params,
-        };
+            // An explicit `null` means "no credentials for this call" — distinct from `undefined`,
+            // which inherits the client's. Flagged here so the auth interceptor can tell them apart.
+            ...(options?.apiKey === null ? { __qsNoAuth: true } : {}),
+        } as AxiosRequestConfig;
     }
 
     /**

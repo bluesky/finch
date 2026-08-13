@@ -97,7 +97,8 @@ export interface QServerRequestOptions {
      * Override the API key for this call only.
      *
      * Sent in whichever location the client is configured for (`'header'` or `'query'`), and does
-     * not change `getApiKey()`.
+     * not change `getApiKey()`. An explicit `null` sends **no** credentials at all — distinct from
+     * omitting the field, which inherits the client's key.
      */
     apiKey?: string | null;
     /** Escape hatch merged into the axios config (`responseType`, `timeout`, …). */

@@ -137,6 +137,28 @@ describe('QServerApiClient auth', () => {
         expect(client.getBaseUrl()).toBe('http://host:60610');
     });
 
+    it('sends no credentials when a call passes apiKey: null', async () => {
+        const { client, recorded } = makeClient(() => okStatus);
+
+        await client.getStatus(undefined, { apiKey: null });
+        await client.getStatus();
+
+        // An explicit null opts this call out entirely; the next call inherits the client's key
+        // again. `undefined` would have inherited it too — that is the distinction.
+        expect(recorded.configs[0].headers?.Authorization).toBeUndefined();
+        expect(recorded.configs[0].params?.api_key).toBeUndefined();
+        expect(recorded.configs[1].headers?.Authorization).toBe('Apikey test-key');
+    });
+
+    it('sends no credentials for apiKey: null in query mode either', async () => {
+        const { client, recorded } = makeClient(() => okStatus, { apiKeyLocation: 'query' });
+
+        await client.getStatus(undefined, { apiKey: null });
+
+        expect(recorded.configs[0].params?.api_key).toBeUndefined();
+        expect(recorded.configs[0].headers?.Authorization).toBeUndefined();
+    });
+
     it('clears every credential with clearAuth', async () => {
         const { client, recorded } = makeClient(() => okStatus, { bearerToken: 'jwt' });
         client.clearAuth();

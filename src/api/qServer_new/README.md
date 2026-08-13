@@ -201,6 +201,107 @@ silently drop credentials — so if a socket fails to connect while a key is set
 - The server's per-client queue holds 1000 messages and drops the oldest on overflow, so
   consumers must tolerate gaps.
 
+## React Query hooks
+
+One hook per endpoint — 29 queries and 41 mutations — in [`hooks/`](./hooks). Names mirror the
+client methods: `getStatus` -> `useGetStatusQuery`, `addQueueItem` -> `useAddQueueItemMutation`,
+`pauseRE` -> `usePauseREMutation`.
+
+```tsx
+import { useGetQueueQuery, useGetStatusQuery, useAddQueueItemMutation } from '@/api/qServer_new';
+
+function QueueWidget() {
+    const status = useGetStatusQuery({ query: { refetchInterval: 1000 } });
+    const queue = useGetQueueQuery();
+    const add = useAddQueueItemMutation();
+
+    return (
+        <button
+            disabled={add.isPending}
+            onClick={() => add.mutate({ item: { name: 'count', item_type: 'plan' } })}
+        >
+            {queue.data?.items.length ?? 0} queued - {status.data?.manager_state}
+        </button>
+    );
+}
+```
+
+### One options object
+
+Every hook takes a single optional object with up to three parts:
+
+| key                                                                               | what it is                                                                                                                            |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| the endpoint's own argument — `payload`, `body`, `input`, or a scalar like `uuid` | forwarded to the client method, and part of the query key                                                                             |
+| `request`                                                                         | transport overrides: `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`, plus `strategy`/`fallback` on the payload-GETs |
+| `query` / `mutation`                                                              | standard TanStack options                                                                                                             |
+
+TanStack options go under `query`, **not** at the top level:
+
+```ts
+useGetQueueQuery({ query: { refetchInterval: 1000 } }); // correct
+useGetQueueQuery({ refetchInterval: 1000 }); // compile error
+```
+
+That is deliberate. The legacy hooks took TanStack options in first position, so the mistake is easy
+to make; keeping the buckets separate turns it into a type error instead of a request payload nobody
+notices. `queryKey` and `queryFn` are owned by the hook — overriding the key would detach the entry
+from the invalidation map. `hooks/typeTests.ts` pins all of this at compile time.
+
+Mutation bodies go to `mutate`, so one hook can perform many writes:
+
+```ts
+const move = useMoveQueueItemMutation();
+move.mutate({ uid, pos_dest: 'front' });
+```
+
+The four endpoints taking positional scalars use object variables: `{ uuid, body }`,
+`{ firstEight }`, `{ sessionId }`.
+
+### Where the client comes from
+
+1. the client injected via `QServerApiProvider` (`@/api/qServerRuntime`), if there is one — this is
+   what lets [qserver-sim](../../lib/qserver-sim/README.md) drive hook-based components in Storybook;
+2. otherwise the app-wide default client.
+
+Setting `qServerApiUrl` / `qServerApiKey` on `FinchConfigProvider` is enough: those values are applied
+to the default client _and_ carried on every request, so even the first fetch of the first render uses
+the configured server. Absent Finch config the client's own configuration stands, so
+`setDefaultQServerClient` and `setGlobalBaseUrl` keep working.
+
+`QServerClientLike` — the type the provider accepts — covers 44 of the 70 operations, because that is
+what the simulator implements. Hooks for the other 26 (auth, permissions, admin, `executeFunction`,
+`uploadScript`, `uploadQueueSpreadsheet`, `streamConsoleOutput`, `getConfig`, `updateEnvironment`,
+`getREMetadata`, `moveQueueItemBatch`) reject with `QServerEndpointUnavailableError` when a partial
+client is injected, rather than silently falling through to the network.
+
+### Keys and invalidation
+
+Keys are `['qserver', <resource>, <args | null>, { baseUrl }]`. The scope is last so prefixes like
+`['qserver','queue']` still match — including the ones existing code already invalidates with. The
+API key is deliberately absent: it would put a secret in the Devtools cache inspector, and a
+credential change invalidates everything rather than one entry (`invalidateAllQServerQueries`).
+
+Mutations invalidate named bundles automatically, awaited before `mutateAsync` resolves — so the queue
+is already refreshed on the next line. Bundles: `status`, `queue`, `history`, `runs`, `catalogs`,
+`permissions`, `lock`, `auth`; see `QSERVER_MUTATION_INVALIDATIONS` for the full map and
+`useQServerInvalidate()` for imperative refreshes.
+
+### Things to know
+
+- **Four queries are guarded**: `useGetQueueItemQuery` (needs a `uid` or `pos`),
+  `useGetTaskStatusQuery` / `useGetTaskResultQuery` (need a `task_uid`) and `useGetPrincipalQuery`
+  (needs a `uuid`) stay idle until their argument is present. `query.enabled` overrides.
+- **Cancellation composes**: TanStack's signal and any `request.signal` are merged, so unmounting or
+  `cancelQueries` aborts the in-flight request whether or not you passed one.
+- **`useStreamConsoleOutputMutation` is a mutation**, not a query — the response never ends on its
+  own. Bound it with `request.axiosConfig.timeout`, or prefer `useQServerConsoleSocket`.
+- **`useGetRunsQuery` is a query** even though the endpoint is a POST.
+- The browser caveats from the payload-GET section apply unchanged, so `useGetTaskStatusQuery` and
+  `useGetTaskResultQuery` cannot work in a browser at all.
+- Stories and tests must supply their own `QueryClientProvider` — there is none in
+  `.storybook/preview.ts` or the vitest setup.
+
 ## Errors
 
 Every failure is a `QServerApiError` carrying `status`, `method`, `path`, `responseBody`,
@@ -233,13 +334,13 @@ It is wired into `src/app/pages/TestPage.tsx`.
 
 ## Differences from `src/api/qServer`
 
-|                   | `qServer`                                 | `qServer_new`                                     |
-| ----------------- | ----------------------------------------- | ------------------------------------------------- |
-| Coverage          | 16 functions / 15 paths                   | 70 operations / 68 paths                          |
-| Base URL          | `.../api`                                 | origin                                            |
-| Auth header       | `ApiKey`                                  | `Apikey` (spec casing; `ApiKey` selectable)       |
-| Key changes       | rebuild the client                        | `setApiKey`, effective immediately                |
-| Interceptors      | none                                      | add / eject / clear / list, built-ins protected   |
-| Websockets        | none                                      | three, with reconnect and both auth modes         |
-| `getQueueItem`    | `GET /queue/item/{uid}` — not a real path | `GET /api/queue/item/get` with a browser fallback |
-| react-query hooks | yes                                       | no — this folder is client + sockets only         |
+|                   | `qServer`                                 | `qServer_new`                                                                      |
+| ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |
+| Coverage          | 16 functions / 15 paths                   | 70 operations / 68 paths                                                           |
+| Base URL          | `.../api`                                 | origin                                                                             |
+| Auth header       | `ApiKey`                                  | `Apikey` (spec casing; `ApiKey` selectable)                                        |
+| Key changes       | rebuild the client                        | `setApiKey`, effective immediately                                                 |
+| Interceptors      | none                                      | add / eject / clear / list, built-ins protected                                    |
+| Websockets        | none                                      | three, with reconnect and both auth modes                                          |
+| `getQueueItem`    | `GET /queue/item/{uid}` — not a real path | `GET /api/queue/item/get` with a browser fallback                                  |
+| react-query hooks | 15 hooks / 15 endpoints                   | **70 hooks, one per endpoint**, with keys, invalidation and Finch-config awareness |

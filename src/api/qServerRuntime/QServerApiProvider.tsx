@@ -41,7 +41,8 @@ export interface QServerApiProviderProps {
  * context values are the client and factory themselves, so no memoization is needed here —
  * stability is the caller's contract, as documented on the props.
  *
- * TanStack Query hooks will later read the client from here rather than constructing their own.
+ * The TanStack Query hooks in `@/api/qServer_new/hooks` read the client from here (see
+ * `hooks/useQServerClient.ts`) rather than constructing their own.
  */
 export function QServerApiProvider({ client, socketFactory, children }: QServerApiProviderProps) {
     return (

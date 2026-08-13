@@ -258,6 +258,14 @@ export type { QServerApiConfig } from './api/qServer/client';
 
 export * as QServerRequests from './api/qServer/requests';
 
+/**
+ * Query hooks over the new queue-server client (`src/api/qServer_new`).
+ *
+ * Namespaced for now because seven hook names below still come from the legacy `api/qServer/hooks`
+ * — flatten these to named exports in the commit that removes that folder.
+ */
+export * as QServerHooks from './api/qServer_new/hooks';
+
 export {
     useQueueQuery,
     useQueueHistoryQuery,

@@ -154,5 +154,8 @@ export type {
     UseQServerStatusSocketResult,
 } from './sockets/useQServerChannelSockets';
 
+// React Query hooks — one per endpoint, plus the resolver, keys and invalidation helpers.
+export * from './hooks';
+
 // Types
 export * from './types';
