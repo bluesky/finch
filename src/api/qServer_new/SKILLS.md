@@ -58,7 +58,7 @@ sockets/
 ## Invariants the tests enforce
 
 - registry ↔ spec: exactly the same 70 `(METHOD, path)` pairs.
-- every descriptor's `fn` exists on the prototype *and* is exported from `facade.ts`.
+- every descriptor's `fn` exists on the prototype _and_ is exported from `facade.ts`.
 - `payloadGet` descriptors == the 18 spec GETs carrying a `requestBody`, and match
   `PAYLOAD_GET_ENDPOINT_IDS`.
 - `bodyRequired` descriptors match `BODY_REQUIRED_GET_ENDPOINT_IDS`, and each is either
@@ -71,14 +71,16 @@ sockets/
 ## Gotchas
 
 - **Base URL is the origin.** Spec paths include `/api/`; `setBaseUrl` strips a trailing
-  `/api` because the rest of Finch stores it with one.
+  `/api` because the rest of Finch stores it with one. A per-request `options.baseUrl` overrides it
+  through `resolveBaseUrl()`, which every request passes through via `buildConfig` — the token
+  refresh is the one deliberate exception and always uses the client's own base URL.
 - **Axios request interceptors are LIFO.** User interceptors see the config before auth.
 - **Four GETs need a body even when empty** (`tasks.status`, `tasks.result`, `lock.info`,
   `console.outputUpdate`) — hence `BODY_REQUIRED_GET_ENDPOINT_IDS`, which makes
   `getWithBody` skip its "empty payload → bodiless GET" shortcut.
 - **A server with auth disabled 500s the websocket handshake when credentials are present.**
   Verified against RE Manager v0.0.19 in `UNAUTHENTICATED_SINGLE_USER` mode: no credentials
-  and a *wrong* `?api_key` both get 101, a real key or any token gets 500. Use
+  and a _wrong_ `?api_key` both get 101, a real key or any token gets 500. Use
   `authMode: 'none'` there. The client never drops credentials on its own.
 - **Successful first-message auth is silent.** Do not treat "no frames yet" as a failure:
   promote to `'open'` when the auth window elapses with the socket still up. Only a close

@@ -156,6 +156,39 @@ describe('QServerApiClient per-request overrides', () => {
         expect(other.recorded.configs).toHaveLength(1);
     });
 
+    it('sends one call to a different server without mutating client state', async () => {
+        const { client, recorded } = makeClient(() => okStatus);
+
+        await client.getStatus(undefined, { baseUrl: 'http://other-host:60610' });
+        await client.getStatus();
+
+        expect(recorded.configs[0].baseURL).toBe('http://other-host:60610');
+        expect(recorded.configs[0].url).toBe('/api/status');
+        expect(recorded.configs[1].baseURL).toBe(BASE_URL);
+        expect(client.getBaseUrl()).toBe(BASE_URL);
+    });
+
+    it('normalizes a per-request base URL the way setBaseUrl does', async () => {
+        const { client, recorded } = makeClient(() => okStatus);
+
+        await client.getStatus(undefined, { baseUrl: 'http://other-host:60610/api/' });
+
+        expect(recorded.configs[0].baseURL).toBe('http://other-host:60610');
+    });
+
+    it('applies a per-request base URL to payload-GETs and posts alike', async () => {
+        const { client, recorded } = makeClient(() => ({ data: { success: true, item: {} } }));
+        const options = { baseUrl: 'http://other-host:60610' };
+
+        await client.getQueue(undefined, options);
+        await client.addQueueItem({ item: { name: 'count', item_type: 'plan' } }, options);
+
+        expect(recorded.configs.map((config) => config.baseURL)).toEqual([
+            'http://other-host:60610',
+            'http://other-host:60610',
+        ]);
+    });
+
     it('honours a one-off api key without mutating client state', async () => {
         const { client, recorded } = makeClient(() => okStatus);
         await client.getStatus(undefined, { apiKey: 'one-off' });

@@ -532,12 +532,25 @@ export class QServerApiClient implements QServerEndpoints {
 
         return {
             ...options?.axiosConfig,
-            baseURL: this.baseUrl,
+            baseURL: this.resolveBaseUrl(options),
             url: path,
             signal: options?.signal ?? this.signal,
             headers,
             params,
         };
+    }
+
+    /**
+     * The origin this call should go to.
+     *
+     * A per-request `baseUrl` wins over the client's, and is normalized the same way `setBaseUrl`
+     * normalizes: spec paths already carry `/api/`, so a caller who passes `.../api` gets the same
+     * forgiveness they would from the setter.
+     */
+    protected resolveBaseUrl(options?: QServerRequestOptions): string {
+        return options?.baseUrl !== undefined
+            ? normalizeQServerBaseUrl(options.baseUrl)
+            : this.baseUrl;
     }
 
     /** Issue a request and unwrap `response.data`, normalizing failures. */

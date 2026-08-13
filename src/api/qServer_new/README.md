@@ -39,7 +39,7 @@ client.setBaseUrl('http://host:60610/api'); // stored as 'http://host:60610'
 ```ts
 // 1. the app-wide client
 import { getQueue, setGlobalApiKey } from '@/api/qServer_new';
-setGlobalApiKey('another-key');       // affects the very next request; no rebuild
+setGlobalApiKey('another-key'); // affects the very next request; no rebuild
 await getQueue();
 
 // 2. your own instance
@@ -47,28 +47,37 @@ import { createQServerApiClient, setDefaultQServerClient } from '@/api/qServer_n
 const client = createQServerApiClient({
     baseUrl: 'http://localhost:60610',
     apiKey: 'test',
-    client: myAxiosInstance,          // optional: adopt an existing axios instance
+    client: myAxiosInstance, // optional: adopt an existing axios instance
     timeout: 10_000,
 });
-setDefaultQServerClient(client);      // optional: make it the app-wide one
+setDefaultQServerClient(client); // optional: make it the app-wide one
 await client.getQueue();
 
 // 3. one call at a time
-await getQueue(undefined, { client: otherAxios, apiKey: 'one-off', signal: controller.signal });
+await getQueue(undefined, {
+    baseUrl: 'http://other-host:60610', // a different server, just this once
+    apiKey: 'one-off',
+    client: otherAxios,
+    signal: controller.signal,
+});
 ```
+
+Per-request options never touch client state: the next call goes back to the configured base URL and
+key. `baseUrl` is normalized like `setBaseUrl` (a trailing `/api` is stripped), and it does not
+redirect the built-in 401 refresh, which always talks to the client's own server.
 
 `resetDefaultQServerClient()` discards the singleton — call it in `beforeEach` so tests do
 not leak configuration into one another.
 
 ### Authentication
 
-| What | How |
-| --- | --- |
-| API key in a header | default; `Authorization: Apikey <key>` (the casing the spec documents) |
-| API key in the query | `setGlobalApiKeyLocation('query')` → `?api_key=<key>` |
-| Legacy header casing | `client.setApiKeyScheme('ApiKey')` — what `src/api/qServer` sends today |
-| Bearer token | `setGlobalBearerToken(jwt)`; takes precedence over the API key |
-| Refresh on 401 | set a `refreshToken`; one single-flight refresh against `/api/auth/session/refresh`, then one retry. On failure the client clears auth and calls `onAuthError` |
+| What                 | How                                                                                                                                                            |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API key in a header  | default; `Authorization: Apikey <key>` (the casing the spec documents)                                                                                         |
+| API key in the query | `setGlobalApiKeyLocation('query')` → `?api_key=<key>`                                                                                                          |
+| Legacy header casing | `client.setApiKeyScheme('ApiKey')` — what `src/api/qServer` sends today                                                                                        |
+| Bearer token         | `setGlobalBearerToken(jwt)`; takes precedence over the API key                                                                                                 |
+| Refresh on 401       | set a `refreshToken`; one single-flight refresh against `/api/auth/session/refresh`, then one retry. On failure the client clears auth and calls `onAuthError` |
 
 The key is read **at request time** by a built-in interceptor, which is why `setApiKey` takes
 effect immediately without rebuilding anything.
@@ -84,7 +93,7 @@ const handle = addRequestInterceptor((config) => {
 });
 
 ejectInterceptor(handle);
-clearInterceptors();          // removes only YOUR interceptors
+clearInterceptors(); // removes only YOUR interceptors
 clearInterceptors('request'); // one kind only
 ```
 
@@ -94,7 +103,7 @@ first, then yours in registration order.
 
 One ordering caveat: axios runs request interceptors **last-registered-first**, and the
 built-in auth interceptor is registered in the constructor. Your request interceptor
-therefore sees the config *before* `Authorization` is attached.
+therefore sees the config _before_ `Authorization` is attached.
 
 ## The payload-GET problem
 
@@ -103,25 +112,25 @@ therefore sees the config *before* `Authorization` is attached.
 `curl -X GET -d '{"uid":"…"}'` works, `?uid=…` is ignored, and `POST` returns 405.
 
 Browsers cannot send a body on a GET — `fetch` rejects it and `XMLHttpRequest` drops it
-silently. Most of the 18 take an *optional* payload, so a bodiless call still works; the
+silently. Most of the 18 take an _optional_ payload, so a bodiless call still works; the
 table below covers the rest.
 
-| Endpoint | In a browser |
-| --- | --- |
-| `getStatus`, `ping`, `getRoot`, `getConfig`, `getQueue`, `getQueueHistory`, `getPlansAllowed`, `getDevicesAllowed`, `getPlansExisting`, `getDevicesExisting`, `getREMetadata`, `getConsoleOutput`, `testServerSleep` | fine — arguments are optional, so the call goes out with no body |
-| `getQueueItem({ uid })` | falls back to scanning `getQueue()` |
-| `getLockInfo()` | falls back to the `lock` field of `getStatus()`; owner, time and note are unavailable |
-| `getConsoleOutputUpdate({ last_msg_uid })` | falls back to `getConsoleOutput()` + `getConsoleOutputUID()`, which cannot deliver incrementally — prefer `useQServerConsoleSocket` |
-| `getTaskStatus`, `getTaskResult` | **no viable path.** Both require a body even when empty. This also means the results of `executeFunction` and `uploadScript` cannot be collected browser-side |
+| Endpoint                                                                                                                                                                                                             | In a browser                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `getStatus`, `ping`, `getRoot`, `getConfig`, `getQueue`, `getQueueHistory`, `getPlansAllowed`, `getDevicesAllowed`, `getPlansExisting`, `getDevicesExisting`, `getREMetadata`, `getConsoleOutput`, `testServerSleep` | fine — arguments are optional, so the call goes out with no body                                                                                              |
+| `getQueueItem({ uid })`                                                                                                                                                                                              | falls back to scanning `getQueue()`                                                                                                                           |
+| `getLockInfo()`                                                                                                                                                                                                      | falls back to the `lock` field of `getStatus()`; owner, time and note are unavailable                                                                         |
+| `getConsoleOutputUpdate({ last_msg_uid })`                                                                                                                                                                           | falls back to `getConsoleOutput()` + `getConsoleOutputUID()`, which cannot deliver incrementally — prefer `useQServerConsoleSocket`                           |
+| `getTaskStatus`, `getTaskResult`                                                                                                                                                                                     | **no viable path.** Both require a body even when empty. This also means the results of `executeFunction` and `uploadScript` cannot be collected browser-side |
 
 Behaviour is governed by `getBodyStrategy`:
 
-| Strategy | Effect when a browser needs to send a body |
-| --- | --- |
+| Strategy           | Effect when a browser needs to send a body                                    |
+| ------------------ | ----------------------------------------------------------------------------- |
 | `'auto'` (default) | use the declared fallback if there is one, otherwise warn once and try anyway |
-| `'body'` | always attempt the request; the body is dropped and the server sees `{}` |
-| `'fallback'` | require a fallback; throw `QServerGetBodyUnsupportedError` without one |
-| `'throw'` | never attempt; always throw |
+| `'body'`           | always attempt the request; the body is dropped and the server sees `{}`      |
+| `'fallback'`       | require a fallback; throw `QServerGetBodyUnsupportedError` without one        |
+| `'throw'`          | never attempt; always throw                                                   |
 
 Set it globally with `setGlobalGetBodyStrategy(…)`, per client via config, or per call via
 `options.strategy`. Register `onFallback` (or `setGlobalFallbackCallback`) to be told
@@ -134,11 +143,11 @@ as the API documents.
 
 Three send-only sockets, none of which appear in `openapi.json`:
 
-| Hook / factory | Path | Scope |
-| --- | --- | --- |
+| Hook / factory                                           | Path                     | Scope          |
+| -------------------------------------------------------- | ------------------------ | -------------- |
 | `useQServerConsoleSocket` / `createQServerConsoleSocket` | `/api/console_output/ws` | `read:console` |
-| `useQServerStatusSocket` / `createQServerStatusSocket` | `/api/status/ws` | `read:monitor` |
-| `useQServerInfoSocket` / `createQServerInfoSocket` | `/api/info/ws` | `read:monitor` |
+| `useQServerStatusSocket` / `createQServerStatusSocket`   | `/api/status/ws`         | `read:monitor` |
+| `useQServerInfoSocket` / `createQServerInfoSocket`       | `/api/info/ws`           | `read:monitor` |
 
 ```tsx
 const { status, connectionStatus, frameCount, reconnect } = useQServerStatusSocket();
@@ -151,11 +160,11 @@ keep the socket closed.
 
 **Auth matrix**
 
-| Mode | How | Usable from a browser |
-| --- | --- | --- |
-| `Authorization` header | handshake header | no — browsers cannot set websocket headers |
-| `'query'` (default) | `?api_key=…` or `?access_token=…` | yes |
-| `'message'` | connect bare, then send `{"type":"auth","api_key":"…"}` within 10 s | yes |
+| Mode                   | How                                                                 | Usable from a browser                      |
+| ---------------------- | ------------------------------------------------------------------- | ------------------------------------------ |
+| `Authorization` header | handshake header                                                    | no — browsers cannot set websocket headers |
+| `'query'` (default)    | `?api_key=…` or `?access_token=…`                                   | yes                                        |
+| `'message'`            | connect bare, then send `{"type":"auth","api_key":"…"}` within 10 s | yes                                        |
 
 In `'message'` mode the server **acknowledges a successful handshake with silence** — it only
 responds by closing (4401/4001) if the credentials are bad. The status therefore reads
@@ -166,13 +175,13 @@ error.
 **Servers without authentication reject credentials on the handshake.** Probed against
 RE Manager v0.0.19 running in `UNAUTHENTICATED_SINGLE_USER` mode:
 
-| Handshake | Result |
-| --- | --- |
-| no credentials | `101 Switching Protocols` |
-| `?api_key=<a real key>` | `500 Internal Server Error` |
-| `?access_token=…` / `Authorization: Bearer …` | `500` |
-| `?api_key=<a wrong key>` | `101` |
-| `Authorization: Apikey <real key>` | `101` |
+| Handshake                                     | Result                      |
+| --------------------------------------------- | --------------------------- |
+| no credentials                                | `101 Switching Protocols`   |
+| `?api_key=<a real key>`                       | `500 Internal Server Error` |
+| `?access_token=…` / `Authorization: Bearer …` | `500`                       |
+| `?api_key=<a wrong key>`                      | `101`                       |
+| `Authorization: Apikey <real key>`            | `101`                       |
 
 So on a server with authentication disabled you must pass `authMode: 'none'`; the default
 `'query'` is correct once a provider is configured. The client does not guess — it will not
@@ -224,13 +233,13 @@ It is wired into `src/app/pages/TestPage.tsx`.
 
 ## Differences from `src/api/qServer`
 
-| | `qServer` | `qServer_new` |
-| --- | --- | --- |
-| Coverage | 16 functions / 15 paths | 70 operations / 68 paths |
-| Base URL | `.../api` | origin |
-| Auth header | `ApiKey` | `Apikey` (spec casing; `ApiKey` selectable) |
-| Key changes | rebuild the client | `setApiKey`, effective immediately |
-| Interceptors | none | add / eject / clear / list, built-ins protected |
-| Websockets | none | three, with reconnect and both auth modes |
-| `getQueueItem` | `GET /queue/item/{uid}` — not a real path | `GET /api/queue/item/get` with a browser fallback |
-| react-query hooks | yes | no — this folder is client + sockets only |
+|                   | `qServer`                                 | `qServer_new`                                     |
+| ----------------- | ----------------------------------------- | ------------------------------------------------- |
+| Coverage          | 16 functions / 15 paths                   | 70 operations / 68 paths                          |
+| Base URL          | `.../api`                                 | origin                                            |
+| Auth header       | `ApiKey`                                  | `Apikey` (spec casing; `ApiKey` selectable)       |
+| Key changes       | rebuild the client                        | `setApiKey`, effective immediately                |
+| Interceptors      | none                                      | add / eject / clear / list, built-ins protected   |
+| Websockets        | none                                      | three, with reconnect and both auth modes         |
+| `getQueueItem`    | `GET /queue/item/{uid}` — not a real path | `GET /api/queue/item/get` with a browser fallback |
+| react-query hooks | yes                                       | no — this folder is client + sockets only         |

@@ -49,14 +49,56 @@ export interface QServerSuccessResponse {
 /** Called when a token refresh fails, e.g. to prompt for login. */
 export type QServerAuthErrorCallback = (error: unknown) => void;
 
-/** Per-request overrides. Nothing here mutates client state. */
+/**
+ * Overrides for a single call.
+ *
+ * Every endpoint method takes one of these as its last argument. Nothing here mutates client
+ * state — the next call is unaffected — which makes this the right tool for a one-off against a
+ * second server, with a different key, or with a cancellation signal:
+ *
+ * ```ts
+ * const status = await client.getStatus(undefined, {
+ *     baseUrl: 'http://other-host:60610',
+ *     apiKey: 'other-key',
+ *     signal: controller.signal,
+ * });
+ * ```
+ *
+ * For a change that should apply to every subsequent call, use the client's setters
+ * (`setBaseUrl`, `setApiKey`, …) or the `setGlobal*` helpers instead.
+ */
 export interface QServerRequestOptions {
-    /** Use this axios instance instead of the client's own, for this call only. */
+    /**
+     * Send this call to a different server.
+     *
+     * Takes precedence over the client's own base URL and, like `setBaseUrl`, is normalized: a
+     * trailing slash and a trailing `/api` are stripped, because spec paths already include
+     * `/api/`. Pass the **origin**, e.g. `http://localhost:60610`.
+     *
+     * Note this does not redirect the built-in 401 refresh, which always talks to the client's
+     * configured server.
+     */
+    baseUrl?: string;
+    /**
+     * Use this axios instance instead of the client's own, for this call only.
+     *
+     * The instance is used as-is: the client's interceptors are installed on *its* own instance,
+     * so a substitute brings only whatever interceptors it already has. Auth still comes from the
+     * options and client state below.
+     */
     client?: AxiosInstance;
+    /** Abort signal for this call. Overrides the client-wide signal. */
     signal?: AbortSignal;
+    /** Extra request headers. Merged over the defaults, and win over the built-in auth header. */
     headers?: Record<string, string>;
+    /** Extra query parameters. `undefined` values are dropped rather than serialized. */
     query?: Record<string, string | number | boolean | undefined>;
-    /** Override the API key for this call only. */
+    /**
+     * Override the API key for this call only.
+     *
+     * Sent in whichever location the client is configured for (`'header'` or `'query'`), and does
+     * not change `getApiKey()`.
+     */
     apiKey?: string | null;
     /** Escape hatch merged into the axios config (`responseType`, `timeout`, …). */
     axiosConfig?: Omit<AxiosRequestConfig, 'url' | 'method' | 'data' | 'params'>;
