@@ -7,7 +7,7 @@ import type { QServerRequestOptions } from '../types/common';
  * Every hook takes exactly **one** optional object, carrying up to three things: the endpoint's own
  * argument, transport overrides (`request`), and TanStack options (`query` / `mutation`). Keeping
  * them in separate, named buckets is what makes a call like
- * `useGetQueueQuery({ refetchInterval: 1000 })` a compile error rather than being silently read as a
+ * `useQueueGetQuery({ refetchInterval: 1000 })` a compile error rather than being silently read as a
  * request payload — which matters, because the legacy hooks in `src/api/qServer/hooks.ts` took
  * TanStack options in exactly that position.
  */

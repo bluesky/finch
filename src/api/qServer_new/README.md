@@ -203,17 +203,35 @@ silently drop credentials — so if a socket fails to connect while a key is set
 
 ## React Query hooks
 
-One hook per endpoint — 29 queries and 41 mutations — in [`hooks/`](./hooks). Names mirror the
-client methods: `getStatus` -> `useGetStatusQuery`, `addQueueItem` -> `useAddQueueItemMutation`,
-`pauseRE` -> `usePauseREMutation`.
+One hook per endpoint — 29 queries and 41 mutations — in [`hooks/`](./hooks). Every name starts with
+`useQueue` so the queue-server family cannot collide with the eventual `useTiled...` and
+`useOphyd...` families; after the prefix the client method's own name follows, minus the first
+`Queue` it already contains (no stutter):
+
+| client method  | hook                      |
+| -------------- | ------------------------- |
+| `getStatus`    | `useQueueGetStatusQuery`  |
+| `getQueue`     | `useQueueGetQuery`        |
+| `addQueueItem` | `useQueueAddItemMutation` |
+| `startQueue`   | `useQueueStartMutation`   |
+| `pauseRE`      | `useQueuePauseREMutation` |
+| `whoami`       | `useQueueWhoamiQuery`     |
+
+The helper and socket hooks keep their `useQServer...` names — they are infrastructure, not
+endpoints: `useQServerClient`, `useQServerInvalidate`, `useQServerSocket`,
+`useQServerStatusSocket`, `useQServerConsoleSocket`, `useQServerInfoSocket`.
 
 ```tsx
-import { useGetQueueQuery, useGetStatusQuery, useAddQueueItemMutation } from '@/api/qServer_new';
+import {
+    useQueueGetQuery,
+    useQueueGetStatusQuery,
+    useQueueAddItemMutation,
+} from '@/api/qServer_new';
 
 function QueueWidget() {
-    const status = useGetStatusQuery({ query: { refetchInterval: 1000 } });
-    const queue = useGetQueueQuery();
-    const add = useAddQueueItemMutation();
+    const status = useQueueGetStatusQuery({ query: { refetchInterval: 1000 } });
+    const queue = useQueueGetQuery();
+    const add = useQueueAddItemMutation();
 
     return (
         <button
@@ -239,8 +257,8 @@ Every hook takes a single optional object with up to three parts:
 TanStack options go under `query`, **not** at the top level:
 
 ```ts
-useGetQueueQuery({ query: { refetchInterval: 1000 } }); // correct
-useGetQueueQuery({ refetchInterval: 1000 }); // compile error
+useQueueGetQuery({ query: { refetchInterval: 1000 } }); // correct
+useQueueGetQuery({ refetchInterval: 1000 }); // compile error
 ```
 
 That is deliberate. The legacy hooks took TanStack options in first position, so the mistake is easy
@@ -251,7 +269,7 @@ from the invalidation map. `hooks/typeTests.ts` pins all of this at compile time
 Mutation bodies go to `mutate`, so one hook can perform many writes:
 
 ```ts
-const move = useMoveQueueItemMutation();
+const move = useQueueMoveItemMutation();
 move.mutate({ uid, pos_dest: 'front' });
 ```
 
@@ -289,16 +307,16 @@ is already refreshed on the next line. Bundles: `status`, `queue`, `history`, `r
 
 ### Things to know
 
-- **Four queries are guarded**: `useGetQueueItemQuery` (needs a `uid` or `pos`),
-  `useGetTaskStatusQuery` / `useGetTaskResultQuery` (need a `task_uid`) and `useGetPrincipalQuery`
+- **Four queries are guarded**: `useQueueGetItemQuery` (needs a `uid` or `pos`),
+  `useQueueGetTaskStatusQuery` / `useQueueGetTaskResultQuery` (need a `task_uid`) and `useQueueGetPrincipalQuery`
   (needs a `uuid`) stay idle until their argument is present. `query.enabled` overrides.
 - **Cancellation composes**: TanStack's signal and any `request.signal` are merged, so unmounting or
   `cancelQueries` aborts the in-flight request whether or not you passed one.
-- **`useStreamConsoleOutputMutation` is a mutation**, not a query — the response never ends on its
+- **`useQueueStreamConsoleOutputMutation` is a mutation**, not a query — the response never ends on its
   own. Bound it with `request.axiosConfig.timeout`, or prefer `useQServerConsoleSocket`.
-- **`useGetRunsQuery` is a query** even though the endpoint is a POST.
-- The browser caveats from the payload-GET section apply unchanged, so `useGetTaskStatusQuery` and
-  `useGetTaskResultQuery` cannot work in a browser at all.
+- **`useQueueGetRunsQuery` is a query** even though the endpoint is a POST.
+- The browser caveats from the payload-GET section apply unchanged, so `useQueueGetTaskStatusQuery` and
+  `useQueueGetTaskResultQuery` cannot work in a browser at all.
 - Stories and tests must supply their own `QueryClientProvider` — there is none in
   `.storybook/preview.ts` or the vitest setup.
 

@@ -40,67 +40,67 @@ export type QServerInvalidationBundleName = keyof typeof QSERVER_INVALIDATION_BU
  */
 export const QSERVER_MUTATION_INVALIDATIONS = {
     // queue writes
-    useAddQueueItemMutation: ['queue', 'status'],
-    useAddQueueItemBatchMutation: ['queue', 'status'],
-    useExecuteQueueItemMutation: ['queue', 'status', 'runs'],
-    useUpdateQueueItemMutation: ['queue', 'status'],
-    useRemoveQueueItemMutation: ['queue', 'status'],
-    useRemoveQueueItemBatchMutation: ['queue', 'status'],
-    useMoveQueueItemMutation: ['queue', 'status'],
-    useMoveQueueItemBatchMutation: ['queue', 'status'],
-    useUploadQueueSpreadsheetMutation: ['queue', 'status'],
+    useQueueAddItemMutation: ['queue', 'status'],
+    useQueueAddItemBatchMutation: ['queue', 'status'],
+    useQueueExecuteItemMutation: ['queue', 'status', 'runs'],
+    useQueueUpdateItemMutation: ['queue', 'status'],
+    useQueueRemoveItemMutation: ['queue', 'status'],
+    useQueueRemoveItemBatchMutation: ['queue', 'status'],
+    useQueueMoveItemMutation: ['queue', 'status'],
+    useQueueMoveItemBatchMutation: ['queue', 'status'],
+    useQueueUploadSpreadsheetMutation: ['queue', 'status'],
 
     // queue control
-    useStartQueueMutation: ['queue', 'status', 'runs'],
-    useStopQueueMutation: ['status'],
-    useCancelQueueStopMutation: ['status'],
-    useClearQueueMutation: ['queue', 'status'],
-    useSetQueueModeMutation: ['status'],
-    useSetQueueAutostartMutation: ['status'],
+    useQueueStartMutation: ['queue', 'status', 'runs'],
+    useQueueStopMutation: ['status'],
+    useQueueCancelStopMutation: ['status'],
+    useQueueClearMutation: ['queue', 'status'],
+    useQueueSetModeMutation: ['status'],
+    useQueueSetAutostartMutation: ['status'],
 
     // history
-    useClearHistoryMutation: ['history', 'status'],
+    useQueueClearHistoryMutation: ['history', 'status'],
 
     // environment
-    useOpenEnvironmentMutation: ['status', 'catalogs'],
-    useCloseEnvironmentMutation: ['status', 'catalogs', 'runs'],
-    useDestroyEnvironmentMutation: ['status', 'catalogs', 'runs', 'queue'],
-    useUpdateEnvironmentMutation: ['status', 'catalogs'],
+    useQueueOpenEnvironmentMutation: ['status', 'catalogs'],
+    useQueueCloseEnvironmentMutation: ['status', 'catalogs', 'runs'],
+    useQueueDestroyEnvironmentMutation: ['status', 'catalogs', 'runs', 'queue'],
+    useQueueUpdateEnvironmentMutation: ['status', 'catalogs'],
 
     // run engine
-    usePauseREMutation: ['status', 'queue', 'runs'],
-    useResumeREMutation: ['status', 'runs'],
-    useStopREMutation: ['status', 'queue', 'history', 'runs'],
-    useAbortREMutation: ['status', 'queue', 'history', 'runs'],
-    useHaltREMutation: ['status', 'queue', 'history', 'runs'],
+    useQueuePauseREMutation: ['status', 'queue', 'runs'],
+    useQueueResumeREMutation: ['status', 'runs'],
+    useQueueStopREMutation: ['status', 'queue', 'history', 'runs'],
+    useQueueAbortREMutation: ['status', 'queue', 'history', 'runs'],
+    useQueueHaltREMutation: ['status', 'queue', 'history', 'runs'],
 
     // permissions
-    useSetPermissionsMutation: ['permissions', 'catalogs', 'status'],
-    useReloadPermissionsMutation: ['permissions', 'catalogs', 'status'],
+    useQueueSetPermissionsMutation: ['permissions', 'catalogs', 'status'],
+    useQueueReloadPermissionsMutation: ['permissions', 'catalogs', 'status'],
 
     // functions & scripts
-    useExecuteFunctionMutation: ['status'],
-    useUploadScriptMutation: ['status', 'catalogs'],
+    useQueueExecuteFunctionMutation: ['status'],
+    useQueueUploadScriptMutation: ['status', 'catalogs'],
 
     // lock
-    useLockMutation: ['lock', 'status'],
-    useUnlockMutation: ['lock', 'status'],
+    useQueueLockMutation: ['lock', 'status'],
+    useQueueUnlockMutation: ['lock', 'status'],
 
     // console
-    useStreamConsoleOutputMutation: [],
+    useQueueStreamConsoleOutputMutation: [],
 
     // admin
-    useInterruptKernelMutation: ['status'],
-    useStopManagerMutation: ['status'],
-    useTestKillManagerMutation: ['status'],
+    useQueueInterruptKernelMutation: ['status'],
+    useQueueStopManagerMutation: ['status'],
+    useQueueTestKillManagerMutation: ['status'],
 
     // auth
-    useCreateApiKeyMutation: [],
-    useCreateApiKeyForPrincipalMutation: ['auth'],
-    useRevokeApiKeyMutation: ['auth'],
-    useRefreshSessionMutation: ['auth'],
-    useRevokeSessionMutation: ['auth'],
-    useLogoutMutation: ['auth'],
+    useQueueCreateApiKeyMutation: [],
+    useQueueCreateApiKeyForPrincipalMutation: ['auth'],
+    useQueueRevokeApiKeyMutation: ['auth'],
+    useQueueRefreshSessionMutation: ['auth'],
+    useQueueRevokeSessionMutation: ['auth'],
+    useQueueLogoutMutation: ['auth'],
 } as const satisfies Record<string, readonly QServerInvalidationBundleName[]>;
 
 export type QServerMutationHookName = keyof typeof QSERVER_MUTATION_INVALIDATIONS;

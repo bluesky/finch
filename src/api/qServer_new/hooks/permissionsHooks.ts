@@ -26,16 +26,17 @@ import { useQServerClient } from './useQServerClient';
  * too.
  */
 
-export type UseGetPermissionsQueryOptions<TData = GetPermissionsResponse> = QServerQueryHookOptions<
-    GetPermissionsResponse,
-    TData,
-    QServerQueryKeyFor<'permissions'>,
-    QServerRequestOptions
->;
+export type UseQueueGetPermissionsQueryOptions<TData = GetPermissionsResponse> =
+    QServerQueryHookOptions<
+        GetPermissionsResponse,
+        TData,
+        QServerQueryKeyFor<'permissions'>,
+        QServerRequestOptions
+    >;
 
 /** The current user-group permissions: allow/forbid lists of regular expressions per group. */
-export function useGetPermissionsQuery<TData = GetPermissionsResponse>(
-    options: UseGetPermissionsQueryOptions<TData> = {},
+export function useQueueGetPermissionsQuery<TData = GetPermissionsResponse>(
+    options: UseQueueGetPermissionsQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -48,32 +49,29 @@ export function useGetPermissionsQuery<TData = GetPermissionsResponse>(
     });
 }
 
-export type UseSetPermissionsMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueSetPermissionsMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PermissionsResponse,
     SetPermissionsBody,
     TContext
 >;
 
 /** Replace the user-group permissions wholesale. */
-export function useSetPermissionsMutation<TContext = unknown>(
-    options: UseSetPermissionsMutationOptions<TContext> = {},
+export function useQueueSetPermissionsMutation<TContext = unknown>(
+    options: UseQueueSetPermissionsMutationOptions<TContext> = {},
 ): UseMutationResult<PermissionsResponse, QServerHookError, SetPermissionsBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setPermissions(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useSetPermissionsMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueSetPermissionsMutation,
         ...options,
     });
 }
 
-export type UseReloadPermissionsMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    PermissionsResponse,
-    ReloadPermissionsBody | void,
-    TContext
->;
+export type UseQueueReloadPermissionsMutationOptions<TContext = unknown> =
+    QServerMutationHookOptions<PermissionsResponse, ReloadPermissionsBody | void, TContext>;
 
 /** Reload permissions from disk, optionally restoring the plan and device lists as well. */
-export function useReloadPermissionsMutation<TContext = unknown>(
-    options: UseReloadPermissionsMutationOptions<TContext> = {},
+export function useQueueReloadPermissionsMutation<TContext = unknown>(
+    options: UseQueueReloadPermissionsMutationOptions<TContext> = {},
 ): UseMutationResult<
     PermissionsResponse,
     QServerHookError,
@@ -82,7 +80,7 @@ export function useReloadPermissionsMutation<TContext = unknown>(
 > {
     return useQServerMutation({
         perform: (client, body, request) => client.reloadPermissions(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useReloadPermissionsMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueReloadPermissionsMutation,
         ...options,
     });
 }

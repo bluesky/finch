@@ -26,7 +26,7 @@ import { useQServerClient } from './useQServerClient';
  * output is append-only and no mutation makes an existing read wrong.
  */
 
-export interface UseGetConsoleOutputQueryOptions<
+export interface UseQueueGetConsoleOutputQueryOptions<
     TData = GetConsoleOutputResponse,
 > extends QServerQueryHookOptions<
     GetConsoleOutputResponse,
@@ -39,8 +39,8 @@ export interface UseGetConsoleOutputQueryOptions<
 }
 
 /** The last `nlines` of console text as one string. */
-export function useGetConsoleOutputQuery<TData = GetConsoleOutputResponse>(
-    options: UseGetConsoleOutputQueryOptions<TData> = {},
+export function useQueueGetConsoleOutputQuery<TData = GetConsoleOutputResponse>(
+    options: UseQueueGetConsoleOutputQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -53,7 +53,7 @@ export function useGetConsoleOutputQuery<TData = GetConsoleOutputResponse>(
     });
 }
 
-export type UseGetConsoleOutputUIDQueryOptions<TData = GetConsoleOutputUidResponse> =
+export type UseQueueGetConsoleOutputUIDQueryOptions<TData = GetConsoleOutputUidResponse> =
     QServerQueryHookOptions<
         GetConsoleOutputUidResponse,
         TData,
@@ -62,8 +62,8 @@ export type UseGetConsoleOutputUIDQueryOptions<TData = GetConsoleOutputUidRespon
     >;
 
 /** Uid of the most recent console message — cheap to poll as a change detector. */
-export function useGetConsoleOutputUIDQuery<TData = GetConsoleOutputUidResponse>(
-    options: UseGetConsoleOutputUIDQueryOptions<TData> = {},
+export function useQueueGetConsoleOutputUIDQuery<TData = GetConsoleOutputUidResponse>(
+    options: UseQueueGetConsoleOutputUIDQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -76,7 +76,7 @@ export function useGetConsoleOutputUIDQuery<TData = GetConsoleOutputUidResponse>
     });
 }
 
-export interface UseGetConsoleOutputUpdateQueryOptions<
+export interface UseQueueGetConsoleOutputUpdateQueryOptions<
     TData = GetConsoleOutputUpdateResponse,
 > extends QServerQueryHookOptions<
     GetConsoleOutputUpdateResponse,
@@ -95,8 +95,8 @@ export interface UseGetConsoleOutputUpdateQueryOptions<
  * `getConsoleOutput` + `getConsoleOutputUID`, which cannot deliver incrementally — it returns the
  * current buffer as a single message. Use `useQServerConsoleSocket` for genuine live output.
  */
-export function useGetConsoleOutputUpdateQuery<TData = GetConsoleOutputUpdateResponse>(
-    options: UseGetConsoleOutputUpdateQueryOptions<TData> = {},
+export function useQueueGetConsoleOutputUpdateQuery<TData = GetConsoleOutputUpdateResponse>(
+    options: UseQueueGetConsoleOutputUpdateQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -109,11 +109,8 @@ export function useGetConsoleOutputUpdateQuery<TData = GetConsoleOutputUpdateRes
     });
 }
 
-export type UseStreamConsoleOutputMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    string,
-    void,
-    TContext
->;
+export type UseQueueStreamConsoleOutputMutationOptions<TContext = unknown> =
+    QServerMutationHookOptions<string, void, TContext>;
 
 /**
  * Open the console text stream.
@@ -122,7 +119,7 @@ export type UseStreamConsoleOutputMutationOptions<TContext = unknown> = QServerM
  * a query it would sit pending forever and look broken. Always bound it:
  *
  * ```ts
- * const stream = useStreamConsoleOutputMutation({
+ * const stream = useQueueStreamConsoleOutputMutation({
  *     request: { axiosConfig: { timeout: 5000 } },
  * });
  * ```
@@ -130,12 +127,12 @@ export type UseStreamConsoleOutputMutationOptions<TContext = unknown> = QServerM
  * Not in `QServerClientLike`, so it rejects with `QServerEndpointUnavailableError` against a partial
  * injected client. Prefer `useQServerConsoleSocket` for anything long-lived.
  */
-export function useStreamConsoleOutputMutation<TContext = unknown>(
-    options: UseStreamConsoleOutputMutationOptions<TContext> = {},
+export function useQueueStreamConsoleOutputMutation<TContext = unknown>(
+    options: UseQueueStreamConsoleOutputMutationOptions<TContext> = {},
 ): UseMutationResult<string, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.streamConsoleOutput(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useStreamConsoleOutputMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStreamConsoleOutputMutation,
         ...options,
     });
 }

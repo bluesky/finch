@@ -36,7 +36,7 @@ import { useQServerClient } from './useQServerClient';
 
 // #region reads
 
-export type UseWhoamiQueryOptions<TData = WhoamiResponse> = QServerQueryHookOptions<
+export type UseQueueWhoamiQueryOptions<TData = WhoamiResponse> = QServerQueryHookOptions<
     WhoamiResponse,
     TData,
     QServerQueryKeyFor<'whoami'>,
@@ -44,8 +44,8 @@ export type UseWhoamiQueryOptions<TData = WhoamiResponse> = QServerQueryHookOpti
 >;
 
 /** The calling principal: identities, api keys and sessions. */
-export function useWhoamiQuery<TData = WhoamiResponse>(
-    options: UseWhoamiQueryOptions<TData> = {},
+export function useQueueWhoamiQuery<TData = WhoamiResponse>(
+    options: UseQueueWhoamiQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -58,7 +58,7 @@ export function useWhoamiQuery<TData = WhoamiResponse>(
     });
 }
 
-export type UseGetScopesQueryOptions<TData = ScopesResponse> = QServerQueryHookOptions<
+export type UseQueueGetScopesQueryOptions<TData = ScopesResponse> = QServerQueryHookOptions<
     ScopesResponse,
     TData,
     QServerQueryKeyFor<'scopes'>,
@@ -66,8 +66,8 @@ export type UseGetScopesQueryOptions<TData = ScopesResponse> = QServerQueryHookO
 >;
 
 /** Roles and scopes granted to the caller — useful for hiding controls the key cannot use. */
-export function useGetScopesQuery<TData = ScopesResponse>(
-    options: UseGetScopesQueryOptions<TData> = {},
+export function useQueueGetScopesQuery<TData = ScopesResponse>(
+    options: UseQueueGetScopesQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -80,16 +80,17 @@ export function useGetScopesQuery<TData = ScopesResponse>(
     });
 }
 
-export type UseListPrincipalsQueryOptions<TData = PrincipalListResponse> = QServerQueryHookOptions<
-    PrincipalListResponse,
-    TData,
-    QServerQueryKeyFor<'principals'>,
-    QServerRequestOptions
->;
+export type UseQueueListPrincipalsQueryOptions<TData = PrincipalListResponse> =
+    QServerQueryHookOptions<
+        PrincipalListResponse,
+        TData,
+        QServerQueryKeyFor<'principals'>,
+        QServerRequestOptions
+    >;
 
 /** Every principal. Admin only. */
-export function useListPrincipalsQuery<TData = PrincipalListResponse>(
-    options: UseListPrincipalsQueryOptions<TData> = {},
+export function useQueueListPrincipalsQuery<TData = PrincipalListResponse>(
+    options: UseQueueListPrincipalsQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -102,7 +103,7 @@ export function useListPrincipalsQuery<TData = PrincipalListResponse>(
     });
 }
 
-export interface UseGetPrincipalQueryOptions<
+export interface UseQueueGetPrincipalQueryOptions<
     TData = PrincipalResponse,
 > extends QServerQueryHookOptions<
     PrincipalResponse,
@@ -115,8 +116,8 @@ export interface UseGetPrincipalQueryOptions<
 }
 
 /** One principal by uuid. Admin only. */
-export function useGetPrincipalQuery<TData = PrincipalResponse>(
-    options: UseGetPrincipalQueryOptions<TData> = {},
+export function useQueueGetPrincipalQuery<TData = PrincipalResponse>(
+    options: UseQueueGetPrincipalQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { uuid, request, query } = options;
@@ -130,7 +131,7 @@ export function useGetPrincipalQuery<TData = PrincipalResponse>(
     });
 }
 
-export type UseGetCurrentApiKeyInfoQueryOptions<TData = CurrentApiKeyInfoResponse> =
+export type UseQueueGetCurrentApiKeyInfoQueryOptions<TData = CurrentApiKeyInfoResponse> =
     QServerQueryHookOptions<
         CurrentApiKeyInfoResponse,
         TData,
@@ -139,8 +140,8 @@ export type UseGetCurrentApiKeyInfoQueryOptions<TData = CurrentApiKeyInfoRespons
     >;
 
 /** Metadata about the key authenticating this request — its scopes, note and expiry. */
-export function useGetCurrentApiKeyInfoQuery<TData = CurrentApiKeyInfoResponse>(
-    options: UseGetCurrentApiKeyInfoQueryOptions<TData> = {},
+export function useQueueGetCurrentApiKeyInfoQuery<TData = CurrentApiKeyInfoResponse>(
+    options: UseQueueGetCurrentApiKeyInfoQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -157,7 +158,7 @@ export function useGetCurrentApiKeyInfoQuery<TData = CurrentApiKeyInfoResponse>(
 
 // #region writes
 
-export type UseCreateApiKeyMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueCreateApiKeyMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     NewApiKeyResponse,
     APIKeyRequestParams,
     TContext
@@ -169,65 +170,65 @@ export type UseCreateApiKeyMutationOptions<TContext = unknown> = QServerMutation
  * The `secret` is returned **once** — capture it from the resolved value. Invalidates nothing: a new
  * key does not change the *current* key's info.
  */
-export function useCreateApiKeyMutation<TContext = unknown>(
-    options: UseCreateApiKeyMutationOptions<TContext> = {},
+export function useQueueCreateApiKeyMutation<TContext = unknown>(
+    options: UseQueueCreateApiKeyMutationOptions<TContext> = {},
 ): UseMutationResult<NewApiKeyResponse, QServerHookError, APIKeyRequestParams, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.createApiKey(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useCreateApiKeyMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueCreateApiKeyMutation,
         ...options,
     });
 }
 
 /** `createApiKeyForPrincipal` takes a uuid and a body; they travel together as one variable. */
-export interface CreateApiKeyForPrincipalVariables {
+export interface QueueCreateApiKeyForPrincipalVariables {
     uuid: string;
     body: APIKeyRequestParams;
 }
 
-export type UseCreateApiKeyForPrincipalMutationOptions<TContext = unknown> =
-    QServerMutationHookOptions<NewApiKeyResponse, CreateApiKeyForPrincipalVariables, TContext>;
+export type UseQueueCreateApiKeyForPrincipalMutationOptions<TContext = unknown> =
+    QServerMutationHookOptions<NewApiKeyResponse, QueueCreateApiKeyForPrincipalVariables, TContext>;
 
 /** Mint an API key for another principal. Admin only. */
-export function useCreateApiKeyForPrincipalMutation<TContext = unknown>(
-    options: UseCreateApiKeyForPrincipalMutationOptions<TContext> = {},
+export function useQueueCreateApiKeyForPrincipalMutation<TContext = unknown>(
+    options: UseQueueCreateApiKeyForPrincipalMutationOptions<TContext> = {},
 ): UseMutationResult<
     NewApiKeyResponse,
     QServerHookError,
-    CreateApiKeyForPrincipalVariables,
+    QueueCreateApiKeyForPrincipalVariables,
     TContext
 > {
     return useQServerMutation({
         perform: (client, { uuid, body }, request) =>
             client.createApiKeyForPrincipal(uuid, body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useCreateApiKeyForPrincipalMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueCreateApiKeyForPrincipalMutation,
         ...options,
     });
 }
 
 /** `revokeApiKey` identifies the key by its first eight characters. */
-export interface RevokeApiKeyVariables {
+export interface QueueRevokeApiKeyVariables {
     firstEight: string;
 }
 
-export type UseRevokeApiKeyMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueRevokeApiKeyMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     unknown,
-    RevokeApiKeyVariables,
+    QueueRevokeApiKeyVariables,
     TContext
 >;
 
 /** Revoke an API key. */
-export function useRevokeApiKeyMutation<TContext = unknown>(
-    options: UseRevokeApiKeyMutationOptions<TContext> = {},
-): UseMutationResult<unknown, QServerHookError, RevokeApiKeyVariables, TContext> {
+export function useQueueRevokeApiKeyMutation<TContext = unknown>(
+    options: UseQueueRevokeApiKeyMutationOptions<TContext> = {},
+): UseMutationResult<unknown, QServerHookError, QueueRevokeApiKeyVariables, TContext> {
     return useQServerMutation({
         perform: (client, { firstEight }, request) => client.revokeApiKey(firstEight, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useRevokeApiKeyMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueRevokeApiKeyMutation,
         ...options,
     });
 }
 
-export type UseRefreshSessionMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueRefreshSessionMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     AccessAndRefreshTokens,
     SessionRefreshBody,
     TContext
@@ -238,39 +239,39 @@ export type UseRefreshSessionMutationOptions<TContext = unknown> = QServerMutati
  *
  * Rarely needed directly: the client refreshes on a 401 by itself when given a `refreshToken`.
  */
-export function useRefreshSessionMutation<TContext = unknown>(
-    options: UseRefreshSessionMutationOptions<TContext> = {},
+export function useQueueRefreshSessionMutation<TContext = unknown>(
+    options: UseQueueRefreshSessionMutationOptions<TContext> = {},
 ): UseMutationResult<AccessAndRefreshTokens, QServerHookError, SessionRefreshBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.refreshSession(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useRefreshSessionMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueRefreshSessionMutation,
         ...options,
     });
 }
 
 /** `revokeSession` identifies the session by id. */
-export interface RevokeSessionVariables {
+export interface QueueRevokeSessionVariables {
     sessionId: string;
 }
 
-export type UseRevokeSessionMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueRevokeSessionMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     unknown,
-    RevokeSessionVariables,
+    QueueRevokeSessionVariables,
     TContext
 >;
 
 /** Revoke a refresh-token session, invalidating the chain of tokens it issued. */
-export function useRevokeSessionMutation<TContext = unknown>(
-    options: UseRevokeSessionMutationOptions<TContext> = {},
-): UseMutationResult<unknown, QServerHookError, RevokeSessionVariables, TContext> {
+export function useQueueRevokeSessionMutation<TContext = unknown>(
+    options: UseQueueRevokeSessionMutationOptions<TContext> = {},
+): UseMutationResult<unknown, QServerHookError, QueueRevokeSessionVariables, TContext> {
     return useQServerMutation({
         perform: (client, { sessionId }, request) => client.revokeSession(sessionId, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useRevokeSessionMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueRevokeSessionMutation,
         ...options,
     });
 }
 
-export type UseLogoutMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueLogoutMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     LogoutResponse,
     void,
     TContext
@@ -282,12 +283,12 @@ export type UseLogoutMutationOptions<TContext = unknown> = QServerMutationHookOp
  * Invalidates the auth queries; if you also change the client's key, call
  * `invalidateAllQServerQueries` — credentials are deliberately not part of any query key.
  */
-export function useLogoutMutation<TContext = unknown>(
-    options: UseLogoutMutationOptions<TContext> = {},
+export function useQueueLogoutMutation<TContext = unknown>(
+    options: UseQueueLogoutMutationOptions<TContext> = {},
 ): UseMutationResult<LogoutResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.logout(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useLogoutMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueLogoutMutation,
         ...options,
     });
 }

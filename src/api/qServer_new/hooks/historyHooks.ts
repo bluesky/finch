@@ -14,7 +14,7 @@ import { useQServerClient } from './useQServerClient';
 
 /** History hooks: `/api/history/get`, `/api/history/clear`. */
 
-export interface UseGetQueueHistoryQueryOptions<
+export interface UseQueueGetHistoryQueryOptions<
     TData = GetHistoryResponse,
 > extends QServerQueryHookOptions<
     GetHistoryResponse,
@@ -27,8 +27,8 @@ export interface UseGetQueueHistoryQueryOptions<
 }
 
 /** Completed plans, oldest first, each with its `result` (exit status, run uids, timings). */
-export function useGetQueueHistoryQuery<TData = GetHistoryResponse>(
-    options: UseGetQueueHistoryQueryOptions<TData> = {},
+export function useQueueGetHistoryQuery<TData = GetHistoryResponse>(
+    options: UseQueueGetHistoryQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -41,19 +41,19 @@ export function useGetQueueHistoryQuery<TData = GetHistoryResponse>(
     });
 }
 
-export type UseClearHistoryMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueClearHistoryMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ClearHistoryResponse,
     void,
     TContext
 >;
 
 /** Discard the plan history. */
-export function useClearHistoryMutation<TContext = unknown>(
-    options: UseClearHistoryMutationOptions<TContext> = {},
+export function useQueueClearHistoryMutation<TContext = unknown>(
+    options: UseQueueClearHistoryMutationOptions<TContext> = {},
 ): UseMutationResult<ClearHistoryResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.clearHistory(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useClearHistoryMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueClearHistoryMutation,
         ...options,
     });
 }

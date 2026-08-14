@@ -35,7 +35,7 @@ The queue-server spec declares almost every domain endpoint as
 so the generated `operations` carry no useful body or response shapes for
 status, queue, plans, devices, history, run engine, tasks, locks or console.
 
-Two things here *are* authoritative and are used for real type safety:
+Two things here _are_ authoritative and are used for real type safety:
 
 - `paths` / `operations` key unions — every URL in `../types/paths.ts` is checked
   against `keyof paths`, and a type-level assertion makes a newly added spec path

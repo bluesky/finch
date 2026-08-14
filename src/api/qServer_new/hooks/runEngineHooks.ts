@@ -23,7 +23,7 @@ import { useQServerClient } from './useQServerClient';
 
 // #region control
 
-export type UsePauseREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueuePauseREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ReControlResponse,
     RePauseBody | void,
     TContext
@@ -34,34 +34,34 @@ export type UsePauseREMutationOptions<TContext = unknown> = QServerMutationHookO
  *
  * Only succeeds while a plan is running.
  */
-export function usePauseREMutation<TContext = unknown>(
-    options: UsePauseREMutationOptions<TContext> = {},
+export function useQueuePauseREMutation<TContext = unknown>(
+    options: UseQueuePauseREMutationOptions<TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, RePauseBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.pauseRE(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.usePauseREMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueuePauseREMutation,
         ...options,
     });
 }
 
-export type UseResumeREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueResumeREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ReControlResponse,
     ReResumeBody | void,
     TContext
 >;
 
 /** Resume a paused plan. */
-export function useResumeREMutation<TContext = unknown>(
-    options: UseResumeREMutationOptions<TContext> = {},
+export function useQueueResumeREMutation<TContext = unknown>(
+    options: UseQueueResumeREMutationOptions<TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.resumeRE(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useResumeREMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueResumeREMutation,
         ...options,
     });
 }
 
-export type UseStopREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueStopREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ReControlResponse,
     ReResumeBody | void,
     TContext
@@ -72,46 +72,46 @@ export type UseStopREMutationOptions<TContext = unknown> = QServerMutationHookOp
  *
  * Requires a paused Run Engine, as do abort and halt.
  */
-export function useStopREMutation<TContext = unknown>(
-    options: UseStopREMutationOptions<TContext> = {},
+export function useQueueStopREMutation<TContext = unknown>(
+    options: UseQueueStopREMutationOptions<TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.stopRE(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useStopREMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStopREMutation,
         ...options,
     });
 }
 
-export type UseAbortREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueAbortREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ReControlResponse,
     ReResumeBody | void,
     TContext
 >;
 
 /** Abort a paused plan: recorded as failed, and the item returns to the front of the queue. */
-export function useAbortREMutation<TContext = unknown>(
-    options: UseAbortREMutationOptions<TContext> = {},
+export function useQueueAbortREMutation<TContext = unknown>(
+    options: UseQueueAbortREMutationOptions<TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.abortRE(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useAbortREMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueAbortREMutation,
         ...options,
     });
 }
 
-export type UseHaltREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueHaltREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     ReControlResponse,
     ReResumeBody | void,
     TContext
 >;
 
 /** Halt a paused plan, skipping its cleanup handlers. Differs from abort only in exit status. */
-export function useHaltREMutation<TContext = unknown>(
-    options: UseHaltREMutationOptions<TContext> = {},
+export function useQueueHaltREMutation<TContext = unknown>(
+    options: UseQueueHaltREMutationOptions<TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.haltRE(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useHaltREMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueHaltREMutation,
         ...options,
     });
 }
@@ -120,7 +120,9 @@ export function useHaltREMutation<TContext = unknown>(
 
 // #region run lists
 
-export interface UseGetRunsQueryOptions<TData = GetRunsResponse> extends QServerQueryHookOptions<
+export interface UseQueueGetRunsQueryOptions<
+    TData = GetRunsResponse,
+> extends QServerQueryHookOptions<
     GetRunsResponse,
     TData,
     QServerQueryKeyFor<'runs'>,
@@ -135,8 +137,8 @@ export interface UseGetRunsQueryOptions<TData = GetRunsResponse> extends QServer
  *
  * A query even though the endpoint is a POST: it reads state and belongs in the cache.
  */
-export function useGetRunsQuery<TData = GetRunsResponse>(
-    options: UseGetRunsQueryOptions<TData> = {},
+export function useQueueGetRunsQuery<TData = GetRunsResponse>(
+    options: UseQueueGetRunsQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { body, request, query } = options;
@@ -149,7 +151,7 @@ export function useGetRunsQuery<TData = GetRunsResponse>(
     });
 }
 
-export type UseGetRunsActiveQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
+export type UseQueueGetRunsActiveQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
     GetRunsResponse,
     TData,
     QServerQueryKeyFor<'runsActive'>,
@@ -157,8 +159,8 @@ export type UseGetRunsActiveQueryOptions<TData = GetRunsResponse> = QServerQuery
 >;
 
 /** Runs belonging to the currently executing plan. */
-export function useGetRunsActiveQuery<TData = GetRunsResponse>(
-    options: UseGetRunsActiveQueryOptions<TData> = {},
+export function useQueueGetRunsActiveQuery<TData = GetRunsResponse>(
+    options: UseQueueGetRunsActiveQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -171,7 +173,7 @@ export function useGetRunsActiveQuery<TData = GetRunsResponse>(
     });
 }
 
-export type UseGetRunsOpenQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
+export type UseQueueGetRunsOpenQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
     GetRunsResponse,
     TData,
     QServerQueryKeyFor<'runsOpen'>,
@@ -179,8 +181,8 @@ export type UseGetRunsOpenQueryOptions<TData = GetRunsResponse> = QServerQueryHo
 >;
 
 /** Runs that have been opened but not yet closed. */
-export function useGetRunsOpenQuery<TData = GetRunsResponse>(
-    options: UseGetRunsOpenQueryOptions<TData> = {},
+export function useQueueGetRunsOpenQuery<TData = GetRunsResponse>(
+    options: UseQueueGetRunsOpenQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -193,7 +195,7 @@ export function useGetRunsOpenQuery<TData = GetRunsResponse>(
     });
 }
 
-export type UseGetRunsClosedQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
+export type UseQueueGetRunsClosedQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
     GetRunsResponse,
     TData,
     QServerQueryKeyFor<'runsClosed'>,
@@ -201,8 +203,8 @@ export type UseGetRunsClosedQueryOptions<TData = GetRunsResponse> = QServerQuery
 >;
 
 /** Runs completed by the current plan. */
-export function useGetRunsClosedQuery<TData = GetRunsResponse>(
-    options: UseGetRunsClosedQueryOptions<TData> = {},
+export function useQueueGetRunsClosedQuery<TData = GetRunsResponse>(
+    options: UseQueueGetRunsClosedQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { request, query } = options;
@@ -215,7 +217,7 @@ export function useGetRunsClosedQuery<TData = GetRunsResponse>(
     });
 }
 
-export interface UseGetREMetadataQueryOptions<
+export interface UseQueueGetREMetadataQueryOptions<
     TData = GetReMetadataResponse,
 > extends QServerQueryHookOptions<
     GetReMetadataResponse,
@@ -234,8 +236,8 @@ export interface UseGetREMetadataQueryOptions<
  * `retry: false`. Also outside `QServerClientLike`, so it rejects with
  * `QServerEndpointUnavailableError` against a partial injected client.
  */
-export function useGetREMetadataQuery<TData = GetReMetadataResponse>(
-    options: UseGetREMetadataQueryOptions<TData> = {},
+export function useQueueGetREMetadataQuery<TData = GetReMetadataResponse>(
+    options: UseQueueGetREMetadataQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;

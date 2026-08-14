@@ -2,16 +2,16 @@
  * TanStack Query hooks for the queue server — one per endpoint, 29 queries and 41 mutations.
  *
  * ```tsx
- * import { useGetQueueQuery, useAddQueueItemMutation } from '@/api/qServer_new';
+ * import { useQueueGetQuery, useQueueAddItemMutation } from '@/api/qServer_new';
  *
- * const queue = useGetQueueQuery({ query: { refetchInterval: 1000 } });
- * const add = useAddQueueItemMutation();
+ * const queue = useQueueGetQuery({ query: { refetchInterval: 1000 } });
+ * const add = useQueueAddItemMutation();
  * add.mutate({ item: { name: 'count', item_type: 'plan' } });
  * ```
  *
  * Every hook takes a single optional options object: the endpoint's own argument, `request` for
  * transport overrides, and `query`/`mutation` for TanStack options. Names mirror the client methods
- * (`getStatus` → `useGetStatusQuery`). See `../README.md` for the full contract.
+ * (`getStatus` → `useQueueGetStatusQuery`). See `../README.md` for the full contract.
  */
 
 // Shared types and errors
@@ -49,191 +49,206 @@ export type { QServerInvalidationBundleName, QServerMutationHookName } from './i
 
 // #region hooks
 
-export { usePingQuery, useGetRootQuery, useGetStatusQuery, useGetConfigQuery } from './statusHooks';
+export {
+    useQueuePingQuery,
+    useQueueGetRootQuery,
+    useQueueGetStatusQuery,
+    useQueueGetConfigQuery,
+} from './statusHooks';
 export type {
-    UsePingQueryOptions,
-    UseGetRootQueryOptions,
-    UseGetStatusQueryOptions,
-    UseGetConfigQueryOptions,
+    UseQueuePingQueryOptions,
+    UseQueueGetRootQueryOptions,
+    UseQueueGetStatusQueryOptions,
+    UseQueueGetConfigQueryOptions,
 } from './statusHooks';
 
 export {
-    useGetQueueQuery,
-    useGetQueueItemQuery,
-    useAddQueueItemMutation,
-    useAddQueueItemBatchMutation,
-    useExecuteQueueItemMutation,
-    useUpdateQueueItemMutation,
-    useRemoveQueueItemMutation,
-    useRemoveQueueItemBatchMutation,
-    useMoveQueueItemMutation,
-    useMoveQueueItemBatchMutation,
-    useUploadQueueSpreadsheetMutation,
-    useStartQueueMutation,
-    useStopQueueMutation,
-    useCancelQueueStopMutation,
-    useClearQueueMutation,
-    useSetQueueModeMutation,
-    useSetQueueAutostartMutation,
+    useQueueGetQuery,
+    useQueueGetItemQuery,
+    useQueueAddItemMutation,
+    useQueueAddItemBatchMutation,
+    useQueueExecuteItemMutation,
+    useQueueUpdateItemMutation,
+    useQueueRemoveItemMutation,
+    useQueueRemoveItemBatchMutation,
+    useQueueMoveItemMutation,
+    useQueueMoveItemBatchMutation,
+    useQueueUploadSpreadsheetMutation,
+    useQueueStartMutation,
+    useQueueStopMutation,
+    useQueueCancelStopMutation,
+    useQueueClearMutation,
+    useQueueSetModeMutation,
+    useQueueSetAutostartMutation,
 } from './queueHooks';
 export type {
-    UseGetQueueQueryOptions,
-    UseGetQueueItemQueryOptions,
-    UseAddQueueItemMutationOptions,
-    UseAddQueueItemBatchMutationOptions,
-    UseExecuteQueueItemMutationOptions,
-    UseUpdateQueueItemMutationOptions,
-    UseRemoveQueueItemMutationOptions,
-    UseRemoveQueueItemBatchMutationOptions,
-    UseMoveQueueItemMutationOptions,
-    UseMoveQueueItemBatchMutationOptions,
-    UseUploadQueueSpreadsheetMutationOptions,
-    UseStartQueueMutationOptions,
-    UseStopQueueMutationOptions,
-    UseCancelQueueStopMutationOptions,
-    UseClearQueueMutationOptions,
-    UseSetQueueModeMutationOptions,
-    UseSetQueueAutostartMutationOptions,
+    UseQueueGetQueryOptions,
+    UseQueueGetItemQueryOptions,
+    UseQueueAddItemMutationOptions,
+    UseQueueAddItemBatchMutationOptions,
+    UseQueueExecuteItemMutationOptions,
+    UseQueueUpdateItemMutationOptions,
+    UseQueueRemoveItemMutationOptions,
+    UseQueueRemoveItemBatchMutationOptions,
+    UseQueueMoveItemMutationOptions,
+    UseQueueMoveItemBatchMutationOptions,
+    UseQueueUploadSpreadsheetMutationOptions,
+    UseQueueStartMutationOptions,
+    UseQueueStopMutationOptions,
+    UseQueueCancelStopMutationOptions,
+    UseQueueClearMutationOptions,
+    UseQueueSetModeMutationOptions,
+    UseQueueSetAutostartMutationOptions,
 } from './queueHooks';
 
-export { useGetQueueHistoryQuery, useClearHistoryMutation } from './historyHooks';
+export { useQueueGetHistoryQuery, useQueueClearHistoryMutation } from './historyHooks';
 export type {
-    UseGetQueueHistoryQueryOptions,
-    UseClearHistoryMutationOptions,
+    UseQueueGetHistoryQueryOptions,
+    UseQueueClearHistoryMutationOptions,
 } from './historyHooks';
 
 export {
-    useOpenEnvironmentMutation,
-    useCloseEnvironmentMutation,
-    useDestroyEnvironmentMutation,
-    useUpdateEnvironmentMutation,
+    useQueueOpenEnvironmentMutation,
+    useQueueCloseEnvironmentMutation,
+    useQueueDestroyEnvironmentMutation,
+    useQueueUpdateEnvironmentMutation,
 } from './environmentHooks';
 export type {
-    UseOpenEnvironmentMutationOptions,
-    UseCloseEnvironmentMutationOptions,
-    UseDestroyEnvironmentMutationOptions,
-    UseUpdateEnvironmentMutationOptions,
+    UseQueueOpenEnvironmentMutationOptions,
+    UseQueueCloseEnvironmentMutationOptions,
+    UseQueueDestroyEnvironmentMutationOptions,
+    UseQueueUpdateEnvironmentMutationOptions,
 } from './environmentHooks';
 
 export {
-    usePauseREMutation,
-    useResumeREMutation,
-    useStopREMutation,
-    useAbortREMutation,
-    useHaltREMutation,
-    useGetRunsQuery,
-    useGetRunsActiveQuery,
-    useGetRunsOpenQuery,
-    useGetRunsClosedQuery,
-    useGetREMetadataQuery,
+    useQueuePauseREMutation,
+    useQueueResumeREMutation,
+    useQueueStopREMutation,
+    useQueueAbortREMutation,
+    useQueueHaltREMutation,
+    useQueueGetRunsQuery,
+    useQueueGetRunsActiveQuery,
+    useQueueGetRunsOpenQuery,
+    useQueueGetRunsClosedQuery,
+    useQueueGetREMetadataQuery,
 } from './runEngineHooks';
 export type {
-    UsePauseREMutationOptions,
-    UseResumeREMutationOptions,
-    UseStopREMutationOptions,
-    UseAbortREMutationOptions,
-    UseHaltREMutationOptions,
-    UseGetRunsQueryOptions,
-    UseGetRunsActiveQueryOptions,
-    UseGetRunsOpenQueryOptions,
-    UseGetRunsClosedQueryOptions,
-    UseGetREMetadataQueryOptions,
+    UseQueuePauseREMutationOptions,
+    UseQueueResumeREMutationOptions,
+    UseQueueStopREMutationOptions,
+    UseQueueAbortREMutationOptions,
+    UseQueueHaltREMutationOptions,
+    UseQueueGetRunsQueryOptions,
+    UseQueueGetRunsActiveQueryOptions,
+    UseQueueGetRunsOpenQueryOptions,
+    UseQueueGetRunsClosedQueryOptions,
+    UseQueueGetREMetadataQueryOptions,
 } from './runEngineHooks';
 
 export {
-    useGetPlansAllowedQuery,
-    useGetDevicesAllowedQuery,
-    useGetPlansExistingQuery,
-    useGetDevicesExistingQuery,
+    useQueueGetPlansAllowedQuery,
+    useQueueGetDevicesAllowedQuery,
+    useQueueGetPlansExistingQuery,
+    useQueueGetDevicesExistingQuery,
 } from './plansDevicesHooks';
 export type {
-    UseGetPlansAllowedQueryOptions,
-    UseGetDevicesAllowedQueryOptions,
-    UseGetPlansExistingQueryOptions,
-    UseGetDevicesExistingQueryOptions,
+    UseQueueGetPlansAllowedQueryOptions,
+    UseQueueGetDevicesAllowedQueryOptions,
+    UseQueueGetPlansExistingQueryOptions,
+    UseQueueGetDevicesExistingQueryOptions,
 } from './plansDevicesHooks';
 
 export {
-    useGetPermissionsQuery,
-    useSetPermissionsMutation,
-    useReloadPermissionsMutation,
+    useQueueGetPermissionsQuery,
+    useQueueSetPermissionsMutation,
+    useQueueReloadPermissionsMutation,
 } from './permissionsHooks';
 export type {
-    UseGetPermissionsQueryOptions,
-    UseSetPermissionsMutationOptions,
-    UseReloadPermissionsMutationOptions,
+    UseQueueGetPermissionsQueryOptions,
+    UseQueueSetPermissionsMutationOptions,
+    UseQueueReloadPermissionsMutationOptions,
 } from './permissionsHooks';
 
-export { useExecuteFunctionMutation, useUploadScriptMutation } from './functionsScriptsHooks';
+export {
+    useQueueExecuteFunctionMutation,
+    useQueueUploadScriptMutation,
+} from './functionsScriptsHooks';
 export type {
-    UseExecuteFunctionMutationOptions,
-    UseUploadScriptMutationOptions,
+    UseQueueExecuteFunctionMutationOptions,
+    UseQueueUploadScriptMutationOptions,
 } from './functionsScriptsHooks';
 
-export { useGetTaskStatusQuery, useGetTaskResultQuery } from './tasksHooks';
-export type { UseGetTaskStatusQueryOptions, UseGetTaskResultQueryOptions } from './tasksHooks';
-
-export { useLockMutation, useUnlockMutation, useGetLockInfoQuery } from './lockHooks';
+export { useQueueGetTaskStatusQuery, useQueueGetTaskResultQuery } from './tasksHooks';
 export type {
-    UseLockMutationOptions,
-    UseUnlockMutationOptions,
-    UseGetLockInfoQueryOptions,
+    UseQueueGetTaskStatusQueryOptions,
+    UseQueueGetTaskResultQueryOptions,
+} from './tasksHooks';
+
+export {
+    useQueueLockMutation,
+    useQueueUnlockMutation,
+    useQueueGetLockInfoQuery,
+} from './lockHooks';
+export type {
+    UseQueueLockMutationOptions,
+    UseQueueUnlockMutationOptions,
+    UseQueueGetLockInfoQueryOptions,
 } from './lockHooks';
 
 export {
-    useGetConsoleOutputQuery,
-    useGetConsoleOutputUIDQuery,
-    useGetConsoleOutputUpdateQuery,
-    useStreamConsoleOutputMutation,
+    useQueueGetConsoleOutputQuery,
+    useQueueGetConsoleOutputUIDQuery,
+    useQueueGetConsoleOutputUpdateQuery,
+    useQueueStreamConsoleOutputMutation,
 } from './consoleHooks';
 export type {
-    UseGetConsoleOutputQueryOptions,
-    UseGetConsoleOutputUIDQueryOptions,
-    UseGetConsoleOutputUpdateQueryOptions,
-    UseStreamConsoleOutputMutationOptions,
+    UseQueueGetConsoleOutputQueryOptions,
+    UseQueueGetConsoleOutputUIDQueryOptions,
+    UseQueueGetConsoleOutputUpdateQueryOptions,
+    UseQueueStreamConsoleOutputMutationOptions,
 } from './consoleHooks';
 
 export {
-    useInterruptKernelMutation,
-    useStopManagerMutation,
-    useTestKillManagerMutation,
-    useTestServerSleepQuery,
+    useQueueInterruptKernelMutation,
+    useQueueStopManagerMutation,
+    useQueueTestKillManagerMutation,
+    useQueueTestServerSleepQuery,
 } from './adminHooks';
 export type {
-    UseInterruptKernelMutationOptions,
-    UseStopManagerMutationOptions,
-    UseTestKillManagerMutationOptions,
-    UseTestServerSleepQueryOptions,
+    UseQueueInterruptKernelMutationOptions,
+    UseQueueStopManagerMutationOptions,
+    UseQueueTestKillManagerMutationOptions,
+    UseQueueTestServerSleepQueryOptions,
 } from './adminHooks';
 
 export {
-    useWhoamiQuery,
-    useGetScopesQuery,
-    useListPrincipalsQuery,
-    useGetPrincipalQuery,
-    useGetCurrentApiKeyInfoQuery,
-    useCreateApiKeyMutation,
-    useCreateApiKeyForPrincipalMutation,
-    useRevokeApiKeyMutation,
-    useRefreshSessionMutation,
-    useRevokeSessionMutation,
-    useLogoutMutation,
+    useQueueWhoamiQuery,
+    useQueueGetScopesQuery,
+    useQueueListPrincipalsQuery,
+    useQueueGetPrincipalQuery,
+    useQueueGetCurrentApiKeyInfoQuery,
+    useQueueCreateApiKeyMutation,
+    useQueueCreateApiKeyForPrincipalMutation,
+    useQueueRevokeApiKeyMutation,
+    useQueueRefreshSessionMutation,
+    useQueueRevokeSessionMutation,
+    useQueueLogoutMutation,
 } from './authHooks';
 export type {
-    UseWhoamiQueryOptions,
-    UseGetScopesQueryOptions,
-    UseListPrincipalsQueryOptions,
-    UseGetPrincipalQueryOptions,
-    UseGetCurrentApiKeyInfoQueryOptions,
-    UseCreateApiKeyMutationOptions,
-    UseCreateApiKeyForPrincipalMutationOptions,
-    UseRevokeApiKeyMutationOptions,
-    UseRefreshSessionMutationOptions,
-    UseRevokeSessionMutationOptions,
-    UseLogoutMutationOptions,
-    CreateApiKeyForPrincipalVariables,
-    RevokeApiKeyVariables,
-    RevokeSessionVariables,
+    UseQueueWhoamiQueryOptions,
+    UseQueueGetScopesQueryOptions,
+    UseQueueListPrincipalsQueryOptions,
+    UseQueueGetPrincipalQueryOptions,
+    UseQueueGetCurrentApiKeyInfoQueryOptions,
+    UseQueueCreateApiKeyMutationOptions,
+    UseQueueCreateApiKeyForPrincipalMutationOptions,
+    UseQueueRevokeApiKeyMutationOptions,
+    UseQueueRefreshSessionMutationOptions,
+    UseQueueRevokeSessionMutationOptions,
+    UseQueueLogoutMutationOptions,
+    QueueCreateApiKeyForPrincipalVariables,
+    QueueRevokeApiKeyVariables,
+    QueueRevokeSessionVariables,
 } from './authHooks';
 
 // #endregion

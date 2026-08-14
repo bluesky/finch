@@ -24,6 +24,7 @@ const preview: Preview = {
             "BackendSetup",
             "Ophyd Sim",
             "QServer Sim",
+            "QServer Query Hooks",
             "API Hooks",
           ],
           "Bluesky Components",  [

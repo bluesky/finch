@@ -4,14 +4,14 @@ import { describe, expect, it } from 'vitest';
 import type { ReactNode } from 'react';
 import { QServerApiProvider } from '../../../api/qServerRuntime/QServerApiProvider';
 import {
-    useAddQueueItemMutation,
-    useClearQueueMutation,
-    useGetQueueItemQuery,
-    useGetQueueQuery,
-    useStartQueueMutation,
+    useQueueAddItemMutation,
+    useQueueClearMutation,
+    useQueueGetItemQuery,
+    useQueueGetQuery,
+    useQueueStartMutation,
 } from '../../../api/qServer_new/hooks/queueHooks';
-import { useGetQueueHistoryQuery } from '../../../api/qServer_new/hooks/historyHooks';
-import { useGetStatusQuery } from '../../../api/qServer_new/hooks/statusHooks';
+import { useQueueGetHistoryQuery } from '../../../api/qServer_new/hooks/historyHooks';
+import { useQueueGetStatusQuery } from '../../../api/qServer_new/hooks/statusHooks';
 import { createQServerSimClient } from '../../../lib/qserver-sim/client/QServerSimClient';
 import type { QServerSim } from '../../../lib/qserver-sim/core/QServerSim';
 import { defaultQServer } from '../../../lib/qserver-sim/scenarios/defaultQServer';
@@ -46,9 +46,9 @@ describe('qserver hooks against the simulator', () => {
 
         const { result } = renderHook(
             () => ({
-                queue: useGetQueueQuery(),
-                history: useGetQueueHistoryQuery(),
-                status: useGetStatusQuery(),
+                queue: useQueueGetQuery(),
+                history: useQueueGetHistoryQuery(),
+                status: useQueueGetStatusQuery(),
             }),
             { wrapper },
         );
@@ -75,9 +75,9 @@ describe('qserver hooks against the simulator', () => {
 
         const { result } = renderHook(
             () => ({
-                queue: useGetQueueQuery(),
-                status: useGetStatusQuery(),
-                add: useAddQueueItemMutation(),
+                queue: useQueueGetQuery(),
+                status: useQueueGetStatusQuery(),
+                add: useQueueAddItemMutation(),
             }),
             { wrapper },
         );
@@ -102,9 +102,9 @@ describe('qserver hooks against the simulator', () => {
 
         const { result } = renderHook(
             () => ({
-                queue: useGetQueueQuery(),
-                status: useGetStatusQuery(),
-                start: useStartQueueMutation(),
+                queue: useQueueGetQuery(),
+                status: useQueueGetStatusQuery(),
+                start: useQueueStartMutation(),
             }),
             { wrapper },
         );
@@ -126,8 +126,8 @@ describe('qserver hooks against the simulator', () => {
 
         const { result } = renderHook(
             () => ({
-                addressed: useGetQueueItemQuery({ body: { uid: 'fixture-item-2' } }),
-                unaddressed: useGetQueueItemQuery(),
+                addressed: useQueueGetItemQuery({ body: { uid: 'fixture-item-2' } }),
+                unaddressed: useQueueGetItemQuery(),
             }),
             { wrapper },
         );
@@ -145,7 +145,7 @@ describe('qserver hooks against the simulator', () => {
         const { wrapper } = harness(sim);
 
         const { result } = renderHook(
-            () => ({ queue: useGetQueueQuery(), clear: useClearQueueMutation() }),
+            () => ({ queue: useQueueGetQuery(), clear: useQueueClearMutation() }),
             { wrapper },
         );
 
@@ -159,7 +159,7 @@ describe('qserver hooks against the simulator', () => {
         const sim = defaultQServer();
         const { wrapper, queryClient } = harness(sim);
 
-        const { result } = renderHook(() => useGetQueueQuery(), { wrapper });
+        const { result } = renderHook(() => useQueueGetQuery(), { wrapper });
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         const [entry] = queryClient.getQueryCache().getAll();

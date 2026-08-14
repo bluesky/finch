@@ -8,7 +8,7 @@ import { useQServerClient } from './useQServerClient';
 
 /** Status hooks: `/api/ping`, `/api/`, `/api/status`, `/api/config/get`. */
 
-export interface UsePingQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
+export interface UseQueuePingQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
     PingResponse,
     TData,
     QServerQueryKeyFor<'ping'>,
@@ -18,9 +18,9 @@ export interface UsePingQueryOptions<TData = PingResponse> extends QServerQueryH
     payload?: QServerPayload;
 }
 
-/** Liveness check. Returns the same payload as `useGetStatusQuery`. */
-export function usePingQuery<TData = PingResponse>(
-    options: UsePingQueryOptions<TData> = {},
+/** Liveness check. Returns the same payload as `useQueueGetStatusQuery`. */
+export function useQueuePingQuery<TData = PingResponse>(
+    options: UseQueuePingQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -33,7 +33,7 @@ export function usePingQuery<TData = PingResponse>(
     });
 }
 
-export interface UseGetRootQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
+export interface UseQueueGetRootQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
     PingResponse,
     TData,
     QServerQueryKeyFor<'root'>,
@@ -43,9 +43,9 @@ export interface UseGetRootQueryOptions<TData = PingResponse> extends QServerQue
     payload?: QServerPayload;
 }
 
-/** `GET /api/` — identical payload to `usePingQuery`. */
-export function useGetRootQuery<TData = PingResponse>(
-    options: UseGetRootQueryOptions<TData> = {},
+/** `GET /api/` — identical payload to `useQueuePingQuery`. */
+export function useQueueGetRootQuery<TData = PingResponse>(
+    options: UseQueueGetRootQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -58,7 +58,7 @@ export function useGetRootQuery<TData = PingResponse>(
     });
 }
 
-export interface UseGetStatusQueryOptions<
+export interface UseQueueGetStatusQueryOptions<
     TData = GetStatusResponse,
 > extends QServerQueryHookOptions<
     GetStatusResponse,
@@ -76,8 +76,8 @@ export interface UseGetStatusQueryOptions<
  * The usual way to keep a UI live is `query: { refetchInterval: 1000 }`; for push updates instead,
  * see `useQServerStatusSocket`.
  */
-export function useGetStatusQuery<TData = GetStatusResponse>(
-    options: UseGetStatusQueryOptions<TData> = {},
+export function useQueueGetStatusQuery<TData = GetStatusResponse>(
+    options: UseQueueGetStatusQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -90,7 +90,7 @@ export function useGetStatusQuery<TData = GetStatusResponse>(
     });
 }
 
-export interface UseGetConfigQueryOptions<
+export interface UseQueueGetConfigQueryOptions<
     TData = GetConfigResponse,
 > extends QServerQueryHookOptions<
     GetConfigResponse,
@@ -108,8 +108,8 @@ export interface UseGetConfigQueryOptions<
  * Not part of `QServerClientLike`, so this rejects with `QServerEndpointUnavailableError` when a
  * partial client (such as the simulator's) is injected through `QServerApiProvider`.
  */
-export function useGetConfigQuery<TData = GetConfigResponse>(
-    options: UseGetConfigQueryOptions<TData> = {},
+export function useQueueGetConfigQuery<TData = GetConfigResponse>(
+    options: UseQueueGetConfigQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;

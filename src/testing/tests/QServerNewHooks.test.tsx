@@ -99,9 +99,17 @@ afterEach(() => {
 });
 
 describe('hook coverage', () => {
-    /** Derive the hook name from a registry descriptor the same way the naming rule does. */
+    /**
+     * Derive the hook name from a registry descriptor the same way the naming rule does.
+     *
+     * Every queue-server hook is prefixed `useQueue` so it cannot collide with the eventual
+     * `useTiled…` / `useOphyd…` families. Because the prefix already says "Queue", a method name
+     * that carries its own `Queue` drops the first occurrence rather than stuttering:
+     * `getQueue` → `useQueueGetQuery`, `addQueueItem` → `useQueueAddItemMutation`.
+     */
     function hookNameFor(fn: string, kind: 'Query' | 'Mutation'): string {
-        return `use${fn.charAt(0).toUpperCase()}${fn.slice(1)}${kind}`;
+        const core = fn.includes('Queue') ? fn.replace('Queue', '') : fn;
+        return `useQueue${core.charAt(0).toUpperCase()}${core.slice(1)}${kind}`;
     }
 
     const exported = hooks as unknown as Record<string, unknown>;
@@ -146,7 +154,7 @@ describe('query keys', () => {
         recordingDefaultClient(200, { success: true, msg: '', items: [] });
         const { wrapper, queryClient } = makeWrapper();
 
-        const { result } = renderHook(() => hooks.useGetQueueQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetQuery(), { wrapper });
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         const [entry] = queryClient.getQueryCache().getAll();
@@ -164,9 +172,9 @@ describe('query keys', () => {
 
         renderHook(
             () => {
-                hooks.useGetQueueQuery();
-                hooks.useGetQueueQuery({ request: { baseUrl: 'http://other:60610' } });
-                hooks.useGetQueueQuery({ request: { baseUrl: 'http://other:60610' } });
+                hooks.useQueueGetQuery();
+                hooks.useQueueGetQuery({ request: { baseUrl: 'http://other:60610' } });
+                hooks.useQueueGetQuery({ request: { baseUrl: 'http://other:60610' } });
             },
             { wrapper },
         );
@@ -194,7 +202,7 @@ describe('Finch config', () => {
             },
         });
 
-        const { result } = renderHook(() => hooks.useGetStatusQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetStatusQuery(), { wrapper });
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         // The first request already carries the configured server and key.
@@ -209,7 +217,7 @@ describe('Finch config', () => {
             config: { qServerApiUrl: 'http://configured:60610', qServerApiKey: 'cfg-key' },
         });
 
-        const { result } = renderHook(() => hooks.useGetStatusQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetStatusQuery(), { wrapper });
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         expect(client.getBaseUrl()).toBe('http://configured:60610');
@@ -221,7 +229,7 @@ describe('Finch config', () => {
         const { wrapper } = makeWrapper();
 
         const { result } = renderHook(
-            () => hooks.useGetStatusQuery({ request: { apiKey: null } }),
+            () => hooks.useQueueGetStatusQuery({ request: { apiKey: null } }),
             { wrapper },
         );
         await waitFor(() => expect(result.current.data).toBeDefined());
@@ -238,8 +246,8 @@ describe('enabled guards', () => {
 
         const { result } = renderHook(
             () => ({
-                idle: hooks.useGetQueueItemQuery(),
-                fetching: hooks.useGetQueueItemQuery({ body: { uid: 'abc' } }),
+                idle: hooks.useQueueGetItemQuery(),
+                fetching: hooks.useQueueGetItemQuery({ body: { uid: 'abc' } }),
             }),
             { wrapper },
         );
@@ -256,7 +264,7 @@ describe('enabled guards', () => {
         const { recorded } = recordingDefaultClient(200, { success: true, msg: '', item: {} });
         const { wrapper } = makeWrapper();
 
-        renderHook(() => hooks.useGetQueueItemQuery({ query: { enabled: undefined } }), {
+        renderHook(() => hooks.useQueueGetItemQuery({ query: { enabled: undefined } }), {
             wrapper,
         });
 
@@ -269,7 +277,7 @@ describe('enabled guards', () => {
         const { wrapper } = makeWrapper();
 
         renderHook(
-            () => hooks.useGetQueueItemQuery({ body: { uid: 'abc' }, query: { enabled: false } }),
+            () => hooks.useQueueGetItemQuery({ body: { uid: 'abc' }, query: { enabled: false } }),
             { wrapper },
         );
 
@@ -284,7 +292,7 @@ describe('injected clients', () => {
         const sim = defaultQServer();
         const { wrapper } = makeWrapper({ injected: createQServerSimClient(sim) });
 
-        const { result } = renderHook(() => hooks.useGetConfigQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetConfigQuery(), { wrapper });
 
         await waitFor(() => expect(result.current.error).toBeTruthy());
         expect(hooks.isQServerEndpointUnavailableError(result.current.error)).toBe(true);
@@ -300,7 +308,7 @@ describe('injected clients', () => {
         const sim = defaultQServer();
         const { wrapper } = makeWrapper({ injected: createQServerSimClient(sim) });
 
-        const { result } = renderHook(() => hooks.useGetQueueQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetQuery(), { wrapper });
 
         await waitFor(() => expect(result.current.data).toBeDefined());
         expect(result.current.data?.items).toHaveLength(3);
@@ -326,7 +334,7 @@ describe('injected clients', () => {
         });
         const { wrapper } = makeWrapper({ injected: full });
 
-        const { result } = renderHook(() => hooks.useGetConfigQuery(), { wrapper });
+        const { result } = renderHook(() => hooks.useQueueGetConfigQuery(), { wrapper });
 
         await waitFor(() => expect(result.current.data).toBeDefined());
         expect(recorded.configs[0].url).toBe('/api/config/get');
@@ -349,7 +357,7 @@ describe('cancellation', () => {
         setDefaultQServerClient(client);
 
         const { wrapper } = makeWrapper();
-        const { unmount } = renderHook(() => hooks.useGetStatusQuery(), { wrapper });
+        const { unmount } = renderHook(() => hooks.useQueueGetStatusQuery(), { wrapper });
 
         await waitFor(() => expect(captured).toBeDefined());
         expect(captured?.aborted).toBe(false);
@@ -373,7 +381,7 @@ describe('cancellation', () => {
 
         const controller = new AbortController();
         const { wrapper } = makeWrapper();
-        renderHook(() => hooks.useGetStatusQuery({ request: { signal: controller.signal } }), {
+        renderHook(() => hooks.useQueueGetStatusQuery({ request: { signal: controller.signal } }), {
             wrapper,
         });
 

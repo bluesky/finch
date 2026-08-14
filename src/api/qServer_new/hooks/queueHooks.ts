@@ -39,7 +39,7 @@ import { useQServerClient } from './useQServerClient';
 
 // #region reads
 
-export interface UseGetQueueQueryOptions<TData = GetQueueResponse> extends QServerQueryHookOptions<
+export interface UseQueueGetQueryOptions<TData = GetQueueResponse> extends QServerQueryHookOptions<
     GetQueueResponse,
     TData,
     QServerQueryKeyFor<'queue'>,
@@ -54,8 +54,8 @@ export interface UseGetQueueQueryOptions<TData = GetQueueResponse> extends QServ
  *
  * `running_item` is `{}` when nothing is running — check for `item_uid` rather than truthiness.
  */
-export function useGetQueueQuery<TData = GetQueueResponse>(
-    options: UseGetQueueQueryOptions<TData> = {},
+export function useQueueGetQuery<TData = GetQueueResponse>(
+    options: UseQueueGetQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -68,7 +68,7 @@ export function useGetQueueQuery<TData = GetQueueResponse>(
     });
 }
 
-export interface UseGetQueueItemQueryOptions<
+export interface UseQueueGetItemQueryOptions<
     TData = GetQueueItemResponse,
 > extends QServerQueryHookOptions<
     GetQueueItemResponse,
@@ -87,8 +87,8 @@ export interface UseGetQueueItemQueryOptions<
  * this endpoint falls back to scanning `getQueue()`, because the real one reads its arguments from a
  * GET request body.
  */
-export function useGetQueueItemQuery<TData = GetQueueItemResponse>(
-    options: UseGetQueueItemQueryOptions<TData> = {},
+export function useQueueGetItemQuery<TData = GetQueueItemResponse>(
+    options: UseQueueGetItemQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { body, request, query } = options;
@@ -106,7 +106,7 @@ export function useGetQueueItemQuery<TData = GetQueueItemResponse>(
 
 // #region item writes
 
-export type UseAddQueueItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueAddItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemAddResponse,
     AddQueueItemBody,
     TContext
@@ -118,76 +118,76 @@ export type UseAddQueueItemMutationOptions<TContext = unknown> = QServerMutation
  * A rejected item resolves with `success: false` and `qsize: null` rather than throwing — the
  * server validates plan names and reports the failure in the envelope.
  */
-export function useAddQueueItemMutation<TContext = unknown>(
-    options: UseAddQueueItemMutationOptions<TContext> = {},
+export function useQueueAddItemMutation<TContext = unknown>(
+    options: UseQueueAddItemMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemAddResponse, QServerHookError, AddQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.addQueueItem(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useAddQueueItemMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueAddItemMutation,
         ...options,
     });
 }
 
-export type UseAddQueueItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueAddItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemBatchResponse,
     AddQueueItemBatchBody,
     TContext
 >;
 
 /** Add several items at once. `results` reports per-item success. */
-export function useAddQueueItemBatchMutation<TContext = unknown>(
-    options: UseAddQueueItemBatchMutationOptions<TContext> = {},
+export function useQueueAddItemBatchMutation<TContext = unknown>(
+    options: UseQueueAddItemBatchMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, AddQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.addQueueItemBatch(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useAddQueueItemBatchMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueAddItemBatchMutation,
         ...options,
     });
 }
 
-export type UseExecuteQueueItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueExecuteItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemExecuteResponse,
     ExecuteQueueItemBody,
     TContext
 >;
 
 /** Run one item immediately, without placing it on the queue. */
-export function useExecuteQueueItemMutation<TContext = unknown>(
-    options: UseExecuteQueueItemMutationOptions<TContext> = {},
+export function useQueueExecuteItemMutation<TContext = unknown>(
+    options: UseQueueExecuteItemMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemExecuteResponse, QServerHookError, ExecuteQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.executeQueueItem(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useExecuteQueueItemMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueExecuteItemMutation,
         ...options,
     });
 }
 
-export type UseUpdateQueueItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueUpdateItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemUpdateResponse,
     UpdateQueueItemBody,
     TContext
 >;
 
 /** Replace an existing item, matched by its uid. `replace: true` mints a new uid. */
-export function useUpdateQueueItemMutation<TContext = unknown>(
-    options: UseUpdateQueueItemMutationOptions<TContext> = {},
+export function useQueueUpdateItemMutation<TContext = unknown>(
+    options: UseQueueUpdateItemMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemUpdateResponse, QServerHookError, UpdateQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.updateQueueItem(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useUpdateQueueItemMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueUpdateItemMutation,
         ...options,
     });
 }
 
-export type UseRemoveQueueItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueRemoveItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemRemoveResponse,
     RemoveQueueItemBody | void,
     TContext
 >;
 
 /** Remove one item by uid or position. With no argument the server removes the back item. */
-export function useRemoveQueueItemMutation<TContext = unknown>(
-    options: UseRemoveQueueItemMutationOptions<TContext> = {},
+export function useQueueRemoveItemMutation<TContext = unknown>(
+    options: UseQueueRemoveItemMutationOptions<TContext> = {},
 ): UseMutationResult<
     PostItemRemoveResponse,
     QServerHookError,
@@ -196,46 +196,46 @@ export function useRemoveQueueItemMutation<TContext = unknown>(
 > {
     return useQServerMutation({
         perform: (client, body, request) => client.removeQueueItem(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useRemoveQueueItemMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueRemoveItemMutation,
         ...options,
     });
 }
 
-export type UseRemoveQueueItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueRemoveItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemBatchResponse,
     RemoveQueueItemBatchBody,
     TContext
 >;
 
 /** Remove several items by uid. `ignore_missing` decides whether absent uids fail the call. */
-export function useRemoveQueueItemBatchMutation<TContext = unknown>(
-    options: UseRemoveQueueItemBatchMutationOptions<TContext> = {},
+export function useQueueRemoveItemBatchMutation<TContext = unknown>(
+    options: UseQueueRemoveItemBatchMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, RemoveQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.removeQueueItemBatch(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useRemoveQueueItemBatchMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueRemoveItemBatchMutation,
         ...options,
     });
 }
 
-export type UseMoveQueueItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueMoveItemMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemAddResponse,
     MoveQueueItemBody,
     TContext
 >;
 
 /** Reposition one item, by `pos_dest`, `before_uid` or `after_uid`. */
-export function useMoveQueueItemMutation<TContext = unknown>(
-    options: UseMoveQueueItemMutationOptions<TContext> = {},
+export function useQueueMoveItemMutation<TContext = unknown>(
+    options: UseQueueMoveItemMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemAddResponse, QServerHookError, MoveQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.moveQueueItem(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useMoveQueueItemMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueMoveItemMutation,
         ...options,
     });
 }
 
-export type UseMoveQueueItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueMoveItemBatchMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     PostItemBatchResponse,
     MoveQueueItemBatchBody,
     TContext
@@ -247,17 +247,17 @@ export type UseMoveQueueItemBatchMutationOptions<TContext = unknown> = QServerMu
  * Not part of `QServerClientLike`, so this rejects with `QServerEndpointUnavailableError` against a
  * partial injected client.
  */
-export function useMoveQueueItemBatchMutation<TContext = unknown>(
-    options: UseMoveQueueItemBatchMutationOptions<TContext> = {},
+export function useQueueMoveItemBatchMutation<TContext = unknown>(
+    options: UseQueueMoveItemBatchMutationOptions<TContext> = {},
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, MoveQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.moveQueueItemBatch(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useMoveQueueItemBatchMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueMoveItemBatchMutation,
         ...options,
     });
 }
 
-export type UseUploadQueueSpreadsheetMutationOptions<TContext = unknown> =
+export type UseQueueUploadSpreadsheetMutationOptions<TContext = unknown> =
     QServerMutationHookOptions<UploadSpreadsheetResponse, UploadSpreadsheetInput, TContext>;
 
 /**
@@ -265,8 +265,8 @@ export type UseUploadQueueSpreadsheetMutationOptions<TContext = unknown> =
  *
  * Multipart, and not part of `QServerClientLike`.
  */
-export function useUploadQueueSpreadsheetMutation<TContext = unknown>(
-    options: UseUploadQueueSpreadsheetMutationOptions<TContext> = {},
+export function useQueueUploadSpreadsheetMutation<TContext = unknown>(
+    options: UseQueueUploadSpreadsheetMutationOptions<TContext> = {},
 ): UseMutationResult<
     UploadSpreadsheetResponse,
     QServerHookError,
@@ -275,7 +275,7 @@ export function useUploadQueueSpreadsheetMutation<TContext = unknown>(
 > {
     return useQServerMutation({
         perform: (client, input, request) => client.uploadQueueSpreadsheet(input, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useUploadQueueSpreadsheetMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueUploadSpreadsheetMutation,
         ...options,
     });
 }
@@ -284,7 +284,7 @@ export function useUploadQueueSpreadsheetMutation<TContext = unknown>(
 
 // #region queue control
 
-export type UseStartQueueMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueStartMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QueueStartResponse,
     void,
     TContext
@@ -296,97 +296,97 @@ export type UseStartQueueMutationOptions<TContext = unknown> = QServerMutationHo
  * Refuses with `success: false` when the environment is closed, the queue is empty, or the manager
  * is not idle.
  */
-export function useStartQueueMutation<TContext = unknown>(
-    options: UseStartQueueMutationOptions<TContext> = {},
+export function useQueueStartMutation<TContext = unknown>(
+    options: UseQueueStartMutationOptions<TContext> = {},
 ): UseMutationResult<QueueStartResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.startQueue(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useStartQueueMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStartMutation,
         ...options,
     });
 }
 
-export type UseStopQueueMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueStopMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QServerSuccessResponse,
     void,
     TContext
 >;
 
 /** Stop the queue once the running plan finishes. Sets `queue_stop_pending`. */
-export function useStopQueueMutation<TContext = unknown>(
-    options: UseStopQueueMutationOptions<TContext> = {},
+export function useQueueStopMutation<TContext = unknown>(
+    options: UseQueueStopMutationOptions<TContext> = {},
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.stopQueue(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useStopQueueMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStopMutation,
         ...options,
     });
 }
 
-export type UseCancelQueueStopMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueCancelStopMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QServerSuccessResponse,
     void,
     TContext
 >;
 
 /** Cancel a pending stop request. */
-export function useCancelQueueStopMutation<TContext = unknown>(
-    options: UseCancelQueueStopMutationOptions<TContext> = {},
+export function useQueueCancelStopMutation<TContext = unknown>(
+    options: UseQueueCancelStopMutationOptions<TContext> = {},
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.cancelQueueStop(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useCancelQueueStopMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueCancelStopMutation,
         ...options,
     });
 }
 
-export type UseClearQueueMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueClearMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QueueClearResponse,
     void,
     TContext
 >;
 
 /** Discard every queued item. Does not affect the running plan. */
-export function useClearQueueMutation<TContext = unknown>(
-    options: UseClearQueueMutationOptions<TContext> = {},
+export function useQueueClearMutation<TContext = unknown>(
+    options: UseQueueClearMutationOptions<TContext> = {},
 ): UseMutationResult<QueueClearResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.clearQueue(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useClearQueueMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueClearMutation,
         ...options,
     });
 }
 
-export type UseSetQueueModeMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueSetModeMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QServerSuccessResponse,
     QueueModeSetBody,
     TContext
 >;
 
 /** Set loop mode and failure handling: `{ mode: { loop, ignore_failures } }`. */
-export function useSetQueueModeMutation<TContext = unknown>(
-    options: UseSetQueueModeMutationOptions<TContext> = {},
+export function useQueueSetModeMutation<TContext = unknown>(
+    options: UseQueueSetModeMutationOptions<TContext> = {},
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, QueueModeSetBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setQueueMode(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useSetQueueModeMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueSetModeMutation,
         ...options,
     });
 }
 
-export type UseSetQueueAutostartMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueSetAutostartMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     QServerSuccessResponse,
     QueueAutostartBody,
     TContext
 >;
 
 /** Start the queue automatically whenever an item is added: `{ enable: boolean }`. */
-export function useSetQueueAutostartMutation<TContext = unknown>(
-    options: UseSetQueueAutostartMutationOptions<TContext> = {},
+export function useQueueSetAutostartMutation<TContext = unknown>(
+    options: UseQueueSetAutostartMutationOptions<TContext> = {},
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, QueueAutostartBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setQueueAutostart(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useSetQueueAutostartMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueSetAutostartMutation,
         ...options,
     });
 }

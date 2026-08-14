@@ -24,24 +24,24 @@ import { useQServerClient } from './useQServerClient';
  * `QServerEndpointUnavailableError` against a partial injected client.
  */
 
-export type UseInterruptKernelMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueInterruptKernelMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     AdminResponse,
     KernelInterruptBody | void,
     TContext
 >;
 
 /** Send a KeyboardInterrupt to the IPython kernel: `{ interrupt_task, interrupt_plan }`. */
-export function useInterruptKernelMutation<TContext = unknown>(
-    options: UseInterruptKernelMutationOptions<TContext> = {},
+export function useQueueInterruptKernelMutation<TContext = unknown>(
+    options: UseQueueInterruptKernelMutationOptions<TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, KernelInterruptBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.interruptKernel(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useInterruptKernelMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueInterruptKernelMutation,
         ...options,
     });
 }
 
-export type UseStopManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueStopManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     AdminResponse,
     ManagerStopBody | void,
     TContext
@@ -53,34 +53,34 @@ export type UseStopManagerMutationOptions<TContext = unknown> = QServerMutationH
  * `{ option: 'safe_on' }` (the default) refuses while the queue is running; `'safe_off'` does not.
  * Every subsequent request will fail until the manager is restarted out of band.
  */
-export function useStopManagerMutation<TContext = unknown>(
-    options: UseStopManagerMutationOptions<TContext> = {},
+export function useQueueStopManagerMutation<TContext = unknown>(
+    options: UseQueueStopManagerMutationOptions<TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, ManagerStopBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.stopManager(body ?? undefined, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useStopManagerMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStopManagerMutation,
         ...options,
     });
 }
 
-export type UseTestKillManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueTestKillManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     AdminResponse,
     void,
     TContext
 >;
 
 /** Kill RE Manager to exercise recovery. A test endpoint — do not ship UI that calls it. */
-export function useTestKillManagerMutation<TContext = unknown>(
-    options: UseTestKillManagerMutationOptions<TContext> = {},
+export function useQueueTestKillManagerMutation<TContext = unknown>(
+    options: UseQueueTestKillManagerMutationOptions<TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.testKillManager(request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useTestKillManagerMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueTestKillManagerMutation,
         ...options,
     });
 }
 
-export interface UseTestServerSleepQueryOptions<
+export interface UseQueueTestServerSleepQueryOptions<
     TData = AdminResponse,
 > extends QServerQueryHookOptions<
     AdminResponse,
@@ -98,8 +98,8 @@ export interface UseTestServerSleepQueryOptions<
  * Defaults to `retry: false` and `staleTime: Infinity`, since retrying or refetching a deliberate
  * delay is never what you want.
  */
-export function useTestServerSleepQuery<TData = AdminResponse>(
-    options: UseTestServerSleepQueryOptions<TData> = {},
+export function useQueueTestServerSleepQuery<TData = AdminResponse>(
+    options: UseQueueTestServerSleepQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;

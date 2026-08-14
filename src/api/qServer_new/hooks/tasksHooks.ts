@@ -19,7 +19,7 @@ import { useQServerClient } from './useQServerClient';
  * a retry.
  */
 
-export interface UseGetTaskStatusQueryOptions<
+export interface UseQueueGetTaskStatusQueryOptions<
     TData = GetTaskStatusResponse,
 > extends QServerQueryHookOptions<
     GetTaskStatusResponse,
@@ -32,8 +32,8 @@ export interface UseGetTaskStatusQueryOptions<
 }
 
 /** Whether a background task is `running`, `completed`, or `not_found`. */
-export function useGetTaskStatusQuery<TData = GetTaskStatusResponse>(
-    options: UseGetTaskStatusQueryOptions<TData> = {},
+export function useQueueGetTaskStatusQuery<TData = GetTaskStatusResponse>(
+    options: UseQueueGetTaskStatusQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { body, request, query } = options;
@@ -48,7 +48,7 @@ export function useGetTaskStatusQuery<TData = GetTaskStatusResponse>(
     });
 }
 
-export interface UseGetTaskResultQueryOptions<
+export interface UseQueueGetTaskResultQueryOptions<
     TData = GetTaskResultResponse,
 > extends QServerQueryHookOptions<
     GetTaskResultResponse,
@@ -61,8 +61,8 @@ export interface UseGetTaskResultQueryOptions<
 }
 
 /** A background task's status plus its return value once complete. */
-export function useGetTaskResultQuery<TData = GetTaskResultResponse>(
-    options: UseGetTaskResultQueryOptions<TData> = {},
+export function useQueueGetTaskResultQuery<TData = GetTaskResultResponse>(
+    options: UseQueueGetTaskResultQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { body, request, query } = options;

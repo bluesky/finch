@@ -14,7 +14,7 @@ import { useQServerClient } from './useQServerClient';
 
 /** Lock hooks: taking and releasing the environment/queue lock, and reading lock state. */
 
-export type UseLockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueLockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     LockResponse,
     LockBody,
     TContext
@@ -25,34 +25,34 @@ export type UseLockMutationOptions<TContext = unknown> = QServerMutationHookOpti
  *
  * `lock_key` is required, and every subsequent locked operation must present the same key.
  */
-export function useLockMutation<TContext = unknown>(
-    options: UseLockMutationOptions<TContext> = {},
+export function useQueueLockMutation<TContext = unknown>(
+    options: UseQueueLockMutationOptions<TContext> = {},
 ): UseMutationResult<LockResponse, QServerHookError, LockBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.lock(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useLockMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueLockMutation,
         ...options,
     });
 }
 
-export type UseUnlockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
+export type UseQueueUnlockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
     LockResponse,
     UnlockBody,
     TContext
 >;
 
 /** Release the lock, using the same key it was taken with. */
-export function useUnlockMutation<TContext = unknown>(
-    options: UseUnlockMutationOptions<TContext> = {},
+export function useQueueUnlockMutation<TContext = unknown>(
+    options: UseQueueUnlockMutationOptions<TContext> = {},
 ): UseMutationResult<LockResponse, QServerHookError, UnlockBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.unlock(body, request),
-        invalidates: QSERVER_MUTATION_INVALIDATIONS.useUnlockMutation,
+        invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueUnlockMutation,
         ...options,
     });
 }
 
-export interface UseGetLockInfoQueryOptions<
+export interface UseQueueGetLockInfoQueryOptions<
     TData = GetLockInfoResponse,
 > extends QServerQueryHookOptions<
     GetLockInfoResponse,
@@ -71,8 +71,8 @@ export interface UseGetLockInfoQueryOptions<
  * the `lock` field of `/api/status` — that yields the two booleans but no owner, time or note. The
  * `status` field on the response says so when the fallback was used.
  */
-export function useGetLockInfoQuery<TData = GetLockInfoResponse>(
-    options: UseGetLockInfoQueryOptions<TData> = {},
+export function useQueueGetLockInfoQuery<TData = GetLockInfoResponse>(
+    options: UseQueueGetLockInfoQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;

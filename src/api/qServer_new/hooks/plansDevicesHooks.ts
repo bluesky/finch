@@ -20,7 +20,7 @@ import { useQServerClient } from './useQServerClient';
  * these caches.
  */
 
-export interface UseGetPlansAllowedQueryOptions<
+export interface UseQueueGetPlansAllowedQueryOptions<
     TData = GetPlansAllowedResponse,
 > extends QServerQueryHookOptions<
     GetPlansAllowedResponse,
@@ -33,8 +33,8 @@ export interface UseGetPlansAllowedQueryOptions<
 }
 
 /** Plans the caller's user group may run, keyed by plan name, with their parameter metadata. */
-export function useGetPlansAllowedQuery<TData = GetPlansAllowedResponse>(
-    options: UseGetPlansAllowedQueryOptions<TData> = {},
+export function useQueueGetPlansAllowedQuery<TData = GetPlansAllowedResponse>(
+    options: UseQueueGetPlansAllowedQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -47,7 +47,7 @@ export function useGetPlansAllowedQuery<TData = GetPlansAllowedResponse>(
     });
 }
 
-export interface UseGetDevicesAllowedQueryOptions<
+export interface UseQueueGetDevicesAllowedQueryOptions<
     TData = GetDevicesAllowedResponse,
 > extends QServerQueryHookOptions<
     GetDevicesAllowedResponse,
@@ -60,8 +60,8 @@ export interface UseGetDevicesAllowedQueryOptions<
 }
 
 /** Devices the caller's user group may use, keyed by device name. */
-export function useGetDevicesAllowedQuery<TData = GetDevicesAllowedResponse>(
-    options: UseGetDevicesAllowedQueryOptions<TData> = {},
+export function useQueueGetDevicesAllowedQuery<TData = GetDevicesAllowedResponse>(
+    options: UseQueueGetDevicesAllowedQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -74,7 +74,7 @@ export function useGetDevicesAllowedQuery<TData = GetDevicesAllowedResponse>(
     });
 }
 
-export interface UseGetPlansExistingQueryOptions<
+export interface UseQueueGetPlansExistingQueryOptions<
     TData = GetPlansExistingResponse,
 > extends QServerQueryHookOptions<
     GetPlansExistingResponse,
@@ -86,8 +86,8 @@ export interface UseGetPlansExistingQueryOptions<
 }
 
 /** Every plan in the worker namespace, allowed or not. */
-export function useGetPlansExistingQuery<TData = GetPlansExistingResponse>(
-    options: UseGetPlansExistingQueryOptions<TData> = {},
+export function useQueueGetPlansExistingQuery<TData = GetPlansExistingResponse>(
+    options: UseQueueGetPlansExistingQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
@@ -100,7 +100,7 @@ export function useGetPlansExistingQuery<TData = GetPlansExistingResponse>(
     });
 }
 
-export interface UseGetDevicesExistingQueryOptions<
+export interface UseQueueGetDevicesExistingQueryOptions<
     TData = GetDevicesExistingResponse,
 > extends QServerQueryHookOptions<
     GetDevicesExistingResponse,
@@ -112,8 +112,8 @@ export interface UseGetDevicesExistingQueryOptions<
 }
 
 /** Every device in the worker namespace, allowed or not. */
-export function useGetDevicesExistingQuery<TData = GetDevicesExistingResponse>(
-    options: UseGetDevicesExistingQueryOptions<TData> = {},
+export function useQueueGetDevicesExistingQuery<TData = GetDevicesExistingResponse>(
+    options: UseQueueGetDevicesExistingQueryOptions<TData> = {},
 ): UseQueryResult<TData, QServerHookError> {
     const { scope } = useQServerClient();
     const { payload, request, query } = options;
