@@ -152,6 +152,23 @@ export function useQServerClient(): QServerClientResolution {
     }, [injected, completed, configuredBaseUrl, configuredApiKey]);
 }
 
+/**
+ * The cache scope a query hook should key on, given its own `requestOptions`.
+ *
+ * Normally the resolver's scope — which server the hooks talk to. A per-call `requestOptions.baseUrl`
+ * overrides it, so two instances of the same hook pointed at different servers keep separate cache
+ * entries instead of overwriting each other's data.
+ */
+export function useQServerQueryScope(requestOptions?: QServerRequestOptions): QServerQueryScope {
+    const { scope } = useQServerClient();
+    const override = requestOptions?.baseUrl;
+
+    return useMemo(
+        () => (override === undefined ? scope : { baseUrl: normalizeQServerBaseUrl(override) }),
+        [scope, override],
+    );
+}
+
 /** An injected client may well be a real `QServerApiClient` — ask it rather than assuming. */
 function injectedScope(client: QServerClientLike): string {
     const candidate = client as { getBaseUrl?: () => string };

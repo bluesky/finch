@@ -229,7 +229,7 @@ import {
 } from '@/api/qServer_new';
 
 function QueueWidget() {
-    const status = useQueueGetStatusQuery({ query: { refetchInterval: 1000 } });
+    const status = useQueueGetStatusQuery(undefined, {}, { refetchInterval: 1000 });
     const queue = useQueueGetQuery();
     const add = useQueueAddItemMutation();
 
@@ -244,27 +244,39 @@ function QueueWidget() {
 }
 ```
 
-### One options object
+### Positional arguments
 
-Every hook takes a single optional object with up to three parts:
-
-| key                                                                               | what it is                                                                                                                            |
-| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| the endpoint's own argument — `payload`, `body`, `input`, or a scalar like `uuid` | forwarded to the client method, and part of the query key                                                                             |
-| `request`                                                                         | transport overrides: `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`, plus `strategy`/`fallback` on the payload-GETs |
-| `query` / `mutation`                                                              | standard TanStack options                                                                                                             |
-
-TanStack options go under `query`, **not** at the top level:
+Every hook takes its arguments positionally, always in the same order:
 
 ```ts
-useQueueGetQuery({ query: { refetchInterval: 1000 } }); // correct
-useQueueGetQuery({ refetchInterval: 1000 }); // compile error
+useQueueSomethingQuery(arg?, requestOptions?, queryOptions?);
+useQueueSomethingMutation(requestOptions?, mutationOptions?);
 ```
 
-That is deliberate. The legacy hooks took TanStack options in first position, so the mistake is easy
-to make; keeping the buckets separate turns it into a type error instead of a request payload nobody
-notices. `queryKey` and `queryFn` are owned by the hook — overriding the key would detach the entry
-from the invalidation map. `hooks/typeTests.ts` pins all of this at compile time.
+| position             | what it is                                                                                                                              |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — the argument     | the endpoint's own argument, forwarded to the client method and part of the query key. Present only where the endpoint really takes one |
+| 2 — `requestOptions` | transport overrides: `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`, plus `strategy`/`fallback` on the payload-GETs   |
+| 3 — TanStack options | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations                                                                   |
+
+Positional rather than one options bag, so the endpoint's own argument is the first thing you see on
+hover, named and typed — including whether it is required:
+
+```ts
+useQueueGetStatusQuery({}, { refetchInterval: 1000 }); // no argument slot at all
+useQueueGetItemQuery({ uid }); // required argument, first
+useQueueGetItemQuery(undefined); // ...explicitly idle
+```
+
+A GET that needs no arguments gets **no argument parameter**. Several of them (`status`, `ping`,
+`queue`, `history`, `re/metadata`, `config`, `lock/info`) do accept an optional payload server-side,
+but it can only travel in a GET request body, which no browser will send — offering the parameter
+would only invite a silent no-op, so the hooks omit it. Use the client directly from Node if you
+genuinely need one.
+
+`queryKey`, `queryFn` and `mutationFn` are omitted from the TanStack option types — the hook owns
+them, and overriding the key would detach the entry from the invalidation map.
+`hooks/typeTests.ts` pins this at compile time.
 
 Mutation bodies go to `mutate`, so one hook can perform many writes:
 
@@ -273,8 +285,13 @@ const move = useQueueMoveItemMutation();
 move.mutate({ uid, pos_dest: 'front' });
 ```
 
-The four endpoints taking positional scalars use object variables: `{ uuid, body }`,
+The three endpoints taking positional scalars use object variables: `{ uuid, body }`,
 `{ firstEight }`, `{ sessionId }`.
+
+Four queries hold themselves idle until addressed — `useQueueGetItemQuery` (needs `uid` or `pos`),
+`useQueueGetTaskStatusQuery` and `useQueueGetTaskResultQuery` (need `task_uid`), and
+`useQueueGetPrincipalQuery` (needs `uuid`). Their argument is a _required_ parameter that accepts
+`undefined`, so the idle case is written out at the call site rather than being implied by omission.
 
 ### Where the client comes from
 
@@ -295,7 +312,9 @@ client is injected, rather than silently falling through to the network.
 
 ### Keys and invalidation
 
-Keys are `['qserver', <resource>, <args | null>, { baseUrl }]`. The scope is last so prefixes like
+Keys are `['qserver', <resource>, <args | null>, { baseUrl }]`, where the scope is the server the
+hook talks to — a `requestOptions.baseUrl` overrides it, so two instances aimed at different servers
+keep separate entries. The scope is last so prefixes like
 `['qserver','queue']` still match — including the ones existing code already invalidates with. The
 API key is deliberately absent: it would put a secret in the Devtools cache inspector, and a
 credential change invalidates everything rather than one entry (`invalidateAllQServerQueries`).
@@ -309,11 +328,11 @@ is already refreshed on the next line. Bundles: `status`, `queue`, `history`, `r
 
 - **Four queries are guarded**: `useQueueGetItemQuery` (needs a `uid` or `pos`),
   `useQueueGetTaskStatusQuery` / `useQueueGetTaskResultQuery` (need a `task_uid`) and `useQueueGetPrincipalQuery`
-  (needs a `uuid`) stay idle until their argument is present. `query.enabled` overrides.
-- **Cancellation composes**: TanStack's signal and any `request.signal` are merged, so unmounting or
-  `cancelQueries` aborts the in-flight request whether or not you passed one.
+  (needs a `uuid`) stay idle until their argument is present. `enabled` overrides.
+- **Cancellation composes**: TanStack's signal and any `requestOptions.signal` are merged, so
+  unmounting or `cancelQueries` aborts the in-flight request whether or not you passed one.
 - **`useQueueStreamConsoleOutputMutation` is a mutation**, not a query — the response never ends on its
-  own. Bound it with `request.axiosConfig.timeout`, or prefer `useQServerConsoleSocket`.
+  own. Bound it with an `axiosConfig.timeout` in `requestOptions`, or prefer `useQServerConsoleSocket`.
 - **`useQueueGetRunsQuery` is a query** even though the endpoint is a POST.
 - The browser caveats from the payload-GET section apply unchanged, so `useQueueGetTaskStatusQuery` and
   `useQueueGetTaskResultQuery` cannot work in a browser at all.

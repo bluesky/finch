@@ -1,59 +1,50 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
-import type { GetWithBodyOptions, QServerPayload } from '../types/common';
+import type { QServerRequestOptions } from '../types/common';
 import type { ClearHistoryResponse, GetHistoryResponse } from '../types/history';
 import { useQServerMutation } from './internal/useQServerMutation';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { QSERVER_MUTATION_INVALIDATIONS } from './invalidation';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type {
-    QServerHookError,
-    QServerMutationHookOptions,
-    QServerQueryHookOptions,
-} from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /** History hooks: `/api/history/get`, `/api/history/clear`. */
 
-export interface UseQueueGetHistoryQueryOptions<
-    TData = GetHistoryResponse,
-> extends QServerQueryHookOptions<
-    GetHistoryResponse,
-    TData,
-    QServerQueryKeyFor<'history'>,
-    GetWithBodyOptions<GetHistoryResponse>
-> {
-    /** Mirrors `client.getQueueHistory(payload)`. Part of the query key. */
-    payload?: QServerPayload;
-}
-
-/** Completed plans, oldest first, each with its `result` (exit status, run uids, timings). */
+/**
+ * Completed plans, oldest first, each with its `result` (exit status, run uids, timings).
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetHistoryQuery<TData = GetHistoryResponse>(
-    options: UseQueueGetHistoryQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetHistoryResponse, TData, QServerQueryKeyFor<'history'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.history(scope, payload),
-        fetch: (client, mergedRequest) => client.getQueueHistory(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.history(scope),
+        fetch: (client, request) => client.getQueueHistory(undefined, request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export type UseQueueClearHistoryMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ClearHistoryResponse,
-    void,
-    TContext
->;
-
-/** Discard the plan history. */
+/**
+ * Discard the plan history.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `onSuccess` runs after the history and status caches have
+ * been refreshed.
+ */
 export function useQueueClearHistoryMutation<TContext = unknown>(
-    options: UseQueueClearHistoryMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ClearHistoryResponse, void, TContext> = {},
 ): UseMutationResult<ClearHistoryResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.clearHistory(request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueClearHistoryMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }

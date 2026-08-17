@@ -1,67 +1,50 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
-import type { GetWithBodyOptions, QServerPayload } from '../types/common';
+import type { GetWithBodyOptions, QServerRequestOptions } from '../types/common';
 import type { GetLockInfoResponse, LockBody, LockResponse, UnlockBody } from '../types/lock';
 import { useQServerMutation } from './internal/useQServerMutation';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { QSERVER_MUTATION_INVALIDATIONS } from './invalidation';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type {
-    QServerHookError,
-    QServerMutationHookOptions,
-    QServerQueryHookOptions,
-} from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /** Lock hooks: taking and releasing the environment/queue lock, and reading lock state. */
-
-export type UseQueueLockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    LockResponse,
-    LockBody,
-    TContext
->;
 
 /**
  * Lock the environment and/or the queue.
  *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate({ lock_key, environment, queue, note })` —
  * `lock_key` is required, and every subsequent locked operation must present the same key.
  */
 export function useQueueLockMutation<TContext = unknown>(
-    options: UseQueueLockMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<LockResponse, LockBody, TContext> = {},
 ): UseMutationResult<LockResponse, QServerHookError, LockBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.lock(body, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueLockMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueUnlockMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    LockResponse,
-    UnlockBody,
-    TContext
->;
-
-/** Release the lock, using the same key it was taken with. */
+/**
+ * Release the lock, using the same key it was taken with.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate({ lock_key })`.
+ */
 export function useQueueUnlockMutation<TContext = unknown>(
-    options: UseQueueUnlockMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<LockResponse, UnlockBody, TContext> = {},
 ): UseMutationResult<LockResponse, QServerHookError, UnlockBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.unlock(body, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueUnlockMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
-}
-
-export interface UseQueueGetLockInfoQueryOptions<
-    TData = GetLockInfoResponse,
-> extends QServerQueryHookOptions<
-    GetLockInfoResponse,
-    TData,
-    QServerQueryKeyFor<'lockInfo'>,
-    GetWithBodyOptions<GetLockInfoResponse>
-> {
-    /** Mirrors `client.getLockInfo(payload)`. Part of the query key. */
-    payload?: QServerPayload;
 }
 
 /**
@@ -70,17 +53,25 @@ export interface UseQueueGetLockInfoQueryOptions<
  * This endpoint requires a request body even when empty, so **in a browser** the client falls back to
  * the `lock` field of `/api/status` — that yields the two booleans but no owner, time or note. The
  * `status` field on the response says so when the fallback was used.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`. `strategy` / `fallback`
+ * control what happens in a browser, where this endpoint's mandatory request body cannot be sent.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueGetLockInfoQuery<TData = GetLockInfoResponse>(
-    options: UseQueueGetLockInfoQueryOptions<TData> = {},
+    requestOptions: GetWithBodyOptions<GetLockInfoResponse> = {},
+    queryOptions: FinchQueryOptions<
+        GetLockInfoResponse,
+        TData,
+        QServerQueryKeyFor<'lockInfo'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.lockInfo(scope, payload),
-        fetch: (client, mergedRequest) => client.getLockInfo(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.lockInfo(scope),
+        fetch: (client, request) => client.getLockInfo(undefined, request),
+        requestOptions,
+        queryOptions,
     });
 }

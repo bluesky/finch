@@ -6,15 +6,11 @@ import {
     resolveInvalidationRoots,
     type QServerInvalidationBundleName,
 } from '../invalidation';
-import type { QServerHookError, QServerMutationHookOptions } from '../types';
+import type { FinchMutationOptions, QServerHookError } from '../types';
 import { useQServerClient } from '../useQServerClient';
 import { mergeRequestOptions } from './requestOptions';
 
-export interface QServerMutationEngineArgs<
-    TResponse,
-    TVariables,
-    TContext,
-> extends QServerMutationHookOptions<TResponse, TVariables, TContext> {
+export interface QServerMutationEngineArgs<TResponse, TVariables, TContext> {
     /** Performs the write. Receives `mutate`'s argument and the merged transport options. */
     perform: (
         client: QServerEndpoints,
@@ -23,6 +19,10 @@ export interface QServerMutationEngineArgs<
     ) => Promise<TResponse>;
     /** Caches to refresh on success; see `QSERVER_MUTATION_INVALIDATIONS`. */
     invalidates: readonly QServerInvalidationBundleName[];
+    /** The hook's `requestOptions` parameter, merged under the resolver's defaults. */
+    requestOptions?: QServerRequestOptions;
+    /** The hook's `mutationOptions` parameter. */
+    mutationOptions?: FinchMutationOptions<TResponse, TVariables, TContext>;
 }
 
 /**
@@ -34,8 +34,8 @@ export interface QServerMutationEngineArgs<
 export function useQServerMutation<TResponse, TVariables, TContext = unknown>({
     perform,
     invalidates,
-    request,
-    mutation,
+    requestOptions,
+    mutationOptions,
 }: QServerMutationEngineArgs<TResponse, TVariables, TContext>): UseMutationResult<
     TResponse,
     QServerHookError,
@@ -46,15 +46,15 @@ export function useQServerMutation<TResponse, TVariables, TContext = unknown>({
     const queryClient = useQueryClient();
 
     return useMutation<TResponse, QServerHookError, TVariables, TContext>({
-        ...mutation,
+        ...mutationOptions,
         // Mutations get no signal from TanStack, so only a caller-supplied one applies.
         mutationFn: (variables) =>
-            perform(client, variables, mergeRequestOptions(requestDefaults, request)),
+            perform(client, variables, mergeRequestOptions(requestDefaults, requestOptions)),
         // Forwarded with a rest parameter so the callback signature tracks whatever arity the
         // installed TanStack version uses.
         onSuccess: async (...args) => {
             await invalidateQServerRoots(queryClient, resolveInvalidationRoots(invalidates));
-            await mutation?.onSuccess?.(...args);
+            await mutationOptions?.onSuccess?.(...args);
         },
     });
 }

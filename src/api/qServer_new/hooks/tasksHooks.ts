@@ -3,8 +3,8 @@ import type { GetWithBodyOptions } from '../types/common';
 import type { GetTaskResultResponse, GetTaskStatusResponse, TaskBody } from '../types/tasks';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type { QServerHookError, QServerQueryHookOptions } from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /**
  * Background-task hooks.
@@ -19,59 +19,59 @@ import { useQServerClient } from './useQServerClient';
  * a retry.
  */
 
-export interface UseQueueGetTaskStatusQueryOptions<
-    TData = GetTaskStatusResponse,
-> extends QServerQueryHookOptions<
-    GetTaskStatusResponse,
-    TData,
-    QServerQueryKeyFor<'taskStatus'>,
-    GetWithBodyOptions<GetTaskStatusResponse>
-> {
-    /** `{ task_uid }`. Part of the query key; the query stays idle until it is present. */
-    body?: TaskBody;
-}
-
-/** Whether a background task is `running`, `completed`, or `not_found`. */
+/**
+ * Whether a background task is `running`, `completed`, or `not_found`.
+ *
+ * @param body **Required.** `{ task_uid }`, as returned by the mutation that started the task. Part
+ * of the query key; pass `undefined` to hold the query idle until you have one.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetTaskStatusQuery<TData = GetTaskStatusResponse>(
-    options: UseQueueGetTaskStatusQueryOptions<TData> = {},
+    body: TaskBody | undefined,
+    requestOptions: GetWithBodyOptions<GetTaskStatusResponse> = {},
+    queryOptions: FinchQueryOptions<
+        GetTaskStatusResponse,
+        TData,
+        QServerQueryKeyFor<'taskStatus'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { body, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.taskStatus(scope, body),
-        fetch: (client, mergedRequest) => client.getTaskStatus(body as TaskBody, mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getTaskStatus(body as TaskBody, request),
+        requestOptions,
+        queryOptions,
         defaults: { retry: false },
         defaultEnabled: Boolean(body?.task_uid),
     });
 }
 
-export interface UseQueueGetTaskResultQueryOptions<
-    TData = GetTaskResultResponse,
-> extends QServerQueryHookOptions<
-    GetTaskResultResponse,
-    TData,
-    QServerQueryKeyFor<'taskResult'>,
-    GetWithBodyOptions<GetTaskResultResponse>
-> {
-    /** `{ task_uid }`. Part of the query key; the query stays idle until it is present. */
-    body?: TaskBody;
-}
-
-/** A background task's status plus its return value once complete. */
+/**
+ * A background task's status plus its return value once complete.
+ *
+ * @param body **Required.** `{ task_uid }`, as returned by the mutation that started the task. Part
+ * of the query key; pass `undefined` to hold the query idle until you have one.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetTaskResultQuery<TData = GetTaskResultResponse>(
-    options: UseQueueGetTaskResultQueryOptions<TData> = {},
+    body: TaskBody | undefined,
+    requestOptions: GetWithBodyOptions<GetTaskResultResponse> = {},
+    queryOptions: FinchQueryOptions<
+        GetTaskResultResponse,
+        TData,
+        QServerQueryKeyFor<'taskResult'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { body, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.taskResult(scope, body),
-        fetch: (client, mergedRequest) => client.getTaskResult(body as TaskBody, mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getTaskResult(body as TaskBody, request),
+        requestOptions,
+        queryOptions,
         defaults: { retry: false },
         defaultEnabled: Boolean(body?.task_uid),
     });

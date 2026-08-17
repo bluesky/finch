@@ -10,12 +10,8 @@ import { useQServerMutation } from './internal/useQServerMutation';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { QSERVER_MUTATION_INVALIDATIONS } from './invalidation';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type {
-    QServerHookError,
-    QServerMutationHookOptions,
-    QServerQueryHookOptions,
-} from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /**
  * User-group permission hooks.
@@ -26,52 +22,62 @@ import { useQServerClient } from './useQServerClient';
  * too.
  */
 
-export type UseQueueGetPermissionsQueryOptions<TData = GetPermissionsResponse> =
-    QServerQueryHookOptions<
+/**
+ * The current user-group permissions: allow/forbid lists of regular expressions per group.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
+export function useQueueGetPermissionsQuery<TData = GetPermissionsResponse>(
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<
         GetPermissionsResponse,
         TData,
-        QServerQueryKeyFor<'permissions'>,
-        QServerRequestOptions
-    >;
-
-/** The current user-group permissions: allow/forbid lists of regular expressions per group. */
-export function useQueueGetPermissionsQuery<TData = GetPermissionsResponse>(
-    options: UseQueueGetPermissionsQueryOptions<TData> = {},
+        QServerQueryKeyFor<'permissions'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.permissions(scope),
-        fetch: (client, mergedRequest) => client.getPermissions(mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getPermissions(request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export type UseQueueSetPermissionsMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    PermissionsResponse,
-    SetPermissionsBody,
-    TContext
->;
-
-/** Replace the user-group permissions wholesale. */
+/**
+ * Replace the user-group permissions wholesale.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate({ user_group_permissions })`.
+ */
 export function useQueueSetPermissionsMutation<TContext = unknown>(
-    options: UseQueueSetPermissionsMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<PermissionsResponse, SetPermissionsBody, TContext> = {},
 ): UseMutationResult<PermissionsResponse, QServerHookError, SetPermissionsBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setPermissions(body, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueSetPermissionsMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueReloadPermissionsMutationOptions<TContext = unknown> =
-    QServerMutationHookOptions<PermissionsResponse, ReloadPermissionsBody | void, TContext>;
-
-/** Reload permissions from disk, optionally restoring the plan and device lists as well. */
+/**
+ * Reload permissions from disk, optionally restoring the plan and device lists as well.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate()` or
+ * `mutate({ restore_plans_devices, restore_permissions })`.
+ */
 export function useQueueReloadPermissionsMutation<TContext = unknown>(
-    options: UseQueueReloadPermissionsMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<
+        PermissionsResponse,
+        ReloadPermissionsBody | void,
+        TContext
+    > = {},
 ): UseMutationResult<
     PermissionsResponse,
     QServerHookError,
@@ -81,6 +87,7 @@ export function useQueueReloadPermissionsMutation<TContext = unknown>(
     return useQServerMutation({
         perform: (client, body, request) => client.reloadPermissions(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueReloadPermissionsMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }

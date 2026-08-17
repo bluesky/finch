@@ -31,32 +31,47 @@ The infrastructure hooks are not endpoints and keep their `useQServer...` names:
 
 ## The call shape
 
-Every hook takes **one optional object** with up to three parts:
+Arguments are **positional**, always in the same order:
 
 ```tsx
-const status = useQueueGetStatusQuery({
-    payload: {}, // the endpoint argument (name varies; see each entry)
-    request: { apiKey: null }, // QServerRequestOptions — transport overrides
-    query: { refetchInterval: 1000 }, // standard TanStack query options
-});
+useQueueSomethingQuery(arg?, requestOptions?, queryOptions?);
+useQueueSomethingMutation(requestOptions?, mutationOptions?);
+```
 
-const add = useQueueAddItemMutation({
-    request: { baseUrl: 'http://other:60610' },
-    mutation: { onSuccess: (data) => console.log(data.item.item_uid) },
-});
+```tsx
+const item = useQueueGetItemQuery(
+    { uid }, // the endpoint argument (only where the endpoint takes one)
+    { apiKey: null }, // QServerRequestOptions — transport overrides
+    { refetchInterval: 1000 }, // standard TanStack query options
+);
+
+const add = useQueueAddItemMutation(
+    { baseUrl: 'http://other:60610' },
+    { onSuccess: (data) => console.log(data.item.item_uid) },
+);
 add.mutate({ item: { name: 'count', item_type: 'plan' } }); // the body goes to mutate()
 ```
 
-TanStack options go under `query` / `mutation`, never at the top level — the top level is the
-endpoint argument, so `useQueueGetQuery({ refetchInterval: 1000 })` is a **compile error** rather
-than a silently-wrong request payload.
+The first slot exists only when the endpoint takes an argument, and its type says whether it is
+required — hovering the hook tells you which. A **mutation has no argument slot**: its body travels
+through `mutate(variables)`, so one hook instance can perform many writes.
 
-| part                                    | what goes in it                                                                                                         |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `payload` / `body` / `input` / a scalar | the endpoint argument, forwarded to the client method and included in the query key                                     |
-| `request`                               | `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`; plus `strategy` / `fallback` on payload-GET endpoints |
-| `query`                                 | `enabled`, `refetchInterval`, `staleTime`, `select`, `retry`, …                                                         |
-| `mutation`                              | `onSuccess`, `onError`, `onMutate`, `retry`, … (`onSuccess` runs _after_ the hook has refreshed its caches)             |
+| position             | what goes in it                                                                                                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 — the argument     | the endpoint's own argument, forwarded to the client method and included in the query key. Present only on the queries whose endpoint actually takes one                                 |
+| 2 — request options  | `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`; plus `strategy` / `fallback` on payload-GET endpoints                                                                  |
+| 3 — TanStack options | queries: `enabled`, `refetchInterval`, `staleTime`, `select`, `retry`, … · mutations: `onSuccess`, `onError`, `onMutate`, … (`onSuccess` runs _after_ the hook has refreshed its caches) |
+
+A GET that needs no arguments has **no** argument slot at all, so it starts at `requestOptions`:
+`useQueueGetStatusQuery({}, { refetchInterval: 1000 })`. Several of those endpoints do accept an
+optional server-side payload, but no browser can send a body on a GET — offering the parameter would
+only invite a silent no-op, so the hooks leave it out. Where a slot does exist and you want to skip
+it, pass `undefined` or `{}`.
+
+The two TanStack option types are exported as `FinchQueryOptions<TResponse, TData>` and
+`FinchMutationOptions<TResponse, TVariables>`; `queryKey`, `queryFn` and `mutationFn` are omitted
+from them because the hook owns those — overriding the key would detach the entry from the
+invalidation map.
 
 ## Setup
 
@@ -84,21 +99,21 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                       | argument                   | returns `data`      | endpoint              |
-| -------------------------- | -------------------------- | ------------------- | --------------------- |
-| `useQueuePingQuery`        | `payload?: QServerPayload` | `PingResponse`      | `GET /api/ping`       |
-| `useQueueGetRootQuery`     | `payload?: QServerPayload` | `PingResponse`      | `GET /api/`           |
-| `useQueueGetStatusQuery`   | `payload?: QServerPayload` | `GetStatusResponse` | `GET /api/status`     |
-| `useQueueGetConfigQuery` ◆ | `payload?: QServerPayload` | `GetConfigResponse` | `GET /api/config/get` |
+| hook                       | argument | returns `data`      | endpoint              |
+| -------------------------- | -------- | ------------------- | --------------------- |
+| `useQueuePingQuery`        | —        | `PingResponse`      | `GET /api/ping`       |
+| `useQueueGetRootQuery`     | —        | `PingResponse`      | `GET /api/`           |
+| `useQueueGetStatusQuery`   | —        | `GetStatusResponse` | `GET /api/status`     |
+| `useQueueGetConfigQuery` ◆ | —        | `GetConfigResponse` | `GET /api/config/get` |
 
 ## Queue
 
 ### Queries
 
-| hook                   | argument                            | returns `data`         | endpoint                  |
-| ---------------------- | ----------------------------------- | ---------------------- | ------------------------- |
-| `useQueueGetQuery`     | `payload?: Record<string, unknown>` | `GetQueueResponse`     | `GET /api/queue/get`      |
-| `useQueueGetItemQuery` | `body?: GetQueueItemBody`           | `GetQueueItemResponse` | `GET /api/queue/item/get` |
+| hook                   | argument                              | returns `data`         | endpoint                  |
+| ---------------------- | ------------------------------------- | ---------------------- | ------------------------- |
+| `useQueueGetQuery`     | —                                     | `GetQueueResponse`     | `GET /api/queue/get`      |
+| `useQueueGetItemQuery` | `body: GetQueueItemBody \| undefined` | `GetQueueItemResponse` | `GET /api/queue/item/get` |
 
 ### Mutations
 
@@ -124,9 +139,9 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                      | argument                   | returns `data`       | endpoint               |
-| ------------------------- | -------------------------- | -------------------- | ---------------------- |
-| `useQueueGetHistoryQuery` | `payload?: QServerPayload` | `GetHistoryResponse` | `GET /api/history/get` |
+| hook                      | argument | returns `data`       | endpoint               |
+| ------------------------- | -------- | -------------------- | ---------------------- |
+| `useQueueGetHistoryQuery` | —        | `GetHistoryResponse` | `GET /api/history/get` |
 
 ### Mutations
 
@@ -149,13 +164,13 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                           | argument                   | returns `data`          | endpoint                  |
-| ------------------------------ | -------------------------- | ----------------------- | ------------------------- |
-| `useQueueGetRunsQuery`         | `body?: GetRunsBody`       | `GetRunsResponse`       | `POST /api/re/runs`       |
-| `useQueueGetRunsActiveQuery`   | —                          | `GetRunsResponse`       | `GET /api/re/runs/active` |
-| `useQueueGetRunsOpenQuery`     | —                          | `GetRunsResponse`       | `GET /api/re/runs/open`   |
-| `useQueueGetRunsClosedQuery`   | —                          | `GetRunsResponse`       | `GET /api/re/runs/closed` |
-| `useQueueGetREMetadataQuery` ◆ | `payload?: QServerPayload` | `GetReMetadataResponse` | `GET /api/re/metadata`    |
+| hook                           | argument             | returns `data`          | endpoint                  |
+| ------------------------------ | -------------------- | ----------------------- | ------------------------- |
+| `useQueueGetRunsQuery`         | `body?: GetRunsBody` | `GetRunsResponse`       | `POST /api/re/runs`       |
+| `useQueueGetRunsActiveQuery`   | —                    | `GetRunsResponse`       | `GET /api/re/runs/active` |
+| `useQueueGetRunsOpenQuery`     | —                    | `GetRunsResponse`       | `GET /api/re/runs/open`   |
+| `useQueueGetRunsClosedQuery`   | —                    | `GetRunsResponse`       | `GET /api/re/runs/closed` |
+| `useQueueGetREMetadataQuery` ◆ | —                    | `GetReMetadataResponse` | `GET /api/re/metadata`    |
 
 ### Mutations
 
@@ -206,18 +221,18 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                         | argument          | returns `data`          | endpoint               |
-| ---------------------------- | ----------------- | ----------------------- | ---------------------- |
-| `useQueueGetTaskStatusQuery` | `body?: TaskBody` | `GetTaskStatusResponse` | `GET /api/task/status` |
-| `useQueueGetTaskResultQuery` | `body?: TaskBody` | `GetTaskResultResponse` | `GET /api/task/result` |
+| hook                         | argument                      | returns `data`          | endpoint               |
+| ---------------------------- | ----------------------------- | ----------------------- | ---------------------- |
+| `useQueueGetTaskStatusQuery` | `body: TaskBody \| undefined` | `GetTaskStatusResponse` | `GET /api/task/status` |
+| `useQueueGetTaskResultQuery` | `body: TaskBody \| undefined` | `GetTaskResultResponse` | `GET /api/task/result` |
 
 ## Lock
 
 ### Queries
 
-| hook                       | argument                   | returns `data`        | endpoint             |
-| -------------------------- | -------------------------- | --------------------- | -------------------- |
-| `useQueueGetLockInfoQuery` | `payload?: QServerPayload` | `GetLockInfoResponse` | `GET /api/lock/info` |
+| hook                       | argument | returns `data`        | endpoint             |
+| -------------------------- | -------- | --------------------- | -------------------- |
+| `useQueueGetLockInfoQuery` | —        | `GetLockInfoResponse` | `GET /api/lock/info` |
 
 ### Mutations
 
@@ -262,13 +277,13 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                                  | argument        | returns `data`              | endpoint                         |
-| ------------------------------------- | --------------- | --------------------------- | -------------------------------- |
-| `useQueueWhoamiQuery` ◆               | —               | `WhoamiResponse`            | `GET /api/auth/whoami`           |
-| `useQueueGetScopesQuery` ◆            | —               | `ScopesResponse`            | `GET /api/auth/scopes`           |
-| `useQueueListPrincipalsQuery` ◆       | —               | `PrincipalListResponse`     | `GET /api/auth/principal`        |
-| `useQueueGetPrincipalQuery` ◆         | `uuid?: string` | `PrincipalResponse`         | `GET /api/auth/principal/{uuid}` |
-| `useQueueGetCurrentApiKeyInfoQuery` ◆ | —               | `CurrentApiKeyInfoResponse` | `GET /api/auth/apikey`           |
+| hook                                  | argument                    | returns `data`              | endpoint                         |
+| ------------------------------------- | --------------------------- | --------------------------- | -------------------------------- |
+| `useQueueWhoamiQuery` ◆               | —                           | `WhoamiResponse`            | `GET /api/auth/whoami`           |
+| `useQueueGetScopesQuery` ◆            | —                           | `ScopesResponse`            | `GET /api/auth/scopes`           |
+| `useQueueListPrincipalsQuery` ◆       | —                           | `PrincipalListResponse`     | `GET /api/auth/principal`        |
+| `useQueueGetPrincipalQuery` ◆         | `uuid: string \| undefined` | `PrincipalResponse`         | `GET /api/auth/principal/{uuid}` |
+| `useQueueGetCurrentApiKeyInfoQuery` ◆ | —                           | `CurrentApiKeyInfoResponse` | `GET /api/auth/apikey`           |
 
 ### Mutations
 
@@ -291,8 +306,8 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 import { useQueueGetQuery, useQueueGetStatusQuery } from '@blueskyproject/finch';
 
 function QueueSummary() {
-    const status = useQueueGetStatusQuery({ query: { refetchInterval: 1000 } });
-    const queue = useQueueGetQuery({ query: { refetchInterval: 1000 } });
+    const status = useQueueGetStatusQuery({}, { refetchInterval: 1000 });
+    const queue = useQueueGetQuery({}, { refetchInterval: 1000 });
 
     if (queue.isPending) return <p>loading…</p>;
     if (queue.isError) return <p>{queue.error.message}</p>;
@@ -311,7 +326,7 @@ function QueueSummary() {
 
 ```tsx
 // `data` is now `QueueItem[]`, and the component only re-renders when the items change.
-const items = useQueueGetQuery({ query: { select: (queue) => queue.items } });
+const items = useQueueGetQuery({}, { select: (queue) => queue.items });
 ```
 
 ### Adding an item and starting the queue
@@ -347,18 +362,19 @@ next line.
 
 ```tsx
 // Idle until a uid exists; no request is made with `undefined`.
-const item = useQueueGetItemQuery({ body: selectedUid ? { uid: selectedUid } : undefined });
+const item = useQueueGetItemQuery(selectedUid ? { uid: selectedUid } : undefined);
 ```
 
 Four queries guard themselves this way: `useQueueGetItemQuery` (needs `uid` or `pos`),
 `useQueueGetTaskStatusQuery` and `useQueueGetTaskResultQuery` (need `task_uid`), and `useQueueGetPrincipalQuery`
-(needs `uuid`). Pass `query.enabled` to override.
+(needs `uuid`). Their argument is a required parameter that accepts `undefined`, so the idle case is explicit at the
+call site. Pass `enabled` in the third parameter to override.
 
 ### Talking to a second server, or without credentials
 
 ```tsx
-const other = useQueueGetStatusQuery({ request: { baseUrl: 'http://other-host:60610' } });
-const anon = useQueueGetStatusQuery({ request: { apiKey: null } }); // send no credentials at all
+const other = useQueueGetStatusQuery({ baseUrl: 'http://other-host:60610' });
+const anon = useQueueGetStatusQuery({ apiKey: null }); // send no credentials at all
 ```
 
 Per-request options never change client state — the next hook call uses the configured server again.
@@ -370,7 +386,7 @@ your own code as well, pass a signal; the two compose, so either one aborts the 
 
 ```tsx
 const controller = new AbortController();
-const status = useQueueGetStatusQuery({ request: { signal: controller.signal } });
+const status = useQueueGetStatusQuery({ signal: controller.signal });
 ```
 
 ### Refreshing caches by hand
@@ -441,8 +457,8 @@ a browser, watch a task through status or the console socket instead.
 incrementally).
 
 **`useQueueStreamConsoleOutputMutation` is a mutation, not a query**, because the response only ends when
-the server closes the stream — as a query it would sit pending forever. Bound it with
-`request.axiosConfig.timeout`, or prefer `useQServerConsoleSocket` for live output.
+the server closes the stream — as a query it would sit pending forever. Bound it with an
+`axiosConfig.timeout` in `requestOptions`, or prefer `useQServerConsoleSocket` for live output.
 
 **`useQueueGetRunsQuery` is a query** even though the endpoint is a `POST`; it reads state, so it belongs
 in the cache.

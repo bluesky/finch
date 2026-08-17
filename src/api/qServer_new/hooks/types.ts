@@ -1,15 +1,19 @@
 import type { QueryKey, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
-import type { QServerRequestOptions } from '../types/common';
 
 /**
  * Shared option shapes for the queue-server hooks.
  *
- * Every hook takes exactly **one** optional object, carrying up to three things: the endpoint's own
- * argument, transport overrides (`request`), and TanStack options (`query` / `mutation`). Keeping
- * them in separate, named buckets is what makes a call like
- * `useQueueGetQuery({ refetchInterval: 1000 })` a compile error rather than being silently read as a
- * request payload — which matters, because the legacy hooks in `src/api/qServer/hooks.ts` took
- * TanStack options in exactly that position.
+ * Every hook takes its arguments **positionally**, in the same order:
+ *
+ * ```ts
+ * useQueueSomethingQuery(arg?, requestOptions?, queryOptions?);
+ * useQueueSomethingMutation(requestOptions?, mutationOptions?);
+ * ```
+ *
+ * `arg` is present only when the endpoint takes one, and its type says whether it is required — that
+ * is the whole point of the positional shape: hovering the hook shows the endpoint's own argument
+ * first, named and typed, instead of one opaque options bag. A mutation has no `arg` slot because its
+ * body travels through `mutate(variables)`, so one hook instance can perform many writes.
  */
 
 /**
@@ -22,63 +26,35 @@ import type { QServerRequestOptions } from '../types/common';
 export type QServerHookError = Error;
 
 /**
- * The shape every query hook's argument extends.
+ * TanStack query options accepted in every query hook's last parameter.
+ *
+ * `queryKey` and `queryFn` are omitted because the hook owns them. That is deliberate rather than
+ * defensive: the invalidation map is only correct while the key is the one `qServerQueryKeys`
+ * produced, so overriding it would silently detach the entry from every mutation that should
+ * refresh it.
  *
  * @typeParam TResponse The endpoint's response type.
- * @typeParam TData What the hook returns — differs from `TResponse` only when `query.select` is used.
+ * @typeParam TData What the hook returns — differs from `TResponse` only when `select` is used.
  * @typeParam TQueryKey The key this resource produces; see `QServerQueryKeyFor`.
- * @typeParam TRequest `GetWithBodyOptions<TResponse>` for the payload-GET endpoints (so `strategy`
- * and `fallback` are reachable), plain `QServerRequestOptions` for the rest.
  */
-export interface QServerQueryHookOptions<
+export type FinchQueryOptions<
     TResponse,
-    TData,
-    TQueryKey extends QueryKey,
-    TRequest extends QServerRequestOptions = QServerRequestOptions,
-> {
-    /**
-     * Per-call transport overrides, forwarded to the client method's last parameter — a different
-     * `baseUrl` or `apiKey`, extra headers, an abort signal, `axiosConfig`.
-     *
-     * `baseUrl` participates in the query key, so two hooks pointed at different servers keep
-     * separate cache entries.
-     */
-    request?: TRequest;
-    /**
-     * Standard TanStack query options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
-     *
-     * `queryKey` and `queryFn` are owned by the hook. That is deliberate rather than defensive:
-     * the invalidation map is only correct while the key is the one `qServerQueryKeys` produced, so
-     * overriding it would silently detach the entry from every mutation that should refresh it.
-     */
-    query?: Omit<
-        UseQueryOptions<TResponse, QServerHookError, TData, TQueryKey>,
-        'queryKey' | 'queryFn'
-    >;
-}
+    TData = TResponse,
+    TQueryKey extends QueryKey = QueryKey,
+> = Omit<UseQueryOptions<TResponse, QServerHookError, TData, TQueryKey>, 'queryKey' | 'queryFn'>;
 
 /**
- * The shape every mutation hook's argument extends.
+ * TanStack mutation options accepted in every mutation hook's last parameter.
  *
- * The request body is **not** here — it travels through `mutate(variables)` / `mutateAsync`, so one
- * hook instance can perform many different writes.
+ * `mutationFn` is owned by the hook. `onSuccess` is *composed*, not replaced: the hook's cache
+ * invalidation runs and is awaited first, so by the time your handler runs the affected queries have
+ * already refetched.
  *
  * @typeParam TResponse The endpoint's response type.
  * @typeParam TVariables What `mutate` accepts. `void` for endpoints that take no body.
- * @typeParam TContext Inferred from `mutation.onMutate`, for optimistic updates.
+ * @typeParam TContext Inferred from `onMutate`, for optimistic updates.
  */
-export interface QServerMutationHookOptions<TResponse, TVariables, TContext = unknown> {
-    /** Per-call transport overrides, forwarded to the client method's last parameter. */
-    request?: QServerRequestOptions;
-    /**
-     * Standard TanStack mutation options.
-     *
-     * `mutationFn` is owned by the hook. `onSuccess` is *composed*: the hook's cache invalidation
-     * runs and is awaited first, then yours — so by the time your handler runs, the affected
-     * queries have already refetched.
-     */
-    mutation?: Omit<
-        UseMutationOptions<TResponse, QServerHookError, TVariables, TContext>,
-        'mutationFn'
-    >;
-}
+export type FinchMutationOptions<TResponse, TVariables = void, TContext = unknown> = Omit<
+    UseMutationOptions<TResponse, QServerHookError, TVariables, TContext>,
+    'mutationFn'
+>;

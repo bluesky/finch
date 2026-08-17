@@ -1,5 +1,5 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
-import type { GetWithBodyOptions, QServerPayload, QServerRequestOptions } from '../types/common';
+import type { QServerRequestOptions } from '../types/common';
 import type {
     GetReMetadataResponse,
     GetRunsBody,
@@ -12,107 +12,103 @@ import { useQServerMutation } from './internal/useQServerMutation';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { QSERVER_MUTATION_INVALIDATIONS } from './invalidation';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type {
-    QServerHookError,
-    QServerMutationHookOptions,
-    QServerQueryHookOptions,
-} from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /** Run Engine hooks: pause/resume/stop/abort/halt, and the run lists. */
 
 // #region control
 
-export type UseQueuePauseREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ReControlResponse,
-    RePauseBody | void,
-    TContext
->;
-
 /**
- * Pause the Run Engine. `{ option: 'immediate' }` pauses now, `'deferred'` at the next checkpoint.
+ * Pause the Run Engine. Only succeeds while a plan is running.
  *
- * Only succeeds while a plan is running.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate({ option: 'immediate' })` pauses now,
+ * `'deferred'` at the next checkpoint; `mutate()` uses the server default.
  */
 export function useQueuePauseREMutation<TContext = unknown>(
-    options: UseQueuePauseREMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ReControlResponse, RePauseBody | void, TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, RePauseBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.pauseRE(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueuePauseREMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueResumeREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ReControlResponse,
-    ReResumeBody | void,
-    TContext
->;
-
-/** Resume a paused plan. */
+/**
+ * Resume a paused plan.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. Takes no body in practice: call `mutate()`.
+ */
 export function useQueueResumeREMutation<TContext = unknown>(
-    options: UseQueueResumeREMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ReControlResponse, ReResumeBody | void, TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.resumeRE(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueResumeREMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
-
-export type UseQueueStopREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ReControlResponse,
-    ReResumeBody | void,
-    TContext
->;
 
 /**
  * Stop a paused plan cleanly: it lands in history as `stopped` and is not requeued.
  *
  * Requires a paused Run Engine, as do abort and halt.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. Takes no body in practice: call `mutate()`.
  */
 export function useQueueStopREMutation<TContext = unknown>(
-    options: UseQueueStopREMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ReControlResponse, ReResumeBody | void, TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.stopRE(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStopREMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueAbortREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ReControlResponse,
-    ReResumeBody | void,
-    TContext
->;
-
-/** Abort a paused plan: recorded as failed, and the item returns to the front of the queue. */
+/**
+ * Abort a paused plan: recorded as failed, and the item returns to the front of the queue.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. Takes no body in practice: call `mutate()`.
+ */
 export function useQueueAbortREMutation<TContext = unknown>(
-    options: UseQueueAbortREMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ReControlResponse, ReResumeBody | void, TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.abortRE(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueAbortREMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueHaltREMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    ReControlResponse,
-    ReResumeBody | void,
-    TContext
->;
-
-/** Halt a paused plan, skipping its cleanup handlers. Differs from abort only in exit status. */
+/**
+ * Halt a paused plan, skipping its cleanup handlers. Differs from abort only in exit status.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. Takes no body in practice: call `mutate()`.
+ */
 export function useQueueHaltREMutation<TContext = unknown>(
-    options: UseQueueHaltREMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<ReControlResponse, ReResumeBody | void, TContext> = {},
 ): UseMutationResult<ReControlResponse, QServerHookError, ReResumeBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.haltRE(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueHaltREMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
@@ -120,113 +116,88 @@ export function useQueueHaltREMutation<TContext = unknown>(
 
 // #region run lists
 
-export interface UseQueueGetRunsQueryOptions<
-    TData = GetRunsResponse,
-> extends QServerQueryHookOptions<
-    GetRunsResponse,
-    TData,
-    QServerQueryKeyFor<'runs'>,
-    QServerRequestOptions
-> {
-    /** `{ option: 'active' | 'open' | 'closed' }`. Part of the query key. */
-    body?: GetRunsBody;
-}
-
 /**
  * The run list selected by `option`.
  *
  * A query even though the endpoint is a POST: it reads state and belongs in the cache.
+ *
+ * @param body `{ option: 'active' | 'open' | 'closed' }`. Part of the query key.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueGetRunsQuery<TData = GetRunsResponse>(
-    options: UseQueueGetRunsQueryOptions<TData> = {},
+    body?: GetRunsBody,
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetRunsResponse, TData, QServerQueryKeyFor<'runs'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { body, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.runs(scope, body),
-        fetch: (client, mergedRequest) => client.getRuns(body, mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getRuns(body, request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export type UseQueueGetRunsActiveQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
-    GetRunsResponse,
-    TData,
-    QServerQueryKeyFor<'runsActive'>,
-    QServerRequestOptions
->;
-
-/** Runs belonging to the currently executing plan. */
+/**
+ * Runs belonging to the currently executing plan.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetRunsActiveQuery<TData = GetRunsResponse>(
-    options: UseQueueGetRunsActiveQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetRunsResponse, TData, QServerQueryKeyFor<'runsActive'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.runsActive(scope),
-        fetch: (client, mergedRequest) => client.getRunsActive(mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getRunsActive(request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export type UseQueueGetRunsOpenQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
-    GetRunsResponse,
-    TData,
-    QServerQueryKeyFor<'runsOpen'>,
-    QServerRequestOptions
->;
-
-/** Runs that have been opened but not yet closed. */
+/**
+ * Runs that have been opened but not yet closed.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetRunsOpenQuery<TData = GetRunsResponse>(
-    options: UseQueueGetRunsOpenQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetRunsResponse, TData, QServerQueryKeyFor<'runsOpen'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.runsOpen(scope),
-        fetch: (client, mergedRequest) => client.getRunsOpen(mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getRunsOpen(request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export type UseQueueGetRunsClosedQueryOptions<TData = GetRunsResponse> = QServerQueryHookOptions<
-    GetRunsResponse,
-    TData,
-    QServerQueryKeyFor<'runsClosed'>,
-    QServerRequestOptions
->;
-
-/** Runs completed by the current plan. */
+/**
+ * Runs completed by the current plan.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetRunsClosedQuery<TData = GetRunsResponse>(
-    options: UseQueueGetRunsClosedQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetRunsResponse, TData, QServerQueryKeyFor<'runsClosed'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.runsClosed(scope),
-        fetch: (client, mergedRequest) => client.getRunsClosed(mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.getRunsClosed(request),
+        requestOptions,
+        queryOptions,
     });
-}
-
-export interface UseQueueGetREMetadataQueryOptions<
-    TData = GetReMetadataResponse,
-> extends QServerQueryHookOptions<
-    GetReMetadataResponse,
-    TData,
-    QServerQueryKeyFor<'reMetadata'>,
-    GetWithBodyOptions<GetReMetadataResponse>
-> {
-    /** Mirrors `client.getREMetadata(payload)`. Part of the query key. */
-    payload?: QServerPayload;
 }
 
 /**
@@ -235,18 +206,25 @@ export interface UseQueueGetREMetadataQueryOptions<
  * Not implemented by every RE Manager build — v0.0.19 answers 400 — so this defaults to
  * `retry: false`. Also outside `QServerClientLike`, so it rejects with
  * `QServerEndpointUnavailableError` against a partial injected client.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueGetREMetadataQuery<TData = GetReMetadataResponse>(
-    options: UseQueueGetREMetadataQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<
+        GetReMetadataResponse,
+        TData,
+        QServerQueryKeyFor<'reMetadata'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.reMetadata(scope, payload),
-        fetch: (client, mergedRequest) => client.getREMetadata(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.reMetadata(scope),
+        fetch: (client, request) => client.getREMetadata(undefined, request),
+        requestOptions,
+        queryOptions,
         defaults: { retry: false },
     });
 }

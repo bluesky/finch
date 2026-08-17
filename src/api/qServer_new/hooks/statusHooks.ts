@@ -1,105 +1,74 @@
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { GetWithBodyOptions, QServerPayload } from '../types/common';
+import type { QServerRequestOptions } from '../types/common';
 import type { GetConfigResponse, GetStatusResponse, PingResponse } from '../types/status';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type { QServerHookError, QServerQueryHookOptions } from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /** Status hooks: `/api/ping`, `/api/`, `/api/status`, `/api/config/get`. */
 
-export interface UseQueuePingQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
-    PingResponse,
-    TData,
-    QServerQueryKeyFor<'ping'>,
-    GetWithBodyOptions<PingResponse>
-> {
-    /** Mirrors `client.ping(payload)`. Part of the query key. */
-    payload?: QServerPayload;
-}
-
-/** Liveness check. Returns the same payload as `useQueueGetStatusQuery`. */
+/**
+ * Liveness check. Returns the same payload as `useQueueGetStatusQuery`.
+ *
+ * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `headers`, `signal`, `axiosConfig`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueuePingQuery<TData = PingResponse>(
-    options: UseQueuePingQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'ping'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.ping(scope, payload),
-        fetch: (client, mergedRequest) => client.ping(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.ping(scope),
+        fetch: (client, request) => client.ping(undefined, request),
+        requestOptions,
+        queryOptions,
     });
 }
 
-export interface UseQueueGetRootQueryOptions<TData = PingResponse> extends QServerQueryHookOptions<
-    PingResponse,
-    TData,
-    QServerQueryKeyFor<'root'>,
-    GetWithBodyOptions<PingResponse>
-> {
-    /** Mirrors `client.getRoot(payload)`. Part of the query key. */
-    payload?: QServerPayload;
-}
-
-/** `GET /api/` — identical payload to `useQueuePingQuery`. */
+/**
+ * `GET /api/` — identical payload to `useQueuePingQuery`.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ */
 export function useQueueGetRootQuery<TData = PingResponse>(
-    options: UseQueueGetRootQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'root'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.root(scope, payload),
-        fetch: (client, mergedRequest) => client.getRoot(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.root(scope),
+        fetch: (client, request) => client.getRoot(undefined, request),
+        requestOptions,
+        queryOptions,
     });
-}
-
-export interface UseQueueGetStatusQueryOptions<
-    TData = GetStatusResponse,
-> extends QServerQueryHookOptions<
-    GetStatusResponse,
-    TData,
-    QServerQueryKeyFor<'status'>,
-    GetWithBodyOptions<GetStatusResponse>
-> {
-    /** Mirrors `client.getStatus(payload)`. Part of the query key. */
-    payload?: QServerPayload;
 }
 
 /**
  * RE Manager status: manager and Run Engine state, queue and history sizes, and the change uids.
  *
- * The usual way to keep a UI live is `query: { refetchInterval: 1000 }`; for push updates instead,
- * see `useQServerStatusSocket`.
+ * The usual way to keep a UI live is `{ refetchInterval: 1000 }` in `queryOptions`; for push updates
+ * instead, see `useQServerStatusSocket`.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueGetStatusQuery<TData = GetStatusResponse>(
-    options: UseQueueGetStatusQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetStatusResponse, TData, QServerQueryKeyFor<'status'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.status(scope, payload),
-        fetch: (client, mergedRequest) => client.getStatus(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.status(scope),
+        fetch: (client, request) => client.getStatus(undefined, request),
+        requestOptions,
+        queryOptions,
     });
-}
-
-export interface UseQueueGetConfigQueryOptions<
-    TData = GetConfigResponse,
-> extends QServerQueryHookOptions<
-    GetConfigResponse,
-    TData,
-    QServerQueryKeyFor<'config'>,
-    GetWithBodyOptions<GetConfigResponse>
-> {
-    /** Mirrors `client.getConfig(payload)`. Part of the query key. */
-    payload?: QServerPayload;
 }
 
 /**
@@ -107,17 +76,20 @@ export interface UseQueueGetConfigQueryOptions<
  *
  * Not part of `QServerClientLike`, so this rejects with `QServerEndpointUnavailableError` when a
  * partial client (such as the simulator's) is injected through `QServerApiProvider`.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueGetConfigQuery<TData = GetConfigResponse>(
-    options: UseQueueGetConfigQueryOptions<TData> = {},
+    requestOptions: QServerRequestOptions = {},
+    queryOptions: FinchQueryOptions<GetConfigResponse, TData, QServerQueryKeyFor<'config'>> = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.config(scope, payload),
-        fetch: (client, mergedRequest) => client.getConfig(payload, mergedRequest),
-        request,
-        query,
+        queryKey: qServerQueryKeys.config(scope),
+        fetch: (client, request) => client.getConfig(undefined, request),
+        requestOptions,
+        queryOptions,
     });
 }

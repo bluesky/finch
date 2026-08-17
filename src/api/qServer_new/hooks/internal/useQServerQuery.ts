@@ -2,7 +2,7 @@ import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-qu
 import type { QServerEndpoints } from '../../types/clientSurface';
 import type { QServerRequestOptions } from '../../types/common';
 import { useQServerClient } from '../useQServerClient';
-import type { QServerHookError, QServerQueryHookOptions } from '../types';
+import type { FinchQueryOptions, QServerHookError } from '../types';
 import { mergeRequestOptions } from './requestOptions';
 
 export interface QServerQueryEngineArgs<
@@ -10,19 +10,20 @@ export interface QServerQueryEngineArgs<
     TData,
     TQueryKey extends QueryKey,
     TRequest extends QServerRequestOptions,
-> extends QServerQueryHookOptions<TResponse, TData, TQueryKey, TRequest> {
+> {
     /** Built from `qServerQueryKeys` by the calling hook, using the resolved scope. */
     queryKey: TQueryKey;
     /** Performs the request. Receives the merged transport options. */
     fetch: (client: QServerEndpoints, request: TRequest) => Promise<TResponse>;
+    /** The hook's `requestOptions` parameter, merged under the resolver's defaults. */
+    requestOptions?: TRequest;
+    /** The hook's `queryOptions` parameter. */
+    queryOptions?: FinchQueryOptions<TResponse, TData, TQueryKey>;
     /**
      * Hook-owned defaults (`retry`, `staleTime`, …). Spread *before* the caller's options, so the
      * caller wins.
      */
-    defaults?: Omit<
-        NonNullable<QServerQueryHookOptions<TResponse, TData, TQueryKey, TRequest>['query']>,
-        'enabled'
-    >;
+    defaults?: Omit<FinchQueryOptions<TResponse, TData, TQueryKey>, 'enabled'>;
     /** Guard for hooks whose argument is required. Applied only when the caller says nothing. */
     defaultEnabled?: boolean;
 }
@@ -41,8 +42,8 @@ export function useQServerQuery<
 >({
     queryKey,
     fetch,
-    request,
-    query,
+    requestOptions,
+    queryOptions,
     defaults,
     defaultEnabled,
 }: QServerQueryEngineArgs<TResponse, TData, TQueryKey, TRequest>): UseQueryResult<
@@ -56,12 +57,12 @@ export function useQServerQuery<
         // TanStack's signal is merged with any caller signal, so unmount and `cancelQueries` cancel
         // the in-flight request.
         queryFn: ({ signal }) =>
-            fetch(client, mergeRequestOptions(requestDefaults, request, signal) as TRequest),
+            fetch(client, mergeRequestOptions(requestDefaults, requestOptions, signal) as TRequest),
         ...defaults,
-        ...query,
+        ...queryOptions,
         // After the spread on purpose: an options object carrying `enabled: undefined` (trivially
         // produced by spreading props) must fall through to the guard, not clobber it — the bug the
         // legacy `useQueueItemQuery` had.
-        enabled: query?.enabled ?? defaultEnabled ?? true,
+        enabled: queryOptions?.enabled ?? defaultEnabled ?? true,
     });
 }

@@ -5,17 +5,13 @@ import type {
     ManagerStopBody,
     TestServerSleepBody,
 } from '../types/admin';
-import type { GetWithBodyOptions } from '../types/common';
+import type { GetWithBodyOptions, QServerRequestOptions } from '../types/common';
 import { useQServerMutation } from './internal/useQServerMutation';
 import { useQServerQuery } from './internal/useQServerQuery';
 import { QSERVER_MUTATION_INVALIDATIONS } from './invalidation';
 import { qServerQueryKeys, type QServerQueryKeyFor } from './queryKeys';
-import type {
-    QServerHookError,
-    QServerMutationHookOptions,
-    QServerQueryHookOptions,
-} from './types';
-import { useQServerClient } from './useQServerClient';
+import type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
+import { useQServerQueryScope } from './useQServerClient';
 
 /**
  * Administrative hooks.
@@ -24,72 +20,62 @@ import { useQServerClient } from './useQServerClient';
  * `QServerEndpointUnavailableError` against a partial injected client.
  */
 
-export type UseQueueInterruptKernelMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    AdminResponse,
-    KernelInterruptBody | void,
-    TContext
->;
-
-/** Send a KeyboardInterrupt to the IPython kernel: `{ interrupt_task, interrupt_plan }`. */
+/**
+ * Send a KeyboardInterrupt to the IPython kernel.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate()` or
+ * `mutate({ interrupt_task, interrupt_plan })`.
+ */
 export function useQueueInterruptKernelMutation<TContext = unknown>(
-    options: UseQueueInterruptKernelMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<AdminResponse, KernelInterruptBody | void, TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, KernelInterruptBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.interruptKernel(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueInterruptKernelMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
-
-export type UseQueueStopManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    AdminResponse,
-    ManagerStopBody | void,
-    TContext
->;
 
 /**
  * Shut RE Manager down.
  *
- * `{ option: 'safe_on' }` (the default) refuses while the queue is running; `'safe_off'` does not.
  * Every subsequent request will fail until the manager is restarted out of band.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. `mutate({ option: 'safe_on' })` (the default) refuses
+ * while the queue is running; `'safe_off'` does not.
  */
 export function useQueueStopManagerMutation<TContext = unknown>(
-    options: UseQueueStopManagerMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<AdminResponse, ManagerStopBody | void, TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, ManagerStopBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.stopManager(body ?? undefined, request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueStopManagerMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
 }
 
-export type UseQueueTestKillManagerMutationOptions<TContext = unknown> = QServerMutationHookOptions<
-    AdminResponse,
-    void,
-    TContext
->;
-
-/** Kill RE Manager to exercise recovery. A test endpoint — do not ship UI that calls it. */
+/**
+ * Kill RE Manager to exercise recovery. A test endpoint — do not ship UI that calls it.
+ *
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ */
 export function useQueueTestKillManagerMutation<TContext = unknown>(
-    options: UseQueueTestKillManagerMutationOptions<TContext> = {},
+    requestOptions: QServerRequestOptions = {},
+    mutationOptions: FinchMutationOptions<AdminResponse, void, TContext> = {},
 ): UseMutationResult<AdminResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.testKillManager(request),
         invalidates: QSERVER_MUTATION_INVALIDATIONS.useQueueTestKillManagerMutation,
-        ...options,
+        requestOptions,
+        mutationOptions,
     });
-}
-
-export interface UseQueueTestServerSleepQueryOptions<
-    TData = AdminResponse,
-> extends QServerQueryHookOptions<
-    AdminResponse,
-    TData,
-    QServerQueryKeyFor<'testServerSleep'>,
-    GetWithBodyOptions<AdminResponse>
-> {
-    /** `{ time }` in seconds. Part of the query key. */
-    payload?: TestServerSleepBody;
 }
 
 /**
@@ -97,18 +83,27 @@ export interface UseQueueTestServerSleepQueryOptions<
  *
  * Defaults to `retry: false` and `staleTime: Infinity`, since retrying or refetching a deliberate
  * delay is never what you want.
+ *
+ * @param payload `{ time }` in seconds. Part of the query key.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useQueueTestServerSleepQuery<TData = AdminResponse>(
-    options: UseQueueTestServerSleepQueryOptions<TData> = {},
+    payload?: TestServerSleepBody,
+    requestOptions: GetWithBodyOptions<AdminResponse> = {},
+    queryOptions: FinchQueryOptions<
+        AdminResponse,
+        TData,
+        QServerQueryKeyFor<'testServerSleep'>
+    > = {},
 ): UseQueryResult<TData, QServerHookError> {
-    const { scope } = useQServerClient();
-    const { payload, request, query } = options;
+    const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.testServerSleep(scope, payload),
-        fetch: (client, mergedRequest) => client.testServerSleep(payload, mergedRequest),
-        request,
-        query,
+        fetch: (client, request) => client.testServerSleep(payload, request),
+        requestOptions,
+        queryOptions,
         defaults: { retry: false, staleTime: Number.POSITIVE_INFINITY },
     });
 }

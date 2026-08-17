@@ -126,8 +126,8 @@ describe('qserver hooks against the simulator', () => {
 
         const { result } = renderHook(
             () => ({
-                addressed: useQueueGetItemQuery({ body: { uid: 'fixture-item-2' } }),
-                unaddressed: useQueueGetItemQuery(),
+                addressed: useQueueGetItemQuery({ uid: 'fixture-item-2' }),
+                unaddressed: useQueueGetItemQuery(undefined),
             }),
             { wrapper },
         );

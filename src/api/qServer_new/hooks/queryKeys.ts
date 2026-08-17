@@ -1,5 +1,4 @@
 import type { ConsoleOutputBody, ConsoleOutputUpdateBody } from '../types/console';
-import type { QServerPayload } from '../types/common';
 import type { PlansDevicesBody } from '../types/plansDevices';
 import type { GetQueueItemBody } from '../types/queue';
 import type { GetRunsBody } from '../types/runEngine';
@@ -107,22 +106,16 @@ export const QSERVER_QUERY_ROOT_NAMES = Object.keys(qServerQueryRoots) as QServe
  */
 export const qServerQueryKeys = {
     // status
-    ping: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.ping, payload ?? null, scope] as const,
-    root: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.root, payload ?? null, scope] as const,
-    status: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.status, payload ?? null, scope] as const,
-    config: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.config, payload ?? null, scope] as const,
+    ping: (scope: QServerQueryScope) => [...qServerQueryRoots.ping, null, scope] as const,
+    root: (scope: QServerQueryScope) => [...qServerQueryRoots.root, null, scope] as const,
+    status: (scope: QServerQueryScope) => [...qServerQueryRoots.status, null, scope] as const,
+    config: (scope: QServerQueryScope) => [...qServerQueryRoots.config, null, scope] as const,
 
     // queue & history
-    queue: (scope: QServerQueryScope, payload?: Record<string, unknown>) =>
-        [...qServerQueryRoots.queue, payload ?? null, scope] as const,
+    queue: (scope: QServerQueryScope) => [...qServerQueryRoots.queue, null, scope] as const,
     queueItem: (scope: QServerQueryScope, body?: GetQueueItemBody) =>
         [...qServerQueryRoots.queueItem, body ?? null, scope] as const,
-    history: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.history, payload ?? null, scope] as const,
+    history: (scope: QServerQueryScope) => [...qServerQueryRoots.history, null, scope] as const,
 
     // run engine
     runs: (scope: QServerQueryScope, body?: GetRunsBody) =>
@@ -132,8 +125,8 @@ export const qServerQueryKeys = {
     runsOpen: (scope: QServerQueryScope) => [...qServerQueryRoots.runsOpen, null, scope] as const,
     runsClosed: (scope: QServerQueryScope) =>
         [...qServerQueryRoots.runsClosed, null, scope] as const,
-    reMetadata: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.reMetadata, payload ?? null, scope] as const,
+    reMetadata: (scope: QServerQueryScope) =>
+        [...qServerQueryRoots.reMetadata, null, scope] as const,
 
     // catalogs
     plansAllowed: (scope: QServerQueryScope, payload?: PlansDevicesBody) =>
@@ -156,8 +149,7 @@ export const qServerQueryKeys = {
         [...qServerQueryRoots.taskResult, body ?? null, scope] as const,
 
     // lock
-    lockInfo: (scope: QServerQueryScope, payload?: QServerPayload) =>
-        [...qServerQueryRoots.lockInfo, payload ?? null, scope] as const,
+    lockInfo: (scope: QServerQueryScope) => [...qServerQueryRoots.lockInfo, null, scope] as const,
 
     // console
     consoleOutput: (scope: QServerQueryScope, payload?: ConsoleOutputBody) =>

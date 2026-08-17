@@ -173,22 +173,24 @@ describe('query keys', () => {
         renderHook(
             () => {
                 hooks.useQueueGetQuery();
-                hooks.useQueueGetQuery({ request: { baseUrl: 'http://other:60610' } });
-                hooks.useQueueGetQuery({ request: { baseUrl: 'http://other:60610' } });
+                hooks.useQueueGetQuery({ baseUrl: 'http://other:60610' });
+                hooks.useQueueGetQuery({ baseUrl: 'http://other:60610' });
             },
             { wrapper },
         );
 
         await waitFor(() =>
-            expect(queryClient.getQueryCache().getAll().length).toBeGreaterThanOrEqual(1),
+            expect(queryClient.getQueryCache().getAll().length).toBeGreaterThanOrEqual(2),
         );
-        // The scope comes from the resolver, so a per-request baseUrl does not fork the key —
-        // it forks the request. Documented behaviour; assert it rather than assume.
-        const keys = queryClient
+        // A per-request baseUrl overrides the resolver's scope, so the two servers keep separate
+        // entries — and the two hooks aimed at the same one share a single entry.
+        const scopes = queryClient
             .getQueryCache()
             .getAll()
-            .map((entry) => entry.queryKey);
-        expect(keys).toHaveLength(1);
+            .map((entry) => entry.queryKey[3]);
+        expect(scopes).toHaveLength(2);
+        expect(scopes).toContainEqual({ baseUrl: BASE_URL });
+        expect(scopes).toContainEqual({ baseUrl: 'http://other:60610' });
     });
 });
 
@@ -228,10 +230,9 @@ describe('Finch config', () => {
         const { recorded } = recordingDefaultClient(200, { msg: 'RE Manager' });
         const { wrapper } = makeWrapper();
 
-        const { result } = renderHook(
-            () => hooks.useQueueGetStatusQuery({ request: { apiKey: null } }),
-            { wrapper },
-        );
+        const { result } = renderHook(() => hooks.useQueueGetStatusQuery({ apiKey: null }), {
+            wrapper,
+        });
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         expect(recorded.configs[0].headers.Authorization).toBeUndefined();
@@ -246,8 +247,8 @@ describe('enabled guards', () => {
 
         const { result } = renderHook(
             () => ({
-                idle: hooks.useQueueGetItemQuery(),
-                fetching: hooks.useQueueGetItemQuery({ body: { uid: 'abc' } }),
+                idle: hooks.useQueueGetItemQuery(undefined),
+                fetching: hooks.useQueueGetItemQuery({ uid: 'abc' }),
             }),
             { wrapper },
         );
@@ -264,7 +265,7 @@ describe('enabled guards', () => {
         const { recorded } = recordingDefaultClient(200, { success: true, msg: '', item: {} });
         const { wrapper } = makeWrapper();
 
-        renderHook(() => hooks.useQueueGetItemQuery({ query: { enabled: undefined } }), {
+        renderHook(() => hooks.useQueueGetItemQuery(undefined, {}, { enabled: undefined }), {
             wrapper,
         });
 
@@ -276,10 +277,9 @@ describe('enabled guards', () => {
         const { recorded } = recordingDefaultClient(200, { success: true, msg: '', item: {} });
         const { wrapper } = makeWrapper();
 
-        renderHook(
-            () => hooks.useQueueGetItemQuery({ body: { uid: 'abc' }, query: { enabled: false } }),
-            { wrapper },
-        );
+        renderHook(() => hooks.useQueueGetItemQuery({ uid: 'abc' }, {}, { enabled: false }), {
+            wrapper,
+        });
 
         await new Promise((resolve) => setTimeout(resolve, 20));
         expect(recorded.configs).toHaveLength(0);
@@ -381,7 +381,7 @@ describe('cancellation', () => {
 
         const controller = new AbortController();
         const { wrapper } = makeWrapper();
-        renderHook(() => hooks.useQueueGetStatusQuery({ request: { signal: controller.signal } }), {
+        renderHook(() => hooks.useQueueGetStatusQuery({ signal: controller.signal }), {
             wrapper,
         });
 
