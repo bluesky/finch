@@ -1,4 +1,4 @@
-# Queue Server API client (`qServer_new`)
+# Queue Server API client (`qServer`)
 
 A complete client for [bluesky-httpserver](https://github.com/bluesky/bluesky-httpserver):
 all **70 operations** from `openapi.json`, the three websockets, and utilities for swapping
@@ -9,13 +9,14 @@ Modelled on the Tiled API client in
 a `QServerApiClient` class plus a module-level default instance with a flat free-function
 facade.
 
-> This folder is the replacement for `src/api/qServer`, which stays in place and untouched
-> until manual testing is finished. Nothing here imports from it.
+> This replaced the hand-rolled client and hooks now parked in `src/api/qServer_archive`. That folder is
+> kept for reference only — nothing imports it. Every Finch component reads the queue server through
+> this layer; see the bottom of `SKILLS.md` for the old-to-new hook map.
 
 ## Quickstart
 
 ```ts
-import { getStatus, setGlobalApiKey, setGlobalBaseUrl } from '@/api/qServer_new';
+import { getStatus, setGlobalApiKey, setGlobalBaseUrl } from '@/api/qServer';
 
 setGlobalBaseUrl('http://localhost:60610'); // origin — NOT .../api
 setGlobalApiKey('test');
@@ -38,12 +39,12 @@ client.setBaseUrl('http://host:60610/api'); // stored as 'http://host:60610'
 
 ```ts
 // 1. the app-wide client
-import { getQueue, setGlobalApiKey } from '@/api/qServer_new';
+import { getQueue, setGlobalApiKey } from '@/api/qServer';
 setGlobalApiKey('another-key'); // affects the very next request; no rebuild
 await getQueue();
 
 // 2. your own instance
-import { createQServerApiClient, setDefaultQServerClient } from '@/api/qServer_new';
+import { createQServerApiClient, setDefaultQServerClient } from '@/api/qServer';
 const client = createQServerApiClient({
     baseUrl: 'http://localhost:60610',
     apiKey: 'test',
@@ -85,7 +86,7 @@ effect immediately without rebuilding anything.
 ### Interceptors
 
 ```ts
-import { addRequestInterceptor, clearInterceptors, ejectInterceptor } from '@/api/qServer_new';
+import { addRequestInterceptor, clearInterceptors, ejectInterceptor } from '@/api/qServer';
 
 const handle = addRequestInterceptor((config) => {
     console.log(config.method, config.url);
@@ -222,11 +223,7 @@ endpoints: `useQServerClient`, `useQServerInvalidate`, `useQServerSocket`,
 `useQServerStatusSocket`, `useQServerConsoleSocket`, `useQServerInfoSocket`.
 
 ```tsx
-import {
-    useQueueGetQuery,
-    useQueueGetStatusQuery,
-    useQueueAddItemMutation,
-} from '@/api/qServer_new';
+import { useQueueGetQuery, useQueueGetStatusQuery, useQueueAddItemMutation } from '@/api/qServer';
 
 function QueueWidget() {
     const status = useQueueGetStatusQuery(undefined, {}, { refetchInterval: 1000 });
@@ -346,7 +343,7 @@ and — for FastAPI's 422 — `isValidationError` plus parsed `validationErrors`
 `QServerGetBodyUnsupportedError` is thrown for the browser payload-GET cases above.
 
 ```ts
-import { isQServerApiError } from '@/api/qServer_new';
+import { isQServerApiError } from '@/api/qServer';
 
 try {
     await startQueue();
@@ -371,7 +368,7 @@ It is wired into `src/app/pages/TestPage.tsx`.
 
 ## Differences from `src/api/qServer`
 
-|                   | `qServer`                                 | `qServer_new`                                                                      |
+|                   | `qServer`                                 | `qServer`                                                                          |
 | ----------------- | ----------------------------------------- | ---------------------------------------------------------------------------------- |
 | Coverage          | 16 functions / 15 paths                   | 70 operations / 68 paths                                                           |
 | Base URL          | `.../api`                                 | origin                                                                             |

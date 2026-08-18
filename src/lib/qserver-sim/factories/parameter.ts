@@ -1,4 +1,4 @@
-import type { Parameter } from '@/api/qServer_new/types/plansDevices';
+import type { Parameter } from '@/api/qServer/types/plansDevices';
 
 /**
  * Python parameter kinds as the queue server reports them, so callers write

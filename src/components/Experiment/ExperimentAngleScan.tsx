@@ -7,7 +7,7 @@ import TiledWriterDetImageHeatmap from '../Tiled/TiledWriterDetImageHeatmap';
 import ExperimentHistory from './ExperimentHistory';
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from '@phosphor-icons/react';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { PostItemAddResponse } from '@/api/qServer';
 import { cn } from '@/lib/utils';
 
 type ExperimentAngleScanProps = {

@@ -1,4 +1,4 @@
-import type { Parameter, Plan } from '@/api/qServer_new/types/plansDevices';
+import type { Parameter, Plan } from '@/api/qServer/types/plansDevices';
 
 export interface PlanOptions {
     name: string;

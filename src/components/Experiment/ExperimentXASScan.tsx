@@ -3,13 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
-import { useQueueQuery, useExecuteQueueItemMutation } from '@/api/qServer/hooks';
+import { useQueueGetQuery, useQueueExecuteItemMutation } from '@/api/qServer';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import ExperimentHistory from './ExperimentHistory';
 
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { PostItemAddResponse } from '@/api/qServer';
 import { cn } from '@/lib/utils';
 import { useTiledSearchQuery } from '@/api/tiled';
 
@@ -55,8 +55,8 @@ export default function ExperimentXASScan({
     const [blueskyRunId, setBlueskyRunId] = useState<string>('');
     const [autoMode, setAutoMode] = useState(false);
 
-    const queueQuery = useQueueQuery({ refetchInterval: 1000 });
-    const executeMutation = useExecuteQueueItemMutation();
+    const queueQuery = useQueueGetQuery({}, { refetchInterval: 1000 });
+    const executeMutation = useQueueExecuteItemMutation();
     const isQueueBusy = queueQuery.data?.running_item
         ? Object.keys(queueQuery.data.running_item).length > 0
         : false;

@@ -5,7 +5,7 @@
  *
  * ```ts
  * // 1. free functions against the app-wide client
- * import { getStatus, setGlobalApiKey, setGlobalBaseUrl } from '@/api/qServer_new';
+ * import { getStatus, setGlobalApiKey, setGlobalBaseUrl } from '@/api/qServer';
  * setGlobalBaseUrl('http://localhost:60610'); // origin, not .../api
  * setGlobalApiKey('test');
  * const status = await getStatus();

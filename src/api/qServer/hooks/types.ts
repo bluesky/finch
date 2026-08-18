@@ -25,7 +25,7 @@ export type QServerHookError = Error;
 
 /**
  * The TanStack option shapes are shared with the other Finch backends — see
- * `@/api/shared/queryOptions`. They are re-exported here so that `@/api/qServer_new` stays the only
+ * `@/api/shared/queryOptions`. They are re-exported here so that `@/api/qServer` stays the only
  * import path a queue-server consumer needs.
  *
  * `queryKey`, `queryFn` and `mutationFn` are omitted from them because the hook owns those: the

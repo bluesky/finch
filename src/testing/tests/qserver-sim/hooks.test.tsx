@@ -9,9 +9,9 @@ import {
     useQueueGetItemQuery,
     useQueueGetQuery,
     useQueueStartMutation,
-} from '../../../api/qServer_new/hooks/queueHooks';
-import { useQueueGetHistoryQuery } from '../../../api/qServer_new/hooks/historyHooks';
-import { useQueueGetStatusQuery } from '../../../api/qServer_new/hooks/statusHooks';
+} from '../../../api/qServer/hooks/queueHooks';
+import { useQueueGetHistoryQuery } from '../../../api/qServer/hooks/historyHooks';
+import { useQueueGetStatusQuery } from '../../../api/qServer/hooks/statusHooks';
 import { createQServerSimClient } from '../../../lib/qserver-sim/client/QServerSimClient';
 import type { QServerSim } from '../../../lib/qserver-sim/core/QServerSim';
 import { defaultQServer } from '../../../lib/qserver-sim/scenarios/defaultQServer';

@@ -1,4 +1,4 @@
-import type { QServerEndpoints } from '@/api/qServer_new/types/clientSurface';
+import type { QServerEndpoints } from '@/api/qServer/types/clientSurface';
 
 /**
  * The queue-server operations Finch's UI actually calls.

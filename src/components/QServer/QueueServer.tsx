@@ -11,12 +11,12 @@ import QSRunEngineWorker from './QSRunEngineWorker';
 
 import { tailwindIcons } from 'src/assets/icons';
 
-import { useStatusQuery, useOpenEnvironmentMutation } from '@/api/qServer/hooks';
+import { useQueueGetStatusQuery, useQueueOpenEnvironmentMutation } from '@/api/qServer';
 
 import { useQueueServer } from './hooks/useQueueServer';
 
 import { CopiedPlan, PopupItem } from './types/types';
-import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer/types';
+import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer';
 
 import { cn } from '@/lib/utils';
 
@@ -100,8 +100,8 @@ export default function QueueServer({ className }: QueueServerProps) {
         setCopiedPlan(sanitizedPlan);
     };
 
-    const { data: initialStatus } = useStatusQuery();
-    const openEnvironmentMutation = useOpenEnvironmentMutation();
+    const { data: initialStatus } = useQueueGetStatusQuery();
+    const openEnvironmentMutation = useQueueOpenEnvironmentMutation();
     const hasCheckedEnvironment = useRef(false);
 
     useEffect(() => {

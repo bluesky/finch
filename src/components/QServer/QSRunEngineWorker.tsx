@@ -1,8 +1,8 @@
 import ToggleSlider from './ToggleSlider';
 import QItem from './QItem';
 
-import { useStartREMutation } from '@/api/qServer/hooks';
-import { RunningQueueItem } from '@/api/qServer/types';
+import { useQueueStartMutation } from '@/api/qServer';
+import { RunningQueueItem } from '@/api/qServer';
 
 type QSRunEngineWorkerProps = {
     isREToggleOn?: boolean;
@@ -21,7 +21,7 @@ export default function QSRunEngineWorker({
     //TO DO : the toggle switch needs to listen to the GET requests for the queue status
     //TO DO: if toggle is in up position, when cliked a popup says "Pause the RE?" If that's clicked then do a POST to /api/re/pause
     //TO DO: if toggle is in down position AND the /api/status shows {"manager_state": "paused"} then clicking toggle sends POST to /api/re/resume
-    const startREMutation = useStartREMutation();
+    const startREMutation = useQueueStartMutation();
 
     const toggleSwitch = () => {
         if (isREToggleOn) {

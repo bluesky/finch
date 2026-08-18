@@ -1,7 +1,7 @@
-import type { GetConsoleOutputUpdateResponse } from '@/api/qServer_new/types/console';
-import type { ClearHistoryResponse, HistoryItem, Result } from '@/api/qServer_new/types/history';
-import type { GetLockInfoResponse, LockBody, LockResponse } from '@/api/qServer_new/types/lock';
-import type { Device, Plan } from '@/api/qServer_new/types/plansDevices';
+import type { GetConsoleOutputUpdateResponse } from '@/api/qServer/types/console';
+import type { ClearHistoryResponse, HistoryItem, Result } from '@/api/qServer/types/history';
+import type { GetLockInfoResponse, LockBody, LockResponse } from '@/api/qServer/types/lock';
+import type { Device, Plan } from '@/api/qServer/types/plansDevices';
 import type {
     AddQueueItemBatchBody,
     AddQueueItemBody,
@@ -17,12 +17,12 @@ import type {
     QueueStartResponse,
     RemoveQueueItemBatchBody,
     UpdateQueueItemBody,
-} from '@/api/qServer_new/types/queue';
-import type { GetRunsResponse, RunListOption } from '@/api/qServer_new/types/runEngine';
-import type { GetStatusResponse, PlanQueueMode } from '@/api/qServer_new/types/status';
-import type { QServerSuccessResponse } from '@/api/qServer_new/types/common';
-import type { EnvironmentResponse } from '@/api/qServer_new/types/environment';
-import type { ReControlResponse } from '@/api/qServer_new/types/runEngine';
+} from '@/api/qServer/types/queue';
+import type { GetRunsResponse, RunListOption } from '@/api/qServer/types/runEngine';
+import type { GetStatusResponse, PlanQueueMode } from '@/api/qServer/types/status';
+import type { QServerSuccessResponse } from '@/api/qServer/types/common';
+import type { EnvironmentResponse } from '@/api/qServer/types/environment';
+import type { ReControlResponse } from '@/api/qServer/types/runEngine';
 import { handleRequest } from '../client/handleRequest';
 import { defaultDevices } from '../fixtures/defaultDevices';
 import { defaultPlans } from '../fixtures/defaultPlans';

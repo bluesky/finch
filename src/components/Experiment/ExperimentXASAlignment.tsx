@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
-import { useQueueQuery } from '@/api/qServer/hooks';
+import { useQueueGetQuery } from '@/api/qServer';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import ExperimentHistory from './ExperimentHistory';
 import { useTiledSearchQuery } from '@/api/tiled';
 
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { PostItemAddResponse } from '@/api/qServer';
 import { cn } from '@/lib/utils';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 
@@ -62,7 +62,7 @@ export default function ExperimentXASAlignment({
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
 
     // Keep the queue query around so the Execute button can detect a busy queue.
-    useQueueQuery({ refetchInterval: 1000 });
+    useQueueGetQuery({}, { refetchInterval: 1000 });
 
     useEffect(() => {
         localStorage.setItem('xas_alignment_user', user);

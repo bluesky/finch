@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import spec from '../../api/qServer_new/openapi.json';
-import { QSERVER_ENDPOINTS, getReadOnlyEndpoints } from '../../api/qServer_new/endpointRegistry';
-import { QServerApiClient } from '../../api/qServer_new/client/QServerApiClient';
+import spec from '../../api/qServer/openapi.json';
+import { QSERVER_ENDPOINTS, getReadOnlyEndpoints } from '../../api/qServer/endpointRegistry';
+import { QServerApiClient } from '../../api/qServer/client/QServerApiClient';
 import {
     BODY_REQUIRED_GET_ENDPOINT_IDS,
     NO_BROWSER_PATH_ENDPOINT_IDS,
     PAYLOAD_GET_ENDPOINT_IDS,
-} from '../../api/qServer_new/client/getBodySupport';
-import { QSERVER_PATHS } from '../../api/qServer_new/types/paths';
-import * as facade from '../../api/qServer_new/client/facade';
+} from '../../api/qServer/client/getBodySupport';
+import { QSERVER_PATHS } from '../../api/qServer/types/paths';
+import * as facade from '../../api/qServer/client/facade';
 
 type SpecPaths = Record<string, Record<string, { requestBody?: unknown }>>;
 const paths = spec.paths as unknown as SpecPaths;
@@ -29,7 +29,7 @@ function specOperations(): string[] {
  * and gains, loses or reshapes an operation, this file fails rather than the client quietly
  * lacking a method.
  */
-describe('qServer_new endpoint registry', () => {
+describe('qServer endpoint registry', () => {
     it('covers every operation in openapi.json, and no others', () => {
         const registryOperations = QSERVER_ENDPOINTS.map(
             (endpoint) => `${endpoint.method} ${endpoint.path}`,

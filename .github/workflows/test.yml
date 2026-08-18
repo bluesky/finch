@@ -80,6 +80,7 @@ jobs:
           npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
           npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
+          npm run test:run -- src/testing/tests/QSConsoleFormatting.test.tsx
           npm run test:run -- src/testing/tests/QueueServer.test.tsx
           npm run test:run -- src/testing/tests/SelectDropdown.test.tsx
           npm run test:run -- src/testing/tests/Shutter.test.tsx
@@ -92,10 +93,10 @@ jobs:
           npm run test:run -- src/testing/tests/Widget.test.tsx
           npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
           echo "Running queue server client test suites..."
-          npm run test:run -- src/testing/tests/QServerNewRegistry.test.tsx
-          npm run test:run -- src/testing/tests/QServerNewClient.test.tsx
-          npm run test:run -- src/testing/tests/QServerNewSockets.test.tsx
-          npm run test:run -- src/testing/tests/QServerNewHooks.test.tsx
+          npm run test:run -- src/testing/tests/QServerRegistry.test.tsx
+          npm run test:run -- src/testing/tests/QServerClient.test.tsx
+          npm run test:run -- src/testing/tests/QServerSockets.test.tsx
+          npm run test:run -- src/testing/tests/QServerHooks.test.tsx
           echo "Running tiled query hook test suite..."
           npm run test:run -- src/testing/tests/TiledHooks.test.tsx
           echo "Running qserver sim test suites..."
@@ -108,6 +109,7 @@ jobs:
           npm run test:run -- src/testing/tests/qserver-sim/sockets.test.ts
           npm run test:run -- src/testing/tests/qserver-sim/QServerSimDemo.test.tsx
           npm run test:run -- src/testing/tests/qserver-sim/hooks.test.tsx
+          npm run test:run -- src/testing/tests/qserver-sim/QSConsole.test.tsx
           echo "Running ophyd sim test suites..."
           npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts

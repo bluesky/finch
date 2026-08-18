@@ -1,7 +1,7 @@
 /**
  * Runtime wiring for the queue-server API: the client-agnostic provider boundary.
  *
- * Kept separate from `@/api/qServer_new` (which is the real HTTP implementation) and from
+ * Kept separate from `@/api/qServer` (which is the real HTTP implementation) and from
  * `@/lib/qserver-sim` (which is a simulator), so neither has to know about the other.
  */
 

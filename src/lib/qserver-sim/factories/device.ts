@@ -1,4 +1,4 @@
-import type { Component, Device } from '@/api/qServer_new/types/plansDevices';
+import type { Component, Device } from '@/api/qServer/types/plansDevices';
 
 /** Shorthand for the usual readable/movable/flyable combinations. */
 export type DeviceKind = 'detector' | 'motor' | 'signal' | 'flyer';

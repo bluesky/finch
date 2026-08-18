@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQServerApiClient } from '@/api/qServerRuntime';
 import QServerConsoleOutput from './QServerConsoleOutput';
-import type { GetStatusResponse } from '@/api/qServer_new/types/status';
-import type { HistoryItem } from '@/api/qServer_new/types/history';
-import type { Plan } from '@/api/qServer_new/types/plansDevices';
-import type { QueueItem, RunningQueueItem } from '@/api/qServer_new/types/queue';
+import type { GetStatusResponse } from '@/api/qServer/types/status';
+import type { HistoryItem } from '@/api/qServer/types/history';
+import type { Plan } from '@/api/qServer/types/plansDevices';
+import type { QueueItem, RunningQueueItem } from '@/api/qServer/types/queue';
 
 export interface QServerSimDemoProps {
     /** Poll interval in ms. Set to 0 to refresh only on demand. */

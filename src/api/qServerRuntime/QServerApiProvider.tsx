@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, type ReactNode } from 'react';
-import type { WebSocketLike } from '@/api/qServer_new/sockets/types';
+import type { WebSocketLike } from '@/api/qServer/sockets/types';
 import type { QServerClientLike } from './clientLike';
 
 const QServerApiContext = createContext<QServerClientLike | null>(null);
@@ -41,7 +41,7 @@ export interface QServerApiProviderProps {
  * context values are the client and factory themselves, so no memoization is needed here —
  * stability is the caller's contract, as documented on the props.
  *
- * The TanStack Query hooks in `@/api/qServer_new/hooks` read the client from here (see
+ * The TanStack Query hooks in `@/api/qServer/hooks` read the client from here (see
  * `hooks/useQServerClient.ts`) rather than constructing their own.
  */
 export function QServerApiProvider({ client, socketFactory, children }: QServerApiProviderProps) {

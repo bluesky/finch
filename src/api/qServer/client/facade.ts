@@ -89,7 +89,7 @@ import type {
  * needs to talk to the queue server and does not care which client instance it uses:
  *
  * ```ts
- * import { getStatus, setGlobalApiKey } from '@/api/qServer_new';
+ * import { getStatus, setGlobalApiKey } from '@/api/qServer';
  *
  * setGlobalApiKey('my-key');
  * const status = await getStatus();

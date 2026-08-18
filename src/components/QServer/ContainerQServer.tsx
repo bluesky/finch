@@ -11,12 +11,12 @@ import QSRunEngineWorker from './QSRunEngineWorker';
 
 import { tailwindIcons } from 'src/assets/icons';
 
-import { useOpenEnvironmentMutation } from '@/api/qServer/hooks';
+import { useQueueOpenEnvironmentMutation } from '@/api/qServer';
 
 import { useQueueServer } from './hooks/useQueueServer';
 
 import { CopiedPlan, PopupItem } from './types/types';
-import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer/types';
+import { ArbitraryKwargs, RunningQueueItem } from '@/api/qServer';
 
 import { cn } from '@/lib/utils';
 
@@ -46,7 +46,7 @@ export default function ContainerQServer({ className }: ContainerQServerProps) {
         apiStatus,
     } = useQueueServer();
 
-    const openEnvironmentMutation = useOpenEnvironmentMutation();
+    const openEnvironmentMutation = useQueueOpenEnvironmentMutation();
 
     const handleCurrentQItemClick = (item: PopupItem) => {
         setPopupItem(item);

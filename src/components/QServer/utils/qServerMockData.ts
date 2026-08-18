@@ -4,13 +4,13 @@ import {
     GetDevicesAllowedResponse,
     GetHistoryResponse,
     GetStatusResponse,
-    PostEnvironmentOpenResponse,
+    EnvironmentResponse,
     PostItemExecuteResponse,
     PostItemRemoveResponse,
     GetRunsActiveResponse,
     GetQueueResponse,
     QueueItem,
-} from '@/api/qServer/types';
+} from '@/api/qServer';
 
 export const mockGetApiStatusResponse: GetStatusResponse = {
     msg: 'RE Manager v0.0.21',
@@ -4754,7 +4754,7 @@ export const mockGetStatusResponse: GetStatusResponse = {
     },
 };
 
-export const mockEnvironmentOpenResponse: PostEnvironmentOpenResponse = {
+export const mockEnvironmentOpenResponse: EnvironmentResponse = {
     success: true,
     msg: '',
 };

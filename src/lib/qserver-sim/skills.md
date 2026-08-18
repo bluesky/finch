@@ -24,8 +24,8 @@ Rules that keep it coherent:
   "call the client" behave identically.
 - **One dispatcher, two seams.** If a payload differs between `QServerSimClient` and
   `QServerSimAdapter`, something has bypassed `handleRequest`.
-- **Dependency direction is one-way:** `qserver-sim` → `api/qServer_new`. Never the reverse.
-  Wire shapes are imported from `@/api/qServer_new/types/*`, never redeclared.
+- **Dependency direction is one-way:** `qserver-sim` → `api/qServer`. Never the reverse.
+  Wire shapes are imported from `@/api/qServer/types/*`, never redeclared.
 - **`QServerClientLike` lives in `@/api/qServerRuntime`**, not here — it is production code that
   the real client also satisfies, and the provider must not import from a sim package.
 
@@ -94,7 +94,7 @@ registry, so a half-finished addition cannot pass CI.
   than joins. `getConsoleText(nlines)` counts _rendered lines_, not messages — the item dictionary
   logged at plan start is one message spanning several lines.
 - **Console wording is copied from real traffic** captured in
-  `src/api/qServer_new/references/console_output_ws.txt`. Lines carry an
+  `src/api/qServer/references/console_output_ws.txt`. Lines carry an
   `[I <timestamp> <logger>]` prefix (suppressible with `consolePrefix: false`), and bluesky's own
   output — scan ids, stream names, the `generator …` summary — is emitted `bare`, with no prefix.
   Consumers that match on text must strip the bracket block first, which is what `QSConsole` does

@@ -1,11 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import dayjs from 'dayjs';
+import { EraserIcon } from '@phosphor-icons/react';
+import { useQServerConsoleSocket } from '@/api/qServer';
+import type { QServerConsoleFrame } from '@/api/qServer';
+import { useQServerSocketFactory } from '@/api/qServerRuntime';
 import { WidgetStyleProps } from './Widget';
-import { useOphydApiUrls } from 'src/utils/apiUtils';
 import './styles/qserver.css';
 
-import dayjs from 'dayjs';
-
 //import ToggleSlider from '../library/ToggleSlider'; //to do  - see if this can be refactored to include the functionality for turning off if connection fails
+
 type ConsoleMessage = {
     mainText: string;
     bracketText: string;
@@ -16,185 +19,95 @@ type ConsoleMessage = {
 type QSConsoleProps = WidgetStyleProps & {
     processConsoleMessage: (message: string) => void;
 };
+
+/**
+ * Live queue-server console output.
+ *
+ * The socket comes from `useQServerConsoleSocket` — `/api/queue_server/console_output/ws` on the queue
+ * server itself, with its URL and API key resolved from `FinchConfigProvider`. It used to be a
+ * hand-managed `WebSocket` pointed at the **ophyd** API's `qs-console-socket` relay, which meant this
+ * panel needed a separate service running to show queue-server output.
+ *
+ * The hook owns the connection lifecycle (handshake, reconnect with backoff, teardown on unmount) and
+ * keeps a bounded buffer, so this component only formats frames and renders them.
+ */
 export default function QSConsole({ processConsoleMessage = () => {} }: QSConsoleProps) {
-    const [wsMessages, setWsMessages] = useState<ConsoleMessage[]>([]); //text for the websocket output
-    const [isOpened, setIsOpened] = useState(false); //boolean representing status of WS connection
+    // The panel starts listening on mount, as it always has.
+    const [isToggleOn, setIsToggleOn] = useState(true);
     const [statusMessage, setStatusMessage] = useState<string>('');
-    const [isToggleOn, setIsToggleOn] = useState(false); //toggle UI switch for turning output on and off
-    const connection = useRef<WebSocket | null>(null); //queue server WS via FastAPI
-    const { getWsUrl } = useOphydApiUrls();
-    const wsUrl = getWsUrl('qs-console-socket'); //this comes from the ophyd api, not the queue server.
+
+    // Present only when a `QServerApiProvider` supplies one — that is how qserver-sim drives this
+    // panel in Storybook and tests. In the normal app tree it is undefined and a real socket opens.
+    const socketFactory = useQServerSocketFactory();
+
+    const { lines, frameCount, connectionStatus, error, clear } = useQServerConsoleSocket({
+        enabled: isToggleOn,
+        socketFactory,
+    });
+
+    const isOpened = connectionStatus === 'open';
     const messageContainerRef = useRef<HTMLDivElement | null>(null);
-    const hasErrorOccuredRef = useRef(false);
-    const didUserTurnOffWS = useRef(false);
 
     const toggleSwitch = () => {
-        if (isToggleOn) {
-            handleCloseWS();
-        } else {
-            handleOpenWS();
-        }
-        setIsToggleOn(!isToggleOn);
-    };
-
-    const handleWebSocketMessage = (event: MessageEvent) => {
-        //console.log('received message from ws');
-        //this function receives the websocket message and displays it to the client
-        const eventData = JSON.parse(event.data) as Record<string, string>;
-        //console.log({eventData});
-        if ('msg' in eventData) {
-            //update the console with the messages, add new message to existing
-            setWsMessages((messages) => {
-                //console.log({messages});
-                if (eventData.msg === '\n') return messages;
-
-                let id = 0;
-                if (messages.length > 0) id = messages.length;
-                let timeStamp;
-                if ('time' in eventData) {
-                    timeStamp = dayjs.unix(parseFloat(eventData.time)).format('hh:mm:ss::SSS a');
-                } else {
-                    timeStamp = dayjs().format('hh:mm:ss::SSS a');
-                }
-
-                //process the message, sometimes it contains "[ date and service ] ...." at the
-                //start of the message which becomes difficult to read
-                let bracketText = '';
-                let mainText = '';
-                if (eventData.msg.startsWith('[')) {
-                    const closingBracketIndex = eventData.msg.indexOf(']');
-                    bracketText = eventData.msg.slice(0, closingBracketIndex + 1);
-                    mainText = eventData.msg.slice(closingBracketIndex + 1);
-                } else {
-                    if (eventData.msg !== '\n') {
-                        mainText = eventData.msg;
-                    }
-                }
-                //console.log({bracketText});
-                //console.log({mainText});
-                processConsoleMessage(mainText.trim()); //check keywords, update other React state if matches found
-                const newMessage = {
-                    mainText: mainText,
-                    bracketText: bracketText,
-                    time: timeStamp,
-                    id: id,
-                };
-
-                return [...messages, newMessage];
-            });
+        const next = !isToggleOn;
+        setIsToggleOn(next);
+        if (!next) {
+            setStatusMessage('Manually disconnected from websocket at ' + timestamp());
         }
     };
 
-    const closeWebSocket = (connection: React.MutableRefObject<WebSocket | null>) => {
-        if (connection.current !== null) {
-            try {
-                console.log('Attempting to close existing connection');
-                connection.current.close();
-                console.log('Existing websocket connection closed');
-                setStatusMessage('Closed connection ' + dayjs().format('HH:MM A'));
-            } catch (error) {
-                console.log(
-                    'Unable to properly close existing websocket connection, still setting connection.current=null',
-                );
-                console.log({ error });
-                setStatusMessage(
-                    'Encountered error on closing websocket, forcefully removed connection at ' +
-                        dayjs().format('HH:MM A'),
-                );
-            }
-            connection.current = null;
-        } else {
-            console.log('connection.current is null, removing websocket skipped');
-        }
-    };
-
-    const initializeConnection = (
-        wsUrl: string,
-        connection: React.MutableRefObject<WebSocket | null>,
-        _isOpened: boolean,
-    ) => {
-        //Ensure wsUrl is not empty
-        if (wsUrl === '') {
-            return;
-        }
-
-        closeWebSocket(connection);
-
-        const socket = new WebSocket(wsUrl);
-
-        setStatusMessage('Attempting WS Connection');
-
-        socket.addEventListener('error', (error) => {
-            alert(
-                'Unable to establish connection to WS, check that the WS server is running and that the path/port are correct',
-            );
-            setStatusMessage(
-                'Last connection attempt to websocket failed at ' + dayjs().format('HH:MM A'),
-            );
-            setIsToggleOn(false);
-            console.log({ error });
-            hasErrorOccuredRef.current = true;
+    /**
+     * Frames formatted for display, oldest first.
+     *
+     * `id` is the message's position in the whole session rather than in the buffer, so the numbers
+     * keep climbing once the buffer starts dropping its oldest entries.
+     */
+    const messages = useMemo<ConsoleMessage[]>(() => {
+        const firstId = frameCount - lines.length;
+        return lines.flatMap((frame, index) => {
+            const message = formatConsoleFrame(frame, firstId + index);
+            return message ? [message] : [];
         });
+    }, [lines, frameCount]);
 
-        //if websocket opens, add event listener for messages
-        socket.addEventListener('open', (_event) => {
-            setIsOpened(true);
-            console.log('Opened connection in socket to: ' + wsUrl);
-            setStatusMessage('Opened connection ' + dayjs().format('hh:mm A'));
-            socket.addEventListener('message', handleWebSocketMessage);
-            connection.current = socket;
-        });
+    // Report each new line to the parent exactly once. The keyword watcher upstream refetches the
+    // queue and history when it sees certain phrases, so a duplicate here means a duplicate request —
+    // which is why this counts what it has already reported instead of reacting to every render.
+    const reportedCountRef = useRef(0);
+    useEffect(() => {
+        if (messages.length < reportedCountRef.current) {
+            // The buffer was cleared, so start over.
+            reportedCountRef.current = 0;
+        }
+        for (const message of messages.slice(reportedCountRef.current)) {
+            processConsoleMessage(message.mainText.trim());
+        }
+        reportedCountRef.current = messages.length;
+        // `processConsoleMessage` is intentionally not a dependency: callers pass an inline arrow, so
+        // depending on it would re-report the whole buffer on every parent render.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [messages]);
 
-        //if websocket closes, attempt to reconnect & display a message
-        socket.addEventListener('close', (_event) => {
-            console.log('ws connection to fastapi server closed');
-            setIsToggleOn(false);
-            if (hasErrorOccuredRef.current === true) {
-                //Either the fastAPI server stopped running, or the initial connection attempt failed
-                //reset the ref
-                hasErrorOccuredRef.current = false;
-                setStatusMessage(
-                    'Error occured during connection attempt at  ' + dayjs().format('hh:MM A'),
-                );
-            } else {
-                //no error has occured, so the connection closed from user input or due to computer sleeping
-                if (didUserTurnOffWS.current === false) {
-                    //computer fell asleep
-                    //attempt to reconnect WS
-                    handleOpenWS();
-                    setIsToggleOn(true);
-                } else {
-                    setStatusMessage(
-                        'Manually disconnected from websocket at ' + dayjs().format('hh:MM A'),
-                    );
-                    //user turned off ws
-                    //reset the ref
-                    didUserTurnOffWS.current = false;
-                }
-            }
-        });
-    };
+    // Surface the connection state where the old implementation used alert() and a pile of refs.
+    useEffect(() => {
+        if (!isToggleOn) return;
+        if (connectionStatus === 'connecting' || connectionStatus === 'authenticating') {
+            setStatusMessage('Attempting WS Connection');
+        } else if (connectionStatus === 'open') {
+            setStatusMessage('Opened connection ' + timestamp());
+        }
+    }, [connectionStatus, isToggleOn]);
 
-    const handleOpenWS = () => {
-        initializeConnection(wsUrl, connection, isOpened);
-    };
-
-    const handleCloseWS = () => {
-        didUserTurnOffWS.current = true;
-        closeWebSocket(connection);
-        setIsOpened(false);
-    };
+    useEffect(() => {
+        if (!error) return;
+        setStatusMessage(`Websocket ${error.kind} error at ${timestamp()}: ${error.message}`);
+    }, [error]);
 
     useEffect(() => {
         if (messageContainerRef.current) {
             messageContainerRef.current.scrollTop = messageContainerRef.current.scrollHeight;
         }
-    }, [wsMessages]);
-
-    useEffect(() => {
-        toggleSwitch();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [messages]);
 
     return (
         <main className="h-full bg-white rounded-b-lg relative">
@@ -217,6 +130,17 @@ export default function QSConsole({ processConsoleMessage = () => {} }: QSConsol
                     <p className={`${isToggleOn ? 'text-green-600' : 'text-gray-400'}`}>ON</p>
                 </div>
                 <p className="text-slate-500">{statusMessage}</p>
+                {messages.length > 0 && (
+                    <button
+                        onClick={clear}
+                        title="Clear console output"
+                        aria-label="Clear console output"
+                        className="text-slate-400 hover:text-slate-600 flex items-center gap-1"
+                    >
+                        clear console
+                        <EraserIcon size={18} />
+                    </button>
+                )}
             </div>
             {/* Main Body */}
             <div className="h-full w-full rounded-b-lg absolute top-0 pt-8">
@@ -234,12 +158,24 @@ export default function QSConsole({ processConsoleMessage = () => {} }: QSConsol
                         </p>
                     )}
                     <ul className="flex flex-col">
-                        {wsMessages.map((msg) => {
+                        {messages.map((msg) => {
                             return (
                                 <li key={msg.id} className="w-full flex text-slate-600">
-                                    <p className="w-1/12 text-center text-slate-500"> {msg.id} </p>
-                                    <p className="w-9/12">{msg.mainText}</p>
-                                    <p className="w-1/6 text-sky-600 text-center">{msg.time}</p>
+                                    <p className="w-1/12 shrink-0 text-center text-slate-500">
+                                        {' '}
+                                        {msg.id}{' '}
+                                    </p>
+                                    {/* Monospaced with whitespace preserved: the Run Engine prints
+                                        LiveTable output as ASCII art, so collapsing runs of spaces (or
+                                        rendering them in a proportional font) turns its columns into
+                                        gibberish. `pre-wrap` rather than `pre` so a line wider than the
+                                        panel wraps instead of sliding under the timestamp column. */}
+                                    <p className="w-9/12 min-w-0 whitespace-pre-wrap break-words font-mono">
+                                        {msg.mainText}
+                                    </p>
+                                    <p className="w-1/6 shrink-0 text-sky-600 text-center">
+                                        {msg.time}
+                                    </p>
                                 </li>
                             );
                         })}
@@ -248,4 +184,44 @@ export default function QSConsole({ processConsoleMessage = () => {} }: QSConsol
             </div>
         </main>
     );
+}
+
+function timestamp() {
+    return dayjs().format('hh:mm A');
+}
+
+/**
+ * Turn one console frame into a display row, or `null` for a bare newline.
+ *
+ * RE Manager prefixes most of its own narration with a
+ * `[I 2026-08-18 12:00:00,000 bluesky_queueserver.…]` block, which is noise once you are reading a
+ * column of them — so it is split off and only `mainText` is rendered and matched against. Anything
+ * the plan itself prints (`LiveTable`, `print()`) arrives with no prefix at all.
+ */
+function formatConsoleFrame(frame: QServerConsoleFrame, id: number): ConsoleMessage | null {
+    // Each message carries its own trailing newline — which is why the socket hook joins its buffer
+    // with '' rather than '\n'. That newline has to come off before rendering, or every row would
+    // occupy two lines now that whitespace is preserved.
+    const text = frame.msg.replace(/\r?\n$/, '');
+    if (text.length === 0) return null;
+
+    const time =
+        typeof frame.time === 'number'
+            ? dayjs.unix(frame.time).format('hh:mm:ss::SSS a')
+            : dayjs().format('hh:mm:ss::SSS a');
+
+    if (text.startsWith('[')) {
+        const closingBracketIndex = text.indexOf(']');
+        return {
+            bracketText: text.slice(0, closingBracketIndex + 1),
+            // Exactly one space separates `]` from the message. Dropping it — and only it — puts
+            // prefixed lines in the same column as the Run Engine's unprefixed table output, which
+            // matters now that whitespace is rendered rather than collapsed.
+            mainText: text.slice(closingBracketIndex + 1).replace(/^ /, ''),
+            time,
+            id,
+        };
+    }
+
+    return { bracketText: '', mainText: text, time, id };
 }

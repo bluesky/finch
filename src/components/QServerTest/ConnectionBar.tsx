@@ -4,7 +4,7 @@ import type {
     ApiKeyScheme,
     GetBodyStrategy,
     QServerApiClient,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import { formatError } from './testQserverUtils';
 
 export interface ConnectionBarProps {

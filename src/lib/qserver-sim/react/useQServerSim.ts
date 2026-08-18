@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { GetStatusResponse } from '@/api/qServer_new/types/status';
+import type { GetStatusResponse } from '@/api/qServer/types/status';
 import type { QServerSimState } from '../core/types';
 import { useQServerSim } from './QServerSimContext';
 

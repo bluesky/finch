@@ -1,6 +1,6 @@
-import { QSERVER_PATHS } from '@/api/qServer_new/types/paths';
-import { QServerApiError } from '@/api/qServer_new/types/errors';
-import type { QServerHttpMethod } from '@/api/qServer_new/types/errors';
+import { QSERVER_PATHS } from '@/api/qServer/types/paths';
+import { QServerApiError } from '@/api/qServer/types/errors';
+import type { QServerHttpMethod } from '@/api/qServer/types/errors';
 import type { QServerClientLike } from '@/api/qServerRuntime/clientLike';
 import type { QServerSim } from '../core/QServerSim';
 import { handleRequest } from './handleRequest';

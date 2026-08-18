@@ -6,7 +6,7 @@ import {
     useQueueGetQuery,
     useQueueGetStatusQuery,
     useQueueStartMutation,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import { QServerSimProvider, createQServerSimClient, defaultQServer } from '@/lib/qserver-sim';
 
 /**

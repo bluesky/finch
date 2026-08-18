@@ -1,11 +1,11 @@
 import { useState, Fragment } from 'react';
 import {
-    useStatusQuery,
-    useRemoveQueueItemMutation,
-    usePauseREMutation,
-    useResumeREMutation,
-    useAbortREMutation,
-} from '@/api/qServer/hooks';
+    useQueueGetStatusQuery,
+    useQueueRemoveItemMutation,
+    useQueuePauseREMutation,
+    useQueueResumeREMutation,
+    useQueueAbortREMutation,
+} from '@/api/qServer';
 import QItemPopupRow from './QItemPopupRow';
 import { PopupItem, HistoryResultRow } from './types/types';
 import DeleteResultPopup from './DeleteResultPopup';
@@ -24,7 +24,7 @@ import {
     PlayPause,
     Trash,
 } from '@phosphor-icons/react';
-import { ArbitraryKwargs, PostItemRemoveResponse } from '@/api/qServer/types';
+import { ArbitraryKwargs, PostItemRemoveResponse } from '@/api/qServer';
 
 import dayjs from 'dayjs';
 
@@ -47,11 +47,11 @@ export default function QItemPopup({
     const [response, setResponse] = useState<PostItemRemoveResponse | null>(null);
     const [isTracebackCopied, setIsTracebackCopied] = useState(false);
 
-    const { data: statusData, error: statusError } = useStatusQuery();
-    const removeQueueItemMutation = useRemoveQueueItemMutation();
-    const pauseREMutation = usePauseREMutation();
-    const resumeREMutation = useResumeREMutation();
-    const abortREMutation = useAbortREMutation();
+    const { data: statusData, error: statusError } = useQueueGetStatusQuery();
+    const removeQueueItemMutation = useQueueRemoveItemMutation();
+    const pauseREMutation = useQueuePauseREMutation();
+    const resumeREMutation = useQueueResumeREMutation();
+    const abortREMutation = useQueueAbortREMutation();
 
     //check if item is in the current queue or the history
     const isHistory = 'result' in popupItem;

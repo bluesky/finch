@@ -1,4 +1,4 @@
-# SKILLS — working in `src/api/qServer_new`
+# SKILLS — working in `src/api/qServer`
 
 Terse map for anyone (human or agent) changing this folder. Prose docs are in `README.md`.
 
@@ -126,7 +126,6 @@ step 4 fails CI, as does an invalidation entry naming a hook or bundle that does
   application-level ping/pong.
 - **`re/metadata` answers 400** on RE Manager v0.0.19; the method is correct, the server is
   older than the route.
-- **Do not touch `src/api/qServer` or `src/components/QServer`** until the swap phase.
 - **Hooks put `enabled` after the caller's spread**, with `??`. Before it (as the legacy hook did) a
   caller spreading an options object containing `enabled: undefined` clobbers the guard and fetches
   with a missing argument.
@@ -137,3 +136,35 @@ step 4 fails CI, as does an invalidation entry naming a hook or bundle that does
   inherits the client's. Implemented with the internal `__qsNoAuth` flag on the axios config.
 - Type-only imports of `QServerApiClient` inside `types/registry.ts` keep the
   registry ↔ client cycle erased at runtime; keep them `import type`.
+
+## The retired layer (`src/api/qServer_archive`)
+
+Kept for reference; nothing imports it. The 15 old hooks map onto the new ones like this — note that
+TanStack options move one slot right, because the new queries take `(arg?, requestOptions?,
+queryOptions?)` positionally and the old ones took query options first.
+
+| retired hook                    | replacement                                               |
+| ------------------------------- | --------------------------------------------------------- |
+| `useQueueQuery(qo)`             | `useQueueGetQuery({}, qo)`                                |
+| `useQueueHistoryQuery(qo)`      | `useQueueGetHistoryQuery({}, qo)`                         |
+| `useStatusQuery(qo)`            | `useQueueGetStatusQuery({}, qo)`                          |
+| `usePlansAllowedQuery(qo)`      | `useQueueGetPlansAllowedQuery(undefined, {}, qo)`         |
+| `useDevicesAllowedQuery(qo)`    | `useQueueGetDevicesAllowedQuery(undefined, {}, qo)`       |
+| `useQueueItemQuery(uid, qo)`    | `useQueueGetItemQuery(uid ? { uid } : undefined, {}, qo)` |
+| `useRunsActiveQuery(qo)`        | `useQueueGetRunsActiveQuery({}, qo)`                      |
+| `useAddQueueItemMutation()`     | `useQueueAddItemMutation()`                               |
+| `useExecuteQueueItemMutation()` | `useQueueExecuteItemMutation()`                           |
+| `useRemoveQueueItemMutation()`  | `useQueueRemoveItemMutation()`                            |
+| `useOpenEnvironmentMutation()`  | `useQueueOpenEnvironmentMutation()`                       |
+| `useStartREMutation()`          | `useQueueStartMutation()` — it posted `/queue/start`      |
+| `usePauseREMutation()`          | `useQueuePauseREMutation()`                               |
+| `useResumeREMutation()`         | `useQueueResumeREMutation()`                              |
+| `useAbortREMutation()`          | `useQueueAbortREMutation()`                               |
+
+Retired types: `PostEnvironmentOpenResponse` -> `EnvironmentResponse`, `PostREResponse` ->
+`ReControlResponse`. Everything else kept its name.
+
+One type was quietly wrong and is now honest: the retired `types.ts` declared
+`PostItemRemoveResponse` **twice**, and declaration merging gave it `item: QueueItem`. A rejected
+removal actually answers with a bare item and no `item_uid`, so the type here is
+`QueueItem | FailedQueueItem` and call sites have to narrow — see `DeleteResultPopup.tsx`.

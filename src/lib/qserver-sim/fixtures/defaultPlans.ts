@@ -1,4 +1,4 @@
-import type { Plan } from '@/api/qServer_new/types/plansDevices';
+import type { Plan } from '@/api/qServer/types/plansDevices';
 import { plan } from '../factories/plan';
 import { deviceAnnotation, deviceListAnnotation, parameter } from '../factories/parameter';
 

@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { describe, expect, it } from 'vitest';
-import { QServerApiClient } from '../../../api/qServer_new/client/QServerApiClient';
-import { QServerApiError } from '../../../api/qServer_new/types/errors';
-import { QSERVER_ENDPOINTS } from '../../../api/qServer_new/endpointRegistry';
+import { QServerApiClient } from '../../../api/qServer/client/QServerApiClient';
+import { QServerApiError } from '../../../api/qServer/types/errors';
+import { QSERVER_ENDPOINTS } from '../../../api/qServer/endpointRegistry';
 import {
     QSERVER_CLIENT_LIKE_METHODS,
     type QServerClientLike,

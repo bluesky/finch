@@ -1,7 +1,7 @@
 import { useState, Fragment } from 'react';
 import { tailwindIcons } from '../../assets/icons';
 import Button from '../Button';
-import { PostItemAddResponse, QueueItem } from '@/api/qServer/types';
+import { PostItemAddResponse, QueueItem } from '@/api/qServer';
 
 type SubmissionResultPopupProps = {
     cb: (success: boolean) => void;

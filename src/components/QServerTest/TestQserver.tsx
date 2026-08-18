@@ -6,7 +6,7 @@ import {
     QSERVER_ENDPOINTS,
     type QServerApiClient,
     type QServerEndpointGroup,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import { useQueueServerApiUrls } from '@/utils/apiUtils';
 import ConnectionBar from './ConnectionBar';
 import EndpointGroupAccordion from './EndpointGroupAccordion';
@@ -28,7 +28,7 @@ export interface TestQserverProps {
 }
 
 /**
- * Manual test harness for the `qServer_new` client.
+ * Manual test harness for the `qServer` client.
  *
  * Every row is rendered from `QSERVER_ENDPOINTS`, so the harness covers all 70 operations by
  * construction and gains new ones automatically. Alongside the endpoints it exercises the

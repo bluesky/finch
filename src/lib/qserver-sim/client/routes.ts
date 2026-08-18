@@ -1,5 +1,5 @@
-import { QSERVER_PATHS } from '@/api/qServer_new/types/paths';
-import type { RunListOption } from '@/api/qServer_new/types/runEngine';
+import { QSERVER_PATHS } from '@/api/qServer/types/paths';
+import type { RunListOption } from '@/api/qServer/types/runEngine';
 import type { QServerSim } from '../core/QServerSim';
 import { deriveStatus } from '../core/status';
 

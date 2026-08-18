@@ -1,9 +1,9 @@
 # Queue Server Query Hooks
 
-Every queue-server endpoint has a TanStack Query hook in `@/api/qServer_new` — **70 in total:**
+Every queue-server endpoint has a TanStack Query hook in `@/api/qServer` — **70 in total:**
 29 queries and 41 mutations. This page lists all of them with the exact call shape.
 
-These are the hooks over the **new** client (`src/api/qServer_new`). The older, narrower set is
+These are the hooks over the **new** client (`src/api/qServer`). The older, narrower set is
 documented on the [Queue Server API Hooks](?path=/docs/documentation-queue-server-api-hooks--docs)
 page and still backs the shipped QServer components.
 

@@ -1,11 +1,11 @@
-import type { QueueItem, RunningQueueItem } from '@/api/qServer_new/types/queue';
+import type { QueueItem, RunningQueueItem } from '@/api/qServer/types/queue';
 
 /**
  * The console output the simulator emits.
  *
  * Wording, logger names and the `[I <timestamp> <logger>]` prefix are copied from real
  * `/api/console_output/ws` traffic — see
- * [`references/console_output_ws.txt`](../../../api/qServer_new/references/console_output_ws.txt).
+ * [`references/console_output_ws.txt`](../../../api/qServer/references/console_output_ws.txt).
  * Matching the real thing matters for two reasons: a console viewer built against the sim looks
  * like one built against a server, and `src/components/QServer/QSConsole.tsx` keys off literal
  * substrings of these messages to decide when to refetch the queue and history.

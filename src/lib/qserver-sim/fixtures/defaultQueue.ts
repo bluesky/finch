@@ -1,4 +1,4 @@
-import type { QueueItem } from '@/api/qServer_new/types/queue';
+import type { QueueItem } from '@/api/qServer/types/queue';
 import { queueItem } from '../factories/queueItem';
 
 /**

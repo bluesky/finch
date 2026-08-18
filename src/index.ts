@@ -295,18 +295,19 @@ export {
 } from './api/ophyd/socketPaths';
 
 // QSERVER API
-export { createQServerApiClient } from './api/qServer/client';
-export type { QServerApiConfig } from './api/qServer/client';
-
-export * as QServerRequests from './api/qServer/requests';
+export { QServerApiClient, createQServerApiClient } from './api/qServer';
+export type { QServerClientConfig, QServerRequestOptions } from './api/qServer';
 
 /**
- * Query hooks over the new queue-server client (`src/api/qServer_new`).
+ * The 70 free functions over the app-wide default client, plus its configuration setters.
  *
- * Namespaced for now because seven hook names below still come from the legacy `api/qServer/hooks`
- * — flatten these to named exports in the commit that removes that folder.
+ * Namespaced because several names (`getStatus`, `getQueue`, …) are far too generic to sit in a
+ * library's top-level namespace. Inside a component prefer the hooks below.
  */
-export * as QServerHooks from './api/qServer_new/hooks';
+export * as QServerRequests from './api/qServer/client/facade';
+
+/** Everything in the queue-server layer, also available as a namespace. */
+export * as QServerAPI from './api/qServer';
 
 /**
  * Everything in the Tiled layer, also available as a namespace.
@@ -317,23 +318,13 @@ export * as QServerHooks from './api/qServer_new/hooks';
  */
 export * as TiledAPI from './api/tiled';
 
-export {
-    useQueueQuery,
-    useQueueHistoryQuery,
-    useStatusQuery,
-    usePlansAllowedQuery,
-    useDevicesAllowedQuery,
-    useQueueItemQuery,
-    useRunsActiveQuery,
-    useAddQueueItemMutation,
-    useExecuteQueueItemMutation,
-    useRemoveQueueItemMutation,
-    useOpenEnvironmentMutation,
-    useStartREMutation,
-    usePauseREMutation,
-    useResumeREMutation,
-    useAbortREMutation,
-} from './api/qServer/hooks';
+// QSERVER HOOKS — one per endpoint, 29 queries and 41 mutations; see src/api/qServer/hooks.
+// The retired set lives in src/api/qServer_archive. Renames: useQueueQuery -> useQueueGetQuery,
+// useStatusQuery -> useQueueGetStatusQuery, useQueueHistoryQuery -> useQueueGetHistoryQuery,
+// usePlansAllowedQuery -> useQueueGetPlansAllowedQuery, useAddQueueItemMutation ->
+// useQueueAddItemMutation, useStartREMutation -> useQueueStartMutation, and so on. Note the queries
+// take (arg?, requestOptions?, queryOptions?) positionally, so TanStack options move one slot right.
+export * from './api/qServer/hooks';
 
 export type {
     GetStatusResponse,
@@ -346,8 +337,9 @@ export type {
     PostItemAddResponse,
     PostItemExecuteResponse,
     PostItemRemoveResponse,
-    PostEnvironmentOpenResponse,
-    PostREResponse,
+    // The retired PostEnvironmentOpenResponse and PostREResponse are these two.
+    EnvironmentResponse,
+    ReControlResponse,
     BaseQueueItem,
     QueueItem,
     FailedQueueItem,

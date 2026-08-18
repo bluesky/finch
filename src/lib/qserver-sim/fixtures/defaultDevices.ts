@@ -1,4 +1,4 @@
-import type { Component, Device } from '@/api/qServer_new/types/plansDevices';
+import type { Component, Device } from '@/api/qServer/types/plansDevices';
 import { component, device } from '../factories/device';
 
 /**

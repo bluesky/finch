@@ -1,17 +1,17 @@
 import type { QServerSim } from './QServerSim';
-import type { ConsoleOutputMessage } from '@/api/qServer_new/types/console';
-import type { HistoryItem } from '@/api/qServer_new/types/history';
-import type { LockInfo } from '@/api/qServer_new/types/lock';
-import type { Device, Plan } from '@/api/qServer_new/types/plansDevices';
-import type { PlanQueueMode } from '@/api/qServer_new/types/status';
-import type { QueueItem, RunningQueueItem } from '@/api/qServer_new/types/queue';
-import type { RunsActiveListItem } from '@/api/qServer_new/types/runEngine';
-import type { TaskState } from '@/api/qServer_new/types/tasks';
+import type { ConsoleOutputMessage } from '@/api/qServer/types/console';
+import type { HistoryItem } from '@/api/qServer/types/history';
+import type { LockInfo } from '@/api/qServer/types/lock';
+import type { Device, Plan } from '@/api/qServer/types/plansDevices';
+import type { PlanQueueMode } from '@/api/qServer/types/status';
+import type { QueueItem, RunningQueueItem } from '@/api/qServer/types/queue';
+import type { RunsActiveListItem } from '@/api/qServer/types/runEngine';
+import type { TaskState } from '@/api/qServer/types/tasks';
 
 /**
  * Types for the queue-server simulator.
  *
- * Every wire shape is imported from `@/api/qServer_new/types/*` — the sim produces the real
+ * Every wire shape is imported from `@/api/qServer/types/*` — the sim produces the real
  * response types and never redeclares them. Only sim-internal bookkeeping is defined here.
  */
 

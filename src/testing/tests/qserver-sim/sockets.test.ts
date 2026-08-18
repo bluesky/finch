@@ -3,12 +3,12 @@ import {
     createQServerConsoleSocket,
     createQServerInfoSocket,
     createQServerStatusSocket,
-} from '../../../api/qServer_new/sockets/channelSockets';
+} from '../../../api/qServer/sockets/channelSockets';
 import type {
     QServerConsoleFrame,
     QServerStatusFrame,
-} from '../../../api/qServer_new/sockets/messageTypes';
-import type { QServerSocketError } from '../../../api/qServer_new/sockets/types';
+} from '../../../api/qServer/sockets/messageTypes';
+import type { QServerSocketError } from '../../../api/qServer/sockets/types';
 import { SIM_CONSOLE } from '../../../lib/qserver-sim/core/consoleMessages';
 import { createQServerSimSocketFactory } from '../../../lib/qserver-sim/sockets/createQServerSimSocketFactory';
 import { defaultQServer } from '../../../lib/qserver-sim/scenarios/defaultQServer';

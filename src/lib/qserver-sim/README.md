@@ -183,7 +183,7 @@ against the simulator with its interceptors, auth handling and error normalizati
 
 ```ts
 import axios from 'axios';
-import { QServerApiClient } from '@/api/qServer_new';
+import { QServerApiClient } from '@/api/qServer';
 import { createQServerSimAdapter, defaultQServer } from '@/lib/qserver-sim';
 
 const sim = defaultQServer();

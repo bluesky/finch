@@ -4,7 +4,7 @@ import {
     type QServerApiClient,
     type QServerEndpointDescriptor,
     type QServerEndpointInvocation,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import { formatError } from './testQserverUtils';
 
 export interface EndpointRunState {

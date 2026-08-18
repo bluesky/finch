@@ -9,15 +9,15 @@ derived from `../openapi.json` (which was fetched from a running queue server at
 1. Refresh the spec if the server version changed:
 
     ```sh
-    curl -s http://localhost:60610/openapi.json | python3 -m json.tool > src/api/qServer_new/openapi.json
+    curl -s http://localhost:60610/openapi.json | python3 -m json.tool > src/api/qServer/openapi.json
     ```
 
 2. Regenerate and format (the format step keeps `npm run format` green):
 
     ```sh
-    npx openapi-typescript@^7 src/api/qServer_new/openapi.json \
-        -o src/api/qServer_new/generated/schema.d.ts
-    npx prettier --write src/api/qServer_new/generated/schema.d.ts
+    npx openapi-typescript@^7 src/api/qServer/openapi.json \
+        -o src/api/qServer/generated/schema.d.ts
+    npx prettier --write src/api/qServer/generated/schema.d.ts
     ```
 
 3. Run `npm run test:run -- src/testing/tests/QServerNewRegistry.test.tsx`.

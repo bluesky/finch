@@ -1,5 +1,5 @@
-import { QSERVER_SOCKET_PATHS } from '@/api/qServer_new/sockets/socketPaths';
-import type { QServerSocketChannel, WebSocketLike } from '@/api/qServer_new/sockets/types';
+import { QSERVER_SOCKET_PATHS } from '@/api/qServer/sockets/socketPaths';
+import type { QServerSocketChannel, WebSocketLike } from '@/api/qServer/sockets/types';
 import { deriveStatus } from '../core/status';
 import type { QServerSim } from '../core/QServerSim';
 import type { Unsubscribe } from '../core/types';
@@ -30,7 +30,7 @@ const CLOSE_UNSUPPORTED = 1008;
  * Build fake websockets served from the simulator.
  *
  * Drops straight into the real socket code: `createQServerSocket` and the channel hooks already
- * accept a `socketFactory`, so nothing in `src/api/qServer_new` changes.
+ * accept a `socketFactory`, so nothing in `src/api/qServer` changes.
  *
  * ```ts
  * const sim = defaultQServer();

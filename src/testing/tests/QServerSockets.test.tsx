@@ -3,18 +3,18 @@ import {
     createQServerConsoleSocket,
     createQServerInfoSocket,
     createQServerStatusSocket,
-} from '../../api/qServer_new/sockets/channelSockets';
-import { createQServerSocket } from '../../api/qServer_new/sockets/createQServerSocket';
+} from '../../api/qServer/sockets/channelSockets';
+import { createQServerSocket } from '../../api/qServer/sockets/createQServerSocket';
 import {
     QSERVER_WS_AUTH_TIMEOUT_MS,
     QSERVER_WS_CLOSE_AUTH_REQUIRED,
     QSERVER_WS_CLOSE_INVALID_TOKEN,
-} from '../../api/qServer_new/sockets/socketPaths';
+} from '../../api/qServer/sockets/socketPaths';
 import type {
     QServerSocketError,
     QServerSocketStatus,
     WebSocketLike,
-} from '../../api/qServer_new/sockets/types';
+} from '../../api/qServer/sockets/types';
 
 const BASE_URL = 'http://qserver.test:60610';
 

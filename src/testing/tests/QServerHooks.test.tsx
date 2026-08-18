@@ -6,19 +6,19 @@ import type { ReactNode } from 'react';
 import { FinchConfigProvider } from '../../app/FinchConfigProvider';
 import { QServerApiProvider } from '../../api/qServerRuntime/QServerApiProvider';
 import { QSERVER_CLIENT_LIKE_METHODS } from '../../api/qServerRuntime/clientLike';
-import { QServerApiClient } from '../../api/qServer_new/client/QServerApiClient';
+import { QServerApiClient } from '../../api/qServer/client/QServerApiClient';
 import {
     resetDefaultQServerClient,
     setDefaultQServerClient,
-} from '../../api/qServer_new/client/defaultClient';
-import { QSERVER_ENDPOINTS } from '../../api/qServer_new/endpointRegistry';
-import * as hooks from '../../api/qServer_new/hooks';
+} from '../../api/qServer/client/defaultClient';
+import { QSERVER_ENDPOINTS } from '../../api/qServer/endpointRegistry';
+import * as hooks from '../../api/qServer/hooks';
 import {
     QSERVER_INVALIDATION_BUNDLES,
     QSERVER_MUTATION_INVALIDATIONS,
-} from '../../api/qServer_new/hooks/invalidation';
-import { qServerQueryRoots } from '../../api/qServer_new/hooks/queryKeys';
-import { QSERVER_NON_CORE_METHODS } from '../../api/qServer_new/hooks/useQServerClient';
+} from '../../api/qServer/hooks/invalidation';
+import { qServerQueryRoots } from '../../api/qServer/hooks/queryKeys';
+import { QSERVER_NON_CORE_METHODS } from '../../api/qServer/hooks/useQServerClient';
 import { createQServerSimClient } from '../../lib/qserver-sim/client/QServerSimClient';
 import { defaultQServer } from '../../lib/qserver-sim/scenarios/defaultQServer';
 

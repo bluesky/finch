@@ -8,7 +8,7 @@
  * ```
  *
  * See `README.md` for usage and `skills.md` for internals. The dependency direction is one-way:
- * this package imports from `@/api/qServer_new`, never the reverse.
+ * this package imports from `@/api/qServer`, never the reverse.
  */
 
 // Core

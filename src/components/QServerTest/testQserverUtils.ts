@@ -3,7 +3,7 @@ import {
     QSERVER_ENDPOINTS,
     type QServerEndpointDescriptor,
     type QServerEndpointGroup,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 
 export interface EndpointGroupBucket {
     group: QServerEndpointGroup;

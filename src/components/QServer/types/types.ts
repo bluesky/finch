@@ -5,7 +5,7 @@ import {
     HistoryItem,
     RunningQueueItem,
     ArbitraryKwargs,
-} from '@/api/qServer/types';
+} from '@/api/qServer';
 
 export type PopupItem = QueueItem | HistoryItem | RunningQueueItem;
 

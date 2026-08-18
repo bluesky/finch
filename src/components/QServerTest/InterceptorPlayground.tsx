@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import type { InterceptorHandle, QServerApiClient } from '@/api/qServer_new';
+import type { InterceptorHandle, QServerApiClient } from '@/api/qServer';
 
 export interface InterceptorPlaygroundProps {
     client: QServerApiClient;

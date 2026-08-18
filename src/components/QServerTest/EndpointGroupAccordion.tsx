@@ -4,7 +4,7 @@ import {
     type QServerEndpointDescriptor,
     type QServerEndpointGroup,
     type QServerEndpointInvocation,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import EndpointRow from './EndpointRow';
 import type { EndpointRunState } from './useEndpointRunner';
 

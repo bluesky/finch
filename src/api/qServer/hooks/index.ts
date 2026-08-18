@@ -2,7 +2,7 @@
  * TanStack Query hooks for the queue server — one per endpoint, 29 queries and 41 mutations.
  *
  * ```tsx
- * import { useQueueGetQuery, useQueueAddItemMutation } from '@/api/qServer_new';
+ * import { useQueueGetQuery, useQueueAddItemMutation } from '@/api/qServer';
  *
  * const queue = useQueueGetQuery({}, { refetchInterval: 1000 });
  * const add = useQueueAddItemMutation();

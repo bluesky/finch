@@ -1,20 +1,17 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { QServerApiClient } from '../../api/qServer_new/client/QServerApiClient';
+import { QServerApiClient } from '../../api/qServer/client/QServerApiClient';
 import {
     resetGetBodyWarnings,
     setGetBodySupportOverride,
-} from '../../api/qServer_new/client/getBodySupport';
+} from '../../api/qServer/client/getBodySupport';
 import {
     configureQServerClient,
     getDefaultQServerClient,
     resetDefaultQServerClient,
     setGlobalApiKey,
-} from '../../api/qServer_new/client/defaultClient';
-import {
-    QServerApiError,
-    QServerGetBodyUnsupportedError,
-} from '../../api/qServer_new/types/errors';
+} from '../../api/qServer/client/defaultClient';
+import { QServerApiError, QServerGetBodyUnsupportedError } from '../../api/qServer/types/errors';
 
 const BASE_URL = 'http://qserver.test:60610';
 

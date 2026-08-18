@@ -1,5 +1,5 @@
-import type { ArbitraryKwargs, QueueItem } from '@/api/qServer_new/types/queue';
-import type { HistoryItem, Result } from '@/api/qServer_new/types/history';
+import type { ArbitraryKwargs, QueueItem } from '@/api/qServer/types/queue';
+import type { HistoryItem, Result } from '@/api/qServer/types/history';
 import type { SimExitStatus } from '../core/types';
 
 export interface QueueItemOptions {

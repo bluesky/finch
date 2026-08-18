@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api/qServer_new/types/history';
+import type { HistoryItem } from '@/api/qServer/types/history';
 import { historyItem } from '../factories/queueItem';
 
 /**

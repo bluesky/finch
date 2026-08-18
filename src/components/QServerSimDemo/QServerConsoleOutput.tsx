@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useQServerConsoleSocket } from '@/api/qServer_new';
+import { useQServerConsoleSocket } from '@/api/qServer';
 import { useQServerSocketFactory } from '@/api/qServerRuntime';
 
 export interface QServerConsoleOutputProps {

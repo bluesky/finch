@@ -42,10 +42,10 @@ const {
     getTiledSearchMock: vi.fn(() => Promise.resolve(null)),
 }));
 
-vi.mock('@/api/qServer/hooks', () => ({
-    usePlansAllowedQuery: usePlansAllowedQueryMock,
-    useQueueQuery: useQueueQueryMock,
-    useExecuteQueueItemMutation: useExecuteQueueItemMutationMock,
+vi.mock('@/api/qServer', () => ({
+    useQueueGetPlansAllowedQuery: usePlansAllowedQueryMock,
+    useQueueGetQuery: useQueueQueryMock,
+    useQueueExecuteItemMutation: useExecuteQueueItemMutationMock,
 }));
 
 vi.mock('../../components/QServer/utils/qServerApiUtils', () => ({

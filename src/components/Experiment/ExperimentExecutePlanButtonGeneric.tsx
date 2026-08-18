@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import {
-    usePlansAllowedQuery,
-    useQueueQuery,
-    useExecuteQueueItemMutation,
-} from '@/api/qServer/hooks';
-import { ArbitraryKwargs, PostItemAddResponse } from '@/api/qServer/types';
+    useQueueGetPlansAllowedQuery,
+    useQueueGetQuery,
+    useQueueExecuteItemMutation,
+} from '@/api/qServer';
+import { ArbitraryKwargs, PostItemAddResponse } from '@/api/qServer';
 import Button from '../Button';
 
 type ExperimentExecutePlanButtonGenericProps = {
@@ -40,11 +40,9 @@ export default function ExperimentExecutePlanButtonGeneric({
     onSuccess,
     onError,
 }: ExperimentExecutePlanButtonGenericProps) {
-    const plansQuery = usePlansAllowedQuery();
-    const queueQuery = useQueueQuery({
-        refetchInterval: 1000,
-    });
-    const executeMutation = useExecuteQueueItemMutation();
+    const plansQuery = useQueueGetPlansAllowedQuery();
+    const queueQuery = useQueueGetQuery({}, { refetchInterval: 1000 });
+    const executeMutation = useQueueExecuteItemMutation();
 
     const isPlanAvailable =
         plansQuery.data?.success && plansQuery.data?.plans_allowed

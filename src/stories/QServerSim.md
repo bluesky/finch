@@ -71,7 +71,7 @@ Two things are worth understanding about that arrangement, because they are the 
 - **`QServerApiProvider` is not part of the simulator.** It lives in
   [`@/api/qServerRuntime`](https://github.com/bluesky/finch/blob/main/src/api/qServerRuntime/QServerApiProvider.tsx)
   and takes anything satisfying `QServerClientLike` — a simulator client here, a real
-  [`QServerApiClient`](https://github.com/bluesky/finch/blob/main/src/api/qServer_new/README.md)
+  [`QServerApiClient`](https://github.com/bluesky/finch/blob/main/src/api/qServer/README.md)
   in production. Components never know which they got, which is exactly why a story and the real
   app can share them.
 - **`QServerSimProvider` only owns the simulator**: it starts the tick loop on mount and stops it
@@ -84,7 +84,7 @@ Swapping in a real server is a one-line change at the top of your tree, and noth
 moves:
 
 ```tsx
-import { createQServerApiClient } from '@/api/qServer_new';
+import { createQServerApiClient } from '@/api/qServer';
 
 const client = createQServerApiClient({ baseUrl: 'http://localhost:60610', apiKey: 'test' });
 
@@ -356,7 +356,7 @@ changes:
 
 ```tsx
 import { buildQServerSimStoryContext, defaultQServer } from '@/lib/qserver-sim';
-import { useQServerStatusSocket, useQServerConsoleSocket } from '@/api/qServer_new';
+import { useQServerStatusSocket, useQServerConsoleSocket } from '@/api/qServer';
 
 const { sim, client, socketFactory } = buildQServerSimStoryContext(defaultQServer);
 
@@ -386,7 +386,7 @@ alongside the client, `withQServerSim` supplies the simulator's, and a component
 
 ```tsx
 import { useQServerSocketFactory } from '@/api/qServerRuntime';
-import { useQServerConsoleSocket } from '@/api/qServer_new';
+import { useQServerConsoleSocket } from '@/api/qServer';
 
 function ConsoleView() {
     const socketFactory = useQServerSocketFactory(); // undefined against a real server
@@ -444,7 +444,7 @@ when you want to exercise the production code path:
 
 ```ts
 import axios from 'axios';
-import { QServerApiClient } from '@/api/qServer_new';
+import { QServerApiClient } from '@/api/qServer';
 import { createQServerSimAdapter, defaultQServer } from '@/lib/qserver-sim';
 
 const sim = defaultQServer();

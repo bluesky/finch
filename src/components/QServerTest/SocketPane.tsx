@@ -6,7 +6,7 @@ import {
     type QServerSocketAuth,
     type QServerSocketChannel,
     type QServerSocketStatus,
-} from '@/api/qServer_new';
+} from '@/api/qServer';
 import JsonResultViewer from './JsonResultViewer';
 
 export interface SocketPaneProps {
