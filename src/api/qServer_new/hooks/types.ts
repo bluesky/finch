@@ -1,5 +1,3 @@
-import type { QueryKey, UseMutationOptions, UseQueryOptions } from '@tanstack/react-query';
-
 /**
  * Shared option shapes for the queue-server hooks.
  *
@@ -26,35 +24,12 @@ import type { QueryKey, UseMutationOptions, UseQueryOptions } from '@tanstack/re
 export type QServerHookError = Error;
 
 /**
- * TanStack query options accepted in every query hook's last parameter.
+ * The TanStack option shapes are shared with the other Finch backends — see
+ * `@/api/shared/queryOptions`. They are re-exported here so that `@/api/qServer_new` stays the only
+ * import path a queue-server consumer needs.
  *
- * `queryKey` and `queryFn` are omitted because the hook owns them. That is deliberate rather than
- * defensive: the invalidation map is only correct while the key is the one `qServerQueryKeys`
- * produced, so overriding it would silently detach the entry from every mutation that should
- * refresh it.
- *
- * @typeParam TResponse The endpoint's response type.
- * @typeParam TData What the hook returns — differs from `TResponse` only when `select` is used.
- * @typeParam TQueryKey The key this resource produces; see `QServerQueryKeyFor`.
+ * `queryKey`, `queryFn` and `mutationFn` are omitted from them because the hook owns those: the
+ * invalidation map is only correct while the key is the one `qServerQueryKeys` produced, so
+ * overriding it would silently detach the entry from every mutation that should refresh it.
  */
-export type FinchQueryOptions<
-    TResponse,
-    TData = TResponse,
-    TQueryKey extends QueryKey = QueryKey,
-> = Omit<UseQueryOptions<TResponse, QServerHookError, TData, TQueryKey>, 'queryKey' | 'queryFn'>;
-
-/**
- * TanStack mutation options accepted in every mutation hook's last parameter.
- *
- * `mutationFn` is owned by the hook. `onSuccess` is *composed*, not replaced: the hook's cache
- * invalidation runs and is awaited first, so by the time your handler runs the affected queries have
- * already refetched.
- *
- * @typeParam TResponse The endpoint's response type.
- * @typeParam TVariables What `mutate` accepts. `void` for endpoints that take no body.
- * @typeParam TContext Inferred from `onMutate`, for optimistic updates.
- */
-export type FinchMutationOptions<TResponse, TVariables = void, TContext = unknown> = Omit<
-    UseMutationOptions<TResponse, QServerHookError, TVariables, TContext>,
-    'mutationFn'
->;
+export type { FinchMutationOptions, FinchQueryOptions } from '@/api/shared/queryOptions';

@@ -266,6 +266,17 @@ export * as QServerRequests from './api/qServer/requests';
  */
 export * as QServerHooks from './api/qServer_new/hooks';
 
+/**
+ * Query hooks, provider and client re-exports over the new Tiled layer (`src/api/tiled_new`).
+ *
+ * Namespaced for the same reason: six of these names (`useTiledSearchBySpecsQuery`,
+ * `useTiledSearchByMetadataEqualsQuery`, `useTiledSearchByMetadataComparisonQuery`,
+ * `useTiledSearchByRegexQuery`, `useTiledSearchByStructureFamilyQuery`, `useTiledServerInfoQuery`)
+ * still come from the legacy `api/tiled/hooks` below — flatten these to named exports in the commit
+ * that removes that folder.
+ */
+export * as TiledHooks from './api/tiled_new';
+
 export {
     useQueueQuery,
     useQueueHistoryQuery,

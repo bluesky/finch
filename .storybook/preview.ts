@@ -1,48 +1,43 @@
-import type { Preview } from "@storybook/react";
-import "../tailwind.css";
-import { withOphydSim, defaultBeamline } from "../src/lib/ophyd-sim";
+import type { Preview } from '@storybook/react';
+import '../tailwind.css';
+import { withOphydSim, defaultBeamline } from '../src/lib/ophyd-sim';
 
 const version = import.meta.env.STORYBOOK_FINCH_VERSION;
 console.log(`Finch UI version ${version}`);
 const preview: Preview = {
-  decorators: [withOphydSim(defaultBeamline)],
-  parameters: {
-    controls: {
-      matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
-      },
+    decorators: [withOphydSim(defaultBeamline)],
+    parameters: {
+        controls: {
+            matchers: {
+                color: /(background|color)$/i,
+                date: /Date$/i,
+            },
+        },
+        options: {
+            storySort: {
+                method: 'alphabetical',
+                order: [
+                    'About',
+                    'Documentation',
+                    [
+                        'Installation',
+                        'Configuration',
+                        'BackendSetup',
+                        'Ophyd Sim',
+                        'QServer Sim',
+                        'QServer Query Hooks',
+                        'Tiled Query Hooks',
+                        'API Hooks',
+                    ],
+                    'Bluesky Components',
+                    ['ReactEDM', ['*', 'Developer Notes', ['Home', 'Components']]],
+                    'Ophyd Components',
+                    'Layout Components',
+                    'General Components',
+                ],
+            },
+        },
     },
-    options: {
-      storySort: {
-        method: 'alphabetical',
-        order: [
-          "About",
-          "Documentation", [
-            "Installation",
-            "Configuration",
-            "BackendSetup",
-            "Ophyd Sim",
-            "QServer Sim",
-            "QServer Query Hooks",
-            "API Hooks",
-          ],
-          "Bluesky Components",  [
-            'ReactEDM', [
-              '*',
-              'Developer Notes', [
-                'Home',
-                'Components'
-              ]
-            ]
-          ],
-          "Ophyd Components",
-          "Layout Components",
-          "General Components",
-        ],
-      },
-    },
-  },
 };
 
 export default preview;
