@@ -4,8 +4,15 @@ import dayjs from 'dayjs';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 import { SpinnerGap } from '@phosphor-icons/react';
 type ExperimentHistoryProps = {
-    /** Filters results to only Bluesky runs whose `start.exact_plan_name` matches this value. */
+    /** Filters results to only Bluesky runs whose plan-name metadata matches this value. */
     planName?: string;
+    /**
+     * Which metadata key `planName` is matched against.
+     *
+     * Defaults to `start.exact_plan_name`, the field the beamline-specific plans write. Use
+     * `start.plan_name` — what bluesky records for every run — when filtering an arbitrary plan.
+     */
+    planNameMetadataKey?: string;
     /** Additional CSS class names to apply to the results table. */
     className?: string;
     /** Full-text search string applied to run metadata (e.g. a username). */
@@ -25,6 +32,7 @@ type ExperimentHistoryProps = {
 };
 export default function ExperimentHistory({
     planName,
+    planNameMetadataKey = 'start.exact_plan_name',
     className,
     metadataFulltextSearch,
     tiledBaseUrl,
@@ -53,7 +61,7 @@ export default function ExperimentHistory({
                     fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
                     contains: planName
                         ? {
-                              key: 'start.exact_plan_name',
+                              key: planNameMetadataKey,
                               value: planName,
                           }
                         : undefined,
@@ -70,7 +78,14 @@ export default function ExperimentHistory({
             }
         };
         fetchData();
-    }, [planName, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit]);
+    }, [
+        planName,
+        planNameMetadataKey,
+        metadataFulltextSearch,
+        tiledBaseUrl,
+        tiledInitialSearchPath,
+        tiledPageLimit,
+    ]);
 
     return (
         <section>

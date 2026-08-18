@@ -183,6 +183,8 @@ export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
 // EXPERIMENT
+export { default as Experiment } from './components/Experiment/Experiment';
+export { default as ExperimentFormGeneric } from './components/Experiment/ExperimentFormGeneric';
 export { default as ExperimentHistory } from './components/Experiment/ExperimentHistory';
 export { default as ExperimentAngleScan } from './components/Experiment/ExperimentAngleScan';
 export { default as ExperimentEnergyScan } from './components/Experiment/ExperimentEnergyScan';

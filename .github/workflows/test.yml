@@ -110,6 +110,7 @@ jobs:
           npm run test:run -- src/testing/tests/qserver-sim/QServerSimDemo.test.tsx
           npm run test:run -- src/testing/tests/qserver-sim/hooks.test.tsx
           npm run test:run -- src/testing/tests/qserver-sim/QSConsole.test.tsx
+          npm run test:run -- src/testing/tests/qserver-sim/Experiment.test.tsx
           echo "Running ophyd sim test suites..."
           npm run test:run -- src/testing/tests/BeamstopModel.test.tsx
           npm run test:run -- src/testing/tests/createFallbackTransport.test.ts
