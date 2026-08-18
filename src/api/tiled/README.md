@@ -1,18 +1,19 @@
-# Tiled query layer (`tiled_new`)
+# Tiled query layer (`tiled`)
 
 TanStack Query hooks over [`@blueskyproject/tiled`](https://www.npmjs.com/package/@blueskyproject/tiled)
 — **18 queries, one mutation and one URL helper** — plus a provider for injecting a client and
 re-exports of the package's own client and configuration functions.
 
-> This folder is the replacement for `src/api/tiled/hooks.ts`, which stays in place and untouched until
-> an explicit switch-over commit. Nothing here imports it.
+> This replaced the hand-rolled hooks now parked in `src/api/tiled_archive/hooks.ts`. That file is kept
+> for reference only: nothing imports it, and `tsconfig.json` excludes it because it cannot compile
+> against `@blueskyproject/tiled` 0.0.33. See the bottom of `SKILLS.md` for the old-to-new hook map.
 
 ## Quickstart
 
 ```tsx
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { FinchConfigProvider } from '@/app/FinchConfigProvider';
-import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled_new';
+import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled';
 
 const queryClient = new QueryClient();
 

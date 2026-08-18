@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useTiledSearchByIdQuery } from '@/api/tiled/hooks';
+import { useTiledSearchQuery } from '@/api/tiled';
 import { checkRunCompletion, cleanTiledInitialPath } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
@@ -46,26 +46,35 @@ export const useTiledWriterScatterPlot = (
     const hasRunId = !!blueskyRunId && blueskyRunId.trim() !== '';
 
     // Step 1: Verify the run exists in Tiled. Retries every 2 s until found (unless finished).
-    const runQuery = useTiledSearchByIdQuery(
-        { path: `${startPath}${blueskyRunId}` },
+    //
+    // A path that is not there yet answers 404, which surfaces as `isError` — the legacy hook
+    // swallowed that into `data: null`, so the checks below read the status rather than the data.
+    // `refetchInterval` still fires while the query is in an error state, which is what keeps the
+    // polling going until the run appears.
+    const runQuery = useTiledSearchQuery(
+        `${startPath}${blueskyRunId}`,
+        undefined,
+        { baseUrl: tiledBaseUrl },
         {
             enabled: hasRunId,
             retry: false,
             refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
         },
     );
-    const runExists = !!runQuery.data;
+    const runExists = runQuery.isSuccess;
 
     // Step 2: Fetch the primary path directly under the run ID.
-    const directQuery = useTiledSearchByIdQuery(
-        { path: `${startPath}${blueskyRunId}/primary` },
+    const directQuery = useTiledSearchQuery(
+        `${startPath}${blueskyRunId}/primary`,
+        undefined,
+        { baseUrl: tiledBaseUrl },
         {
             enabled: runExists,
             retry: false,
             refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
         },
     );
-    const directFound = directQuery.isSuccess && !!directQuery.data;
+    const directFound = directQuery.isSuccess;
 
     const tiledPath = useMemo(() => {
         if (directFound) return `${startPath}${blueskyRunId}/primary/internal`;
@@ -81,7 +90,8 @@ export const useTiledWriterScatterPlot = (
         if (!hasRunId) return 'Waiting for run ID';
         if (tiledPath || isLoading) return null;
         if (!runExists) return `Searching for run data... (Run ID: ${blueskyRunId})`;
-        if (directQuery.isSuccess && !directQuery.data) {
+        // The run is there but its primary stream is not — a 404 on that path.
+        if (directQuery.isError) {
             return isRunFinished
                 ? 'Could not find primary data path for this run'
                 : `Waiting for scan data to be written... (Run ID: ${blueskyRunId})`;
@@ -92,8 +102,7 @@ export const useTiledWriterScatterPlot = (
         tiledPath,
         isLoading,
         runExists,
-        directQuery.isSuccess,
-        directQuery.data,
+        directQuery.isError,
         isRunFinished,
         blueskyRunId,
     ]);

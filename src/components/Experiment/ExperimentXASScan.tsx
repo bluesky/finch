@@ -11,7 +11,7 @@ import ExperimentHistory from './ExperimentHistory';
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
 import { PostItemAddResponse } from '@/api/qServer/types';
 import { cn } from '@/lib/utils';
-import { useTiledSearchResultsQuery } from '@/api/tiled/hooks';
+import { useTiledSearchQuery } from '@/api/tiled';
 
 type ExperimentXASScanProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -160,14 +160,16 @@ export default function ExperimentXASScan({
     }, [pollRunId]);
 
     // Poll Tiled for the most recent xas_scan run and sync if started externally
-    const { data: latestXasScanResult } = useTiledSearchResultsQuery(
+    const { data: latestXasScanResult } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 1, sort: '-' },
-            filters: {
+            searchOptions: { pageLimit: 1, sort: '-' },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.exact_plan_name', value: 'xas_scan' },
             },
         },
+        {},
         { refetchInterval: 5000 },
     );
 

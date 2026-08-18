@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getSearchResults, TiledSearchConfig, TiledSearchResult } from '@blueskyproject/tiled';
+import { getTiledSearch, type TiledSearchConfig, type TiledSearchResult } from '@/api/tiled';
 import dayjs from 'dayjs';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 import { SpinnerGap } from '@phosphor-icons/react';
@@ -41,14 +41,14 @@ export default function ExperimentHistory({
     useEffect(() => {
         const fetchData = async () => {
             //eventually uncomment this and get the key contains working once that's updated in tiled api
+            // The search path and the transport options are separate arguments now; filters and
+            // pagination are the two halves of the config.
             const searchConfig: TiledSearchConfig = {
-                baseUrl: tiledBaseUrl || undefined,
-                initialPath: tiledInitialSearchPath || undefined,
-                options: {
+                searchOptions: {
                     pageLimit: tiledPageLimit || 10,
                     sort: '-',
                 },
-                filters: {
+                searchFilters: {
                     specs: { include: ['BlueskyRun'], exclude: [] },
                     fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
                     contains: planName
@@ -60,7 +60,10 @@ export default function ExperimentHistory({
                 },
             };
             try {
-                const results: TiledSearchResult | null = await getSearchResults(searchConfig);
+                const results: TiledSearchResult | null = await getTiledSearch('', searchConfig, {
+                    baseUrl: tiledBaseUrl || undefined,
+                    initialPath: tiledInitialSearchPath || undefined,
+                });
                 setSearchResults(results);
             } catch (error) {
                 console.error('Error fetching ExperimentHistory data:', error);

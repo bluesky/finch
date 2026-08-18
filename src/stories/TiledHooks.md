@@ -1,11 +1,12 @@
 # Tiled Query Hooks
 
-Every method on `@blueskyproject/tiled`'s client has a TanStack Query hook in `@/api/tiled_new` —
+Every method on `@blueskyproject/tiled`'s client has a TanStack Query hook in `@/api/tiled` —
 **18 queries, one mutation and one URL helper**. This page lists all of them with the exact call shape.
 
-These are the hooks over the **new** client API introduced in `@blueskyproject/tiled` 0.0.33. The older,
-narrower set is documented on the [Tiled API Hooks](?path=/docs/documentation-tiled-api-hooks--docs)
-page and still backs the shipped Tiled components.
+These are the hooks over the client API introduced in `@blueskyproject/tiled` 0.0.33, and they back
+every Tiled component Finch ships. The older, narrower set they replaced is documented on the
+[Tiled API Hooks](?path=/docs/documentation-tiled-api-hooks--docs) page and is retired — its source is
+kept for reference in `src/api/tiled_archive/hooks.ts`.
 
 ---
 

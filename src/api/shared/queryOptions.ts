@@ -3,7 +3,7 @@ import type { QueryKey, UseMutationOptions, UseQueryOptions } from '@tanstack/re
 /**
  * The TanStack option shapes every Finch backend hook accepts.
  *
- * Shared by `@/api/qServer_new/hooks` and `@/api/tiled_new/hooks` (and whatever comes next) so the
+ * Shared by `@/api/qServer_new/hooks` and `@/api/tiled/hooks` (and whatever comes next) so the
  * three backends present one calling convention rather than three near-identical ones. The hooks
  * themselves are positional:
  *

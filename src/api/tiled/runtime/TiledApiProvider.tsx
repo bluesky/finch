@@ -19,7 +19,7 @@ export interface TiledApiProviderProps {
 /**
  * Supplies a Tiled client to a subtree.
  *
- * Without it, the hooks in `@/api/tiled_new` use the package's module-level singleton
+ * Without it, the hooks in `@/api/tiled` use the package's module-level singleton
  * (`getDefaultTiledApiClient()`), configured from `FinchConfigProvider`. With it, they use the client
  * given here and never redirect it — an injected client is the caller's explicit choice, so Finch
  * config is ignored for that subtree.

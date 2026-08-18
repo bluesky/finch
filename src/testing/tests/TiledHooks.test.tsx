@@ -4,18 +4,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
 import { resetDefaultTiledApiClient, setDefaultTiledApiClient } from '@blueskyproject/tiled';
 import { FinchConfigProvider } from '../../app/FinchConfigProvider';
-import * as tiled from '../../api/tiled_new';
-import { TiledApiProvider } from '../../api/tiled_new/runtime/TiledApiProvider';
+import * as tiled from '../../api/tiled';
+import { TiledApiProvider } from '../../api/tiled/runtime/TiledApiProvider';
 import {
     TILED_CLIENT_LIKE_METHODS,
     type TiledClientLike,
-} from '../../api/tiled_new/runtime/clientLike';
+} from '../../api/tiled/runtime/clientLike';
 import {
     TILED_INVALIDATION_BUNDLES,
     TILED_MUTATION_INVALIDATIONS,
-} from '../../api/tiled_new/hooks/invalidation';
-import { tiledQueryRoots } from '../../api/tiled_new/hooks/queryKeys';
-import type { TiledRequestOptions, TiledSearchResult } from '../../api/tiled_new/types/common';
+} from '../../api/tiled/hooks/invalidation';
+import { tiledQueryRoots } from '../../api/tiled/hooks/queryKeys';
+import type { TiledRequestOptions, TiledSearchResult } from '../../api/tiled/types/common';
 
 const BASE_URL = 'http://tiled.test:8000/api/v1';
 

@@ -10,33 +10,37 @@ function renderWithQueryClient(ui: ReactNode) {
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-const { usePlansAllowedQueryMock, useQueueQueryMock, useExecuteQueueItemMutationMock } = vi.hoisted(
-    () => ({
-        usePlansAllowedQueryMock: vi.fn(() => ({
-            data: {
-                success: true,
-                plans_allowed: {
-                    count: {},
-                    angle_scan: {},
-                    energy_scan: {},
-                    xas_scan: {},
-                    xas_alignment: {},
-                },
+const {
+    usePlansAllowedQueryMock,
+    useQueueQueryMock,
+    useExecuteQueueItemMutationMock,
+    getTiledSearchMock,
+} = vi.hoisted(() => ({
+    usePlansAllowedQueryMock: vi.fn(() => ({
+        data: {
+            success: true,
+            plans_allowed: {
+                count: {},
+                angle_scan: {},
+                energy_scan: {},
+                xas_scan: {},
+                xas_alignment: {},
             },
-            isLoading: false,
-            isError: false,
-        })),
-        useQueueQueryMock: vi.fn(() => ({
-            data: { success: true, running_item: {}, items: [], plan_queue_uid: 'q1' },
-            isLoading: false,
-            isError: false,
-        })),
-        useExecuteQueueItemMutationMock: vi.fn(() => ({
-            mutate: vi.fn(),
-            isPending: false,
-        })),
-    }),
-);
+        },
+        isLoading: false,
+        isError: false,
+    })),
+    useQueueQueryMock: vi.fn(() => ({
+        data: { success: true, running_item: {}, items: [], plan_queue_uid: 'q1' },
+        isLoading: false,
+        isError: false,
+    })),
+    useExecuteQueueItemMutationMock: vi.fn(() => ({
+        mutate: vi.fn(),
+        isPending: false,
+    })),
+    getTiledSearchMock: vi.fn(() => Promise.resolve(null)),
+}));
 
 vi.mock('@/api/qServer/hooks', () => ({
     usePlansAllowedQuery: usePlansAllowedQueryMock,
@@ -52,8 +56,9 @@ vi.mock('@/components/Tiled/TiledWriterScatterPlot', () => ({
     default: () => <div data-testid="scatter-plot" />,
 }));
 
-vi.mock('@/api/tiled/hooks', () => ({
-    useTiledSearchResultsQuery: vi.fn(() => ({ data: undefined })),
+vi.mock('@/api/tiled', () => ({
+    useTiledSearchQuery: vi.fn(() => ({ data: undefined })),
+    getTiledSearch: getTiledSearchMock,
 }));
 
 vi.mock('../../components/Tiled/TiledWriterDetImageHeatmap', () => ({
@@ -74,10 +79,6 @@ vi.mock('../../components/QServer/QSParameterInput', () => ({
     default: () => <div data-testid="qs-param-input" />,
 }));
 
-vi.mock('@blueskyproject/tiled', () => ({
-    getSearchResults: vi.fn(() => Promise.resolve(null)),
-}));
-
 vi.mock('../../components/Button', () => ({
     default: ({ text, cb, disabled }: { text?: string; cb?: () => void; disabled?: boolean }) => (
         <button data-testid="plan-button" onClick={cb} disabled={disabled}>
@@ -96,7 +97,6 @@ import ExperimentHistory from '../../components/Experiment/ExperimentHistory';
 import ExperimentExecutePlanButton from '../../components/Experiment/ExperimentExecutePlanButton';
 import ExperimentExecutePlanButtonGeneric from '../../components/Experiment/ExperimentExecutePlanButtonGeneric';
 import ExperimentPlanSettings from '../../components/Experiment/ExperimentPlanSettings';
-import { getSearchResults } from '@blueskyproject/tiled';
 import { useQSAddItem } from '../../components/QServer/hooks/useQSAddItem';
 
 // ── ExperimentAngleScan ───────────────────────────────────────────────────────
@@ -180,18 +180,18 @@ describe('ExperimentEnergyScan', () => {
 
 describe('ExperimentHistory', () => {
     beforeEach(() => {
-        vi.mocked(getSearchResults).mockReset();
+        getTiledSearchMock.mockReset();
     });
 
     it('shows a loading spinner while results are pending', () => {
         // Never resolves — stays in loading state
-        vi.mocked(getSearchResults).mockReturnValue(new Promise(() => {}));
+        getTiledSearchMock.mockReturnValue(new Promise(() => {}));
         render(<ExperimentHistory />);
         expect(screen.getByText(/Loading/i)).toBeInTheDocument();
     });
 
     it('shows the results table once data is available', async () => {
-        vi.mocked(getSearchResults).mockResolvedValue({
+        getTiledSearchMock.mockResolvedValue({
             data: [
                 {
                     id: 'run-1',
@@ -203,7 +203,7 @@ describe('ExperimentHistory', () => {
                     },
                 },
             ],
-        } as unknown as Awaited<ReturnType<typeof getSearchResults>>);
+        } as unknown as Awaited<ReturnType<typeof getTiledSearchMock>>);
         render(<ExperimentHistory />);
         await waitFor(() => expect(screen.getByText('success')).toBeInTheDocument());
         expect(screen.getByText('run-1')).toBeInTheDocument();
@@ -220,8 +220,8 @@ describe('ExperimentHistory', () => {
                 },
             },
         };
-        vi.mocked(getSearchResults).mockResolvedValue({ data: [mockItem] } as unknown as Awaited<
-            ReturnType<typeof getSearchResults>
+        getTiledSearchMock.mockResolvedValue({ data: [mockItem] } as unknown as Awaited<
+            ReturnType<typeof getTiledSearchMock>
         >);
         render(<ExperimentHistory onItemClick={onItemClick} />);
         await waitFor(() => screen.getByText('run-2'));
@@ -230,8 +230,8 @@ describe('ExperimentHistory', () => {
     });
 
     it('shows user filter text when metadataFulltextSearch is provided', async () => {
-        vi.mocked(getSearchResults).mockResolvedValue({ data: [] } as unknown as Awaited<
-            ReturnType<typeof getSearchResults>
+        getTiledSearchMock.mockResolvedValue({ data: [] } as unknown as Awaited<
+            ReturnType<typeof getTiledSearchMock>
         >);
         render(<ExperimentHistory metadataFulltextSearch="alice" />);
         await waitFor(() => expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument());

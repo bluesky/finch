@@ -7,7 +7,7 @@ import { useQueueQuery } from '@/api/qServer/hooks';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import ExperimentHistory from './ExperimentHistory';
-import { useTiledSearchResultsQuery } from '@/api/tiled/hooks';
+import { useTiledSearchQuery } from '@/api/tiled';
 
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
 import { PostItemAddResponse } from '@/api/qServer/types';
@@ -98,14 +98,16 @@ export default function ExperimentXASAlignment({
     const firstUserRunId = runList[0] ?? '';
 
     // Look up the first user-initiated run's metadata to extract sequence_uid.
-    const { data: firstRunMeta } = useTiledSearchResultsQuery(
+    const { data: firstRunMeta } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 1 },
-            filters: {
+            searchOptions: { pageLimit: 1 },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.uid', value: firstUserRunId },
             },
         },
+        {},
         {
             enabled: !!firstUserRunId,
             refetchInterval: (query) => {
@@ -120,14 +122,16 @@ export default function ExperimentXASAlignment({
     // Poll Tiled for the most recent xas_alignment run started anywhere (e.g.
     // from a notebook). If its sequence_uid differs from the one being shown,
     // switch to it.
-    const { data: latestAlignmentResult } = useTiledSearchResultsQuery(
+    const { data: latestAlignmentResult } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 1, sort: '-' },
-            filters: {
+            searchOptions: { pageLimit: 1, sort: '-' },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.plan_name', value: 'xas_alignment' },
             },
         },
+        {},
         { refetchInterval: 5000 },
     );
     const externalSequenceUid =
@@ -146,14 +150,16 @@ export default function ExperimentXASAlignment({
     }, [userSequenceUid, externalSequenceUid, executedItemUid, viewMode, currentSequenceUid]);
 
     // ── Sibling resolution: find both runs sharing the sequence_uid ───────────
-    const { data: siblings } = useTiledSearchResultsQuery(
+    const { data: siblings } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 5, sort: '-' },
-            filters: {
+            searchOptions: { pageLimit: 5, sort: '-' },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.alignment_sequence_uid', value: currentSequenceUid },
             },
         },
+        {},
         {
             enabled: !!currentSequenceUid,
             refetchInterval: (query) => {

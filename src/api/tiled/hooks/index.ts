@@ -2,7 +2,7 @@
  * TanStack Query hooks for Tiled — 18 queries, one mutation, one URL helper.
  *
  * ```tsx
- * import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled_new';
+ * import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled';
  *
  * const runs = useTiledSearchBySpecsQuery('experiments', { include: ['BlueskyRun'], exclude: [] });
  * const item = useTiledMetadataQuery(selectedPath ?? '');

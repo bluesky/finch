@@ -1,9 +1,8 @@
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
 import PlotlyScatter from '../PlotlyScatter';
 import { PlotData } from 'plotly.js';
 
-import { getTableDataAsJson } from '@blueskyproject/tiled';
+import { useTiledTablePartitionAsJSONQuery } from '@/api/tiled';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 
 type TiledScatterPlotProps = {
@@ -38,11 +37,12 @@ export default function TiledScatterPlot({
     className,
     plotClassName,
 }: TiledScatterPlotProps) {
-    const { data, isLoading, error } = useQuery({
-        queryKey: ['tiled', 'table', path],
-        queryFn: () => getTableDataAsJson(path ? path : '', partition, tiledBaseUrl),
-        refetchInterval: enablePolling ? pollingIntervalMs : false,
-    });
+    // An empty path holds the query idle, which is what the "waiting for data" state below reports.
+    const { data, isLoading, error } = useTiledTablePartitionAsJSONQuery(
+        path ?? '',
+        { partition, baseUrl: tiledBaseUrl },
+        { refetchInterval: enablePolling ? pollingIntervalMs : false },
+    );
 
     // Determine status text based on current state
     const getStatusText = () => {

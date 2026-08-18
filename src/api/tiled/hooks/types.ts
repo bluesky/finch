@@ -29,7 +29,7 @@ export type TiledHookError = Error;
 
 /**
  * The TanStack option shapes are shared with the other Finch backends — see
- * `@/api/shared/queryOptions`. They are re-exported here so `@/api/tiled_new` stays the only import
+ * `@/api/shared/queryOptions`. They are re-exported here so `@/api/tiled` stays the only import
  * path a Tiled consumer needs.
  *
  * `queryKey`, `queryFn` and `mutationFn` are omitted from them because the hook owns those:

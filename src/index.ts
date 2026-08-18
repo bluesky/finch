@@ -223,24 +223,66 @@ export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocke
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
 
-// TILED HOOKS
+// TILED HOOKS — see src/api/tiled. The retired set lives in src/api/tiled_archive; the closest
+// replacements are: useTiledSearchResultsQuery / useTiledSearchByIdQuery -> useTiledSearchQuery,
+// useTiledItemMetadataQuery -> useTiledMetadataQuery, useTiledTableDataAsJsonQuery ->
+// useTiledTablePartitionAsJSONQuery, useTiledXArrayDataQuery -> useTiledArrayAsJSONQuery.
 export {
-    useTiledSearchResultsQuery,
-    useTiledSearchByIdQuery,
+    // search
+    useTiledSearchQuery,
     useTiledSearchBySpecsQuery,
-    useTiledSearchByFulltextQuery,
+    useTiledSearchByFullTextQuery,
     useTiledSearchByMetadataEqualsQuery,
-    useTiledSearchByMetadataComparisonQuery,
-    useTiledSearchByRegexQuery,
     useTiledSearchByStructureFamilyQuery,
-    useTiledItemMetadataQuery,
-    useTiledBlueskyPlanMetadataQuery,
-    useTiledTableDataAsSequenceQuery,
-    useTiledTableDataAsJsonQuery,
-    useTiledStructuredArrayDataQuery,
-    useTiledXArrayDataQuery,
+    useTiledSearchByRegexQuery,
+    useTiledSearchByMetadataComparisonQuery,
+    // metadata
+    useTiledMetadataQuery,
+    // arrays
+    useTiledArrayAsQuery,
+    useTiledArrayAsJSONQuery,
+    useTiledArrayAsPngQuery,
+    useTiledArrayAsBufferQuery,
+    useTiledArrayImagePath,
+    // tables
+    useTiledTableAsQuery,
+    useTiledTablePartitionAsJSONQuery,
+    useTiledTablePartitionAsJSONSequenceQuery,
+    useTiledTableFullAsJSONQuery,
+    useTiledTableFullAsJSONSequenceQuery,
+    // server + auth
     useTiledServerInfoQuery,
-} from './api/tiled/hooks';
+    useTiledLoginMutation,
+    // client resolution, keys and invalidation
+    useTiledClient,
+    useTiledQueryScope,
+    useTiledInvalidate,
+    tiledQueryKeys,
+    tiledQueryRoots,
+    invalidateTiledRoots,
+    invalidateAllTiledQueries,
+    TILED_INVALIDATION_BUNDLES,
+    TILED_QUERY_ROOT,
+    // errors
+    TiledEndpointUnavailableError,
+    isTiledEndpointUnavailableError,
+    // the injection seam
+    TiledApiProvider,
+    useTiledApiClient,
+    useTiledApiClientOptional,
+} from './api/tiled';
+export type {
+    TiledApiProviderProps,
+    TiledClientLike,
+    TiledClientResolution,
+    TiledHookError,
+    TiledLoginVariables,
+    TiledQueryScope,
+    TiledQueryRootName,
+    TiledInvalidationBundleName,
+    FinchQueryOptions,
+    FinchMutationOptions,
+} from './api/tiled';
 
 // OPHYD TYPES
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
@@ -267,15 +309,13 @@ export * as QServerRequests from './api/qServer/requests';
 export * as QServerHooks from './api/qServer_new/hooks';
 
 /**
- * Query hooks, provider and client re-exports over the new Tiled layer (`src/api/tiled_new`).
+ * Everything in the Tiled layer, also available as a namespace.
  *
- * Namespaced for the same reason: six of these names (`useTiledSearchBySpecsQuery`,
- * `useTiledSearchByMetadataEqualsQuery`, `useTiledSearchByMetadataComparisonQuery`,
- * `useTiledSearchByRegexQuery`, `useTiledSearchByStructureFamilyQuery`, `useTiledServerInfoQuery`)
- * still come from the legacy `api/tiled/hooks` below — flatten these to named exports in the commit
- * that removes that folder.
+ * The hooks themselves are exported flat above; this adds the package re-exports (`TiledApiClient`,
+ * `setDefaultTiledUrl`, the `getTiled*` request functions, the structure guards) without putting two
+ * dozen more names in the top-level namespace.
  */
-export * as TiledHooks from './api/tiled_new';
+export * as TiledAPI from './api/tiled';
 
 export {
     useQueueQuery,
@@ -333,52 +373,57 @@ export type { Device, Devices } from './types/deviceControllerTypes';
 //CONTEXT PROVIDERS
 export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 
-// Tiled API namespace - groups all Tiled functionality under a clear namespace
-import * as TiledAPI from '@blueskyproject/tiled';
+// Tiled API namespace - groups all Tiled functionality under a clear namespace.
+//
+// Rebuilt onto the client API that @blueskyproject/tiled 0.0.33 introduced: the flat free functions
+// this used to point at (getSearchResults, searchBySpecs, getItemMetadata, getTableDataAsJson,
+// setReverseSort, resetGlobalState, …) no longer exist. The old names are kept as keys wherever there
+// is a faithful replacement, so most call sites keep working.
+import * as TiledPackage from '@blueskyproject/tiled';
 
 export const Tiled = {
     // Path management
-    setInitialPath: TiledAPI.setInitialPath,
-    getInitialPath: TiledAPI.getInitialPath,
+    setInitialPath: TiledPackage.setDefaultInitialPath,
+    getInitialPath: TiledPackage.getDefaultTiledInitialPath,
 
     // Authentication and server configuration
-    setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
-    getDefaultUrl: TiledAPI.getDefaultTiledUrl,
-    setBearerToken: TiledAPI.setBearerToken,
-    getServerInfo: TiledAPI.getServerInfo,
-    loginWithPassword: TiledAPI.loginUserWithNamePassword,
+    setAuthErrorCallback: TiledPackage.setDefaultAuthErrorCallback,
+    getDefaultUrl: () => TiledPackage.getDefaultTiledApiClient().getBaseUrl(),
+    setDefaultUrl: TiledPackage.setDefaultTiledUrl,
+    setApiKey: TiledPackage.setGlobalApiKey,
+    setBearerToken: TiledPackage.setDefaultBearerToken,
+    getServerInfo: TiledPackage.getTiledServerInfo,
+    loginWithPassword: TiledPackage.loginWithDefaultTiledClient,
+
+    // The client itself, for anything the helpers below do not cover
+    getClient: TiledPackage.getDefaultTiledApiClient,
+    setClient: TiledPackage.setDefaultTiledApiClient,
+    resetClient: TiledPackage.resetDefaultTiledApiClient,
 
     // Search and data retrieval
-    getSearchResults: TiledAPI.getSearchResults,
-    getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
-    getItemMetadata: TiledAPI.getItemMetadata,
-    getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
-    getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
-    getTableDataAsJson: TiledAPI.getTableDataAsJson,
-    getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
-    getStructuredArrayData: TiledAPI.getStructuredArrayData,
-    getXArrayData: TiledAPI.getXArrayData,
+    getSearchResults: TiledPackage.getTiledSearch,
+    getItemMetadata: TiledPackage.getTiledMetadata,
+    getTableDataAsJson: TiledPackage.getTiledTablePartitionAsJSON,
+    getTableDataAsSequence: TiledPackage.getTiledTablePartitionAsJSONSequence,
+    getTableFullAsJson: TiledPackage.getTiledTableFullAsJSON,
+    getTableFullAsSequence: TiledPackage.getTiledTableFullAsJSONSequence,
+    getArrayData: TiledPackage.getTiledArrayAsJSON,
 
     // Comprehensive search functions
-    searchBySpecs: TiledAPI.searchBySpecs,
-    searchByFulltext: TiledAPI.searchByFulltext,
-    searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
-    searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
-    searchByRegex: TiledAPI.searchByRegex,
-    searchByStructureFamily: TiledAPI.searchByStructureFamily,
+    searchBySpecs: TiledPackage.getTiledSearchBySpecs,
+    searchByFulltext: TiledPackage.getTiledSearchByFullText,
+    searchByMetadataEquals: TiledPackage.getTiledSearchByMetadataEquals,
+    searchByStructureFamily: TiledPackage.getTiledSearchByStructureFamily,
 
     // Image handling
-    generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
-    getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
-
-    // Configuration and state management
-    setReverseSort: TiledAPI.setReverseSort,
-    resetGlobalState: TiledAPI.resetGlobalState,
+    generateFullImagePngPath: TiledPackage.getTiledArrayAsImagePath,
+    getAuthenticatedImage: TiledPackage.getTiledArrayAsPng,
+    setMaxArrayBytes: TiledPackage.setGlobalMaxArrayBytes,
 
     // Type guards
-    isArrayStructure: TiledAPI.isArrayStructure,
-    isTableStructure: TiledAPI.isTableStructure,
-    isContainerStructure: TiledAPI.isContainerStructure,
+    isArrayStructure: TiledPackage.isArrayStructure,
+    isTableStructure: TiledPackage.isTableStructure,
+    isContainerStructure: TiledPackage.isContainerStructure,
 };
 
 export type { FinchConfig } from './app/FinchConfigProvider';

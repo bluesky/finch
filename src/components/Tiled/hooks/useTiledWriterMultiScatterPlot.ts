@@ -1,16 +1,8 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { getSearchResults, TiledSearchConfig } from '@blueskyproject/tiled';
+import { getTiledSearch, tiledQueryKeys, useTiledQueryScope } from '@/api/tiled';
 import { useTiledApiUrls } from 'src/utils/apiUtils';
 import { cleanTiledInitialPath } from 'src/components/Tiled/utils/tiledUtils';
-
-async function searchById(config: TiledSearchConfig): Promise<unknown | null> {
-    try {
-        return await getSearchResults(config);
-    } catch {
-        return null;
-    }
-}
 
 type UseTiledWriterMultiScatterPlotReturn = {
     /** Resolved Tiled paths, one per run ID. `null` while the path is still being located. */
@@ -40,15 +32,19 @@ export const useTiledWriterMultiScatterPlot = (
             ? `${cleanTiledInitialPath(options.initialPath)}/`
             : '';
 
+    // One query per run, so this cannot use the search hook — but it uses the same key factory and
+    // the same request function, so its entries sit alongside the hooks' in the cache and are
+    // refreshed by the same `['tiled','search']` invalidation. (The old hand-written key,
+    // `['tiled','searchById',baseUrl,{path}]`, matched nothing else in the app.)
+    const scope = useTiledQueryScope({ baseUrl, initialPath: '' });
     const primaryQueries = useQueries({
         queries: blueskyRunIds.map((id) => ({
-            queryKey: ['tiled', 'searchById', baseUrl, { path: `${startPath}${id}/primary` }],
+            queryKey: tiledQueryKeys.search(scope, {
+                searchPath: `${startPath}${id}/primary`,
+                config: null,
+            }),
             queryFn: () =>
-                searchById({
-                    baseUrl,
-                    apiKey,
-                    path: `${startPath}${id}/primary`,
-                }),
+                getTiledSearch(`${startPath}${id}/primary`, undefined, { baseUrl, apiKey }),
             enabled: !!id?.trim(),
             retry: false,
         })),

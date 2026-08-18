@@ -1,7 +1,7 @@
 /**
  * The package types the hooks expose, re-exported from one place.
  *
- * Consumers should import these from `@/api/tiled_new` rather than reaching for
+ * Consumers should import these from `@/api/tiled` rather than reaching for
  * `@blueskyproject/tiled` directly, so that a future package rename or a locally widened type is a
  * single-file change. Nothing here redefines a package type — these are pure re-exports, with the
  * derived aliases in `packageAliases.ts` covering only what the package fails to export.

@@ -6,7 +6,7 @@
  *     TiledApiProvider,
  *     useTiledSearchBySpecsQuery,
  *     setDefaultTiledUrl,
- * } from '@/api/tiled_new';
+ * } from '@/api/tiled';
  * ```
  *
  * Three things live here:
@@ -18,8 +18,9 @@
  * 3. **Re-exports** of the package's own client, configuration functions and types, so nothing needs to
  *    import `@blueskyproject/tiled` directly.
  *
- * This folder replaces `src/api/tiled/hooks.ts`, which still exists and is still what the shipped
- * components use. Nothing here imports it, and the switch-over is a later commit.
+ * This folder replaced the hand-rolled hooks now parked in `src/api/tiled_archive/hooks.ts`, which
+ * nothing imports and which is excluded from the typecheck (it cannot compile against the current
+ * package). Every Finch component now reads Tiled through this layer.
  */
 
 // The hook layer
@@ -65,6 +66,34 @@ export {
     setGlobalMaxArrayBytes as setGlobalTiledMaxArrayBytes,
     setGlobalApiKey,
     setGlobalMaxArrayBytes,
+} from '@blueskyproject/tiled';
+
+/**
+ * The package's own request functions, for call sites that are not React components.
+ *
+ * Inside a component prefer the hooks: these are hard-wired to the default client, so they ignore
+ * `TiledApiProvider` and take no part in the query cache. They are the right tool in a `useEffect`, an
+ * event handler, a `useQueries` map, or a plain module function.
+ */
+export {
+    getTiledSearch,
+    getTiledSearchBySpecs,
+    getTiledSearchByFullText,
+    getTiledSearchByMetadataEquals,
+    getTiledSearchByStructureFamily,
+    getTiledMetadata,
+    getTiledServerInfo,
+    getTiledArrayAs,
+    getTiledArrayAsJSON,
+    getTiledArrayAsPng,
+    getTiledArrayAsBuffer,
+    getTiledArrayAsImagePath,
+    getTiledTableAs,
+    getTiledTablePartitionAsJSON,
+    getTiledTablePartitionAsJSONSequence,
+    getTiledTableFullAsJSON,
+    getTiledTableFullAsJSONSequence,
+    loginWithDefaultTiledClient,
 } from '@blueskyproject/tiled';
 
 /** Structure-family narrowing for a `TiledSearchItem`, straight from the package. */

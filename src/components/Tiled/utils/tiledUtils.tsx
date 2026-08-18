@@ -1,5 +1,4 @@
-import { TiledItemLinks } from '@blueskyproject/tiled';
-import { getBlueskyPlanMetadata } from '@blueskyproject/tiled';
+import { getTiledMetadata, type TiledItemLinks } from '@/api/tiled';
 
 /**
  * Extracts the Tiled node path from a `TiledItemLinks` object.
@@ -31,7 +30,9 @@ export const getPathFromLinks = (links: TiledItemLinks) => {
 export const checkRunCompletion = async (path: string, url?: string): Promise<boolean> => {
     try {
         console.log(`[tiledUtils] Checking run completion for path: ${path}`);
-        const metadata = await getBlueskyPlanMetadata(path, url);
+        // `getTiledMetadata` resolves the item itself, where the retired `getBlueskyPlanMetadata`
+        // resolved a `{ data: item }` envelope — hence one fewer hop below.
+        const metadata = await getTiledMetadata(path, { baseUrl: url });
 
         // Safety check: if metadata is falsy, don't proceed
         if (!metadata) {
@@ -41,8 +42,8 @@ export const checkRunCompletion = async (path: string, url?: string): Promise<bo
 
         console.log(`[tiledUtils] Metadata result:`, metadata);
 
-        // Check if metadata has a 'stop' property at data.attributes.metadata.stop
-        const hasStop = metadata?.data?.attributes?.metadata?.stop !== undefined;
+        // Check if metadata has a 'stop' property at attributes.metadata.stop
+        const hasStop = metadata?.attributes?.metadata?.stop !== undefined;
 
         if (hasStop) {
             console.log(`[tiledUtils] Run is complete (found 'stop' in data.attributes.metadata)`);

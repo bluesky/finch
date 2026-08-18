@@ -97,7 +97,7 @@ jobs:
           npm run test:run -- src/testing/tests/QServerNewSockets.test.tsx
           npm run test:run -- src/testing/tests/QServerNewHooks.test.tsx
           echo "Running tiled query hook test suite..."
-          npm run test:run -- src/testing/tests/TiledNewHooks.test.tsx
+          npm run test:run -- src/testing/tests/TiledHooks.test.tsx
           echo "Running qserver sim test suites..."
           npm run test:run -- src/testing/tests/qserver-sim/status.test.ts
           npm run test:run -- src/testing/tests/qserver-sim/uids.test.ts

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import TiledWriterMultiScatterPlot from '@/components/Tiled/TiledWriterMultiScatterPlot';
-import { TiledSearchConfig, TiledSearchResult, getSearchResults } from '@blueskyproject/tiled';
+import { getTiledSearch, type TiledSearchConfig, type TiledSearchResult } from '@/api/tiled';
 import { Shuffle, Sliders, PaintBrush } from '@phosphor-icons/react';
 import { Tooltip } from 'react-tooltip';
 import { cn } from '@/lib/utils';
@@ -63,18 +63,21 @@ export default function TiledLinePlotMaker({
     useEffect(() => {
         const fetchData = async () => {
             //eventually uncomment this and get the key contains working once that's updated in tiled api
+            // The search path and the transport options are separate arguments now; filters and
+            // pagination are the two halves of the config.
             const searchConfig: TiledSearchConfig = {
-                options: {
+                searchOptions: {
                     sort: '-',
                 },
-                filters: {
+                searchFilters: {
                     specs: { include: ['BlueskyRun'], exclude: [] },
                 },
-                initialPath,
-                baseUrl: tiledBaseUrl,
             };
             try {
-                const results: TiledSearchResult | null = await getSearchResults(searchConfig);
+                const results: TiledSearchResult | null = await getTiledSearch('', searchConfig, {
+                    initialPath,
+                    baseUrl: tiledBaseUrl,
+                });
                 setSearchResults(results);
             } catch (error) {
                 console.error('Error fetching ExperimentHistory data:', error);

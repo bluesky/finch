@@ -3,7 +3,7 @@ import { useQueries } from '@tanstack/react-query';
 import PlotlyScatter from '../PlotlyScatter';
 import { PlotData } from 'plotly.js';
 
-import { getTableDataAsJson } from '@blueskyproject/tiled';
+import { getTiledTablePartitionAsJSON, tiledQueryKeys, useTiledQueryScope } from '@/api/tiled';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 
 type TiledMultiScatterPlotProps = {
@@ -41,10 +41,20 @@ export default function TiledMultiScatterPlot({
     traceNames,
     popupMessage,
 }: TiledMultiScatterPlotProps) {
+    // One query per path, so this cannot use the table hook — but it uses the same key factory and
+    // the same request function, so its entries sit alongside the hooks' in the cache and are
+    // refreshed by the same `['tiled','table']` invalidation.
+    const scope = useTiledQueryScope({ baseUrl: tiledBaseUrl });
     const results = useQueries({
         queries: paths.map((path) => ({
-            queryKey: ['tiled', 'table', path ?? ''],
-            queryFn: () => getTableDataAsJson(path!, partition, tiledBaseUrl),
+            queryKey: tiledQueryKeys.table(scope, {
+                tablePath: path ?? '',
+                type: 'JSON' as const,
+                endpoint: 'partition' as const,
+                options: { partition },
+            }),
+            queryFn: () =>
+                getTiledTablePartitionAsJSON(path ?? '', { partition, baseUrl: tiledBaseUrl }),
             enabled: path !== null,
         })),
     });

@@ -1,4 +1,4 @@
-# SKILLS — working in `src/api/tiled_new`
+# SKILLS — working in `src/api/tiled`
 
 Terse map for anyone (human or agent) changing this folder. Prose docs are in `README.md`.
 
@@ -98,23 +98,37 @@ one, so a hook that never reaches the barrel fails CI.
   the package's own singleton, which would defeat `TiledApiProvider`.
 - **`getArrayAsImagePath` is synchronous.** It is a `useMemo` helper, not a query, and it cannot fetch
   structure for downsampling — the caller must pass `structure` or `arrayItem`.
-- **Do not touch `src/api/tiled`, `src/components/**`or`src/features/**`** until the switch-over.
-- **The repo's `tsc` is red** for reasons unrelated to this folder: bumping the package to 0.0.33
-  removed the exports the legacy tiled code used (56 errors in 11 files). Verify changes here with
-  `npx tsc --noEmit | grep tiled_new` — it must stay empty — and keep the total at 56.
+- **`src/api/tiled_archive` is excluded from `tsconfig.json`.** It is the retired hook layer, kept for
+  reference; it cannot compile against 0.0.33. Nothing imports it — do not add an import.
 
-## Switch-over notes (later commit)
+## The retired layer (`src/api/tiled_archive`)
 
-- `src/index.ts` currently has `export * as TiledHooks from './api/tiled_new';`. Flatten it to named
-  exports once `./api/tiled/hooks` is gone; six names collide until then.
-- Legacy call sites to repoint: `ExperimentXASScan.tsx`, `ExperimentXASAlignment.tsx`,
-  `useTiledWriterScatterPlot.ts` (all `useTiledSearchResultsQuery` / `useTiledSearchByIdQuery`), plus
-  the components that call the package directly (`ExperimentHistory.tsx`, `TiledLinePlotMaker.tsx`,
-  `TiledScatterPlot.tsx`, `TiledMultiScatterPlot.tsx`, `tiledUtils.tsx`,
-  `useTiledWriterMultiScatterPlot.ts`) and the `Tiled` namespace object in `src/index.ts`.
-- Legacy `useTiledSearchByIdQuery` swallowed a 404 into `null`. The equivalent here is
-  `useTiledSearchQuery(path, config, {}, { retry: false })` plus reading `.error` — TanStack already
-  models the failure, so do not reintroduce the swallow.
-- `useTiledWriterMultiScatterPlot.ts` hand-builds `['tiled','searchById',baseUrl,{path}]`. That key does
-  not exist in this layer; move it onto `useTiledSearchQuery` (or `tiledQueryKeys.search`) at the same
-  time.
+The old hooks were replaced one-for-one; this is the map, for anyone reading a git blame or an app
+still on an older Finch.
+
+| retired hook                             | replacement                                                                  |
+| ---------------------------------------- | ---------------------------------------------------------------------------- |
+| `useTiledSearchResultsQuery(config)`     | `useTiledSearchQuery(path, { searchFilters, searchOptions })`                |
+| `useTiledSearchByIdQuery({ path })`      | `useTiledSearchQuery(path, undefined, {}, { retry: false })`                 |
+| `useTiledSearchBySpecsQuery(include, …)` | `useTiledSearchBySpecsQuery(path, { include, exclude })`                     |
+| `useTiledSearchByFulltextQuery(text, …)` | `useTiledSearchByFullTextQuery(path, { text })`                              |
+| `useTiledItemMetadataQuery(path)`        | `useTiledMetadataQuery(path)`                                                |
+| `useTiledBlueskyPlanMetadataQuery(path)` | `useTiledMetadataQuery(path)` — resolves the item, not a `{ data }` envelope |
+| `useTiledTableDataAsJsonQuery(path, n)`  | `useTiledTablePartitionAsJSONQuery(path, { partition: n })`                  |
+| `useTiledTableDataAsSequenceQuery(p, n)` | `useTiledTablePartitionAsJSONSequenceQuery(p, { partition: n })`             |
+| `useTiledXArrayDataQuery(path, stack)`   | `useTiledArrayAsJSONQuery(path, { stack })`                                  |
+| `useTiledStructuredArrayDataQuery`       | `useTiledArrayAsJSONQuery` — the package has no structured-array read        |
+| `useTiledServerInfoQuery()`              | `useTiledServerInfoQuery()` — same name, now takes request options           |
+
+Two behaviour changes worth knowing when reading old call sites:
+
+- **The retired `searchById` swallowed a 404 into `data: null`.** The replacement lets it surface as
+  `isError`, so a call site testing `!!data` should test the status instead. That is what
+  `useTiledWriterScatterPlot.ts` now does — see `runQuery.isSuccess` / `directQuery.isError` there.
+  Do not reintroduce the swallow; TanStack already models the failure.
+- **`useTiledWriterMultiScatterPlot.ts` used to hand-build `['tiled','searchById',baseUrl,{path}]`**, a
+  key nothing else matched. It now builds keys with `tiledQueryKeys.search`, so its `useQueries`
+  entries live in the same namespace as the hooks' and are refreshed by the same invalidation. The two
+  `useQueries` call sites (that one and `TiledMultiScatterPlot.tsx`) are the only places that legitimately
+  bypass the hooks — one query per item cannot be a hook call. Both use the key factory and the
+  package's request functions, so they stay consistent with the cache.
