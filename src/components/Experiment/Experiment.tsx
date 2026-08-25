@@ -278,6 +278,9 @@ export default function Experiment({
                                         plan={selectedPlan}
                                         allowedDevices={allowedDevices}
                                         onChange={handleFormChange}
+                                        // The inputs default to fractional widths sized for the wide
+                                        // QServer panel; this column is 24rem, so give them all of it.
+                                        classNameInput="w-full max-w-full min-w-0"
                                     />
                                 )}
 

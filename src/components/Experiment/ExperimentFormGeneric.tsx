@@ -34,6 +34,12 @@ type ExperimentFormGenericProps = {
     globalMetadata?: GlobalMetadata;
     /** Additional CSS class names applied to the field container. */
     className?: string;
+    /**
+     * Additional CSS class names applied to the input widgets themselves. The default is a
+     * fractional width that fits the wide QServer panel; a caller can override it to make the inputs
+     * fill a narrower column.
+     */
+    classNameInput?: string;
 };
 
 /**
@@ -53,6 +59,7 @@ export default function ExperimentFormGeneric({
     onChange,
     globalMetadata,
     className,
+    classNameInput,
 }: ExperimentFormGenericProps) {
     const [parameters, setParameters] = useState<ParameterInputDict | null>(null);
     // Flipping this tells the text and dictionary inputs to drop their internal draft state.
@@ -134,6 +141,7 @@ export default function ExperimentFormGeneric({
                         copiedPlan={null}
                         isGlobalMetadataChecked={Boolean(globalMetadata)}
                         globalMetadata={globalMetadata ?? NO_GLOBAL_METADATA}
+                        className={classNameInput}
                     />
                 );
             })}

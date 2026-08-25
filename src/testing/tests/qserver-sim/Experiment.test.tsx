@@ -171,7 +171,8 @@ describe('Experiment against the simulator', () => {
         });
     });
 
-    it('treats a half-typed number as no value at all', async () => {
+    it('treats a half-typed number as no value at all, and keeps it on screen', async () => {
+        const warn = vi.spyOn(console, 'error').mockImplementation(() => {});
         const sim = defaultQServer();
         renderExperiment(sim);
 
@@ -187,10 +188,69 @@ describe('Experiment against the simulator', () => {
         await pickDevice('motor (required)', 'motor1');
         await userEvent.type(fieldInput('start (required)'), '1');
         // A lone minus sign parses to NaN, which must not pass as a value — nor be sent as JSON null.
-        await userEvent.type(fieldInput('stop (required)'), '-');
+        const stop = fieldInput('stop (required)');
+        await userEvent.type(stop, '-');
 
         const execute = await screen.findByRole('button', { name: /Execute scan Plan/i });
         await waitFor(() => expect(execute).toBeDisabled());
+
+        // The draft stays exactly as typed. It used to be replaced by the literal text `NaN`, because
+        // the parsed value echoed back through the `value` prop.
+        expect(stop).toHaveValue('-');
+        expect(warn).not.toHaveBeenCalledWith(
+            expect.stringContaining('Received NaN for the `value` attribute'),
+            expect.anything(),
+            expect.anything(),
+        );
+
+        // Finishing the number resolves it, and the parsed value is what gets sent.
+        await userEvent.type(stop, '5');
+        expect(stop).toHaveValue('-5');
+        await waitFor(() => expect(execute).toBeEnabled());
+        await userEvent.click(execute);
+        await waitFor(() => expect(sim.getState().running?.item.kwargs?.stop).toBe(-5));
+    });
+
+    it('keeps a trailing decimal point while it is being typed', async () => {
+        const sim = defaultQServer();
+        renderExperiment(sim);
+
+        await waitFor(() =>
+            expect(
+                within(screen.getByLabelText('Plan:')).getByRole('option', { name: 'scan' }),
+            ).toBeInTheDocument(),
+        );
+        await userEvent.selectOptions(screen.getByLabelText('Plan:'), 'scan');
+        await waitFor(() => expect(screen.getByText('start (required)')).toBeInTheDocument());
+
+        // `1.` parses to 1, so the field and the stored value legitimately disagree while typing.
+        // Guards the draft against being rewritten into its parsed form.
+        const start = fieldInput('start (required)');
+        await userEvent.type(start, '1.');
+        expect(start).toHaveValue('1.');
+        await userEvent.type(start, '5');
+        expect(start).toHaveValue('1.5');
+    });
+
+    it("lets a caller override each input's own width, not just append to it", async () => {
+        const sim = defaultQServer();
+        renderExperiment(sim);
+
+        // `Experiment` passes `inputClassName="w-full max-w-full min-w-0"`. tailwind-merge has to drop
+        // the inputs' own `w-5/12` / `max-w-48` rather than emit both, which CSS would resolve by
+        // source order — i.e. arbitrarily.
+        const detectorsField = (await screen.findByText('detectors (required)')).closest(
+            'div',
+        ) as HTMLElement;
+        expect(detectorsField.className).toContain('w-full');
+        expect(detectorsField.className).not.toMatch(/\bw-5\/12\b/);
+        expect(detectorsField.className).not.toMatch(/\bmax-w-96\b/);
+        // Classes it does not conflict with survive.
+        expect(detectorsField.className).toContain('border-slate-300');
+
+        const numField = screen.getByText('num (optional)').closest('div') as HTMLElement;
+        expect(numField.className).toContain('w-full');
+        expect(numField.className).not.toMatch(/\bmax-w-48\b/);
     });
 
     it('plots seq_num against time by default, and follows the axis inputs', async () => {
