@@ -1,5 +1,9 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
+import {
+    invalidateRoots,
+    resolveInvalidationRoots as resolveRoots,
+} from '@/api/shared/invalidation';
 import { QSERVER_QUERY_ROOT, qServerQueryRoots, type QServerQueryRootName } from './queryKeys';
 
 /**
@@ -109,11 +113,7 @@ export type QServerMutationHookName = keyof typeof QSERVER_MUTATION_INVALIDATION
 export function resolveInvalidationRoots(
     bundles: readonly QServerInvalidationBundleName[],
 ): QServerQueryRootName[] {
-    const roots = new Set<QServerQueryRootName>();
-    for (const bundle of bundles) {
-        for (const root of QSERVER_INVALIDATION_BUNDLES[bundle]) roots.add(root);
-    }
-    return [...roots];
+    return resolveRoots(bundles, QSERVER_INVALIDATION_BUNDLES);
 }
 
 /**
@@ -126,9 +126,7 @@ export function invalidateQServerRoots(
     queryClient: QueryClient,
     roots: readonly QServerQueryRootName[],
 ): Promise<void> {
-    return Promise.all(
-        roots.map((root) => queryClient.invalidateQueries({ queryKey: qServerQueryRoots[root] })),
-    ).then(() => undefined);
+    return invalidateRoots(queryClient, roots, qServerQueryRoots);
 }
 
 /**

@@ -44,18 +44,18 @@ export interface TiledLoginVariables {
  * Credentials are deliberately not part of any query key, which is why this has to be handled by
  * invalidating rather than by re-keying.
  *
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ username, password, url?, provider? })`.
  * `onSuccess` runs after every Tiled query has been refreshed.
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledLoginMutation<TContext = unknown>(
-    requestOptions: TiledRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         TiledLoginTokens | null,
         TiledLoginVariables,
         TContext,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseMutationResult<TiledLoginTokens | null, TiledHookError, TiledLoginVariables, TContext> {
     return useTiledMutation({
         perform: (client, { username, password, url, provider }) =>

@@ -25,16 +25,16 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * The current user-group permissions: allow/forbid lists of regular expressions per group.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetPermissionsQuery<TData = GetPermissionsResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         GetPermissionsResponse,
         TData,
         QServerQueryKeyFor<'permissions'>
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -49,12 +49,12 @@ export function useQueueGetPermissionsQuery<TData = GetPermissionsResponse>(
 /**
  * Replace the user-group permissions wholesale.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ user_group_permissions })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueSetPermissionsMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<PermissionsResponse, SetPermissionsBody, TContext> = {},
+    mutationOptions?: FinchMutationOptions<PermissionsResponse, SetPermissionsBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PermissionsResponse, QServerHookError, SetPermissionsBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setPermissions(body, request),
@@ -67,17 +67,17 @@ export function useQueueSetPermissionsMutation<TContext = unknown>(
 /**
  * Reload permissions from disk, optionally restoring the plan and device lists as well.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate()` or
  * `mutate({ restore_plans_devices, restore_permissions })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueReloadPermissionsMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         PermissionsResponse,
         ReloadPermissionsBody | void,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<
     PermissionsResponse,
     QServerHookError,

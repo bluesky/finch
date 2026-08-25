@@ -83,17 +83,9 @@ export default function ExperimentFormGeneric({
         () => (parameters ? hasEveryRequiredValue(parameters) : false),
         [parameters],
     );
-    console.log('ExperimentFormGeneric: kwargs', kwargs, 'isComplete', isComplete);
-
     // Report upward after render rather than from inside the input callbacks, so the parent always
     // sees the committed state and never a half-applied edit.
     useEffect(() => {
-        console.log(
-            'ExperimentFormGeneric: calling onChange with kwargs',
-            kwargs,
-            'isComplete',
-            isComplete,
-        );
         onChange(kwargs, isComplete);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [kwargs, isComplete]);
@@ -159,7 +151,6 @@ function initializeParameters(plan: Plan): ParameterInputDict {
             required: isParameterRequired(parameter),
         };
     }
-    console.log('initializeParameters: plan', plan.name, 'fields', fields);
     return fields;
 }
 

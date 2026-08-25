@@ -40,8 +40,9 @@ export default function TiledScatterPlot({
     // An empty path holds the query idle, which is what the "waiting for data" state below reports.
     const { data, isLoading, error } = useTiledTablePartitionAsJSONQuery(
         path ?? '',
-        { partition, baseUrl: tiledBaseUrl },
+        { partition },
         { refetchInterval: enablePolling ? pollingIntervalMs : false },
+        { baseUrl: tiledBaseUrl },
     );
 
     // Determine status text based on current state

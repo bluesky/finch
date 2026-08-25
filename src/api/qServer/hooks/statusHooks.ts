@@ -11,12 +11,12 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * Liveness check. Returns the same payload as `useQueueGetStatusQuery`.
  *
- * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `headers`, `signal`, `axiosConfig`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `headers`, `signal`, `axiosConfig`.
  */
 export function useQueuePingQuery<TData = PingResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'ping'>> = {},
+    queryOptions?: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'ping'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -31,12 +31,12 @@ export function useQueuePingQuery<TData = PingResponse>(
 /**
  * `GET /api/` — identical payload to `useQueuePingQuery`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetRootQuery<TData = PingResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'root'>> = {},
+    queryOptions?: FinchQueryOptions<PingResponse, TData, QServerQueryKeyFor<'root'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -54,12 +54,12 @@ export function useQueueGetRootQuery<TData = PingResponse>(
  * The usual way to keep a UI live is `{ refetchInterval: 1000 }` in `queryOptions`; for push updates
  * instead, see `useQServerStatusSocket`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetStatusQuery<TData = GetStatusResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<GetStatusResponse, TData, QServerQueryKeyFor<'status'>> = {},
+    queryOptions?: FinchQueryOptions<GetStatusResponse, TData, QServerQueryKeyFor<'status'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -77,12 +77,12 @@ export function useQueueGetStatusQuery<TData = GetStatusResponse>(
  * Not part of `QServerClientLike`, so this rejects with `QServerEndpointUnavailableError` when a
  * partial client (such as the simulator's) is injected through `QServerApiProvider`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetConfigQuery<TData = GetConfigResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<GetConfigResponse, TData, QServerQueryKeyFor<'config'>> = {},
+    queryOptions?: FinchQueryOptions<GetConfigResponse, TData, QServerQueryKeyFor<'config'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 

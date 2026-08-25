@@ -1,4 +1,5 @@
 import type { UseQueryResult } from '@tanstack/react-query';
+import { requireArg } from '@/api/shared/errors';
 import type { GetWithBodyOptions } from '../types/common';
 import type { GetTaskResultResponse, GetTaskStatusResponse, TaskBody } from '../types/tasks';
 import { useQServerQuery } from './internal/useQServerQuery';
@@ -24,23 +25,28 @@ import { useQServerQueryScope } from './useQServerClient';
  *
  * @param body **Required.** `{ task_uid }`, as returned by the mutation that started the task. Part
  * of the query key; pass `undefined` to hold the query idle until you have one.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetTaskStatusQuery<TData = GetTaskStatusResponse>(
     body: TaskBody | undefined,
-    requestOptions: GetWithBodyOptions<GetTaskStatusResponse> = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         GetTaskStatusResponse,
         TData,
         QServerQueryKeyFor<'taskStatus'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetTaskStatusResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.taskStatus(scope, body),
-        fetch: (client, request) => client.getTaskStatus(body as TaskBody, request),
+        // `requireArg` rather than a cast, so a caller who forces `enabled: true` past the guard
+        // below gets a named error in `error` instead of a request with `undefined` in it. Note the
+        // guard is the stricter of the two: `{ task_uid: '' }` passes here and 422s at the server,
+        // which is a legible enough failure not to warrant validating fields in the hook layer.
+        fetch: (client, request) =>
+            client.getTaskStatus(requireArg(body, 'useQueueGetTaskStatusQuery', 'body'), request),
         requestOptions,
         queryOptions,
         defaults: { retry: false },
@@ -53,23 +59,24 @@ export function useQueueGetTaskStatusQuery<TData = GetTaskStatusResponse>(
  *
  * @param body **Required.** `{ task_uid }`, as returned by the mutation that started the task. Part
  * of the query key; pass `undefined` to hold the query idle until you have one.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetTaskResultQuery<TData = GetTaskResultResponse>(
     body: TaskBody | undefined,
-    requestOptions: GetWithBodyOptions<GetTaskResultResponse> = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         GetTaskResultResponse,
         TData,
         QServerQueryKeyFor<'taskResult'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetTaskResultResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.taskResult(scope, body),
-        fetch: (client, request) => client.getTaskResult(body as TaskBody, request),
+        fetch: (client, request) =>
+            client.getTaskResult(requireArg(body, 'useQueueGetTaskResultQuery', 'body'), request),
         requestOptions,
         queryOptions,
         defaults: { retry: false },

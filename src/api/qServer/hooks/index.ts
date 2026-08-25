@@ -4,20 +4,24 @@
  * ```tsx
  * import { useQueueGetQuery, useQueueAddItemMutation } from '@/api/qServer';
  *
- * const queue = useQueueGetQuery({}, { refetchInterval: 1000 });
+ * const queue = useQueueGetQuery({ refetchInterval: 1000 });
  * const add = useQueueAddItemMutation();
  * add.mutate({ item: { name: 'count', item_type: 'plan' } });
  * ```
  *
  * Arguments are positional and always in the same order: the endpoint's own argument (when it has
- * one), then `requestOptions`, then `queryOptions` / `mutationOptions`. Names mirror the client
- * methods under a `useQueue` prefix (`getStatus` → `useQueueGetStatusQuery`). See `../README.md` for
- * the full contract.
+ * one), then `queryOptions` / `mutationOptions`, then `requestOptions` — transport last, because it is
+ * the rarest thing to pass. Names mirror the client methods under a `useQueue` prefix
+ * (`getStatus` → `useQueueGetStatusQuery`). See `../README.md` for the full contract, and
+ * `@/api/shared/queryOptions` for the cross-backend convention the Tiled hooks share.
  */
 
 // Shared types and errors
 export type { FinchMutationOptions, FinchQueryOptions, QServerHookError } from './types';
 export { QServerEndpointUnavailableError, isQServerEndpointUnavailableError } from './errors';
+// Raised by the hooks whose argument is positionally required, when a caller forces `enabled: true`
+// past the idle guard. Shared across backends, so it is exported from both.
+export { FinchMissingArgumentError, isFinchMissingArgumentError } from '@/api/shared/errors';
 
 // Client resolution
 export {

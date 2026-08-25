@@ -230,10 +230,12 @@ describe('query keys', () => {
         renderHook(
             () => {
                 tiled.useTiledSearchQuery('e');
-                tiled.useTiledSearchQuery('e', undefined, { baseUrl: 'http://other:8000/api/v1' });
-                tiled.useTiledSearchQuery('e', undefined, { initialPath: 'beamline' });
+                tiled.useTiledSearchQuery('e', undefined, undefined, {
+                    baseUrl: 'http://other:8000/api/v1',
+                });
+                tiled.useTiledSearchQuery('e', undefined, undefined, { initialPath: 'beamline' });
                 // Same as the first: an absolute request ignores the prefix, so the scope matches.
-                tiled.useTiledSearchQuery('e', undefined, {
+                tiled.useTiledSearchQuery('e', undefined, undefined, {
                     initialPath: 'beamline',
                     pathMode: 'absolute',
                 });
@@ -255,15 +257,16 @@ describe('query keys', () => {
         const { client, calls } = makeStub();
         const { wrapper, queryClient } = makeWrapper({ injected: client });
 
-        // Fresh options object, fresh AbortSignal and a fresh structure on every render — none of
-        // which changes the request. A raw options object in the key would refetch forever.
+        // Fresh objects, a fresh AbortSignal and a fresh structure on every render — none of which
+        // changes the request. Keying on either options object as-is would refetch forever.
         const { rerender } = renderHook(
             () =>
-                tiled.useTiledArrayAsJSONQuery('scan/detector', {
-                    stack: [0],
-                    signal: new AbortController().signal,
-                    structure: { shape: [10, 10] } as never,
-                }),
+                tiled.useTiledArrayAsJSONQuery(
+                    'scan/detector',
+                    { stack: [0], structure: { shape: [10, 10] } as never },
+                    {},
+                    { signal: new AbortController().signal },
+                ),
             { wrapper },
         );
 
@@ -354,7 +357,7 @@ describe('client resolution', () => {
         const { wrapper } = makeWrapper({ injected: client });
 
         const { result } = renderHook(
-            () => tiled.useTiledSearchQuery('', undefined, { apiKey: null }),
+            () => tiled.useTiledSearchQuery('', undefined, undefined, { apiKey: null }),
             { wrapper },
         );
         await waitFor(() => expect(result.current.data).toBeDefined());
@@ -451,7 +454,7 @@ describe('enabled guards', () => {
         const { client, calls } = makeStub();
         const { wrapper } = makeWrapper({ injected: client });
 
-        renderHook(() => tiled.useTiledMetadataQuery('', {}, { enabled: undefined }), { wrapper });
+        renderHook(() => tiled.useTiledMetadataQuery('', { enabled: undefined }), { wrapper });
 
         await new Promise((resolve) => setTimeout(resolve, 20));
         expect(calls).toHaveLength(0);
@@ -461,7 +464,7 @@ describe('enabled guards', () => {
         const { client, calls } = makeStub();
         const { wrapper } = makeWrapper({ injected: client });
 
-        renderHook(() => tiled.useTiledMetadataQuery('scan/detector', {}, { enabled: false }), {
+        renderHook(() => tiled.useTiledMetadataQuery('scan/detector', { enabled: false }), {
             wrapper,
         });
 
@@ -501,9 +504,13 @@ describe('cancellation', () => {
         const controller = new AbortController();
         const { wrapper } = makeWrapper({ injected: client });
 
-        renderHook(() => tiled.useTiledSearchQuery('', undefined, { signal: controller.signal }), {
-            wrapper,
-        });
+        renderHook(
+            () =>
+                tiled.useTiledSearchQuery('', undefined, undefined, { signal: controller.signal }),
+            {
+                wrapper,
+            },
+        );
 
         await waitFor(() => expect(captured).toBeDefined());
         controller.abort();
@@ -548,10 +555,12 @@ describe('the image-path helper', () => {
 
         const { rerender } = renderHook(
             () =>
-                tiled.useTiledArrayImagePath('scan/detector', {
-                    stack: [2],
-                    signal: new AbortController().signal,
-                }),
+                tiled.useTiledArrayImagePath(
+                    'scan/detector',
+                    { stack: [2] },
+                    // A fresh signal every render must not recompute: there is no request to abort.
+                    { signal: new AbortController().signal },
+                ),
             { wrapper },
         );
 
@@ -559,6 +568,39 @@ describe('the image-path helper', () => {
         rerender();
 
         expect(calls.filter((call) => call.method === 'getArrayAsImagePath')).toHaveLength(1);
+    });
+
+    /**
+     * A per-call `baseUrl` reaches the client, and does so from the third slot.
+     *
+     * The helper is not a query, so it has no `queryOptions` slot — its transport is slot three where
+     * every query's is slot four. Worth pinning: the memo has to depend on the transport scalars
+     * explicitly, because `requestOptions` cannot be `JSON.stringify`d (it may hold a client
+     * instance).
+     */
+    it('rebuilds when a per-call transport override changes', () => {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper({ injected: client });
+
+        const { rerender } = renderHook(
+            ({ baseUrl }: { baseUrl: string }) =>
+                tiled.useTiledArrayImagePath('scan/detector', { stack: [2] }, { baseUrl }),
+            { wrapper, initialProps: { baseUrl: 'http://a:8000/api/v1' } },
+        );
+
+        // `args[1]` is the recombined options object the hook hands the client.
+        const overrides = () =>
+            calls
+                .filter((call) => call.method === 'getArrayAsImagePath')
+                .map((call) => call.args[1] as { baseUrl?: string; stack?: number[] });
+
+        expect(overrides()).toHaveLength(1);
+        expect(overrides()[0]).toMatchObject({ baseUrl: 'http://a:8000/api/v1', stack: [2] });
+
+        rerender({ baseUrl: 'http://b:8000/api/v1' });
+        expect(overrides()).toHaveLength(2);
+        // Both halves arrive together, from two separate slots.
+        expect(overrides()[1]).toMatchObject({ baseUrl: 'http://b:8000/api/v1', stack: [2] });
     });
 });
 

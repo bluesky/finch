@@ -19,18 +19,18 @@ import { useTiledQueryScope } from './useTiledClient';
  * Effectively static for the lifetime of a server, so a long `staleTime` is appropriate; this hook does
  * not set one, because "how long is a deployment" is the caller's call.
  *
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `signal`. A `baseUrl` here is the
  * usual way to probe a server the app is not otherwise configured for.
- * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  */
 export function useTiledServerInfoQuery<TData = TiledInfoResponse | null>(
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         TiledInfoResponse | null,
         TData,
         TiledQueryKeyFor<'serverInfo'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     const scope = useTiledQueryScope(requestOptions);
 

@@ -8,14 +8,18 @@
  * const item = useTiledMetadataQuery(selectedPath ?? '');
  * ```
  *
- * Arguments are positional and always in the same order: the endpoint's own arguments, then request
- * options, then TanStack options. The array and table hooks merge the first two, because the package's
- * own option types do. See `../README.md` for the full contract.
+ * Arguments are positional and always in the same order: the endpoint's own arguments, then TanStack
+ * options, then `requestOptions` — transport last, because it is the rarest thing to pass. The array
+ * and table hooks carry an extra endpoint slot (`arrayOptions` / `tableOptions`), since the package's
+ * own option types merge endpoint parameters with transport and these do not. See `../README.md` for
+ * the full contract, and `@/api/shared/queryOptions` for the cross-backend convention.
  */
 
 // Shared types and errors
 export type { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 export { TiledEndpointUnavailableError, isTiledEndpointUnavailableError } from './errors';
+// Shared across backends; no Tiled hook raises it today, but it is part of the common surface.
+export { FinchMissingArgumentError, isFinchMissingArgumentError } from '@/api/shared/errors';
 
 // Client resolution
 export { useTiledClient, useTiledQueryScope } from './useTiledClient';

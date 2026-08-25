@@ -164,8 +164,8 @@ export default function Experiment({
                     : {}),
             },
         },
-        { baseUrl: tiledBaseUrl, initialPath: tiledInitialPath },
         { refetchInterval: 5000, enabled: Boolean(selectedPlanName) && viewMode === 'form' },
+        { baseUrl: tiledBaseUrl, initialPath: tiledInitialPath },
     );
 
     useEffect(() => {

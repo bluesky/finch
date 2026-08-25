@@ -1,10 +1,12 @@
 import type { UseQueryResult } from '@tanstack/react-query';
+import type { TiledRequestOptions } from '../types/common';
 import type {
     TiledTableEndpoint,
+    TiledTableEndpointOptionsMap,
     TiledTableJSONData,
+    TiledTableJSONEndpointOptions,
     TiledTableJSONSequenceData,
-    TiledTableJSONOptions,
-    TiledTableJSONSequenceOptions,
+    TiledTableJSONSequenceEndpointOptions,
     TiledTableOptionsMap,
     TiledTableReturnMap,
     TiledTableReturnType,
@@ -26,9 +28,9 @@ import { useTiledQueryScope } from './useTiledClient';
  * - **endpoint** — `partition` reads one partition (Tiled partitions are 0-based, and the default is
  *   `0`), `full` reads them all. Prefer `partition` for a growing table you are polling.
  *
- * Like the array hooks, these take one combined options object (the package's
- * `TiledTableRequestOptions` extends `TiledRequestOptions`), and only `partition` and `format` take
- * part in the query key — `structure` / `tableItem` are round-trip optimizations, not part of the
+ * Like the array hooks, these take a `tableOptions` slot for the endpoint's own parameters, separate
+ * from `requestOptions` — the package merges the two, the hooks do not. Only `partition` and `format`
+ * take part in the query key; `structure` / `tableItem` are round-trip optimizations, not part of the
  * request's identity.
  *
  * All of them stay idle while `tablePath` is empty.
@@ -43,8 +45,10 @@ import { useTiledQueryScope } from './useTiledClient';
  * @param tablePath **Required.** Tiled path to the table. Idle while empty.
  * @param type `'JSON'` (column-oriented) or `'JSON_SEQ'` (row-oriented). Part of the query key.
  * @param endpoint `'partition'` or `'full'`. Part of the query key.
- * @param options Table and transport options: `partition`, `structure`, `baseUrl`, `apiKey`, `signal`, …
+ * @param tableOptions Table parameters: `partition`, `structure`, `tableItem`, `format`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides for this call only: `baseUrl`, `apiKey`, `initialPath`,
+ * `pathMode`, `signal`, `client`.
  */
 export function useTiledTableAsQuery<
     T extends TiledTableReturnType,
@@ -53,28 +57,31 @@ export function useTiledTableAsQuery<
     tablePath: string,
     type: T,
     endpoint: TiledTableEndpoint,
-    options: TiledTableOptionsMap[T] = {} as TiledTableOptionsMap[T],
-    queryOptions: FinchQueryOptions<
+    tableOptions?: TiledTableEndpointOptionsMap[T],
+    queryOptions?: FinchQueryOptions<
         TiledTableReturnMap[T],
         TData,
         TiledQueryKeyFor<'table'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    const scope = useTiledQueryScope(options);
+    const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.table(scope, {
             tablePath,
             type,
             endpoint,
-            options: tableKeyParts(options),
+            options: tableKeyParts(tableOptions),
         }),
+        // The cast is unavoidable here and only here — see the note on `useTiledArrayAsQuery`.
         fetch: (client, request) =>
-            client.getTableAs<T>(tablePath, type, endpoint, request) as Promise<
-                TiledTableReturnMap[T]
-            >,
-        requestOptions: options,
+            client.getTableAs<T>(tablePath, type, endpoint, {
+                ...tableOptions,
+                ...request,
+            } as TiledTableOptionsMap[T]) as Promise<TiledTableReturnMap[T]>,
+        requestOptions,
         queryOptions,
         defaultEnabled: tablePath.length > 0,
     });
@@ -84,30 +91,36 @@ export function useTiledTableAsQuery<
  * One partition of a table, column-oriented.
  *
  * @param tablePath **Required.** Tiled path to the table. Idle while empty.
- * @param options Table and transport options; `partition` defaults to `0`.
+ * @param tableOptions Table parameters; `partition` defaults to `0`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides for this call only: `baseUrl`, `apiKey`, `initialPath`,
+ * `pathMode`, `signal`, `client`.
  */
 export function useTiledTablePartitionAsJSONQuery<TData = TiledTableJSONData>(
     tablePath: string,
-    options: TiledTableJSONOptions = {},
-    queryOptions: FinchQueryOptions<
+    tableOptions?: TiledTableJSONEndpointOptions,
+    queryOptions?: FinchQueryOptions<
         TiledTableJSONData,
         TData,
         TiledQueryKeyFor<'table'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    const scope = useTiledQueryScope(options);
+    const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.table(scope, {
             tablePath,
             type: 'JSON',
             endpoint: 'partition',
-            options: tableKeyParts(options),
+            options: tableKeyParts(tableOptions),
         }),
-        fetch: (client, request) => client.getTablePartitionAsJSON(tablePath, request),
-        requestOptions: options,
+        // Transport spread last so the composed signal and any per-call `baseUrl` win. A collision is
+        // impossible anyway: `Omit` removed the transport keys from `tableOptions`.
+        fetch: (client, request) =>
+            client.getTablePartitionAsJSON(tablePath, { ...tableOptions, ...request }),
+        requestOptions,
         queryOptions,
         defaultEnabled: tablePath.length > 0,
     });
@@ -117,30 +130,34 @@ export function useTiledTablePartitionAsJSONQuery<TData = TiledTableJSONData>(
  * One partition of a table, row-oriented.
  *
  * @param tablePath **Required.** Tiled path to the table. Idle while empty.
- * @param options Table and transport options; `partition` defaults to `0`.
+ * @param tableOptions Table parameters; `partition` defaults to `0`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides for this call only: `baseUrl`, `apiKey`, `initialPath`,
+ * `pathMode`, `signal`, `client`.
  */
 export function useTiledTablePartitionAsJSONSequenceQuery<TData = TiledTableJSONSequenceData>(
     tablePath: string,
-    options: TiledTableJSONSequenceOptions = {},
-    queryOptions: FinchQueryOptions<
+    tableOptions?: TiledTableJSONSequenceEndpointOptions,
+    queryOptions?: FinchQueryOptions<
         TiledTableJSONSequenceData,
         TData,
         TiledQueryKeyFor<'table'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    const scope = useTiledQueryScope(options);
+    const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.table(scope, {
             tablePath,
             type: 'JSON_SEQ',
             endpoint: 'partition',
-            options: tableKeyParts(options),
+            options: tableKeyParts(tableOptions),
         }),
-        fetch: (client, request) => client.getTablePartitionAsJSONSequence(tablePath, request),
-        requestOptions: options,
+        fetch: (client, request) =>
+            client.getTablePartitionAsJSONSequence(tablePath, { ...tableOptions, ...request }),
+        requestOptions,
         queryOptions,
         defaultEnabled: tablePath.length > 0,
     });
@@ -150,30 +167,34 @@ export function useTiledTablePartitionAsJSONSequenceQuery<TData = TiledTableJSON
  * A whole table, every partition, column-oriented.
  *
  * @param tablePath **Required.** Tiled path to the table. Idle while empty.
- * @param options Table and transport options.
+ * @param tableOptions Table parameters. `partition` is ignored by this endpoint.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides for this call only: `baseUrl`, `apiKey`, `initialPath`,
+ * `pathMode`, `signal`, `client`.
  */
 export function useTiledTableFullAsJSONQuery<TData = TiledTableJSONData>(
     tablePath: string,
-    options: TiledTableJSONOptions = {},
-    queryOptions: FinchQueryOptions<
+    tableOptions?: TiledTableJSONEndpointOptions,
+    queryOptions?: FinchQueryOptions<
         TiledTableJSONData,
         TData,
         TiledQueryKeyFor<'table'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    const scope = useTiledQueryScope(options);
+    const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.table(scope, {
             tablePath,
             type: 'JSON',
             endpoint: 'full',
-            options: tableKeyParts(options),
+            options: tableKeyParts(tableOptions),
         }),
-        fetch: (client, request) => client.getTableFullAsJSON(tablePath, request),
-        requestOptions: options,
+        fetch: (client, request) =>
+            client.getTableFullAsJSON(tablePath, { ...tableOptions, ...request }),
+        requestOptions,
         queryOptions,
         defaultEnabled: tablePath.length > 0,
     });
@@ -183,30 +204,34 @@ export function useTiledTableFullAsJSONQuery<TData = TiledTableJSONData>(
  * A whole table, every partition, row-oriented.
  *
  * @param tablePath **Required.** Tiled path to the table. Idle while empty.
- * @param options Table and transport options.
+ * @param tableOptions Table parameters. `partition` is ignored by this endpoint.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides for this call only: `baseUrl`, `apiKey`, `initialPath`,
+ * `pathMode`, `signal`, `client`.
  */
 export function useTiledTableFullAsJSONSequenceQuery<TData = TiledTableJSONSequenceData>(
     tablePath: string,
-    options: TiledTableJSONSequenceOptions = {},
-    queryOptions: FinchQueryOptions<
+    tableOptions?: TiledTableJSONSequenceEndpointOptions,
+    queryOptions?: FinchQueryOptions<
         TiledTableJSONSequenceData,
         TData,
         TiledQueryKeyFor<'table'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    const scope = useTiledQueryScope(options);
+    const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.table(scope, {
             tablePath,
             type: 'JSON_SEQ',
             endpoint: 'full',
-            options: tableKeyParts(options),
+            options: tableKeyParts(tableOptions),
         }),
-        fetch: (client, request) => client.getTableFullAsJSONSequence(tablePath, request),
-        requestOptions: options,
+        fetch: (client, request) =>
+            client.getTableFullAsJSONSequence(tablePath, { ...tableOptions, ...request }),
+        requestOptions,
         queryOptions,
         defaultEnabled: tablePath.length > 0,
     });

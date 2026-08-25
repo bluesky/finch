@@ -19,9 +19,9 @@ export const useQueueServer = () => {
     const [apiStatus, setApiStatus] = useState<GetStatusResponse | null>(null);
 
     //poll every second to keep the UI updated
-    const queueQuery = useQueueGetQuery({}, { refetchInterval: 1000 });
-    const historyQuery = useQueueGetHistoryQuery({}, { refetchInterval: 1000 });
-    const statusQuery = useQueueGetStatusQuery({}, { refetchInterval: 1000 });
+    const queueQuery = useQueueGetQuery({ refetchInterval: 1000 });
+    const historyQuery = useQueueGetHistoryQuery({ refetchInterval: 1000 });
+    const statusQuery = useQueueGetStatusQuery({ refetchInterval: 1000 });
 
     const handleQueueDataResponse = (res: GetQueueResponse) => {
         try {

@@ -25,25 +25,25 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * The last `nlines` of console text as one string.
  *
- * @param payload `{ nlines }`. Part of the query key. Dropped by browsers, which cannot send a GET
+ * @param body `{ nlines }`. Part of the query key. Dropped by browsers, which cannot send a GET
  * body.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetConsoleOutputQuery<TData = GetConsoleOutputResponse>(
-    payload?: ConsoleOutputBody,
-    requestOptions: GetWithBodyOptions<GetConsoleOutputResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: ConsoleOutputBody,
+    queryOptions?: FinchQueryOptions<
         GetConsoleOutputResponse,
         TData,
         QServerQueryKeyFor<'consoleOutput'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetConsoleOutputResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.consoleOutput(scope, payload),
-        fetch: (client, request) => client.getConsoleOutput(payload, request),
+        queryKey: qServerQueryKeys.consoleOutput(scope, body),
+        fetch: (client, request) => client.getConsoleOutput(body, request),
         requestOptions,
         queryOptions,
     });
@@ -52,16 +52,16 @@ export function useQueueGetConsoleOutputQuery<TData = GetConsoleOutputResponse>(
 /**
  * Uid of the most recent console message — cheap to poll as a change detector.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetConsoleOutputUIDQuery<TData = GetConsoleOutputUidResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         GetConsoleOutputUidResponse,
         TData,
         QServerQueryKeyFor<'consoleOutputUid'>
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -80,24 +80,24 @@ export function useQueueGetConsoleOutputUIDQuery<TData = GetConsoleOutputUidResp
  * `getConsoleOutput` + `getConsoleOutputUID`, which cannot deliver incrementally — it returns the
  * current buffer as a single message. Use `useQServerConsoleSocket` for genuine live output.
  *
- * @param payload `{ last_msg_uid }`. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ last_msg_uid }`. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetConsoleOutputUpdateQuery<TData = GetConsoleOutputUpdateResponse>(
-    payload?: ConsoleOutputUpdateBody,
-    requestOptions: GetWithBodyOptions<GetConsoleOutputUpdateResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: ConsoleOutputUpdateBody,
+    queryOptions?: FinchQueryOptions<
         GetConsoleOutputUpdateResponse,
         TData,
         QServerQueryKeyFor<'consoleOutputUpdate'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetConsoleOutputUpdateResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.consoleOutputUpdate(scope, payload),
-        fetch: (client, request) => client.getConsoleOutputUpdate(payload, request),
+        queryKey: qServerQueryKeys.consoleOutputUpdate(scope, body),
+        fetch: (client, request) => client.getConsoleOutputUpdate(body, request),
         requestOptions,
         queryOptions,
     });
@@ -116,13 +116,13 @@ export function useQueueGetConsoleOutputUpdateQuery<TData = GetConsoleOutputUpda
  * Not in `QServerClientLike`, so it rejects with `QServerEndpointUnavailableError` against a partial
  * injected client. Prefer `useQServerConsoleSocket` for anything long-lived.
  *
+ * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
  * @param requestOptions Transport overrides. Pass a `signal` or an `axiosConfig.timeout` here — this
  * request does not end on its own.
- * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
  */
 export function useQueueStreamConsoleOutputMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<string, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<string, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<string, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.streamConsoleOutput(request),

@@ -1,5 +1,9 @@
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
+import {
+    invalidateRoots,
+    resolveInvalidationRoots as resolveRoots,
+} from '@/api/shared/invalidation';
 import { TILED_QUERY_ROOT, tiledQueryRoots, type TiledQueryRootName } from './queryKeys';
 
 /**
@@ -43,11 +47,7 @@ export type TiledMutationHookName = keyof typeof TILED_MUTATION_INVALIDATIONS;
 export function resolveInvalidationRoots(
     bundles: readonly TiledInvalidationBundleName[],
 ): TiledQueryRootName[] {
-    const roots = new Set<TiledQueryRootName>();
-    for (const bundle of bundles) {
-        for (const root of TILED_INVALIDATION_BUNDLES[bundle]) roots.add(root);
-    }
-    return [...roots];
+    return resolveRoots(bundles, TILED_INVALIDATION_BUNDLES);
 }
 
 /**
@@ -60,9 +60,7 @@ export function invalidateTiledRoots(
     queryClient: QueryClient,
     roots: readonly TiledQueryRootName[],
 ): Promise<void> {
-    return Promise.all(
-        roots.map((root) => queryClient.invalidateQueries({ queryKey: tiledQueryRoots[root] })),
-    ).then(() => undefined);
+    return invalidateRoots(queryClient, roots, tiledQueryRoots);
 }
 
 /**

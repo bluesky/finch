@@ -23,21 +23,21 @@ import { useTiledQueryScope } from './useTiledClient';
  * @param path **Required.** Tiled path to the item. Part of the query key; the query stays idle while
  * it is empty, so `useTiledMetadataQuery(selectedPath ?? '')` makes no request until something is
  * selected. Override with `queryOptions.enabled`.
- * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`.
  */
 export function useTiledMetadataQuery<
     S extends TiledStructures = TiledStructures,
     TData = TiledSearchItem<S>,
 >(
     path: string,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         TiledSearchItem<S>,
         TData,
         TiledQueryKeyFor<'metadata'>,
         TiledHookError
-    > = {},
+    >,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     const scope = useTiledQueryScope(requestOptions);
 

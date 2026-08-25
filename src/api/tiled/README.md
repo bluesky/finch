@@ -49,31 +49,40 @@ URL it never asked for.
 Every hook takes its arguments positionally, always in the same order:
 
 ```ts
-useTiledSomethingQuery(...endpointArgs, requestOptions?, queryOptions?);
-useTiledSomethingMutation(requestOptions?, mutationOptions?);
+useTiledSomethingQuery(...endpointArgs, queryOptions?, requestOptions?);
+useTiledSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
 | position                     | what it is                                                                        |
 | ---------------------------- | --------------------------------------------------------------------------------- |
 | the endpoint's own arguments | a path, a filter, a format — named and typed, so hover tells you what is required |
-| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`                |
 | TanStack options             | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations             |
+| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`                |
 
-Positional rather than one options bag, so the endpoint's argument is the first thing you see on hover:
+**`requestOptions` is always last**, and means exactly the same thing on every Finch backend — where
+this one call goes and who it is. The queue-server hooks use the identical order; the convention is
+stated in full, once, in [`src/api/shared/queryOptions.ts`](../shared/queryOptions.ts). Transport goes
+last because it is the rarest thing to pass, so the common call needs no placeholder:
 
 ```ts
-useTiledMetadataQuery('scan/detector', {}, { staleTime: 60_000 });
-useTiledSearchQuery('', undefined, { baseUrl: 'http://other:8000/api/v1' });
+useTiledMetadataQuery('scan/detector', { staleTime: 60_000 });
+useTiledSearchQuery('', undefined, undefined, { baseUrl: 'http://other:8000/api/v1' });
 ```
 
-**The array and table hooks merge the first two slots**, because the package's own
-`TiledArrayRequestOptions` / `TiledTableRequestOptions` extend `TiledRequestOptions` — `stack` and
-`baseUrl` genuinely live in the same object:
+**The array and table hooks take one extra slot** for the endpoint's own parameters, because the
+package merges them with transport — its `TiledArrayRequestOptions` extends `TiledRequestOptions`, so
+`stack` and `baseUrl` arrive in one object. The hooks split them apart (`TiledArrayJSONEndpointOptions`
+is `Omit<TiledArrayJSONOptions, keyof TiledRequestOptions>`) and recombine before calling through, so
+that `requestOptions` does not mean two different things depending on which hook you are looking at:
 
 ```ts
 useTiledArrayAsJSONQuery('scan/detector', { stack: [4], maxBytesAllowed: 2_000_000 });
-useTiledTablePartitionAsJSONQuery('scan/primary', { partition: 0 });
+useTiledTablePartitionAsJSONQuery('scan/primary', { partition: 0 }, { refetchInterval: 1000 });
+useTiledTablePartitionAsJSONQuery('scan/primary', { partition: 0 }, undefined, { baseUrl });
 ```
+
+`hooks/typeTests.ts` asserts that no transport key survives in the endpoint types, so a future package
+version that moves `stack` into `TiledRequestOptions` breaks the build rather than the split.
 
 `queryKey`, `queryFn` and `mutationFn` are omitted from the TanStack option types — the hook owns them,
 and overriding the key would detach the entry from the invalidation map. `hooks/typeTests.ts` pins this
@@ -84,7 +93,7 @@ at compile time.
 ### Search — `searchHooks.ts`
 
 All seven call `GET /api/v1/search/{path}`; the six conveniences just build the filter for you. Shape:
-`(searchPath, filter, searchOptions?, requestOptions?, queryOptions?)`.
+`(searchPath, filter, searchOptions?, queryOptions?, requestOptions?)`.
 
 | hook                                      | filter type                               |
 | ----------------------------------------- | ----------------------------------------- |

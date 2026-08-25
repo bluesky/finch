@@ -1,4 +1,5 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import { requireArg } from '@/api/shared/errors';
 import type {
     CurrentApiKeyInfoResponse,
     LogoutResponse,
@@ -35,12 +36,12 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * The calling principal: identities, api keys and sessions.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueWhoamiQuery<TData = WhoamiResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<WhoamiResponse, TData, QServerQueryKeyFor<'whoami'>> = {},
+    queryOptions?: FinchQueryOptions<WhoamiResponse, TData, QServerQueryKeyFor<'whoami'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -55,12 +56,12 @@ export function useQueueWhoamiQuery<TData = WhoamiResponse>(
 /**
  * Roles and scopes granted to the caller — useful for hiding controls the key cannot use.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetScopesQuery<TData = ScopesResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<ScopesResponse, TData, QServerQueryKeyFor<'scopes'>> = {},
+    queryOptions?: FinchQueryOptions<ScopesResponse, TData, QServerQueryKeyFor<'scopes'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -75,16 +76,16 @@ export function useQueueGetScopesQuery<TData = ScopesResponse>(
 /**
  * Every principal. Admin only.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueListPrincipalsQuery<TData = PrincipalListResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         PrincipalListResponse,
         TData,
         QServerQueryKeyFor<'principals'>
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -101,19 +102,20 @@ export function useQueueListPrincipalsQuery<TData = PrincipalListResponse>(
  *
  * @param uuid **Required.** The principal's uuid. Part of the query key; pass `undefined` to hold
  * the query idle until one is selected.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetPrincipalQuery<TData = PrincipalResponse>(
     uuid: string | undefined,
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<PrincipalResponse, TData, QServerQueryKeyFor<'principal'>> = {},
+    queryOptions?: FinchQueryOptions<PrincipalResponse, TData, QServerQueryKeyFor<'principal'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
         queryKey: qServerQueryKeys.principal(scope, uuid),
-        fetch: (client, request) => client.getPrincipal(uuid as string, request),
+        fetch: (client, request) =>
+            client.getPrincipal(requireArg(uuid, 'useQueueGetPrincipalQuery', 'uuid'), request),
         requestOptions,
         queryOptions,
         defaultEnabled: Boolean(uuid),
@@ -123,16 +125,16 @@ export function useQueueGetPrincipalQuery<TData = PrincipalResponse>(
 /**
  * Metadata about the key authenticating this request — its scopes, note and expiry.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetCurrentApiKeyInfoQuery<TData = CurrentApiKeyInfoResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<
+    queryOptions?: FinchQueryOptions<
         CurrentApiKeyInfoResponse,
         TData,
         QServerQueryKeyFor<'apiKeyInfo'>
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -154,12 +156,12 @@ export function useQueueGetCurrentApiKeyInfoQuery<TData = CurrentApiKeyInfoRespo
  * The `secret` is returned **once** — capture it from the resolved value. Invalidates nothing: a new
  * key does not change the *current* key's info.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ expires_in, scopes, note })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueCreateApiKeyMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<NewApiKeyResponse, APIKeyRequestParams, TContext> = {},
+    mutationOptions?: FinchMutationOptions<NewApiKeyResponse, APIKeyRequestParams, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<NewApiKeyResponse, QServerHookError, APIKeyRequestParams, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.createApiKey(body, request),
@@ -178,16 +180,16 @@ export interface QueueCreateApiKeyForPrincipalVariables {
 /**
  * Mint an API key for another principal. Admin only.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ uuid, body })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueCreateApiKeyForPrincipalMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         NewApiKeyResponse,
         QueueCreateApiKeyForPrincipalVariables,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<
     NewApiKeyResponse,
     QServerHookError,
@@ -211,12 +213,12 @@ export interface QueueRevokeApiKeyVariables {
 /**
  * Revoke an API key.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ firstEight })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueRevokeApiKeyMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<unknown, QueueRevokeApiKeyVariables, TContext> = {},
+    mutationOptions?: FinchMutationOptions<unknown, QueueRevokeApiKeyVariables, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<unknown, QServerHookError, QueueRevokeApiKeyVariables, TContext> {
     return useQServerMutation({
         perform: (client, { firstEight }, request) => client.revokeApiKey(firstEight, request),
@@ -231,16 +233,12 @@ export function useQueueRevokeApiKeyMutation<TContext = unknown>(
  *
  * Rarely needed directly: the client refreshes on a 401 by itself when given a `refreshToken`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ refresh_token })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueRefreshSessionMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        AccessAndRefreshTokens,
-        SessionRefreshBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<AccessAndRefreshTokens, SessionRefreshBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<AccessAndRefreshTokens, QServerHookError, SessionRefreshBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.refreshSession(body, request),
@@ -258,12 +256,12 @@ export interface QueueRevokeSessionVariables {
 /**
  * Revoke a refresh-token session, invalidating the chain of tokens it issued.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ sessionId })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueRevokeSessionMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<unknown, QueueRevokeSessionVariables, TContext> = {},
+    mutationOptions?: FinchMutationOptions<unknown, QueueRevokeSessionVariables, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<unknown, QServerHookError, QueueRevokeSessionVariables, TContext> {
     return useQServerMutation({
         perform: (client, { sessionId }, request) => client.revokeSession(sessionId, request),
@@ -279,12 +277,12 @@ export function useQueueRevokeSessionMutation<TContext = unknown>(
  * Invalidates the auth queries; if you also change the client's key, call
  * `invalidateAllQServerQueries` — credentials are deliberately not part of any query key.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueLogoutMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<LogoutResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<LogoutResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<LogoutResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.logout(request),

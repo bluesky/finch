@@ -55,7 +55,7 @@ export default function ExperimentXASScan({
     const [blueskyRunId, setBlueskyRunId] = useState<string>('');
     const [autoMode, setAutoMode] = useState(false);
 
-    const queueQuery = useQueueGetQuery({}, { refetchInterval: 1000 });
+    const queueQuery = useQueueGetQuery({ refetchInterval: 1000 });
     const executeMutation = useQueueExecuteItemMutation();
     const isQueueBusy = queueQuery.data?.running_item
         ? Object.keys(queueQuery.data.running_item).length > 0
@@ -169,7 +169,6 @@ export default function ExperimentXASScan({
                 contains: { key: 'start.exact_plan_name', value: 'xas_scan' },
             },
         },
-        {},
         { refetchInterval: 5000 },
     );
 

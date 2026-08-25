@@ -54,12 +54,12 @@ export const useTiledWriterScatterPlot = (
     const runQuery = useTiledSearchQuery(
         `${startPath}${blueskyRunId}`,
         undefined,
-        { baseUrl: tiledBaseUrl },
         {
             enabled: hasRunId,
             retry: false,
             refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
         },
+        { baseUrl: tiledBaseUrl },
     );
     const runExists = runQuery.isSuccess;
 
@@ -67,12 +67,12 @@ export const useTiledWriterScatterPlot = (
     const directQuery = useTiledSearchQuery(
         `${startPath}${blueskyRunId}/primary`,
         undefined,
-        { baseUrl: tiledBaseUrl },
         {
             enabled: runExists,
             retry: false,
             refetchInterval: (query) => (query.state.data || isRunFinished ? false : 2000),
         },
+        { baseUrl: tiledBaseUrl },
     );
     const directFound = directQuery.isSuccess;
 

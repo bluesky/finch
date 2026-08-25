@@ -62,7 +62,7 @@ export default function ExperimentXASAlignment({
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
 
     // Keep the queue query around so the Execute button can detect a busy queue.
-    useQueueGetQuery({}, { refetchInterval: 1000 });
+    useQueueGetQuery({ refetchInterval: 1000 });
 
     useEffect(() => {
         localStorage.setItem('xas_alignment_user', user);
@@ -107,7 +107,6 @@ export default function ExperimentXASAlignment({
                 contains: { key: 'start.uid', value: firstUserRunId },
             },
         },
-        {},
         {
             enabled: !!firstUserRunId,
             refetchInterval: (query) => {
@@ -131,7 +130,6 @@ export default function ExperimentXASAlignment({
                 contains: { key: 'start.plan_name', value: 'xas_alignment' },
             },
         },
-        {},
         { refetchInterval: 5000 },
     );
     const externalSequenceUid =
@@ -159,7 +157,6 @@ export default function ExperimentXASAlignment({
                 contains: { key: 'start.alignment_sequence_uid', value: currentSequenceUid },
             },
         },
-        {},
         {
             enabled: !!currentSequenceUid,
             refetchInterval: (query) => {

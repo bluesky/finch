@@ -1,3 +1,4 @@
+import type { FinchQueryScope } from '@/api/shared/queryKeys';
 import type { TiledSearchConfig } from '../types/common';
 import type {
     TiledArrayReturnType,
@@ -9,33 +10,26 @@ import type { TiledArrayKeyParts, TiledTableKeyParts } from './internal/keyParts
 /**
  * Query keys for the Tiled hooks.
  *
- * Every key has the same four-element shape:
+ * Every key has the four-element shape every Finch backend uses — see `@/api/shared/queryKeys` for
+ * why the scope is last and why credentials never appear in a key:
  *
  * ```
  * [ 'tiled', <resource>, <args | null>, <scope> ]
  * ```
  *
- * Three properties of that layout are load-bearing:
+ * Two things are specific to Tiled, and both are load-bearing:
  *
- * - **The scope is last.** Existing code invalidates with prefixes like `['tiled','search']`, and
- *   TanStack matches prefixes positionally — putting the server discriminator earlier would break
- *   every one of those calls. (The legacy hooks in `src/api/tiled/hooks.ts` put `baseUrl` third,
- *   which is exactly the mistake this avoids.)
  * - **The scope carries `initialPath` as well as `baseUrl`.** Tiled prepends the client's initial path
  *   to every relative request path, so the same relative path against two different prefixes is two
  *   different pieces of data. Keying on the base URL alone would serve one from the other's cache.
- * - **Args are projections, never raw option objects.** See `internal/keyParts.ts`: an options object
- *   carries a `signal`, a `client` and possibly a whole `arrayItem`, none of which belong in a cache
- *   key — a fresh `signal` per render would rewrite the key on every render and refetch forever.
+ * - **Args are projections, never raw option objects.** See `internal/keyParts.ts`: the package's
+ *   option objects can carry a whole `arrayItem`, which identifies no request of its own.
  *
- * The API key is deliberately *not* part of any key: it would put a secret into the Devtools cache
- * inspector, and because auth is applied at request time a credential change invalidates everything
- * rather than one entry. Call `invalidateAllTiledQueries` after logging in or rotating a key.
+ * Call `invalidateAllTiledQueries` after logging in or rotating a key.
  */
 export const TILED_QUERY_ROOT = 'tiled' as const;
 
-/** Stand-in scope for an injected client that cannot report a base URL. */
-export const INJECTED_CLIENT_SCOPE = 'client:injected' as const;
+export { INJECTED_CLIENT_SCOPE } from '@/api/shared/queryKeys';
 
 /**
  * Which Tiled namespace a cached entry belongs to. Always the last element of a key.
@@ -43,8 +37,7 @@ export const INJECTED_CLIENT_SCOPE = 'client:injected' as const;
  * `initialPath` is `''` for a client with no prefix, and also for any request made with
  * `pathMode: 'absolute'` — which is correct, because such a request ignores the prefix entirely.
  */
-export interface TiledQueryScope {
-    readonly baseUrl: string;
+export interface TiledQueryScope extends FinchQueryScope {
     readonly initialPath: string;
 }
 

@@ -8,7 +8,7 @@ import {
 } from '../invalidation';
 import type { FinchMutationOptions, TiledHookError } from '../types';
 import { useTiledClient } from '../useTiledClient';
-import { mergeRequestOptions } from './requestOptions';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
 
 export interface TiledMutationEngineArgs<TResponse, TVariables, TContext> {
     /** Performs the write. Receives `mutate`'s argument and the merged transport options. */

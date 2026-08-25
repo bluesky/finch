@@ -3,7 +3,8 @@ import type { QServerEndpoints } from '../../types/clientSurface';
 import type { QServerRequestOptions } from '../../types/common';
 import { useQServerClient } from '../useQServerClient';
 import type { FinchQueryOptions, QServerHookError } from '../types';
-import { mergeRequestOptions } from './requestOptions';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
+import { resolveEnabled } from '@/api/shared/queryOptions';
 
 export interface QServerQueryEngineArgs<
     TResponse,
@@ -60,9 +61,7 @@ export function useQServerQuery<
             fetch(client, mergeRequestOptions(requestDefaults, requestOptions, signal) as TRequest),
         ...defaults,
         ...queryOptions,
-        // After the spread on purpose: an options object carrying `enabled: undefined` (trivially
-        // produced by spreading props) must fall through to the guard, not clobber it — the bug the
-        // legacy `useQueueItemQuery` had.
-        enabled: queryOptions?.enabled ?? defaultEnabled ?? true,
+        // After the spread on purpose — see `resolveEnabled` for why.
+        enabled: resolveEnabled(queryOptions?.enabled, defaultEnabled),
     });
 }

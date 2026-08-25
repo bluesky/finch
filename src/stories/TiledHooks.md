@@ -32,34 +32,44 @@ The infrastructure hooks are not endpoints and keep their own names: `useTiledCl
 Arguments are **positional**, always in the same order:
 
 ```tsx
-useTiledSomethingQuery(...endpointArgs, requestOptions?, queryOptions?);
-useTiledSomethingMutation(requestOptions?, mutationOptions?);
+useTiledSomethingQuery(...endpointArgs, queryOptions?, requestOptions?);
+useTiledSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
 ```tsx
 const item = useTiledMetadataQuery(
     'scans/run1', // the endpoint's argument
-    { apiKey: null }, // TiledRequestOptions — transport overrides
     { staleTime: 60_000 }, // standard TanStack query options
+    { apiKey: null }, // TiledRequestOptions — transport, and rarely needed
 );
 
-const login = useTiledLoginMutation({}, { onSuccess: (tokens) => console.log(tokens) });
+const login = useTiledLoginMutation({ onSuccess: (tokens) => console.log(tokens) });
 login.mutate({ username, password }); // the variables go to mutate()
 ```
 
 | position                     | what goes in it                                                                    |
 | ---------------------------- | ---------------------------------------------------------------------------------- |
 | the endpoint's own arguments | a path, a filter, a format — named and typed, so hover says what is required       |
-| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`                 |
 | TanStack options             | `enabled`, `refetchInterval`, `staleTime`, `select`, … · `onSuccess`, `onError`, … |
+| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`                 |
 
-**The array and table hooks merge the first two slots.** That is the package's shape, not ours:
-`TiledArrayRequestOptions` and `TiledTableRequestOptions` extend `TiledRequestOptions`, so `stack` and
-`baseUrl` genuinely live in the same object.
+**`requestOptions` is always last**, and it means the same thing here as on the queue-server hooks:
+where this one call goes and who it is. Last because it is the rarest thing to pass, so the common
+call needs no placeholder — `useTiledMetadataQuery(path, { staleTime: 60_000 })`.
+
+**The array and table hooks take one extra slot**, for the endpoint's own parameters. The package
+merges those with transport — `TiledArrayRequestOptions` extends `TiledRequestOptions`, so `stack` and
+`baseUrl` arrive together — and the hooks split them back apart so that `requestOptions` does not mean
+one thing on some hooks and something wider on others.
 
 ```tsx
 useTiledArrayAsJSONQuery('scans/run1/detector', { stack: [4], maxBytesAllowed: 2_000_000 });
-useTiledTablePartitionAsJSONQuery('scans/run1/primary', { partition: 0 });
+useTiledTablePartitionAsJSONQuery(
+    'scans/run1/primary',
+    { partition: 0 },
+    { refetchInterval: 1000 },
+);
+useTiledTablePartitionAsJSONQuery('scans/run1/primary', { partition: 0 }, undefined, { baseUrl });
 ```
 
 The two TanStack option types are exported as `FinchQueryOptions<TResponse, TData>` and
@@ -108,7 +118,7 @@ or a `useMemo`).
 ## Search
 
 All seven hooks call `GET /api/v1/search/{path}` and share the `search` query root. Shape:
-`(searchPath, filter, searchOptions?, requestOptions?, queryOptions?)`.
+`(searchPath, filter, searchOptions?, queryOptions?, requestOptions?)`.
 
 `searchPath: ''` means the **root container** and is legal, so these have no path guard.
 
@@ -176,8 +186,10 @@ Or use the exported guards on a result you did not type: `isArrayStructure(item)
 
 ## Arrays
 
-Shape: `(arrayPath, options?, queryOptions?)` — the options object carries both the array parameters and
-the transport overrides. All of them are idle while `arrayPath` is empty.
+Shape: `(arrayPath, arrayOptions?, queryOptions?, requestOptions?)` — the array parameters get their
+own slot, separate from transport. All of them are idle while `arrayPath` is empty.
+(`useTiledArrayImagePath` is not a query, so it has no `queryOptions`:
+`(arrayPath, arrayOptions?, requestOptions?)`.)
 
 | hook                         | returns `data`             | endpoint                        |
 | ---------------------------- | -------------------------- | ------------------------------- |
@@ -216,8 +228,8 @@ want downsampling applied.
 
 ## Tables
 
-Shape: `(tablePath, options?, queryOptions?)`, one combined options object again. Idle while `tablePath`
-is empty.
+Shape: `(tablePath, tableOptions?, queryOptions?, requestOptions?)` — a dedicated endpoint slot again.
+Idle while `tablePath` is empty.
 
 Two axes: **format** (`JSON` is column-oriented, `JSON_SEQ` row-oriented) and **endpoint** (`partition`
 reads one 0-based partition, `full` reads them all).

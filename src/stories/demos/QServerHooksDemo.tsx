@@ -24,9 +24,9 @@ const demoQueryClient = new QueryClient({
 });
 
 function HooksDemoBody() {
-    const status = useQueueGetStatusQuery({}, { refetchInterval: 1000 });
-    const queue = useQueueGetQuery({}, { refetchInterval: 1000 });
-    const history = useQueueGetHistoryQuery({}, { refetchInterval: 1000 });
+    const status = useQueueGetStatusQuery({ refetchInterval: 1000 });
+    const queue = useQueueGetQuery({ refetchInterval: 1000 });
+    const history = useQueueGetHistoryQuery({ refetchInterval: 1000 });
     const add = useQueueAddItemMutation();
     const start = useQueueStartMutation();
 

@@ -25,17 +25,13 @@ import type { FinchMutationOptions, QServerHookError } from './types';
 /**
  * Call a function in the worker namespace.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options.
  * `mutate({ item: { name, kwargs, item_type: 'function' } })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueExecuteFunctionMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        ExecuteFunctionResponse,
-        ExecuteFunctionBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<ExecuteFunctionResponse, ExecuteFunctionBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<ExecuteFunctionResponse, QServerHookError, ExecuteFunctionBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.executeFunction(body, request),
@@ -50,12 +46,12 @@ export function useQueueExecuteFunctionMutation<TContext = unknown>(
  *
  * Invalidates the catalogs, since a script can define new plans and devices.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ script, update_re, run_in_background })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueUploadScriptMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<UploadScriptResponse, UploadScriptBody, TContext> = {},
+    mutationOptions?: FinchMutationOptions<UploadScriptResponse, UploadScriptBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<UploadScriptResponse, QServerHookError, UploadScriptBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.uploadScript(body, request),

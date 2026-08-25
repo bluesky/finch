@@ -44,12 +44,12 @@ import { useQServerQueryScope } from './useQServerClient';
  *
  * `running_item` is `{}` when nothing is running — check for `item_uid` rather than truthiness.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetQuery<TData = GetQueueResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<GetQueueResponse, TData, QServerQueryKeyFor<'queue'>> = {},
+    queryOptions?: FinchQueryOptions<GetQueueResponse, TData, QServerQueryKeyFor<'queue'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -70,17 +70,13 @@ export function useQueueGetQuery<TData = GetQueueResponse>(
  * @param body **Required.** Address the item by `uid`, or by `pos` (`'front'`, `'back'`, or an
  * index). Pass `undefined` — or an object with neither field — to hold the query idle until you have
  * an address; override with `queryOptions.enabled`.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetItemQuery<TData = GetQueueItemResponse>(
     body: GetQueueItemBody | undefined,
-    requestOptions: GetWithBodyOptions<GetQueueItemResponse> = {},
-    queryOptions: FinchQueryOptions<
-        GetQueueItemResponse,
-        TData,
-        QServerQueryKeyFor<'queueItem'>
-    > = {},
+    queryOptions?: FinchQueryOptions<GetQueueItemResponse, TData, QServerQueryKeyFor<'queueItem'>>,
+    requestOptions?: GetWithBodyOptions<GetQueueItemResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -103,13 +99,13 @@ export function useQueueGetItemQuery<TData = GetQueueItemResponse>(
  * A rejected item resolves with `success: false` and `qsize: null` rather than throwing — the
  * server validates plan names and reports the failure in the envelope.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. The item itself goes to
  * `mutate({ item: { name, args, kwargs, item_type } })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueAddItemMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<PostItemAddResponse, AddQueueItemBody, TContext> = {},
+    mutationOptions?: FinchMutationOptions<PostItemAddResponse, AddQueueItemBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemAddResponse, QServerHookError, AddQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.addQueueItem(body, request),
@@ -122,16 +118,12 @@ export function useQueueAddItemMutation<TContext = unknown>(
 /**
  * Add several items at once. `results` reports per-item success.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. The items go to `mutate({ items })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueAddItemBatchMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        PostItemBatchResponse,
-        AddQueueItemBatchBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<PostItemBatchResponse, AddQueueItemBatchBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, AddQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.addQueueItemBatch(body, request),
@@ -144,16 +136,12 @@ export function useQueueAddItemBatchMutation<TContext = unknown>(
 /**
  * Run one item immediately, without placing it on the queue.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. The item goes to `mutate({ item })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueExecuteItemMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        PostItemExecuteResponse,
-        ExecuteQueueItemBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<PostItemExecuteResponse, ExecuteQueueItemBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemExecuteResponse, QServerHookError, ExecuteQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.executeQueueItem(body, request),
@@ -166,16 +154,12 @@ export function useQueueExecuteItemMutation<TContext = unknown>(
 /**
  * Replace an existing item, matched by its uid. `replace: true` mints a new uid.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. The replacement goes to `mutate({ item, replace })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueUpdateItemMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        PostItemUpdateResponse,
-        UpdateQueueItemBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<PostItemUpdateResponse, UpdateQueueItemBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemUpdateResponse, QServerHookError, UpdateQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.updateQueueItem(body, request),
@@ -188,17 +172,17 @@ export function useQueueUpdateItemMutation<TContext = unknown>(
 /**
  * Remove one item by uid or position.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Call `mutate({ uid })` or `mutate({ pos })`; with
  * `mutate()` the server removes the back item.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueRemoveItemMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         PostItemRemoveResponse,
         RemoveQueueItemBody | void,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<
     PostItemRemoveResponse,
     QServerHookError,
@@ -216,17 +200,17 @@ export function useQueueRemoveItemMutation<TContext = unknown>(
 /**
  * Remove several items by uid.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ uids, ignore_missing })` — `ignore_missing`
  * decides whether absent uids fail the call.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueRemoveItemBatchMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         PostItemBatchResponse,
         RemoveQueueItemBatchBody,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, RemoveQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.removeQueueItemBatch(body, request),
@@ -239,12 +223,12 @@ export function useQueueRemoveItemBatchMutation<TContext = unknown>(
 /**
  * Reposition one item.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ uid | pos, pos_dest | before_uid | after_uid })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueMoveItemMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<PostItemAddResponse, MoveQueueItemBody, TContext> = {},
+    mutationOptions?: FinchMutationOptions<PostItemAddResponse, MoveQueueItemBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemAddResponse, QServerHookError, MoveQueueItemBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.moveQueueItem(body, request),
@@ -260,16 +244,12 @@ export function useQueueMoveItemMutation<TContext = unknown>(
  * Not part of `QServerClientLike`, so this rejects with `QServerEndpointUnavailableError` against a
  * partial injected client.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ uids, pos_dest | before_uid | after_uid })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueMoveItemBatchMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        PostItemBatchResponse,
-        MoveQueueItemBatchBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<PostItemBatchResponse, MoveQueueItemBatchBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<PostItemBatchResponse, QServerHookError, MoveQueueItemBatchBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.moveQueueItemBatch(body, request),
@@ -284,16 +264,16 @@ export function useQueueMoveItemBatchMutation<TContext = unknown>(
  *
  * Multipart, and not part of `QServerClientLike`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ file, fileName?, dataType?, userGroup? })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueUploadSpreadsheetMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         UploadSpreadsheetResponse,
         UploadSpreadsheetInput,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<
     UploadSpreadsheetResponse,
     QServerHookError,
@@ -318,12 +298,12 @@ export function useQueueUploadSpreadsheetMutation<TContext = unknown>(
  * Refuses with `success: false` when the environment is closed, the queue is empty, or the manager
  * is not idle.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueStartMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<QueueStartResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<QueueStartResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QueueStartResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.startQueue(request),
@@ -336,12 +316,12 @@ export function useQueueStartMutation<TContext = unknown>(
 /**
  * Stop the queue once the running plan finishes. Sets `queue_stop_pending`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueStopMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<QServerSuccessResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<QServerSuccessResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.stopQueue(request),
@@ -354,12 +334,12 @@ export function useQueueStopMutation<TContext = unknown>(
 /**
  * Cancel a pending stop request.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueCancelStopMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<QServerSuccessResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<QServerSuccessResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.cancelQueueStop(request),
@@ -372,12 +352,12 @@ export function useQueueCancelStopMutation<TContext = unknown>(
 /**
  * Discard every queued item. Does not affect the running plan.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueClearMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<QueueClearResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<QueueClearResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QueueClearResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.clearQueue(request),
@@ -390,12 +370,12 @@ export function useQueueClearMutation<TContext = unknown>(
 /**
  * Set loop mode and failure handling.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ mode: { loop, ignore_failures } })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueSetModeMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<QServerSuccessResponse, QueueModeSetBody, TContext> = {},
+    mutationOptions?: FinchMutationOptions<QServerSuccessResponse, QueueModeSetBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, QueueModeSetBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setQueueMode(body, request),
@@ -408,16 +388,12 @@ export function useQueueSetModeMutation<TContext = unknown>(
 /**
  * Start the queue automatically whenever an item is added.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ enable: boolean })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueSetAutostartMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
-        QServerSuccessResponse,
-        QueueAutostartBody,
-        TContext
-    > = {},
+    mutationOptions?: FinchMutationOptions<QServerSuccessResponse, QueueAutostartBody, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<QServerSuccessResponse, QServerHookError, QueueAutostartBody, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.setQueueAutostart(body, request),

@@ -13,12 +13,12 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * Completed plans, oldest first, each with its `result` (exit status, run uids, timings).
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetHistoryQuery<TData = GetHistoryResponse>(
-    requestOptions: QServerRequestOptions = {},
-    queryOptions: FinchQueryOptions<GetHistoryResponse, TData, QServerQueryKeyFor<'history'>> = {},
+    queryOptions?: FinchQueryOptions<GetHistoryResponse, TData, QServerQueryKeyFor<'history'>>,
+    requestOptions?: QServerRequestOptions,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
@@ -33,13 +33,13 @@ export function useQueueGetHistoryQuery<TData = GetHistoryResponse>(
 /**
  * Discard the plan history.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `onSuccess` runs after the history and status caches have
  * been refreshed.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueClearHistoryMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<ClearHistoryResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<ClearHistoryResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<ClearHistoryResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.clearHistory(request),

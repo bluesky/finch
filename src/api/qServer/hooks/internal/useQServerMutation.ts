@@ -8,7 +8,7 @@ import {
 } from '../invalidation';
 import type { FinchMutationOptions, QServerHookError } from '../types';
 import { useQServerClient } from '../useQServerClient';
-import { mergeRequestOptions } from './requestOptions';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
 
 export interface QServerMutationEngineArgs<TResponse, TVariables, TContext> {
     /** Performs the write. Receives `mutate`'s argument and the merged transport options. */

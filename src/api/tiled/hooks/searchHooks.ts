@@ -47,16 +47,16 @@ type SearchQueryOptions<TData> = FinchQueryOptions<
  *
  * @param searchPath Container to search within. `''` is the root container.
  * @param config `{ searchFilters, searchOptions }`. Part of the query key.
- * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`.
  */
 export function useTiledSearchQuery<TData = TiledSearchResult>(
     searchPath: string,
     config?: TiledSearchConfig,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
-    return useSearch(searchPath, config, requestOptions, queryOptions);
+    return useSearch(searchPath, config, queryOptions, requestOptions);
 }
 
 /**
@@ -65,21 +65,21 @@ export function useTiledSearchQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ include, exclude }`; both are arrays of spec names.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchBySpecsQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledSpecsFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { specs: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
     );
 }
 
@@ -92,21 +92,21 @@ export function useTiledSearchBySpecsQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ text }` — the text to look for.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchByFullTextQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledFulltextFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { fulltext: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
         filter.text.length > 0,
     );
 }
@@ -117,21 +117,21 @@ export function useTiledSearchByFullTextQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ key, value }`. The key is a metadata path such as `start.plan_name`.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchByMetadataEqualsQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledEqualityFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { eq: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
     );
 }
 
@@ -141,21 +141,21 @@ export function useTiledSearchByMetadataEqualsQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ value: 'container' | 'array' | 'table' | 'awkward' | 'sparse' }`.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchByStructureFamilyQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledStructureFamilyFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { structureFamily: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
     );
 }
 
@@ -168,21 +168,21 @@ export function useTiledSearchByStructureFamilyQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ key, pattern, caseSensitive? }`.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchByRegexQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledRegexFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { regex: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
     );
 }
 
@@ -196,21 +196,21 @@ export function useTiledSearchByRegexQuery<TData = TiledSearchResult>(
  * @param searchPath Container to search within. `''` is the root container.
  * @param filter `{ operator: 'gt' | 'gte' | 'lt' | 'lte', key, value }`.
  * @param searchOptions Pagination, sorting and field selection.
- * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
  */
 export function useTiledSearchByMetadataComparisonQuery<TData = TiledSearchResult>(
     searchPath: string,
     filter: TiledComparisonFilter,
     searchOptions?: TiledSearchOptions,
-    requestOptions: TiledRequestOptions = {},
-    queryOptions: SearchQueryOptions<TData> = {},
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(
         searchPath,
         { searchFilters: { comparison: filter }, searchOptions },
-        requestOptions,
         queryOptions,
+        requestOptions,
     );
 }
 
@@ -224,8 +224,8 @@ export function useTiledSearchByMetadataComparisonQuery<TData = TiledSearchResul
 function useSearch<TData>(
     searchPath: string,
     config: TiledSearchConfig | undefined,
-    requestOptions: TiledRequestOptions,
-    queryOptions: SearchQueryOptions<TData>,
+    queryOptions?: SearchQueryOptions<TData>,
+    requestOptions?: TiledRequestOptions,
     defaultEnabled?: boolean,
 ): UseQueryResult<TData, TiledHookError> {
     const scope = useTiledQueryScope(requestOptions);
@@ -233,8 +233,8 @@ function useSearch<TData>(
     return useTiledQuery({
         queryKey: tiledQueryKeys.search(scope, { searchPath, config: config ?? null }),
         fetch: (client, request) => client.getSearch(searchPath, config, request),
-        requestOptions,
         queryOptions,
+        requestOptions,
         defaultEnabled,
     });
 }

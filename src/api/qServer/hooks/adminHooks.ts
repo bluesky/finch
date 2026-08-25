@@ -23,13 +23,13 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * Send a KeyboardInterrupt to the IPython kernel.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate()` or
  * `mutate({ interrupt_task, interrupt_plan })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueInterruptKernelMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<AdminResponse, KernelInterruptBody | void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<AdminResponse, KernelInterruptBody | void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<AdminResponse, QServerHookError, KernelInterruptBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.interruptKernel(body ?? undefined, request),
@@ -44,13 +44,13 @@ export function useQueueInterruptKernelMutation<TContext = unknown>(
  *
  * Every subsequent request will fail until the manager is restarted out of band.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate({ option: 'safe_on' })` (the default) refuses
  * while the queue is running; `'safe_off'` does not.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueStopManagerMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<AdminResponse, ManagerStopBody | void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<AdminResponse, ManagerStopBody | void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<AdminResponse, QServerHookError, ManagerStopBody | void, TContext> {
     return useQServerMutation({
         perform: (client, body, request) => client.stopManager(body ?? undefined, request),
@@ -63,12 +63,12 @@ export function useQueueStopManagerMutation<TContext = unknown>(
 /**
  * Kill RE Manager to exercise recovery. A test endpoint — do not ship UI that calls it.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueTestKillManagerMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<AdminResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<AdminResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<AdminResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.testKillManager(request),
@@ -84,24 +84,20 @@ export function useQueueTestKillManagerMutation<TContext = unknown>(
  * Defaults to `retry: false` and `staleTime: Infinity`, since retrying or refetching a deliberate
  * delay is never what you want.
  *
- * @param payload `{ time }` in seconds. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ time }` in seconds. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueTestServerSleepQuery<TData = AdminResponse>(
-    payload?: TestServerSleepBody,
-    requestOptions: GetWithBodyOptions<AdminResponse> = {},
-    queryOptions: FinchQueryOptions<
-        AdminResponse,
-        TData,
-        QServerQueryKeyFor<'testServerSleep'>
-    > = {},
+    body?: TestServerSleepBody,
+    queryOptions?: FinchQueryOptions<AdminResponse, TData, QServerQueryKeyFor<'testServerSleep'>>,
+    requestOptions?: GetWithBodyOptions<AdminResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.testServerSleep(scope, payload),
-        fetch: (client, request) => client.testServerSleep(payload, request),
+        queryKey: qServerQueryKeys.testServerSleep(scope, body),
+        fetch: (client, request) => client.testServerSleep(body, request),
         requestOptions,
         queryOptions,
         defaults: { retry: false, staleTime: Number.POSITIVE_INFINITY },

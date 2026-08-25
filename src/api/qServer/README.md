@@ -159,6 +159,15 @@ With no arguments the hooks read the base URL and key from `FinchConfigProvider`
 `useQueueServerApiUrls()`; pass `baseUrl` / `apiKey` to override, and `enabled: false` to
 keep the socket closed.
 
+**These three take one options object, not the positional slots the query hooks use.** That is
+deliberate, and the reason is that they are not TanStack hooks: there is no `queryOptions` counterpart
+for a transport slot to be ordered against, so the ordering argument that produced
+`(...args, queryOptions?, requestOptions?)` simply does not apply. `enabled`, `reconnect` and
+`socketFactory` are lifecycle rather than transport, and they sit beside `baseUrl` / `apiKey` /
+`accessToken` in one object. `QServerRequestOptions` would in any case be the wrong type here: a
+browser `WebSocket` handshake cannot carry `headers`, an `AbortSignal` or an `axiosConfig`, which is
+why these hooks accept only the `baseUrl` + `apiKey` core of the shared transport contract.
+
 **Auth matrix**
 
 | Mode                   | How                                                                 | Usable from a browser                      |
@@ -226,7 +235,7 @@ endpoints: `useQServerClient`, `useQServerInvalidate`, `useQServerSocket`,
 import { useQueueGetQuery, useQueueGetStatusQuery, useQueueAddItemMutation } from '@/api/qServer';
 
 function QueueWidget() {
-    const status = useQueueGetStatusQuery(undefined, {}, { refetchInterval: 1000 });
+    const status = useQueueGetStatusQuery({ refetchInterval: 1000 });
     const queue = useQueueGetQuery();
     const add = useQueueAddItemMutation();
 
@@ -246,24 +255,30 @@ function QueueWidget() {
 Every hook takes its arguments positionally, always in the same order:
 
 ```ts
-useQueueSomethingQuery(arg?, requestOptions?, queryOptions?);
-useQueueSomethingMutation(requestOptions?, mutationOptions?);
+useQueueSomethingQuery(arg?, queryOptions?, requestOptions?);
+useQueueSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
 | position             | what it is                                                                                                                              |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 — the argument     | the endpoint's own argument, forwarded to the client method and part of the query key. Present only where the endpoint really takes one |
-| 2 — `requestOptions` | transport overrides: `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`, plus `strategy`/`fallback` on the payload-GETs   |
-| 3 — TanStack options | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations                                                                   |
+| 2 — TanStack options | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations                                                                   |
+| 3 — `requestOptions` | transport overrides: `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`, plus `strategy`/`fallback` on the payload-GETs   |
 
-Positional rather than one options bag, so the endpoint's own argument is the first thing you see on
-hover, named and typed — including whether it is required:
+**`requestOptions` is always last.** The Tiled hooks use the identical order, and the shared statement
+of the convention lives in [`src/api/shared/queryOptions.ts`](../shared/queryOptions.ts). Transport
+goes last because it is the rarest thing to pass — a one-off server, key or client — while `enabled` /
+`refetchInterval` / `select` appear at nearly every call site. So the common call needs no placeholder:
 
 ```ts
-useQueueGetStatusQuery({}, { refetchInterval: 1000 }); // no argument slot at all
+useQueueGetStatusQuery({ refetchInterval: 1000 }); // no argument slot at all
+useQueueGetStatusQuery({ refetchInterval: 1000 }, { baseUrl: 'http://other:60610' });
 useQueueGetItemQuery({ uid }); // required argument, first
 useQueueGetItemQuery(undefined); // ...explicitly idle
 ```
+
+Positional rather than one options bag, so the endpoint's own argument is the first thing you see on
+hover, named and typed — including whether it is required.
 
 A GET that needs no arguments gets **no argument parameter**. Several of them (`status`, `ping`,
 `queue`, `history`, `re/metadata`, `config`, `lock/info`) do accept an optional payload server-side,
@@ -285,10 +300,26 @@ move.mutate({ uid, pos_dest: 'front' });
 The three endpoints taking positional scalars use object variables: `{ uuid, body }`,
 `{ firstEight }`, `{ sessionId }`.
 
-Four queries hold themselves idle until addressed — `useQueueGetItemQuery` (needs `uid` or `pos`),
-`useQueueGetTaskStatusQuery` and `useQueueGetTaskResultQuery` (need `task_uid`), and
-`useQueueGetPrincipalQuery` (needs `uuid`). Their argument is a _required_ parameter that accepts
-`undefined`, so the idle case is written out at the call site rather than being implied by omission.
+#### `arg?: T` versus `arg: T | undefined`
+
+The two argument shapes mean different things, and the difference is deliberate:
+
+- **`arg?: T`** — the endpoint has a meaningful zero-argument form. `useQueueGetPlansAllowedQuery()`
+  is a complete, correct call.
+- **`arg: T | undefined`** — the endpoint cannot be called without it. The parameter is positionally
+  _required_ so a caller who does not have the value yet writes `undefined` on purpose; the hook then
+  holds itself idle rather than firing a malformed request. Four queries:
+  `useQueueGetItemQuery` (needs `uid` or `pos`), `useQueueGetTaskStatusQuery` and
+  `useQueueGetTaskResultQuery` (need `task_uid`), `useQueueGetPrincipalQuery` (needs `uuid`).
+
+Forcing `queryOptions.enabled: true` past that guard raises `FinchMissingArgumentError` — named, with
+the hook and argument in the message, and raised before any request goes out. It used to be an `as`
+cast, which put `undefined` on the wire and surfaced as a 422 three layers from its cause.
+(`useQueueGetItemQuery` is the exception: `getQueueItem` genuinely accepts no address, falling back to
+a queue scan, so forcing it produces a real if useless request.)
+
+A JSON request body is always named `body`. A path or query scalar keeps the endpoint's own name for
+that segment (`uuid`).
 
 ### Where the client comes from
 

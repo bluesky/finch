@@ -1,4 +1,4 @@
-import type { TiledApiClient } from '@blueskyproject/tiled';
+import type { TiledApiClient, TiledRequestOptions } from '@blueskyproject/tiled';
 
 /**
  * Readable names for types `@blueskyproject/tiled` uses but does not export.
@@ -47,6 +47,44 @@ export interface TiledArrayOptionsMap {
     IMAGE_PATH: TiledArrayImagePathOptions;
 }
 
+/**
+ * The transport keys every one of the package's option types carries.
+ *
+ * `client`, `baseUrl`, `initialPath`, `pathMode`, `apiKey`, `signal` — subtracted below to leave just
+ * the endpoint's own parameters. The package merges the two into one object (its
+ * `TiledArrayRequestOptions` extends `TiledRequestOptions`); the hooks keep them in separate slots so
+ * that `requestOptions` means transport here exactly as it does on every other Finch backend, and
+ * recombine before calling through.
+ */
+type TiledTransportKeys = keyof TiledRequestOptions;
+
+/**
+ * Array parameters with the transport fields removed — `stack`, `downSampleRatio`,
+ * `maxBytesAllowed`, `structure`, `arrayItem`, `isRGB`, `channelFirst`, `format`.
+ *
+ * Derived per format rather than as one `Omit` over the union, because `Omit` distributes over a
+ * union by collapsing it to the shared keys — which would silently drop each format's own `format`
+ * literal type.
+ */
+export type TiledArrayJSONEndpointOptions = Omit<TiledArrayJSONOptions, TiledTransportKeys>;
+export type TiledArrayPngEndpointOptions = Omit<TiledArrayPngOptions, TiledTransportKeys>;
+export type TiledArrayBufferEndpointOptions = Omit<TiledArrayBufferOptions, TiledTransportKeys>;
+export type TiledArrayImagePathEndpointOptions = Omit<
+    TiledArrayImagePathOptions,
+    TiledTransportKeys
+>;
+
+/** Per-format array *endpoint* options, indexable by `TiledArrayReturnType`. */
+export interface TiledArrayEndpointOptionsMap {
+    JSON: TiledArrayJSONEndpointOptions;
+    PNG: TiledArrayPngEndpointOptions;
+    BUFFER: TiledArrayBufferEndpointOptions;
+    IMAGE_PATH: TiledArrayImagePathEndpointOptions;
+}
+
+/** Array endpoint options accepted by the generic dispatcher. */
+export type TiledArrayAnyEndpointOptions = Omit<TiledArrayAnyOptions, TiledTransportKeys>;
+
 /** What each array format resolves to. */
 export interface TiledArrayReturnMap {
     JSON: Awaited<ReturnType<TiledApiClient['getArrayAsJSON']>>;
@@ -73,6 +111,25 @@ export interface TiledTableOptionsMap {
     JSON: TiledTableJSONOptions;
     JSON_SEQ: TiledTableJSONSequenceOptions;
 }
+
+/**
+ * Table parameters with the transport fields removed — `partition`, `structure`, `tableItem`,
+ * `format`. Per format, for the same reason as their array counterparts.
+ */
+export type TiledTableJSONEndpointOptions = Omit<TiledTableJSONOptions, TiledTransportKeys>;
+export type TiledTableJSONSequenceEndpointOptions = Omit<
+    TiledTableJSONSequenceOptions,
+    TiledTransportKeys
+>;
+
+/** Per-format table *endpoint* options, indexable by `TiledTableReturnType`. */
+export interface TiledTableEndpointOptionsMap {
+    JSON: TiledTableJSONEndpointOptions;
+    JSON_SEQ: TiledTableJSONSequenceEndpointOptions;
+}
+
+/** Table endpoint options accepted by the generic dispatcher. */
+export type TiledTableAnyEndpointOptions = Omit<TiledTableAnyOptions, TiledTransportKeys>;
 
 /** What each table format resolves to. */
 export interface TiledTableReturnMap {
@@ -106,3 +163,14 @@ export type TiledInfoResponse = NonNullable<Awaited<ReturnType<TiledApiClient['g
 export type TiledLoginTokens = NonNullable<
     Awaited<ReturnType<TiledApiClient['loginWithUsernamePassword']>>
 >;
+
+/**
+ * The substitute client a caller may pass in `requestOptions.client`.
+ *
+ * The package calls this `TiledClientLike` internally but does not export it, and it is **not** the
+ * same thing as our `runtime/clientLike.ts` `TiledClientLike`: this one is an axios instance plus the
+ * config accessors — what a single request can be issued through — whereas ours is the set of data
+ * methods the hooks call. Same name, two different jobs; derived here so the distinction is visible
+ * rather than inferred from a collision.
+ */
+export type TiledPackageClient = NonNullable<TiledRequestOptions['client']>;

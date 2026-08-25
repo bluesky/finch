@@ -1,3 +1,4 @@
+import type { FinchQueryScope } from '@/api/shared/queryKeys';
 import type { ConsoleOutputBody, ConsoleOutputUpdateBody } from '../types/console';
 import type { PlansDevicesBody } from '../types/plansDevices';
 import type { GetQueueItemBody } from '../types/queue';
@@ -8,33 +9,32 @@ import type { TestServerSleepBody } from '../types/admin';
 /**
  * Query keys for the queue-server hooks.
  *
- * Every key has the same four-element shape:
+ * Every key has the four-element shape every Finch backend uses — see
+ * `@/api/shared/queryKeys` for why the scope is last and why args normalize to `null`:
  *
  * ```
  * [ 'qserver', <resource>, <args | null>, <scope> ]
  * ```
  *
- * Two properties of that layout are load-bearing:
+ * The queue-server specifics: `getQueue()` and `getQueue({})` are the same request and share one
+ * entry (object args are safe — TanStack's key hash is key-order stable), and seven roots are marked
+ * "legacy" below because they match the keys the retired `src/api/qServer/hooks.ts` used, so an
+ * existing `invalidateQueries` call keeps working.
  *
- * - **The scope is last.** Existing code invalidates with prefixes like `['qserver','queue']`, and
- *   TanStack matches prefixes positionally — putting the server discriminator earlier would break
- *   every one of those calls.
- * - **Args normalize to `null`.** `getQueue()` and `getQueue({})` are the same request, so they must
- *   share one cache entry. (Object args are safe: TanStack's key hash is key-order stable.)
- *
- * The API key is deliberately *not* part of any key: it would put a secret into the Devtools cache
- * inspector, and because auth is read at request time a key change invalidates everything rather
- * than one entry. Call `invalidateAllQServerQueries` after changing the key or the principal.
+ * Call `invalidateAllQServerQueries` after changing the API key or the principal: auth is read at
+ * request time and is deliberately absent from every key.
  */
 export const QSERVER_QUERY_ROOT = 'qserver' as const;
 
-/** Stand-in scope for a client injected through `QServerApiProvider` that has no base URL. */
-export const INJECTED_CLIENT_SCOPE = 'client:injected' as const;
+export { INJECTED_CLIENT_SCOPE } from '@/api/shared/queryKeys';
 
-/** Which server a cached entry belongs to. Always the last element of a key. */
-export interface QServerQueryScope {
-    readonly baseUrl: string;
-}
+/**
+ * Which server a cached entry belongs to. Always the last element of a key.
+ *
+ * A base URL is enough to identify a queue server, so this is the shared scope unchanged — unlike
+ * Tiled, which also needs the path prefix.
+ */
+export type QServerQueryScope = FinchQueryScope;
 
 /**
  * The resource prefix of every query hook — one entry per query, 29 in total.
@@ -129,14 +129,14 @@ export const qServerQueryKeys = {
         [...qServerQueryRoots.reMetadata, null, scope] as const,
 
     // catalogs
-    plansAllowed: (scope: QServerQueryScope, payload?: PlansDevicesBody) =>
-        [...qServerQueryRoots.plansAllowed, payload ?? null, scope] as const,
-    devicesAllowed: (scope: QServerQueryScope, payload?: PlansDevicesBody) =>
-        [...qServerQueryRoots.devicesAllowed, payload ?? null, scope] as const,
-    plansExisting: (scope: QServerQueryScope, payload?: PlansDevicesBody) =>
-        [...qServerQueryRoots.plansExisting, payload ?? null, scope] as const,
-    devicesExisting: (scope: QServerQueryScope, payload?: PlansDevicesBody) =>
-        [...qServerQueryRoots.devicesExisting, payload ?? null, scope] as const,
+    plansAllowed: (scope: QServerQueryScope, body?: PlansDevicesBody) =>
+        [...qServerQueryRoots.plansAllowed, body ?? null, scope] as const,
+    devicesAllowed: (scope: QServerQueryScope, body?: PlansDevicesBody) =>
+        [...qServerQueryRoots.devicesAllowed, body ?? null, scope] as const,
+    plansExisting: (scope: QServerQueryScope, body?: PlansDevicesBody) =>
+        [...qServerQueryRoots.plansExisting, body ?? null, scope] as const,
+    devicesExisting: (scope: QServerQueryScope, body?: PlansDevicesBody) =>
+        [...qServerQueryRoots.devicesExisting, body ?? null, scope] as const,
 
     // permissions
     permissions: (scope: QServerQueryScope) =>
@@ -152,16 +152,16 @@ export const qServerQueryKeys = {
     lockInfo: (scope: QServerQueryScope) => [...qServerQueryRoots.lockInfo, null, scope] as const,
 
     // console
-    consoleOutput: (scope: QServerQueryScope, payload?: ConsoleOutputBody) =>
-        [...qServerQueryRoots.consoleOutput, payload ?? null, scope] as const,
+    consoleOutput: (scope: QServerQueryScope, body?: ConsoleOutputBody) =>
+        [...qServerQueryRoots.consoleOutput, body ?? null, scope] as const,
     consoleOutputUid: (scope: QServerQueryScope) =>
         [...qServerQueryRoots.consoleOutputUid, null, scope] as const,
-    consoleOutputUpdate: (scope: QServerQueryScope, payload?: ConsoleOutputUpdateBody) =>
-        [...qServerQueryRoots.consoleOutputUpdate, payload ?? null, scope] as const,
+    consoleOutputUpdate: (scope: QServerQueryScope, body?: ConsoleOutputUpdateBody) =>
+        [...qServerQueryRoots.consoleOutputUpdate, body ?? null, scope] as const,
 
     // admin
-    testServerSleep: (scope: QServerQueryScope, payload?: TestServerSleepBody) =>
-        [...qServerQueryRoots.testServerSleep, payload ?? null, scope] as const,
+    testServerSleep: (scope: QServerQueryScope, body?: TestServerSleepBody) =>
+        [...qServerQueryRoots.testServerSleep, body ?? null, scope] as const,
 
     // auth
     whoami: (scope: QServerQueryScope) => [...qServerQueryRoots.whoami, null, scope] as const,

@@ -23,24 +23,24 @@ import { useQServerQueryScope } from './useQServerClient';
 /**
  * Plans the caller's user group may run, keyed by plan name, with their parameter metadata.
  *
- * @param payload `{ user_group }`; defaults to the caller's group. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ user_group }`; defaults to the caller's group. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetPlansAllowedQuery<TData = GetPlansAllowedResponse>(
-    payload?: PlansDevicesBody,
-    requestOptions: GetWithBodyOptions<GetPlansAllowedResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: PlansDevicesBody,
+    queryOptions?: FinchQueryOptions<
         GetPlansAllowedResponse,
         TData,
         QServerQueryKeyFor<'plansAllowed'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetPlansAllowedResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.plansAllowed(scope, payload),
-        fetch: (client, request) => client.getPlansAllowed(payload, request),
+        queryKey: qServerQueryKeys.plansAllowed(scope, body),
+        fetch: (client, request) => client.getPlansAllowed(body, request),
         requestOptions,
         queryOptions,
     });
@@ -49,24 +49,24 @@ export function useQueueGetPlansAllowedQuery<TData = GetPlansAllowedResponse>(
 /**
  * Devices the caller's user group may use, keyed by device name.
  *
- * @param payload `{ user_group }`; defaults to the caller's group. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ user_group }`; defaults to the caller's group. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetDevicesAllowedQuery<TData = GetDevicesAllowedResponse>(
-    payload?: PlansDevicesBody,
-    requestOptions: GetWithBodyOptions<GetDevicesAllowedResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: PlansDevicesBody,
+    queryOptions?: FinchQueryOptions<
         GetDevicesAllowedResponse,
         TData,
         QServerQueryKeyFor<'devicesAllowed'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetDevicesAllowedResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.devicesAllowed(scope, payload),
-        fetch: (client, request) => client.getDevicesAllowed(payload, request),
+        queryKey: qServerQueryKeys.devicesAllowed(scope, body),
+        fetch: (client, request) => client.getDevicesAllowed(body, request),
         requestOptions,
         queryOptions,
     });
@@ -75,24 +75,24 @@ export function useQueueGetDevicesAllowedQuery<TData = GetDevicesAllowedResponse
 /**
  * Every plan in the worker namespace, allowed or not.
  *
- * @param payload `{ user_group }`; defaults to the caller's group. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ user_group }`; defaults to the caller's group. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetPlansExistingQuery<TData = GetPlansExistingResponse>(
-    payload?: PlansDevicesBody,
-    requestOptions: GetWithBodyOptions<GetPlansExistingResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: PlansDevicesBody,
+    queryOptions?: FinchQueryOptions<
         GetPlansExistingResponse,
         TData,
         QServerQueryKeyFor<'plansExisting'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetPlansExistingResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.plansExisting(scope, payload),
-        fetch: (client, request) => client.getPlansExisting(payload, request),
+        queryKey: qServerQueryKeys.plansExisting(scope, body),
+        fetch: (client, request) => client.getPlansExisting(body, request),
         requestOptions,
         queryOptions,
     });
@@ -101,24 +101,24 @@ export function useQueueGetPlansExistingQuery<TData = GetPlansExistingResponse>(
 /**
  * Every device in the worker namespace, allowed or not.
  *
- * @param payload `{ user_group }`; defaults to the caller's group. Part of the query key.
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
+ * @param body `{ user_group }`; defaults to the caller's group. Part of the query key.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueGetDevicesExistingQuery<TData = GetDevicesExistingResponse>(
-    payload?: PlansDevicesBody,
-    requestOptions: GetWithBodyOptions<GetDevicesExistingResponse> = {},
-    queryOptions: FinchQueryOptions<
+    body?: PlansDevicesBody,
+    queryOptions?: FinchQueryOptions<
         GetDevicesExistingResponse,
         TData,
         QServerQueryKeyFor<'devicesExisting'>
-    > = {},
+    >,
+    requestOptions?: GetWithBodyOptions<GetDevicesExistingResponse>,
 ): UseQueryResult<TData, QServerHookError> {
     const scope = useQServerQueryScope(requestOptions);
 
     return useQServerQuery({
-        queryKey: qServerQueryKeys.devicesExisting(scope, payload),
-        fetch: (client, request) => client.getDevicesExisting(payload, request),
+        queryKey: qServerQueryKeys.devicesExisting(scope, body),
+        fetch: (client, request) => client.getDevicesExisting(body, request),
         requestOptions,
         queryOptions,
     });

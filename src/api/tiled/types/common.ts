@@ -54,12 +54,22 @@ export type {
 export type {
     TiledArrayReturnType,
     TiledArrayReturnMap,
+    // The package's merged option types — endpoint parameters *and* transport in one object. The
+    // hooks do not use these directly; they are here because a caller building a request by hand
+    // does.
     TiledArrayOptionsMap,
     TiledArrayJSONOptions,
     TiledArrayPngOptions,
     TiledArrayBufferOptions,
     TiledArrayImagePathOptions,
     TiledArrayAnyOptions,
+    // The endpoint half, with transport `Omit`ted — what the hooks' `arrayOptions` slot accepts.
+    TiledArrayEndpointOptionsMap,
+    TiledArrayJSONEndpointOptions,
+    TiledArrayPngEndpointOptions,
+    TiledArrayBufferEndpointOptions,
+    TiledArrayImagePathEndpointOptions,
+    TiledArrayAnyEndpointOptions,
     TiledTableReturnType,
     TiledTableEndpoint,
     TiledTableReturnMap,
@@ -69,6 +79,12 @@ export type {
     TiledTableJSONData,
     TiledTableJSONSequenceData,
     TiledTableAnyOptions,
+    // …and the table endpoint half.
+    TiledTableEndpointOptionsMap,
+    TiledTableJSONEndpointOptions,
+    TiledTableJSONSequenceEndpointOptions,
+    TiledTableAnyEndpointOptions,
     TiledInfoResponse,
     TiledLoginTokens,
+    TiledPackageClient,
 } from './packageAliases';

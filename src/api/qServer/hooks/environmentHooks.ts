@@ -17,12 +17,12 @@ import type { FinchMutationOptions, QServerHookError } from './types';
  * Resolves with `success: false` when one already exists. The plan and device catalogs are
  * regenerated as it comes up, which is why this invalidates them.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueOpenEnvironmentMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<EnvironmentResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<EnvironmentResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<EnvironmentResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.openEnvironment(request),
@@ -35,12 +35,12 @@ export function useQueueOpenEnvironmentMutation<TContext = unknown>(
 /**
  * Shut the worker environment down. Refused while a plan is running.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueCloseEnvironmentMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<EnvironmentResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<EnvironmentResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<EnvironmentResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.closeEnvironment(request),
@@ -56,12 +56,12 @@ export function useQueueCloseEnvironmentMutation<TContext = unknown>(
  * A running plan is finalized as failed and is **not** returned to the queue, so this invalidates
  * the queue as well.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. Takes no body: call `mutate()`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueDestroyEnvironmentMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<EnvironmentResponse, void, TContext> = {},
+    mutationOptions?: FinchMutationOptions<EnvironmentResponse, void, TContext>,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<EnvironmentResponse, QServerHookError, void, TContext> {
     return useQServerMutation({
         perform: (client, _variables, request) => client.destroyEnvironment(request),
@@ -78,16 +78,16 @@ export function useQueueDestroyEnvironmentMutation<TContext = unknown>(
  * partial injected client. With `run_in_background` the response carries a `task_uid`, which cannot
  * be polled from a browser — see `useQueueGetTaskResultQuery`.
  *
- * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  * @param mutationOptions TanStack options. `mutate()` or `mutate({ run_in_background })`.
+ * @param requestOptions Transport overrides; see `QServerRequestOptions`.
  */
 export function useQueueUpdateEnvironmentMutation<TContext = unknown>(
-    requestOptions: QServerRequestOptions = {},
-    mutationOptions: FinchMutationOptions<
+    mutationOptions?: FinchMutationOptions<
         EnvironmentUpdateResponse,
         EnvironmentUpdateBody | void,
         TContext
-    > = {},
+    >,
+    requestOptions?: QServerRequestOptions,
 ): UseMutationResult<
     EnvironmentUpdateResponse,
     QServerHookError,

@@ -173,8 +173,8 @@ describe('query keys', () => {
         renderHook(
             () => {
                 hooks.useQueueGetQuery();
-                hooks.useQueueGetQuery({ baseUrl: 'http://other:60610' });
-                hooks.useQueueGetQuery({ baseUrl: 'http://other:60610' });
+                hooks.useQueueGetQuery(undefined, { baseUrl: 'http://other:60610' });
+                hooks.useQueueGetQuery(undefined, { baseUrl: 'http://other:60610' });
             },
             { wrapper },
         );
@@ -230,9 +230,12 @@ describe('Finch config', () => {
         const { recorded } = recordingDefaultClient(200, { msg: 'RE Manager' });
         const { wrapper } = makeWrapper();
 
-        const { result } = renderHook(() => hooks.useQueueGetStatusQuery({ apiKey: null }), {
-            wrapper,
-        });
+        const { result } = renderHook(
+            () => hooks.useQueueGetStatusQuery(undefined, { apiKey: null }),
+            {
+                wrapper,
+            },
+        );
         await waitFor(() => expect(result.current.data).toBeDefined());
 
         expect(recorded.configs[0].headers.Authorization).toBeUndefined();
@@ -265,7 +268,7 @@ describe('enabled guards', () => {
         const { recorded } = recordingDefaultClient(200, { success: true, msg: '', item: {} });
         const { wrapper } = makeWrapper();
 
-        renderHook(() => hooks.useQueueGetItemQuery(undefined, {}, { enabled: undefined }), {
+        renderHook(() => hooks.useQueueGetItemQuery(undefined, { enabled: undefined }), {
             wrapper,
         });
 
@@ -273,11 +276,35 @@ describe('enabled guards', () => {
         expect(recorded.configs).toHaveLength(0);
     });
 
+    /**
+     * Forcing `enabled: true` past a guard fails loudly, and sends nothing.
+     *
+     * These hooks used to cast (`body as TaskBody`) and trust the guard to prevent the call, so
+     * overriding `enabled` put `undefined` on the wire and the failure surfaced as a 422 three layers
+     * from its cause. The zero-requests assertion is the real point: the error has to be raised
+     * *before* the request, not after it.
+     */
+    it('raises FinchMissingArgumentError rather than requesting with a missing argument', async () => {
+        const { recorded } = recordingDefaultClient();
+        const { wrapper } = makeWrapper();
+
+        const { result } = renderHook(
+            () => hooks.useQueueGetTaskStatusQuery(undefined, { enabled: true }),
+            { wrapper },
+        );
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(hooks.isFinchMissingArgumentError(result.current.error)).toBe(true);
+        expect(result.current.error?.message).toContain('useQueueGetTaskStatusQuery');
+        expect(result.current.error?.message).toContain('body');
+        expect(recorded.configs).toHaveLength(0);
+    });
+
     it('honours an explicit enabled: false even with a valid address', async () => {
         const { recorded } = recordingDefaultClient(200, { success: true, msg: '', item: {} });
         const { wrapper } = makeWrapper();
 
-        renderHook(() => hooks.useQueueGetItemQuery({ uid: 'abc' }, {}, { enabled: false }), {
+        renderHook(() => hooks.useQueueGetItemQuery({ uid: 'abc' }, { enabled: false }), {
             wrapper,
         });
 
@@ -381,7 +408,7 @@ describe('cancellation', () => {
 
         const controller = new AbortController();
         const { wrapper } = makeWrapper();
-        renderHook(() => hooks.useQueueGetStatusQuery({ signal: controller.signal }), {
+        renderHook(() => hooks.useQueueGetStatusQuery(undefined, { signal: controller.signal }), {
             wrapper,
         });
 

@@ -268,6 +268,9 @@ export {
     // errors
     TiledEndpointUnavailableError,
     isTiledEndpointUnavailableError,
+    // Shared across every backend, so exported once here rather than from each.
+    FinchMissingArgumentError,
+    isFinchMissingArgumentError,
     // the injection seam
     TiledApiProvider,
     useTiledApiClient,
@@ -285,6 +288,9 @@ export type {
     FinchQueryOptions,
     FinchMutationOptions,
 } from './api/tiled';
+// The cross-backend transport contract. Exported so that code implementing a Finch-shaped API layer
+// has something to conform to — see `src/api/shared/requestOptions.ts`.
+export type { FinchRequestOptions, FinchHttpRequestOptions } from './api/shared/requestOptions';
 
 // OPHYD TYPES
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
@@ -325,7 +331,8 @@ export * as TiledAPI from './api/tiled';
 // useStatusQuery -> useQueueGetStatusQuery, useQueueHistoryQuery -> useQueueGetHistoryQuery,
 // usePlansAllowedQuery -> useQueueGetPlansAllowedQuery, useAddQueueItemMutation ->
 // useQueueAddItemMutation, useStartREMutation -> useQueueStartMutation, and so on. Note the queries
-// take (arg?, requestOptions?, queryOptions?) positionally, so TanStack options move one slot right.
+// take (arg?, queryOptions?, requestOptions?) positionally — TanStack options move one slot right,
+// and transport is last. See src/api/shared/queryOptions.ts for the convention.
 export * from './api/qServer/hooks';
 
 export type {

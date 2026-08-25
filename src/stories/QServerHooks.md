@@ -34,21 +34,18 @@ The infrastructure hooks are not endpoints and keep their `useQServer...` names:
 Arguments are **positional**, always in the same order:
 
 ```tsx
-useQueueSomethingQuery(arg?, requestOptions?, queryOptions?);
-useQueueSomethingMutation(requestOptions?, mutationOptions?);
+useQueueSomethingQuery(arg?, queryOptions?, requestOptions?);
+useQueueSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
 ```tsx
 const item = useQueueGetItemQuery(
     { uid }, // the endpoint argument (only where the endpoint takes one)
-    { apiKey: null }, // QServerRequestOptions — transport overrides
     { refetchInterval: 1000 }, // standard TanStack query options
+    { apiKey: null }, // QServerRequestOptions — transport, and rarely needed
 );
 
-const add = useQueueAddItemMutation(
-    { baseUrl: 'http://other:60610' },
-    { onSuccess: (data) => console.log(data.item.item_uid) },
-);
+const add = useQueueAddItemMutation({ onSuccess: (data) => console.log(data.item.item_uid) });
 add.mutate({ item: { name: 'count', item_type: 'plan' } }); // the body goes to mutate()
 ```
 
@@ -59,14 +56,27 @@ through `mutate(variables)`, so one hook instance can perform many writes.
 | position             | what goes in it                                                                                                                                                                          |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1 — the argument     | the endpoint's own argument, forwarded to the client method and included in the query key. Present only on the queries whose endpoint actually takes one                                 |
-| 2 — request options  | `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`; plus `strategy` / `fallback` on payload-GET endpoints                                                                  |
-| 3 — TanStack options | queries: `enabled`, `refetchInterval`, `staleTime`, `select`, `retry`, … · mutations: `onSuccess`, `onError`, `onMutate`, … (`onSuccess` runs _after_ the hook has refreshed its caches) |
+| 2 — TanStack options | queries: `enabled`, `refetchInterval`, `staleTime`, `select`, `retry`, … · mutations: `onSuccess`, `onError`, `onMutate`, … (`onSuccess` runs _after_ the hook has refreshed its caches) |
+| 3 — request options  | `baseUrl`, `apiKey`, `headers`, `query`, `signal`, `axiosConfig`; plus `strategy` / `fallback` on payload-GET endpoints                                                                  |
 
-A GET that needs no arguments has **no** argument slot at all, so it starts at `requestOptions`:
-`useQueueGetStatusQuery({}, { refetchInterval: 1000 })`. Several of those endpoints do accept an
-optional server-side payload, but no browser can send a body on a GET — offering the parameter would
-only invite a silent no-op, so the hooks leave it out. Where a slot does exist and you want to skip
-it, pass `undefined` or `{}`.
+**`requestOptions` is last on purpose**, and the Tiled hooks use the identical order — so
+`requestOptions` means the same thing wherever you meet it: where this one call goes and who it is.
+It comes last because it is the rarest thing to pass, which keeps the common call free of
+placeholders:
+
+```tsx
+useQueueGetStatusQuery({ refetchInterval: 1000 }); // the usual case
+useQueueGetStatusQuery({ refetchInterval: 1000 }, { baseUrl: 'http://other:60610' });
+useQueueGetStatusQuery(undefined, { apiKey: null }); // transport only
+```
+
+A GET that needs no arguments has **no** argument slot at all, so it starts at `queryOptions`.
+Several of those endpoints do accept an optional server-side payload, but no browser can send a body
+on a GET — offering the parameter would only invite a silent no-op, so the hooks leave it out. Where a
+slot does exist and you want to skip it, pass `undefined`.
+
+A JSON request body is always named `body`. A path or query scalar keeps the endpoint's own name for
+that segment (`uuid`).
 
 The two TanStack option types are exported as `FinchQueryOptions<TResponse, TData>` and
 `FinchMutationOptions<TResponse, TVariables>`; `queryKey`, `queryFn` and `mutationFn` are omitted
@@ -186,12 +196,12 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                              | argument                     | returns `data`               | endpoint                    |
-| --------------------------------- | ---------------------------- | ---------------------------- | --------------------------- |
-| `useQueueGetPlansAllowedQuery`    | `payload?: PlansDevicesBody` | `GetPlansAllowedResponse`    | `GET /api/plans/allowed`    |
-| `useQueueGetDevicesAllowedQuery`  | `payload?: PlansDevicesBody` | `GetDevicesAllowedResponse`  | `GET /api/devices/allowed`  |
-| `useQueueGetPlansExistingQuery`   | `payload?: PlansDevicesBody` | `GetPlansExistingResponse`   | `GET /api/plans/existing`   |
-| `useQueueGetDevicesExistingQuery` | `payload?: PlansDevicesBody` | `GetDevicesExistingResponse` | `GET /api/devices/existing` |
+| hook                              | argument                  | returns `data`               | endpoint                    |
+| --------------------------------- | ------------------------- | ---------------------------- | --------------------------- |
+| `useQueueGetPlansAllowedQuery`    | `body?: PlansDevicesBody` | `GetPlansAllowedResponse`    | `GET /api/plans/allowed`    |
+| `useQueueGetDevicesAllowedQuery`  | `body?: PlansDevicesBody` | `GetDevicesAllowedResponse`  | `GET /api/devices/allowed`  |
+| `useQueueGetPlansExistingQuery`   | `body?: PlansDevicesBody` | `GetPlansExistingResponse`   | `GET /api/plans/existing`   |
+| `useQueueGetDevicesExistingQuery` | `body?: PlansDevicesBody` | `GetDevicesExistingResponse` | `GET /api/devices/existing` |
 
 ## Permissions
 
@@ -245,11 +255,11 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                                  | argument                            | returns `data`                   | endpoint                         |
-| ------------------------------------- | ----------------------------------- | -------------------------------- | -------------------------------- |
-| `useQueueGetConsoleOutputQuery`       | `payload?: ConsoleOutputBody`       | `GetConsoleOutputResponse`       | `GET /api/console_output`        |
-| `useQueueGetConsoleOutputUIDQuery`    | —                                   | `GetConsoleOutputUidResponse`    | `GET /api/console_output/uid`    |
-| `useQueueGetConsoleOutputUpdateQuery` | `payload?: ConsoleOutputUpdateBody` | `GetConsoleOutputUpdateResponse` | `GET /api/console_output_update` |
+| hook                                  | argument                         | returns `data`                   | endpoint                         |
+| ------------------------------------- | -------------------------------- | -------------------------------- | -------------------------------- |
+| `useQueueGetConsoleOutputQuery`       | `body?: ConsoleOutputBody`       | `GetConsoleOutputResponse`       | `GET /api/console_output`        |
+| `useQueueGetConsoleOutputUIDQuery`    | —                                | `GetConsoleOutputUidResponse`    | `GET /api/console_output/uid`    |
+| `useQueueGetConsoleOutputUpdateQuery` | `body?: ConsoleOutputUpdateBody` | `GetConsoleOutputUpdateResponse` | `GET /api/console_output_update` |
 
 ### Mutations
 
@@ -261,9 +271,9 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 
 ### Queries
 
-| hook                             | argument                        | returns `data`  | endpoint                     |
-| -------------------------------- | ------------------------------- | --------------- | ---------------------------- |
-| `useQueueTestServerSleepQuery` ◆ | `payload?: TestServerSleepBody` | `AdminResponse` | `GET /api/test/server/sleep` |
+| hook                             | argument                     | returns `data`  | endpoint                     |
+| -------------------------------- | ---------------------------- | --------------- | ---------------------------- |
+| `useQueueTestServerSleepQuery` ◆ | `body?: TestServerSleepBody` | `AdminResponse` | `GET /api/test/server/sleep` |
 
 ### Mutations
 
@@ -306,8 +316,8 @@ to the right server. To point the hooks at a simulator or a stub instead, wrap t
 import { useQueueGetQuery, useQueueGetStatusQuery } from '@blueskyproject/finch';
 
 function QueueSummary() {
-    const status = useQueueGetStatusQuery({}, { refetchInterval: 1000 });
-    const queue = useQueueGetQuery({}, { refetchInterval: 1000 });
+    const status = useQueueGetStatusQuery({ refetchInterval: 1000 });
+    const queue = useQueueGetQuery({ refetchInterval: 1000 });
 
     if (queue.isPending) return <p>loading…</p>;
     if (queue.isError) return <p>{queue.error.message}</p>;
@@ -326,7 +336,7 @@ function QueueSummary() {
 
 ```tsx
 // `data` is now `QueueItem[]`, and the component only re-renders when the items change.
-const items = useQueueGetQuery({}, { select: (queue) => queue.items });
+const items = useQueueGetQuery({ select: (queue) => queue.items });
 ```
 
 ### Adding an item and starting the queue
@@ -373,8 +383,8 @@ call site. Pass `enabled` in the third parameter to override.
 ### Talking to a second server, or without credentials
 
 ```tsx
-const other = useQueueGetStatusQuery({ baseUrl: 'http://other-host:60610' });
-const anon = useQueueGetStatusQuery({ apiKey: null }); // send no credentials at all
+const other = useQueueGetStatusQuery(undefined, { baseUrl: 'http://other-host:60610' });
+const anon = useQueueGetStatusQuery(undefined, { apiKey: null }); // send no credentials at all
 ```
 
 Per-request options never change client state — the next hook call uses the configured server again.
@@ -386,7 +396,7 @@ your own code as well, pass a signal; the two compose, so either one aborts the 
 
 ```tsx
 const controller = new AbortController();
-const status = useQueueGetStatusQuery({ signal: controller.signal });
+const status = useQueueGetStatusQuery(undefined, { signal: controller.signal });
 ```
 
 ### Refreshing caches by hand
