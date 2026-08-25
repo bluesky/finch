@@ -88,7 +88,10 @@ describe('QSConsole against the simulator', () => {
 
         screen.getByRole('button', { name: '' }).click();
         await waitFor(() => expect(sim.listenerCounts().console).toBe(0));
-        expect(screen.getByText(/Waiting for initialization/i)).toBeInTheDocument();
+        // `findByText`, not `getByText`: the simulator drops its listener as soon as the socket
+        // closes, which is before React has committed the status change, so a synchronous assertion
+        // here races the re-render and fails under load.
+        expect(await screen.findByText(/Waiting for initialization/i)).toBeInTheDocument();
 
         screen.getByRole('button', { name: '' }).click();
         await waitFor(() => expect(sim.listenerCounts().console).toBe(1));

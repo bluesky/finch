@@ -32,86 +32,106 @@ vi.mock('react-tooltip', () => ({
     Tooltip: () => <div data-testid="tooltip" />,
 }));
 
+// The component reads Tiled through `useTiledSearchQuery`, so that is what gets stubbed — the
+// TanStack result shape, not the underlying request. `TiledHooks.test.tsx` covers the hook itself
+// against a stub client; here the only question is what this component does with the result.
 vi.mock('@/api/tiled', () => ({
-    getTiledSearch: vi.fn(() => Promise.resolve(null)),
+    useTiledSearchQuery: vi.fn(),
 }));
 
 // ── Imports (after mocks) ──────────────────────────────────────────────────────
 
-import { getTiledSearch } from '@/api/tiled';
+import { useTiledSearchQuery } from '@/api/tiled';
 import TiledLinePlotMaker from '../../features/TiledLinePlotMaker';
 
-// Builds a minimal search result with one run item.
-function makeSearchResult(id: string, sample?: string) {
+type SearchQueryResult = ReturnType<typeof useTiledSearchQuery>;
+
+/** A resolved query holding one run item, or none. */
+function loaded(id?: string, sample?: string) {
+    const data = id
+        ? {
+              data: [
+                  {
+                      id,
+                      attributes: {
+                          metadata: {
+                              start: { time: 1700000000, sample },
+                              stop: { exit_status: 'success' },
+                          },
+                      },
+                  },
+              ],
+          }
+        : undefined;
+    return { data, isError: false, error: null } as unknown as SearchQueryResult;
+}
+
+/** A rejected query. */
+function failed(message: string) {
     return {
-        data: [
-            {
-                id,
-                attributes: {
-                    metadata: {
-                        start: { time: 1700000000, sample },
-                        stop: { exit_status: 'success' },
-                    },
-                },
-            },
-        ],
-    } as unknown as Awaited<ReturnType<typeof getTiledSearch>>;
+        data: undefined,
+        isError: true,
+        error: new Error(message),
+    } as unknown as SearchQueryResult;
 }
 
 // ── Tests ───────────────────────────────────────────────────────────────────--
 
 describe('TiledLinePlotMaker', () => {
     beforeEach(() => {
-        vi.mocked(getTiledSearch).mockReset();
-        vi.mocked(getTiledSearch).mockResolvedValue(null);
+        vi.mocked(useTiledSearchQuery).mockReset();
+        vi.mocked(useTiledSearchQuery).mockReturnValue(loaded());
     });
 
-    it('renders the plot settings and data picker sections', async () => {
+    it('renders the plot settings and data picker sections', () => {
         render(<TiledLinePlotMaker />);
-        await waitFor(() => expect(getTiledSearch).toHaveBeenCalled());
         expect(screen.getByText('Plot Settings')).toBeInTheDocument();
         expect(screen.getByText('Data Picker')).toBeInTheDocument();
     });
 
-    it('shows the empty-selection placeholder by default', async () => {
+    it('shows the empty-selection placeholder by default', () => {
         render(<TiledLinePlotMaker />);
-        await waitFor(() => expect(getTiledSearch).toHaveBeenCalled());
         expect(screen.getByText('Select a data set...')).toBeInTheDocument();
     });
 
-    it('defaults the x and y axis trace fields and forwards them to the plot', async () => {
+    it('defaults the x and y axis trace fields and forwards them to the plot', () => {
         render(<TiledLinePlotMaker />);
-        await waitFor(() => expect(getTiledSearch).toHaveBeenCalled());
         const plot = screen.getByTestId('multi-scatter-plot');
         expect(plot).toHaveAttribute('data-x', 'seq_num');
         expect(plot).toHaveAttribute('data-y', 'time');
     });
 
-    it('forwards the plot title from the title input', async () => {
+    it('forwards the plot title from the title input', () => {
         render(<TiledLinePlotMaker />);
-        await waitFor(() => expect(getTiledSearch).toHaveBeenCalled());
         fireEvent.change(screen.getByPlaceholderText('Plot title'), {
             target: { value: 'My Plot' },
         });
         expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-title', 'My Plot');
     });
 
-    it('updates the forwarded x axis column when the field changes', async () => {
+    it('updates the forwarded x axis column when the field changes', () => {
         render(<TiledLinePlotMaker />);
-        await waitFor(() => expect(getTiledSearch).toHaveBeenCalled());
         const xInputs = screen.getAllByPlaceholderText('Column name');
         fireEvent.change(xInputs[0], { target: { value: 'new_x_column' } });
         expect(screen.getByTestId('multi-scatter-plot')).toHaveAttribute('data-x', 'new_x_column');
     });
 
+    it('searches the root container for Bluesky runs, newest first', () => {
+        render(<TiledLinePlotMaker />);
+        const [searchPath, config] = vi.mocked(useTiledSearchQuery).mock.calls[0];
+        expect(searchPath).toBe('');
+        expect(config?.searchFilters?.specs).toEqual({ include: ['BlueskyRun'], exclude: [] });
+        expect(config?.searchOptions?.sort).toBe('-');
+    });
+
     it('renders run items returned by the Tiled search', async () => {
-        vi.mocked(getTiledSearch).mockResolvedValue(makeSearchResult('run-abc-123', 'sampleX'));
+        vi.mocked(useTiledSearchQuery).mockReturnValue(loaded('run-abc-123', 'sampleX'));
         render(<TiledLinePlotMaker />);
         expect(await screen.findByText(/run-abc-123/)).toBeInTheDocument();
     });
 
     it('selects a run and forwards its id to the plot', async () => {
-        vi.mocked(getTiledSearch).mockResolvedValue(makeSearchResult('run-abc-123', 'sampleX'));
+        vi.mocked(useTiledSearchQuery).mockReturnValue(loaded('run-abc-123', 'sampleX'));
         render(<TiledLinePlotMaker />);
         const item = await screen.findByText(/run-abc-123/);
         fireEvent.click(item);
@@ -125,16 +145,15 @@ describe('TiledLinePlotMaker', () => {
         expect(screen.queryByText('Select a data set...')).not.toBeInTheDocument();
     });
 
-    it('logs an error when the Tiled search rejects', async () => {
-        const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-        vi.mocked(getTiledSearch).mockRejectedValue(new Error('network down'));
+    /**
+     * A failed search is now shown, not logged.
+     *
+     * It used to be swallowed into `console.error`, which left the picker looking simply empty — the
+     * same thing it looks like when the server legitimately has no runs.
+     */
+    it('shows the error when the Tiled search rejects', () => {
+        vi.mocked(useTiledSearchQuery).mockReturnValue(failed('network down'));
         render(<TiledLinePlotMaker />);
-        await waitFor(() => {
-            expect(errorSpy).toHaveBeenCalledWith(
-                'Error fetching ExperimentHistory data:',
-                expect.any(Error),
-            );
-        });
-        errorSpy.mockRestore();
+        expect(screen.getByText(/Could not load runs: network down/)).toBeInTheDocument();
     });
 });

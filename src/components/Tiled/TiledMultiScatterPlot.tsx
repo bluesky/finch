@@ -3,7 +3,8 @@ import { useQueries } from '@tanstack/react-query';
 import PlotlyScatter from '../PlotlyScatter';
 import { PlotData } from 'plotly.js';
 
-import { getTiledTablePartitionAsJSON, tiledQueryKeys, useTiledQueryScope } from '@/api/tiled';
+import { tiledQueryKeys, useTiledClient, useTiledQueryScope } from '@/api/tiled';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 
 type TiledMultiScatterPlotProps = {
@@ -41,9 +42,13 @@ export default function TiledMultiScatterPlot({
     traceNames,
     popupMessage,
 }: TiledMultiScatterPlotProps) {
-    // One query per path, so this cannot use the table hook — but it uses the same key factory and
-    // the same request function, so its entries sit alongside the hooks' in the cache and are
-    // refreshed by the same `['tiled','table']` invalidation.
+    // One query per path — a list whose length changes between renders, so this cannot be built from
+    // `useTiledTablePartitionAsJSONQuery` (hooks cannot be called in a loop). It stays consistent
+    // with the hooks in the three ways that matter: the same key factory, so its entries sit
+    // alongside theirs and are refreshed by the same `['tiled','table']` invalidation; the *resolved*
+    // client, so a client injected through `TiledApiProvider` is honoured rather than silently
+    // bypassed; and TanStack's `signal`, so unmounting cancels the requests in flight.
+    const { client, requestDefaults } = useTiledClient();
     const scope = useTiledQueryScope({ baseUrl: tiledBaseUrl });
     const results = useQueries({
         queries: paths.map((path) => ({
@@ -53,8 +58,13 @@ export default function TiledMultiScatterPlot({
                 endpoint: 'partition' as const,
                 options: { partition },
             }),
-            queryFn: () =>
-                getTiledTablePartitionAsJSON(path ?? '', { partition, baseUrl: tiledBaseUrl }),
+            queryFn: ({ signal }: { signal: AbortSignal }) =>
+                client.getTablePartitionAsJSON(path ?? '', {
+                    partition,
+                    // `mergeRequestOptions` rather than a spread: it copies only *defined* keys, so
+                    // an absent `baseUrl` inherits the configured one instead of erasing it.
+                    ...mergeRequestOptions(requestDefaults, { baseUrl: tiledBaseUrl }, signal),
+                }),
             enabled: path !== null,
         })),
     });

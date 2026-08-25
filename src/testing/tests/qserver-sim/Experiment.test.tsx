@@ -67,7 +67,13 @@ async function pickDevice(label: string, device: string) {
     await userEvent.click(await within(field).findByText(device));
 }
 
-describe('Experiment against the simulator', () => {
+/**
+ * 20 s rather than the 5 s default: several of these type character-by-character through
+ * `userEvent`, after waiting on the simulator for `plans_allowed` and `devices_allowed`. The whole
+ * file runs in ~3 s alone, but under the full suite's parallelism the slowest two used to graze 5 s
+ * and fail on the timeout rather than on an assertion.
+ */
+describe('Experiment against the simulator', { timeout: 20_000 }, () => {
     it('lists the plans the queue server allows, alphabetically', async () => {
         const sim = defaultQServer();
         renderExperiment(sim);

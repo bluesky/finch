@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useTiledSearchQuery } from '@/api/tiled';
-import { checkRunCompletion, cleanTiledInitialPath } from '../utils/tiledUtils';
+import { useMemo } from 'react';
+import { useTiledMetadataQuery, useTiledSearchQuery } from '@/api/tiled';
+import { cleanTiledInitialPath } from '../utils/tiledUtils';
 
 type UseTiledWriterScatterPlotReturn = {
     /** Resolved Tiled path to the primary stream data, or `null` while searching. */
@@ -11,10 +11,6 @@ type UseTiledWriterScatterPlotReturn = {
     error: string | null;
     /** `true` when the run is still ongoing and data should be refetched. */
     enablePolling: boolean;
-    /** Starts an interval that checks Tiled for a run-stop document and disables polling when found. */
-    startCompletionPolling: (pollingIntervalMs?: number) => void;
-    /** Cancels the completion-polling interval started by `startCompletionPolling`. */
-    stopCompletionPolling: () => void;
 };
 
 type UseTiledWriterScatterPlotOptions = {
@@ -36,12 +32,6 @@ export const useTiledWriterScatterPlot = (
 
     const startPath =
         initialPath && initialPath.trim() ? `${cleanTiledInitialPath(initialPath)}/` : '';
-
-    const [enablePolling, setEnablePolling] = useState(!isRunFinished);
-    const [pollingInterval, setPollingInterval] = useState<ReturnType<typeof setInterval> | null>(
-        null,
-    );
-    const completionStartedRef = useRef(false);
 
     const hasRunId = !!blueskyRunId && blueskyRunId.trim() !== '';
 
@@ -107,67 +97,29 @@ export const useTiledWriterScatterPlot = (
         blueskyRunId,
     ]);
 
-    const startCompletionPolling = useCallback(
-        (customPollingInterval?: number) => {
-            const intervalId = setInterval(async () => {
-                const isComplete = await checkRunCompletion(blueskyRunId, tiledBaseUrl);
-                if (isComplete) {
-                    setEnablePolling(false);
-                    clearInterval(intervalId);
-                    setPollingInterval(null);
-                } else {
-                    setEnablePolling(true);
-                }
-            }, customPollingInterval ?? pollingIntervalMs);
-            setPollingInterval(intervalId);
+    // Step 3: has the run finished being written? A bluesky run acquires a `stop` document when it
+    // ends, so "has it stopped" and "should the plot keep refetching" are the same question — which
+    // makes this a polling query, where it used to be a hand-rolled `setInterval` with its own state,
+    // ref and three cleanup effects.
+    //
+    // The path is prefixed the same way the searches above are. The `checkRunCompletion(blueskyRunId)`
+    // this replaces was **not** prefixed, so with an `initialPath` option set it polled a different
+    // node than the one the search had just located.
+    const completionQuery = useTiledMetadataQuery(
+        tiledPath ? `${startPath}${blueskyRunId}` : '',
+        {
+            enabled: Boolean(tiledPath) && !isRunFinished,
+            retry: false,
+            select: (item) => item?.attributes?.metadata?.stop !== undefined,
+            // Stop polling as soon as a stop document appears.
+            refetchInterval: (query) => (query.state.data ? false : pollingIntervalMs),
         },
-        [blueskyRunId, tiledBaseUrl, pollingIntervalMs],
+        { baseUrl: tiledBaseUrl },
     );
 
-    const stopCompletionPolling = useCallback(() => {
-        if (pollingInterval) {
-            clearInterval(pollingInterval);
-            setPollingInterval(null);
-        }
-    }, [pollingInterval]);
+    // Ongoing until proven finished. A failed completion check therefore leaves polling on, matching
+    // the fail-open behaviour of the old helper, which swallowed its error and returned `false`.
+    const enablePolling = isRunFinished ? false : completionQuery.data !== true;
 
-    // Once the path is resolved for the first time, check completion and start polling if needed.
-    useEffect(() => {
-        if (!tiledPath || completionStartedRef.current) return;
-        completionStartedRef.current = true;
-        checkRunCompletion(blueskyRunId, tiledBaseUrl).then((isComplete) => {
-            if (isComplete) {
-                setEnablePolling(false);
-            } else {
-                setEnablePolling(true);
-                if (!isRunFinished) startCompletionPolling();
-            }
-        });
-    }, [tiledPath, blueskyRunId, tiledBaseUrl, isRunFinished, startCompletionPolling]);
-
-    // Reset polling state when the run ID changes.
-    useEffect(() => {
-        completionStartedRef.current = false;
-        setEnablePolling(!isRunFinished);
-        setPollingInterval((prev) => {
-            if (prev) clearInterval(prev);
-            return null;
-        });
-    }, [blueskyRunId, isRunFinished]);
-
-    // Cleanup on unmount.
-    useEffect(() => {
-        return () => {
-            if (pollingInterval) clearInterval(pollingInterval);
-        };
-    }, [pollingInterval]);
-
-    return {
-        tiledPath,
-        isLoading,
-        error,
-        enablePolling,
-        startCompletionPolling,
-        stopCompletionPolling,
-    };
+    return { tiledPath, isLoading, error, enablePolling };
 };

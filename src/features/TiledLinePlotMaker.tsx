@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import TiledWriterMultiScatterPlot from '@/components/Tiled/TiledWriterMultiScatterPlot';
-import { getTiledSearch, type TiledSearchConfig, type TiledSearchResult } from '@/api/tiled';
+import { useTiledSearchQuery, type TiledSearchConfig } from '@/api/tiled';
 import { Shuffle, Sliders, PaintBrush } from '@phosphor-icons/react';
 import { Tooltip } from 'react-tooltip';
 import { cn } from '@/lib/utils';
@@ -59,32 +59,18 @@ export default function TiledLinePlotMaker({
     const handleIDUnselect = (id: string) => {
         setBlueskyIds((prev) => prev.filter((existingId) => existingId !== id));
     };
-    const [searchResults, setSearchResults] = useState<TiledSearchResult | null>(null);
-    useEffect(() => {
-        const fetchData = async () => {
-            //eventually uncomment this and get the key contains working once that's updated in tiled api
-            // The search path and the transport options are separate arguments now; filters and
-            // pagination are the two halves of the config.
-            const searchConfig: TiledSearchConfig = {
-                searchOptions: {
-                    sort: '-',
-                },
-                searchFilters: {
-                    specs: { include: ['BlueskyRun'], exclude: [] },
-                },
-            };
-            try {
-                const results: TiledSearchResult | null = await getTiledSearch('', searchConfig, {
-                    initialPath,
-                    baseUrl: tiledBaseUrl,
-                });
-                setSearchResults(results);
-            } catch (error) {
-                console.error('Error fetching ExperimentHistory data:', error);
-            }
-        };
-        fetchData();
-    }, [initialPath, tiledBaseUrl]);
+    //eventually uncomment this and get the key contains working once that's updated in tiled api
+    // Filters and pagination are the two halves of the config; transport is the last argument.
+    const searchConfig: TiledSearchConfig = {
+        searchOptions: { sort: '-' },
+        searchFilters: { specs: { include: ['BlueskyRun'], exclude: [] } },
+    };
+
+    const searchQuery = useTiledSearchQuery('', searchConfig, undefined, {
+        initialPath,
+        baseUrl: tiledBaseUrl,
+    });
+    const searchResults = searchQuery.data;
     return (
         <article
             className={cn(
@@ -161,6 +147,11 @@ export default function TiledLinePlotMaker({
                         <div className="flex flex-grow min-h-0 px-2">
                             {/* All Data For selection */}
                             <ul className="w-72 h-full overflow-y-auto rounded-scrollbar border-r-2 borer-slate-300 pr-2">
+                                {searchQuery.isError && (
+                                    <li className="text-red-400">
+                                        Could not load runs: {searchQuery.error.message}
+                                    </li>
+                                )}
                                 {searchResults &&
                                     searchResults.data.map((item) => {
                                         const meta = item?.attributes?.metadata;

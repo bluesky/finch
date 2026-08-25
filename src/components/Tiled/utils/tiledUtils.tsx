@@ -1,4 +1,4 @@
-import { getTiledMetadata, type TiledItemLinks } from '@/api/tiled';
+import { type TiledItemLinks } from '@/api/tiled';
 
 /**
  * Extracts the Tiled node path from a `TiledItemLinks` object.
@@ -20,45 +20,6 @@ export const getPathFromLinks = (links: TiledItemLinks) => {
     }
     const path = url.pathname.substring(pathIndex + '/metadata'.length);
     return path;
-};
-
-/**
- * Checks if a Bluesky run is complete by looking for the 'stop' property in metadata
- * @param path - The bluesky run ID to check
- * @returns Promise<boolean> - true if run is complete, false if ongoing
- */
-export const checkRunCompletion = async (path: string, url?: string): Promise<boolean> => {
-    try {
-        console.log(`[tiledUtils] Checking run completion for path: ${path}`);
-        // `getTiledMetadata` resolves the item itself, where the retired `getBlueskyPlanMetadata`
-        // resolved a `{ data: item }` envelope — hence one fewer hop below.
-        const metadata = await getTiledMetadata(path, { baseUrl: url });
-
-        // Safety check: if metadata is falsy, don't proceed
-        if (!metadata) {
-            console.log(`[tiledUtils] No metadata returned, assuming run is ongoing`);
-            return false;
-        }
-
-        console.log(`[tiledUtils] Metadata result:`, metadata);
-
-        // Check if metadata has a 'stop' property at attributes.metadata.stop
-        const hasStop = metadata?.attributes?.metadata?.stop !== undefined;
-
-        if (hasStop) {
-            console.log(`[tiledUtils] Run is complete (found 'stop' in data.attributes.metadata)`);
-            return true; // Run is complete
-        } else {
-            console.log(
-                `[tiledUtils] Run is still ongoing (no 'stop' in data.attributes.metadata)`,
-            );
-            return false; // Run is ongoing
-        }
-    } catch (error) {
-        console.warn(`[tiledUtils] Error checking metadata:`, error);
-        // On error, assume run is ongoing
-        return false;
-    }
 };
 
 /**

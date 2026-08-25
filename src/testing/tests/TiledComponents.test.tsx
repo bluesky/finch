@@ -288,8 +288,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
     });
 
@@ -299,8 +297,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: true,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Loading Tiled data for run run-1...')).toBeInTheDocument();
@@ -312,8 +308,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: 'Waiting for run ID',
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Error: Waiting for run ID')).toBeInTheDocument();
@@ -330,8 +324,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(
@@ -345,8 +337,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: true,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(
@@ -382,8 +372,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         // TiledScatterPlot with a real path and no data shows "No data available" (not the null-path message)

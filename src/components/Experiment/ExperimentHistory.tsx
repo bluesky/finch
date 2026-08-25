@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { getTiledSearch, type TiledSearchConfig, type TiledSearchResult } from '@/api/tiled';
+import { useState } from 'react';
+import { useTiledSearchQuery, type TiledSearchConfig } from '@/api/tiled';
 import dayjs from 'dayjs';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 import { SpinnerGap } from '@phosphor-icons/react';
@@ -42,50 +42,41 @@ export default function ExperimentHistory({
     enablePersistentSelection,
     initialSelectedItemId,
 }: ExperimentHistoryProps) {
-    const [searchResults, setSearchResults] = useState<TiledSearchResult | null>(null);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(
         initialSelectedItemId || null,
     );
-    useEffect(() => {
-        const fetchData = async () => {
-            //eventually uncomment this and get the key contains working once that's updated in tiled api
-            // The search path and the transport options are separate arguments now; filters and
-            // pagination are the two halves of the config.
-            const searchConfig: TiledSearchConfig = {
-                searchOptions: {
-                    pageLimit: tiledPageLimit || 10,
-                    sort: '-',
-                },
-                searchFilters: {
-                    specs: { include: ['BlueskyRun'], exclude: [] },
-                    fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
-                    contains: planName
-                        ? {
-                              key: planNameMetadataKey,
-                              value: planName,
-                          }
-                        : undefined,
-                },
-            };
-            try {
-                const results: TiledSearchResult | null = await getTiledSearch('', searchConfig, {
-                    baseUrl: tiledBaseUrl || undefined,
-                    initialPath: tiledInitialSearchPath || undefined,
-                });
-                setSearchResults(results);
-            } catch (error) {
-                console.error('Error fetching ExperimentHistory data:', error);
-            }
-        };
-        fetchData();
-    }, [
-        planName,
-        planNameMetadataKey,
-        metadataFulltextSearch,
-        tiledBaseUrl,
-        tiledInitialSearchPath,
-        tiledPageLimit,
-    ]);
+
+    //eventually uncomment this and get the key contains working once that's updated in tiled api
+    // Filters and pagination are the two halves of the config; transport is the last argument.
+    const searchConfig: TiledSearchConfig = {
+        searchOptions: {
+            pageLimit: tiledPageLimit || 10,
+            sort: '-',
+        },
+        searchFilters: {
+            specs: { include: ['BlueskyRun'], exclude: [] },
+            fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
+            contains: planName ? { key: planNameMetadataKey, value: planName } : undefined,
+        },
+    };
+
+    // A fresh config object each render is safe: it goes into the query key, and TanStack hashes
+    // keys by value with sorted keys, so an equal config is the same entry.
+    const searchQuery = useTiledSearchQuery('', searchConfig, undefined, {
+        baseUrl: tiledBaseUrl || undefined,
+        initialPath: tiledInitialSearchPath || undefined,
+    });
+    const searchResults = searchQuery.data;
+
+    if (searchQuery.isError) {
+        return (
+            <section>
+                <p className="text-red-700">
+                    Could not load experiment history: {searchQuery.error.message}
+                </p>
+            </section>
+        );
+    }
 
     return (
         <section>
