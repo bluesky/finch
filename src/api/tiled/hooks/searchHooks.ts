@@ -11,6 +11,7 @@ import type {
     TiledSpecsFilter,
     TiledStructureFamilyFilter,
 } from '../types/common';
+import { encodeSearchConfig } from './internal/encodeSearchConfig';
 import { useTiledQuery } from './internal/useTiledQuery';
 import { tiledQueryKeys, type TiledQueryKeyFor } from './queryKeys';
 import type { FinchQueryOptions, TiledHookError } from './types';
@@ -32,6 +33,18 @@ import { useTiledQueryScope } from './useTiledClient';
  * package but did exist in the legacy Finch hooks, and `TiledSearchFilters` supports them, so they are
  * kept for parity. For the remaining nine filters (`lookup`, `keysFilter`, `noteq`, `contains`, `in`,
  * `notin`, `keyPresent`, `like`, `accessBlob`) use `useTiledSearchQuery` directly.
+ *
+ * **Filter values are passed as themselves, never as hand-written JSON.** Six filters — `eq`,
+ * `noteq`, `comparison`, `contains`, `in`, `notin` — have a `value` the server parses as JSON, so the
+ * raw API needs `'"xas_scan"'` with the quotes baked in. These hooks encode for you:
+ *
+ * ```ts
+ * useTiledSearchQuery('', {
+ *     searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+ * });
+ * ```
+ *
+ * See `internal/encodeSearchConfig.ts` for which filters are encoded and which are left alone.
  */
 
 /** Shared shape of every search hook's TanStack options parameter. */
@@ -115,7 +128,8 @@ export function useTiledSearchByFullTextQuery<TData = TiledSearchResult>(
  * Search for items whose metadata key equals a value.
  *
  * @param searchPath Container to search within. `''` is the root container.
- * @param filter `{ key, value }`. The key is a metadata path such as `start.plan_name`.
+ * @param filter `{ key, value }`. The key is a metadata path such as `start.plan_name`. Pass the
+ * value itself — `'xas_scan'`, `5`, `true` — the hook JSON-encodes it for the server.
  * @param searchOptions Pagination, sorting and field selection.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  * @param requestOptions Transport overrides; see `TiledRequestOptions`.
@@ -191,10 +205,11 @@ export function useTiledSearchByRegexQuery<TData = TiledSearchResult>(
  *
  * Not one of the package's own convenience functions, but `TiledSearchFilters` supports the filter and
  * the legacy Finch hooks exposed it. Useful for time ranges: `{ operator: 'gt', key: 'start.time',
- * value: '1700000000' }`.
+ * value: 1700000000 }`.
  *
  * @param searchPath Container to search within. `''` is the root container.
- * @param filter `{ operator: 'gt' | 'gte' | 'lt' | 'lte', key, value }`.
+ * @param filter `{ operator: 'gt' | 'gte' | 'lt' | 'lte', key, value }`. Pass the value itself; the
+ * hook JSON-encodes it for the server.
  * @param searchOptions Pagination, sorting and field selection.
  * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
  * @param requestOptions Transport overrides; see `TiledRequestOptions`.
@@ -230,9 +245,14 @@ function useSearch<TData>(
 ): UseQueryResult<TData, TiledHookError> {
     const scope = useTiledQueryScope(requestOptions);
 
+    // Encode *before* keying, not just before fetching: `value: 5` and `value: '5'` become `5` and
+    // `"5"`, two genuinely different queries, and the encoded form is the one that identifies the
+    // request. A fresh object each render is fine — TanStack hashes keys by value.
+    const encodedConfig = encodeSearchConfig(config);
+
     return useTiledQuery({
-        queryKey: tiledQueryKeys.search(scope, { searchPath, config: config ?? null }),
-        fetch: (client, request) => client.getSearch(searchPath, config, request),
+        queryKey: tiledQueryKeys.search(scope, { searchPath, config: encodedConfig ?? null }),
+        fetch: (client, request) => client.getSearch(searchPath, encodedConfig, request),
         queryOptions,
         requestOptions,
         defaultEnabled,

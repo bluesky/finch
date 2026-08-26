@@ -10,6 +10,7 @@ README.md / SKILLS.md      docs
 
 types/
   packageAliases.ts        types the package USES but does not EXPORT, derived from method signatures
+  searchFilters.ts         the six JSON-valued filters, widened to take real values
   common.ts                re-exports of the package types the hooks expose
   index.ts                 barrel
 
@@ -25,6 +26,7 @@ hooks/
   invalidation.ts          bundles + mutation->bundle map + useTiledInvalidate
   useTiledClient.ts        resolver: provider -> Finch-configured singleton; useTiledQueryScope()
   internal/
+    encodeSearchConfig.ts  JSON-encodes the six filter values the server parses as JSON
     keyParts.ts            projects cache-relevant fields out of the endpoint options
     useTiledQuery.ts       the one query engine
     useTiledMutation.ts    the one mutation engine
@@ -95,6 +97,12 @@ one, so a hook that never reaches the barrel fails CI.
 - **Deep imports into the package are impossible.** Its `exports` map allows only `.` and
   `./style.css`, so anything the index does not export must be derived via
   `Parameters<>` / `ReturnType<>` in `types/packageAliases.ts`.
+- **Six filter values are JSON, not text.** `eq`, `noteq`, `comparison`, `contains`, `in`, `notin`
+  have a `value` the server reads with `json.loads`, so `xas_scan` is malformed and `"xas_scan"` is
+  what it wants. `internal/encodeSearchConfig.ts` encodes them; callers pass real values. Numbers and
+  booleans are valid JSON bare, which is why forgetting to encode used to look intermittent. Do not
+  encode `fulltext`/`regex`/`like`/`lookup`/`structureFamily` — those are plain strings — and do not
+  encode `specs`, which the package already handles.
 - **Never put a raw options object in a query key.** A `signal` in a key refetches forever. Project
   through `keyParts.ts`.
 - **`enabled` goes after the caller's spread**, with `??`. Before it, a caller spreading an options

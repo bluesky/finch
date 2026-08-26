@@ -304,6 +304,139 @@ describe('query keys', () => {
     });
 });
 
+/**
+ * Six of Tiled's filters have a `value` the server reads with `json.loads`, so a string has to arrive
+ * as `"xas_scan"` — quotes and all. The package forwards `value` verbatim; these hooks encode it, so
+ * callers pass real values. The nasty part is that numbers and booleans are valid JSON bare, so
+ * forgetting to quote only breaks strings and looks intermittent.
+ */
+describe('filter value encoding', () => {
+    /** The `searchFilters` the stub client actually received. */
+    async function filtersSentBy(render: () => unknown) {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper({ injected: client });
+        renderHook(render, { wrapper });
+        await waitFor(() => expect(calls.length).toBeGreaterThan(0));
+        const config = calls[0].args[1] as { searchFilters?: Record<string, unknown> };
+        return config?.searchFilters ?? {};
+    }
+
+    it('JSON-encodes a string value, so the caller never hand-quotes', async () => {
+        const filters = await filtersSentBy(() =>
+            tiled.useTiledSearchQuery('', {
+                searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+            }),
+        );
+        expect(filters.contains).toEqual({ key: 'start.plan_name', value: '"xas_scan"' });
+    });
+
+    it('encodes numbers, booleans and null as themselves', async () => {
+        const filters = await filtersSentBy(() =>
+            tiled.useTiledSearchQuery('', {
+                searchFilters: {
+                    eq: { key: 'start.scan_id', value: 5 },
+                    noteq: { key: 'start.ok', value: true },
+                    comparison: { operator: 'gt', key: 'start.time', value: 1700000000 },
+                    contains: { key: 'start.tag', value: null },
+                },
+            }),
+        );
+        expect(filters.eq).toEqual({ key: 'start.scan_id', value: '5' });
+        expect(filters.noteq).toEqual({ key: 'start.ok', value: 'true' });
+        expect(filters.comparison).toEqual({
+            operator: 'gt',
+            key: 'start.time',
+            value: '1700000000',
+        });
+        expect(filters.contains).toEqual({ key: 'start.tag', value: 'null' });
+    });
+
+    it('encodes each element of an in/notin set', async () => {
+        const filters = await filtersSentBy(() =>
+            tiled.useTiledSearchQuery('', {
+                searchFilters: {
+                    in: { key: 'start.plan_name', value: ['count', 'scan'] },
+                    notin: { key: 'start.scan_id', value: [1, 2] },
+                },
+            }),
+        );
+        expect(filters.in).toEqual({ key: 'start.plan_name', value: ['"count"', '"scan"'] });
+        expect(filters.notin).toEqual({ key: 'start.scan_id', value: ['1', '2'] });
+    });
+
+    /** Encoding these would break them: the server reads them as plain strings, not JSON. */
+    it('leaves the string-valued filters alone', async () => {
+        const filters = await filtersSentBy(() =>
+            tiled.useTiledSearchQuery('', {
+                searchFilters: {
+                    fulltext: { text: 'alice' },
+                    regex: { key: 'start.plan_name', pattern: '^xas' },
+                    like: { key: 'start.plan_name', pattern: 'xas%' },
+                    lookup: { key: 'start.uid' },
+                    structureFamily: { value: 'array' },
+                    keyPresent: { key: 'stop.time', exists: true },
+                },
+            }),
+        );
+        expect(filters.fulltext).toEqual({ text: 'alice' });
+        expect(filters.regex).toEqual({ key: 'start.plan_name', pattern: '^xas' });
+        expect(filters.like).toEqual({ key: 'start.plan_name', pattern: 'xas%' });
+        expect(filters.lookup).toEqual({ key: 'start.uid' });
+        expect(filters.structureFamily).toEqual({ value: 'array' });
+        expect(filters.keyPresent).toEqual({ key: 'stop.time', exists: true });
+    });
+
+    it('passes the convenience hooks through the same encoding', async () => {
+        const equals = await filtersSentBy(() =>
+            tiled.useTiledSearchByMetadataEqualsQuery('', {
+                key: 'start.plan_name',
+                value: 'count',
+            }),
+        );
+        expect(equals.eq).toEqual({ key: 'start.plan_name', value: '"count"' });
+    });
+
+    /**
+     * The key holds the *encoded* config, because that is what identifies the request.
+     *
+     * Also the reason `5` and `'5'` stay separate entries: they encode to `5` and `"5"`, two
+     * different searches. (Keying on the raw config would separate them too, so the cache-count
+     * assertion below is not on its own evidence that encoding happens before keying — the key
+     * contents are.)
+     */
+    it('keys on the encoded config', async () => {
+        const { client } = makeStub();
+        const { wrapper, queryClient } = makeWrapper({ injected: client });
+
+        renderHook(
+            () => {
+                tiled.useTiledSearchQuery('', {
+                    searchFilters: { eq: { key: 'start.scan_id', value: 5 } },
+                });
+                tiled.useTiledSearchQuery('', {
+                    searchFilters: { eq: { key: 'start.scan_id', value: '5' } },
+                });
+            },
+            { wrapper },
+        );
+
+        await waitFor(() => expect(queryClient.getQueryCache().getAll().length).toBe(2));
+
+        const values = queryClient
+            .getQueryCache()
+            .getAll()
+            .map(
+                (entry) =>
+                    (
+                        entry.queryKey[2] as {
+                            config: { searchFilters: { eq: { value: string } } };
+                        }
+                    ).config.searchFilters.eq.value,
+            );
+        expect(values.sort()).toEqual(['"5"', '5']);
+    });
+});
+
 describe('client resolution', () => {
     it('carries Finch config on the very first request, with no provider involved', async () => {
         const { wrapper } = makeWrapper({

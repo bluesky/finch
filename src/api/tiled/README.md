@@ -105,6 +105,29 @@ All seven call `GET /api/v1/search/{path}`; the six conveniences just build the 
 | `useTiledSearchByRegexQuery`              | `{ key, pattern, caseSensitive? }`        |
 | `useTiledSearchByMetadataComparisonQuery` | `{ operator, key, value }`                |
 
+**Filter values are passed as themselves, not as hand-written JSON.** Six filters — `eq`, `noteq`,
+`comparison`, `contains`, `in`, `notin` — have a `value` that Tiled reads with `json.loads`, so the raw
+API needs the quotes baked into the string. The hooks encode for you:
+
+```ts
+// what you write
+useTiledSearchQuery('', {
+    searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+});
+
+// what the server receives
+// filter[contains][condition][value]="xas_scan"
+```
+
+`string | number | boolean | null` are all accepted, and `in` / `notin` encode each element. The other
+filters are untouched: `fulltext.text`, `regex.pattern`, `like.pattern`, `lookup.key` and
+`structureFamily.value` are plain strings server-side, and the package already encodes `specs`.
+
+Encoding is unconditional — there is no attempt to detect an already-quoted value, because it is not
+decidable (given `"5"`, is that the number 5 encoded, or the string `5`?). If you have a value that
+looks pre-quoted, it is a bug; the widened types now make it a compile error rather than a 422. See
+`hooks/internal/encodeSearchConfig.ts`.
+
 `searchPath: ''` is the **root container**, and legal — so unlike the data hooks these have no path
 guard. The first four mirror functions the package ships; regex and comparison do not exist in the
 package but did in the legacy Finch hooks, and `TiledSearchFilters` supports them. For the other nine

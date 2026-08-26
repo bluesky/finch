@@ -146,9 +146,31 @@ const runs = useTiledSearchBySpecsQuery(
 const recent = useTiledSearchByMetadataComparisonQuery('experiments', {
     operator: 'gt',
     key: 'start.time',
-    value: '1700000000',
+    value: 1700000000,
 });
 ```
+
+### Filter values are values, not JSON
+
+Six filters — `eq`, `noteq`, `comparison`, `contains`, `in`, `notin` — have a `value` that Tiled reads
+with `json.loads` on the server, so the raw API wants a string to arrive with its quotes:
+`'"xas_scan"'`. **The hooks encode for you** — pass the value itself:
+
+```tsx
+useTiledSearchQuery('', {
+    searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+});
+// sends filter[contains][condition][value]="xas_scan"
+```
+
+`string`, `number`, `boolean` and `null` all work, and `in` / `notin` encode each element of the list.
+Watch out for this if you have ever written the raw API: numbers and booleans are valid JSON bare, so
+forgetting to quote only ever broke _string_ values, which made it look like an intermittent fault
+rather than a systematic one.
+
+The remaining filters are deliberately **not** encoded — `fulltext.text`, `regex.pattern`,
+`like.pattern`, `lookup.key` and `structureFamily.value` are plain strings server-side, and `specs` is
+already handled by the package.
 
 `useTiledSearchByFullTextQuery` stays **idle while `filter.text` is empty**, since an empty full-text
 search matches everything and is rarely what a search box means on first render.

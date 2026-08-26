@@ -160,7 +160,7 @@ export default function Experiment({
             searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 ...(selectedPlanName
-                    ? { contains: { key: 'start.plan_name', value: `"${selectedPlanName}"` } }
+                    ? { contains: { key: 'start.plan_name', value: selectedPlanName } }
                     : {}),
             },
         },

@@ -19,6 +19,7 @@ import { useTiledArrayAsJSONQuery, useTiledArrayAsPngQuery } from './arrayHooks'
 import { useTiledMetadataQuery } from './metadataHooks';
 import {
     useTiledSearchByFullTextQuery,
+    useTiledSearchByMetadataEqualsQuery,
     useTiledSearchBySpecsQuery,
     useTiledSearchQuery,
 } from './searchHooks';
@@ -142,6 +143,25 @@ function useCallShapeChecks(): void {
     );
     // @ts-expect-error the table slot rejects an array option
     useTiledTablePartitionAsJSONQuery('scan/primary', { stack: [0] });
+
+    // Filter values are real values, JSON-encoded by the hook — never hand-quoted.
+    useTiledSearchByMetadataEqualsQuery('', { key: 'start.plan_name', value: 'xas_scan' });
+    useTiledSearchByMetadataEqualsQuery('', { key: 'start.scan_id', value: 5 });
+    useTiledSearchByMetadataEqualsQuery('', { key: 'start.ok', value: true });
+    useTiledSearchByMetadataEqualsQuery('', { key: 'start.tag', value: null });
+    useTiledSearchQuery('', {
+        searchFilters: {
+            contains: { key: 'start.plan_name', value: 'xas_scan' },
+            in: { key: 'start.scan_id', value: [1, 2] },
+        },
+    });
+    // @ts-expect-error a filter value is a value, not an arbitrary object
+    useTiledSearchByMetadataEqualsQuery('', { key: 'start.plan_name', value: { nested: true } });
+    // @ts-expect-error `in` takes a list of values, not a single one
+    useTiledSearchQuery('', { searchFilters: { in: { key: 'start.scan_id', value: 1 } } });
+    // The string-valued filters stay strings — widening them would break them server-side.
+    // @ts-expect-error fulltext takes text, not a JSON value
+    useTiledSearchQuery('', { searchFilters: { fulltext: { text: 5 } } });
 }
 
 function useInferenceChecks(): void {
