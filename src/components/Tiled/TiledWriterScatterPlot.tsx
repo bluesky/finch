@@ -2,6 +2,11 @@ import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 import { useTiledWriterScatterPlot } from './hooks/useTiledWriterScatterPlot';
 import TiledScatterPlot from './TiledScatterPlot';
 
+/** The plot's surface while a run is still being written to. */
+const LIVE_BACKGROUND = '#ffffff';
+/** And once it has stopped — tailwind's `slate-100`. */
+const FINISHED_BACKGROUND = '#f1f5f9';
+
 type TiledWriterScatterPlotProps = {
     /** Trace descriptor mapping Plotly fields to table column names for x and y axes. */
     tiledTrace: TiledPlotlyTrace;
@@ -23,6 +28,15 @@ type TiledWriterScatterPlotProps = {
     plotClassName?: string;
     /** When `true`, renders a status/error text line above the plot. Defaults to `true`. */
     showStatusText?: boolean;
+    /**
+     * Card colour while the run is still being written to. Defaults to white.
+     */
+    liveBackgroundColor?: string;
+    /**
+     * Card colour once the run has stopped, which is how a finished plot is told apart at a glance
+     * from one still filling in. Defaults to a light grey.
+     */
+    finishedBackgroundColor?: string;
     /** Additional layout options for the Plotly scatter plot. */
     layout?: Partial<Plotly.Layout>;
 };
@@ -38,6 +52,8 @@ export default function TiledWriterScatterPlot({
     className,
     plotClassName,
     showStatusText = true,
+    liveBackgroundColor = LIVE_BACKGROUND,
+    finishedBackgroundColor = FINISHED_BACKGROUND,
     layout = {},
 }: TiledWriterScatterPlotProps) {
     // Use the custom hook for all Tiled path logic
@@ -47,6 +63,11 @@ export default function TiledWriterScatterPlot({
         tiledBaseUrl,
         initialPath,
     });
+
+    // Whether the plot is polling is the same question as whether the run is still going: the run gets
+    // a stop document when it ends, and the hook stops polling as soon as that appears. A run that has
+    // not been located yet still counts as ongoing, so the plot does not flash grey while it waits.
+    const backgroundColor = enablePolling ? liveBackgroundColor : finishedBackgroundColor;
 
     // Determine status text based on current state
     const getStatusText = () => {
@@ -81,6 +102,7 @@ export default function TiledWriterScatterPlot({
                 partition={partition}
                 enablePolling={enablePolling}
                 pollingIntervalMs={pollingIntervalMs || 1000}
+                backgroundColor={backgroundColor}
                 className={className}
                 plotClassName={plotClassName}
                 layout={layout}
