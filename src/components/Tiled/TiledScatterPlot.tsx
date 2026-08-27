@@ -24,6 +24,8 @@ type TiledScatterPlotProps = {
     className?: string;
     /** Additional class names applied to the `PlotlyScatter` element. */
     plotClassName?: string;
+    /** Additional layout options for the Plotly scatter plot. */
+    layout?: Partial<Plotly.Layout>;
 };
 
 export default function TiledScatterPlot({
@@ -36,6 +38,7 @@ export default function TiledScatterPlot({
     pollingIntervalMs = 1000,
     className,
     plotClassName,
+    layout = {},
 }: TiledScatterPlotProps) {
     // An empty path holds the query idle, which is what the "waiting for data" state below reports.
     const { data, isLoading, error } = useTiledTablePartitionAsJSONQuery(
@@ -101,7 +104,7 @@ export default function TiledScatterPlot({
                 yAxisTitle={yName}
                 className={plotClassName}
                 title={'bluesky run: ' + blueskyRunId}
-                layout={{ plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff' }}
+                layout={{ plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff', ...layout }}
             />
         </div>
     );

@@ -23,6 +23,8 @@ type TiledWriterScatterPlotProps = {
     plotClassName?: string;
     /** When `true`, renders a status/error text line above the plot. Defaults to `true`. */
     showStatusText?: boolean;
+    /** Additional layout options for the Plotly scatter plot. */
+    layout?: Partial<Plotly.Layout>;
 };
 
 export default function TiledWriterScatterPlot({
@@ -36,6 +38,7 @@ export default function TiledWriterScatterPlot({
     className,
     plotClassName,
     showStatusText = true,
+    layout = {},
 }: TiledWriterScatterPlotProps) {
     // Use the custom hook for all Tiled path logic
     const { tiledPath, isLoading, error, enablePolling } = useTiledWriterScatterPlot(blueskyRunId, {
@@ -80,6 +83,7 @@ export default function TiledWriterScatterPlot({
                 pollingIntervalMs={pollingIntervalMs || 1000}
                 className={className}
                 plotClassName={plotClassName}
+                layout={layout}
             />
         </>
     );
