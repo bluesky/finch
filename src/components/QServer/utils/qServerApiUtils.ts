@@ -1,16 +1,22 @@
-import { AxiosInstance } from 'axios';
-import { useMemo, useCallback } from 'react';
-import { createQServerApiClient } from '@/api/qServer/client';
-import { useQueueServerApiUrls } from '@/utils/apiUtils';
-import * as requests from '@/api/qServer/requests';
+import { useCallback } from 'react';
+import { useQServerClient } from '@/api/qServer';
+import type { QServerEndpoints, QServerRequestOptions } from '@/api/qServer';
+
+/** Only the three reads this file needs, so a test can stub it without the whole 70-method surface. */
+type RunListClient = Pick<QServerEndpoints, 'getStatus' | 'getRunsActive' | 'getQueueHistory'>;
 
 /**
  * Gets the run UIDs for a given item ID from either active runs or history
- * @param client - Axios instance configured for the QServer API
+ * @param client - The queue-server client to read through
  * @param itemId - The item ID to search for
+ * @param request - Transport overrides (base URL and API key from Finch config)
  * @returns Array of run UIDs if found, empty array if not found
  */
-const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise<string[]> => {
+const getBlueskyRunList = async (
+    client: RunListClient,
+    itemId: string,
+    request?: QServerRequestOptions,
+): Promise<string[]> => {
     const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
     try {
@@ -18,7 +24,7 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
 
         // Step 1: Check if the item is currently running
         console.log('[getBlueskyRunList] Step 1: Checking status...');
-        const statusData = await requests.getStatus(client);
+        const statusData = await client.getStatus(undefined, request);
         console.log(
             `[getBlueskyRunList] Status response - running_item_uid: ${statusData.running_item_uid}`,
         );
@@ -27,7 +33,7 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
             console.log('[getBlueskyRunList] Item is currently running! Checking active runs...');
 
             // Step 2: Get active runs if item is currently running
-            const activeRunsData = await requests.getRunsActive(client);
+            const activeRunsData = await client.getRunsActive(request);
             console.log(
                 `[getBlueskyRunList] Active runs response - success: ${activeRunsData.success}, run_list length: ${activeRunsData.run_list?.length || 0}`,
             );
@@ -55,7 +61,7 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
 
         // Step 3: Check history for the most recent items
         console.log('[getBlueskyRunList] Step 3: Checking queue history...');
-        const historyData = await requests.getQueueHistory(client);
+        const historyData = await client.getQueueHistory(undefined, request);
         console.log(
             `[getBlueskyRunList] History response - success: ${historyData.success}, items length: ${historyData.items?.length || 0}`,
         );
@@ -93,7 +99,7 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
 
             // Retry Step 2: Check active runs again
             console.log('[getBlueskyRunList] Retry Step 2: Checking active runs after delay...');
-            const retryActiveRunsData = await requests.getRunsActive(client);
+            const retryActiveRunsData = await client.getRunsActive(request);
             console.log(
                 `[getBlueskyRunList] Retry active runs response - success: ${retryActiveRunsData.success}, run_list length: ${retryActiveRunsData.run_list?.length || 0}`,
             );
@@ -113,7 +119,7 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
 
             // Retry Step 3: Check history again
             console.log('[getBlueskyRunList] Retry Step 3: Checking queue history after delay...');
-            const retryHistoryData = await requests.getQueueHistory(client);
+            const retryHistoryData = await client.getQueueHistory(undefined, request);
             console.log(
                 `[getBlueskyRunList] Retry history response - success: ${retryHistoryData.success}, items length: ${retryHistoryData.items?.length || 0}`,
             );
@@ -161,12 +167,15 @@ const getBlueskyRunList = async (client: AxiosInstance, itemId: string): Promise
  * Hook that returns a `getBlueskyRunList(itemId)` callback bound to the
  * current QServer API client.  Use this in components instead of importing
  * `getBlueskyRunList` directly.
+ *
+ * The client comes from `useQServerClient`, the same resolver the query hooks use — so it honours a
+ * client injected through `QServerApiProvider` (the simulator, a test stub) and otherwise the app-wide
+ * default with Finch config applied. It no longer builds an axios instance of its own per render.
  */
 export function useGetBlueskyRunList() {
-    const { httpBaseUrl, apiKey } = useQueueServerApiUrls();
-    const client = useMemo(
-        () => createQServerApiClient({ baseURL: httpBaseUrl, apiKey }),
-        [httpBaseUrl, apiKey],
+    const { client, requestDefaults } = useQServerClient();
+    return useCallback(
+        (itemId: string) => getBlueskyRunList(client, itemId, requestDefaults),
+        [client, requestDefaults],
     );
-    return useCallback((itemId: string) => getBlueskyRunList(client, itemId), [client]);
 }

@@ -10,38 +10,49 @@ function renderWithQueryClient(ui: ReactNode) {
 
 // ── Mocks ─────────────────────────────────────────────────────────────────────
 
-const { usePlansAllowedQueryMock, useQueueQueryMock, useExecuteQueueItemMutationMock } = vi.hoisted(
-    () => ({
-        usePlansAllowedQueryMock: vi.fn(() => ({
-            data: {
-                success: true,
-                plans_allowed: {
-                    count: {},
-                    angle_scan: {},
-                    energy_scan: {},
-                    xas_scan: {},
-                    xas_alignment: {},
-                },
+const {
+    usePlansAllowedQueryMock,
+    useQueueQueryMock,
+    useExecuteQueueItemMutationMock,
+    useTiledSearchQueryMock,
+} = vi.hoisted(() => ({
+    usePlansAllowedQueryMock: vi.fn(() => ({
+        data: {
+            success: true,
+            plans_allowed: {
+                count: {},
+                angle_scan: {},
+                energy_scan: {},
+                xas_scan: {},
+                xas_alignment: {},
             },
-            isLoading: false,
-            isError: false,
-        })),
-        useQueueQueryMock: vi.fn(() => ({
-            data: { success: true, running_item: {}, items: [], plan_queue_uid: 'q1' },
-            isLoading: false,
-            isError: false,
-        })),
-        useExecuteQueueItemMutationMock: vi.fn(() => ({
-            mutate: vi.fn(),
-            isPending: false,
-        })),
-    }),
-);
+        },
+        isLoading: false,
+        isError: false,
+    })),
+    useQueueQueryMock: vi.fn(() => ({
+        data: { success: true, running_item: {}, items: [], plan_queue_uid: 'q1' },
+        isLoading: false,
+        isError: false,
+    })),
+    useExecuteQueueItemMutationMock: vi.fn(() => ({
+        mutate: vi.fn(),
+        isPending: false,
+    })),
+    // `ExperimentHistory` and `Experiment` both read Tiled through this hook, so it is stubbed at
+    // the hook level rather than at the request level. Vitest restores this implementation on
+    // `mockReset`, which is what keeps the default (nothing loaded) in place between tests.
+    useTiledSearchQueryMock: vi.fn(() => ({
+        data: undefined,
+        isError: false,
+        error: null,
+    })),
+}));
 
-vi.mock('@/api/qServer/hooks', () => ({
-    usePlansAllowedQuery: usePlansAllowedQueryMock,
-    useQueueQuery: useQueueQueryMock,
-    useExecuteQueueItemMutation: useExecuteQueueItemMutationMock,
+vi.mock('@/api/qServer', () => ({
+    useQueueGetPlansAllowedQuery: usePlansAllowedQueryMock,
+    useQueueGetQuery: useQueueQueryMock,
+    useQueueExecuteItemMutation: useExecuteQueueItemMutationMock,
 }));
 
 vi.mock('../../components/QServer/utils/qServerApiUtils', () => ({
@@ -52,8 +63,8 @@ vi.mock('@/components/Tiled/TiledWriterScatterPlot', () => ({
     default: () => <div data-testid="scatter-plot" />,
 }));
 
-vi.mock('@/api/tiled/hooks', () => ({
-    useTiledSearchResultsQuery: vi.fn(() => ({ data: undefined })),
+vi.mock('@/api/tiled', () => ({
+    useTiledSearchQuery: useTiledSearchQueryMock,
 }));
 
 vi.mock('../../components/Tiled/TiledWriterDetImageHeatmap', () => ({
@@ -74,10 +85,6 @@ vi.mock('../../components/QServer/QSParameterInput', () => ({
     default: () => <div data-testid="qs-param-input" />,
 }));
 
-vi.mock('@blueskyproject/tiled', () => ({
-    getSearchResults: vi.fn(() => Promise.resolve(null)),
-}));
-
 vi.mock('../../components/Button', () => ({
     default: ({ text, cb, disabled }: { text?: string; cb?: () => void; disabled?: boolean }) => (
         <button data-testid="plan-button" onClick={cb} disabled={disabled}>
@@ -96,7 +103,6 @@ import ExperimentHistory from '../../components/Experiment/ExperimentHistory';
 import ExperimentExecutePlanButton from '../../components/Experiment/ExperimentExecutePlanButton';
 import ExperimentExecutePlanButtonGeneric from '../../components/Experiment/ExperimentExecutePlanButtonGeneric';
 import ExperimentPlanSettings from '../../components/Experiment/ExperimentPlanSettings';
-import { getSearchResults } from '@blueskyproject/tiled';
 import { useQSAddItem } from '../../components/QServer/hooks/useQSAddItem';
 
 // ── ExperimentAngleScan ───────────────────────────────────────────────────────
@@ -179,20 +185,30 @@ describe('ExperimentEnergyScan', () => {
 // ── ExperimentHistory ─────────────────────────────────────────────────────────
 
 describe('ExperimentHistory', () => {
+    type HistoryQueryResult = ReturnType<typeof useTiledSearchQueryMock>;
+
+    /** A resolved search holding the given items. */
+    function loaded(items: unknown[]) {
+        return {
+            data: { data: items },
+            isError: false,
+            error: null,
+        } as unknown as HistoryQueryResult;
+    }
+
     beforeEach(() => {
-        vi.mocked(getSearchResults).mockReset();
+        // Restores the hoisted default: nothing loaded, no error.
+        useTiledSearchQueryMock.mockReset();
     });
 
     it('shows a loading spinner while results are pending', () => {
-        // Never resolves — stays in loading state
-        vi.mocked(getSearchResults).mockReturnValue(new Promise(() => {}));
         render(<ExperimentHistory />);
         expect(screen.getByText(/Loading/i)).toBeInTheDocument();
     });
 
     it('shows the results table once data is available', async () => {
-        vi.mocked(getSearchResults).mockResolvedValue({
-            data: [
+        useTiledSearchQueryMock.mockReturnValue(
+            loaded([
                 {
                     id: 'run-1',
                     attributes: {
@@ -202,8 +218,8 @@ describe('ExperimentHistory', () => {
                         },
                     },
                 },
-            ],
-        } as unknown as Awaited<ReturnType<typeof getSearchResults>>);
+            ]),
+        );
         render(<ExperimentHistory />);
         await waitFor(() => expect(screen.getByText('success')).toBeInTheDocument());
         expect(screen.getByText('run-1')).toBeInTheDocument();
@@ -220,9 +236,7 @@ describe('ExperimentHistory', () => {
                 },
             },
         };
-        vi.mocked(getSearchResults).mockResolvedValue({ data: [mockItem] } as unknown as Awaited<
-            ReturnType<typeof getSearchResults>
-        >);
+        useTiledSearchQueryMock.mockReturnValue(loaded([mockItem]));
         render(<ExperimentHistory onItemClick={onItemClick} />);
         await waitFor(() => screen.getByText('run-2'));
         fireEvent.click(screen.getByText('run-2'));
@@ -230,12 +244,39 @@ describe('ExperimentHistory', () => {
     });
 
     it('shows user filter text when metadataFulltextSearch is provided', async () => {
-        vi.mocked(getSearchResults).mockResolvedValue({ data: [] } as unknown as Awaited<
-            ReturnType<typeof getSearchResults>
-        >);
+        useTiledSearchQueryMock.mockReturnValue(loaded([]));
         render(<ExperimentHistory metadataFulltextSearch="alice" />);
         await waitFor(() => expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument());
         expect(screen.getByText(/alice/)).toBeInTheDocument();
+    });
+
+    it('filters on the plan-name key it is told to use', () => {
+        render(<ExperimentHistory planName="xas_scan" planNameMetadataKey="start.plan_name" />);
+        const [, config] = useTiledSearchQueryMock.mock.calls[0] as unknown as [
+            string,
+            { searchFilters?: { contains?: { key: string; value: string } } },
+        ];
+        expect(config?.searchFilters?.contains).toEqual({
+            key: 'start.plan_name',
+            value: 'xas_scan',
+        });
+    });
+
+    /**
+     * A failed search is reported, not left looking like a slow one.
+     *
+     * The `useEffect` version swallowed the rejection into `console.error` and never cleared its
+     * `null` state, so a dead Tiled server showed the loading spinner forever.
+     */
+    it('reports an error instead of spinning forever', () => {
+        useTiledSearchQueryMock.mockReturnValue({
+            data: undefined,
+            isError: true,
+            error: new Error('tiled unreachable'),
+        } as unknown as HistoryQueryResult);
+        render(<ExperimentHistory />);
+        expect(screen.getByText(/tiled unreachable/)).toBeInTheDocument();
+        expect(screen.queryByText(/Loading/i)).not.toBeInTheDocument();
     });
 });
 

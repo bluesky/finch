@@ -38,5 +38,6 @@
     "src/**/BeamVis/**/*",
     "**/*BeamVis*/**/*",
     "src/stories/**/*",
-    "src/testing/**/*"
+    "src/testing/**/*",
+    "src/api/tiled_archive/**/*"
   ]}

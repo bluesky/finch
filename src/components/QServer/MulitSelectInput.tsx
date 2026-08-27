@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { tailwindIcons } from '../../assets/icons';
 import { Tooltip } from 'react-tooltip';
 import { AllowedDevices } from './types/types';
+import { cn } from '@/lib/utils';
 
 type MultiSelectInputProps = {
     label: string;
@@ -12,6 +13,7 @@ type MultiSelectInputProps = {
     allowedDevices: AllowedDevices;
     description: string | undefined;
     required: boolean;
+    className?: string;
 };
 export default function MultiSelectInput({
     label = '',
@@ -22,6 +24,7 @@ export default function MultiSelectInput({
     allowedDevices,
     description = '',
     required = false,
+    className = '',
 }: MultiSelectInputProps) {
     const [inputValue, setInputValue] = useState('');
     const [availableItems, setAvailableItems] = useState(Object.keys(allowedDevices));
@@ -82,7 +85,10 @@ export default function MultiSelectInput({
     return (
         <div
             ref={containerRef}
-            className="relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit"
+            className={cn(
+                'relative w-full max-w-96 border-2 border-slate-300 rounded-lg mt-2 h-fit',
+                className,
+            )}
         >
             <p
                 id={label + 'ParamInputTooltip'}
@@ -96,7 +102,7 @@ export default function MultiSelectInput({
                 style={{ maxWidth: '500px', height: 'fit-content' }}
                 delayShow={400}
             />
-            <div className="flex flex-wrap justify-around rounded p-2">
+            <div className="flex flex-wrap justify-around rounded-b-lg bg-white p-2">
                 {selectedItems.map((item) => (
                     <div
                         key={item}
@@ -117,7 +123,7 @@ export default function MultiSelectInput({
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setDropdownVisible(true)}
-                    className={`flex-1 border-none focus:outline-none min-w-36 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
+                    className={`flex-1 border-none bg-transparent focus:outline-none min-w-36 min-h-12 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
                 />
             </div>
             {dropdownVisible && (

@@ -11,10 +11,10 @@ Instructions for setting those services are left to Bluesky Web, but a list of t
 | Service  | PIP installable? | Default Port |
 | :---- | :-: | -: |
 | [Tiled](https://github.com/bluesky/tiled) | Yes | 8000 |
-| [Ophyd API<sup>1</sup>](https://github.com/bluesky/ophyd-websocket) | No  | 8001 |
+| [Ophyd API<sup>1</sup>](https://github.com/bluesky/ophyd-websocket) | Yes  | 8001 |
 | [Queue Server](https://github.com/bluesky/bluesky-queueserver)   | Yes  | 60625 |
 | [Queue Server API<sup>2</sup>](https://github.com/bluesky/bluesky-httpserver) | Yes | 60610 |
 
-1\. Ophyd API is under active development, it primarily includes websockets for live device updates but is subject to ongoing changes and potential integration with 'Ophyd as a Service.'
+1\. Ophyd API is under active development, it primarily includes websockets for live device updates but is subject to ongoing changes and future replacement via 'Ophyd as a Service.'
 
 2\. The Queue Server API is formally named 'bluesky http server.'

@@ -183,6 +183,8 @@ export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
 // EXPERIMENT
+export { default as Experiment } from './components/Experiment/Experiment';
+export { default as ExperimentFormGeneric } from './components/Experiment/ExperimentFormGeneric';
 export { default as ExperimentHistory } from './components/Experiment/ExperimentHistory';
 export { default as ExperimentAngleScan } from './components/Experiment/ExperimentAngleScan';
 export { default as ExperimentEnergyScan } from './components/Experiment/ExperimentEnergyScan';
@@ -222,25 +224,74 @@ export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
 export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocket';
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
+export { useTiledRunTableColumns } from './components/Tiled/hooks/useTiledRunTableColumns';
 
-// TILED HOOKS
+// TILED HOOKS — see src/api/tiled. The retired set lives in src/api/tiled_archive; the closest
+// replacements are: useTiledSearchResultsQuery / useTiledSearchByIdQuery -> useTiledSearchQuery,
+// useTiledItemMetadataQuery -> useTiledMetadataQuery, useTiledTableDataAsJsonQuery ->
+// useTiledTablePartitionAsJSONQuery, useTiledXArrayDataQuery -> useTiledArrayAsJSONQuery.
 export {
-    useTiledSearchResultsQuery,
-    useTiledSearchByIdQuery,
+    // search
+    useTiledSearchQuery,
     useTiledSearchBySpecsQuery,
-    useTiledSearchByFulltextQuery,
+    useTiledSearchByFullTextQuery,
     useTiledSearchByMetadataEqualsQuery,
-    useTiledSearchByMetadataComparisonQuery,
-    useTiledSearchByRegexQuery,
     useTiledSearchByStructureFamilyQuery,
-    useTiledItemMetadataQuery,
-    useTiledBlueskyPlanMetadataQuery,
-    useTiledTableDataAsSequenceQuery,
-    useTiledTableDataAsJsonQuery,
-    useTiledStructuredArrayDataQuery,
-    useTiledXArrayDataQuery,
+    useTiledSearchByRegexQuery,
+    useTiledSearchByMetadataComparisonQuery,
+    // metadata
+    useTiledMetadataQuery,
+    // arrays
+    useTiledArrayAsQuery,
+    useTiledArrayAsJSONQuery,
+    useTiledArrayAsPngQuery,
+    useTiledArrayAsBufferQuery,
+    useTiledArrayImagePath,
+    // tables
+    useTiledTableAsQuery,
+    useTiledTablePartitionAsJSONQuery,
+    useTiledTablePartitionAsJSONSequenceQuery,
+    useTiledTableFullAsJSONQuery,
+    useTiledTableFullAsJSONSequenceQuery,
+    // server + auth
     useTiledServerInfoQuery,
-} from './api/tiled/hooks';
+    useTiledLoginMutation,
+    // client resolution, keys and invalidation
+    useTiledClient,
+    useTiledQueryScope,
+    useTiledInvalidate,
+    tiledQueryKeys,
+    tiledQueryRoots,
+    invalidateTiledRoots,
+    invalidateAllTiledQueries,
+    TILED_INVALIDATION_BUNDLES,
+    TILED_QUERY_ROOT,
+    // errors
+    TiledEndpointUnavailableError,
+    isTiledEndpointUnavailableError,
+    // Shared across every backend, so exported once here rather than from each.
+    FinchMissingArgumentError,
+    isFinchMissingArgumentError,
+    // the injection seam
+    TiledApiProvider,
+    useTiledApiClient,
+    useTiledApiClientOptional,
+} from './api/tiled';
+export type {
+    TiledApiProviderProps,
+    TiledClientLike,
+    TiledClientResolution,
+    TiledHookError,
+    TiledLoginVariables,
+    TiledQueryScope,
+    TiledQueryRootName,
+    TiledInvalidationBundleName,
+    FinchQueryOptions,
+    FinchMutationOptions,
+} from './api/tiled';
+// The cross-backend transport contract. Exported so that code implementing a Finch-shaped API layer
+// has something to conform to — see `src/api/shared/requestOptions.ts`.
+export type { FinchRequestOptions, FinchHttpRequestOptions } from './api/shared/requestOptions';
 
 // OPHYD TYPES
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
@@ -253,28 +304,37 @@ export {
 } from './api/ophyd/socketPaths';
 
 // QSERVER API
-export { createQServerApiClient } from './api/qServer/client';
-export type { QServerApiConfig } from './api/qServer/client';
+export { QServerApiClient, createQServerApiClient } from './api/qServer';
+export type { QServerClientConfig, QServerRequestOptions } from './api/qServer';
 
-export * as QServerRequests from './api/qServer/requests';
+/**
+ * The 70 free functions over the app-wide default client, plus its configuration setters.
+ *
+ * Namespaced because several names (`getStatus`, `getQueue`, …) are far too generic to sit in a
+ * library's top-level namespace. Inside a component prefer the hooks below.
+ */
+export * as QServerRequests from './api/qServer/client/facade';
 
-export {
-    useQueueQuery,
-    useQueueHistoryQuery,
-    useStatusQuery,
-    usePlansAllowedQuery,
-    useDevicesAllowedQuery,
-    useQueueItemQuery,
-    useRunsActiveQuery,
-    useAddQueueItemMutation,
-    useExecuteQueueItemMutation,
-    useRemoveQueueItemMutation,
-    useOpenEnvironmentMutation,
-    useStartREMutation,
-    usePauseREMutation,
-    useResumeREMutation,
-    useAbortREMutation,
-} from './api/qServer/hooks';
+/** Everything in the queue-server layer, also available as a namespace. */
+export * as QServerAPI from './api/qServer';
+
+/**
+ * Everything in the Tiled layer, also available as a namespace.
+ *
+ * The hooks themselves are exported flat above; this adds the package re-exports (`TiledApiClient`,
+ * `setDefaultTiledUrl`, the `getTiled*` request functions, the structure guards) without putting two
+ * dozen more names in the top-level namespace.
+ */
+export * as TiledAPI from './api/tiled';
+
+// QSERVER HOOKS — one per endpoint, 29 queries and 41 mutations; see src/api/qServer/hooks.
+// The retired set lives in src/api/qServer_archive. Renames: useQueueQuery -> useQueueGetQuery,
+// useStatusQuery -> useQueueGetStatusQuery, useQueueHistoryQuery -> useQueueGetHistoryQuery,
+// usePlansAllowedQuery -> useQueueGetPlansAllowedQuery, useAddQueueItemMutation ->
+// useQueueAddItemMutation, useStartREMutation -> useQueueStartMutation, and so on. Note the queries
+// take (arg?, queryOptions?, requestOptions?) positionally — TanStack options move one slot right,
+// and transport is last. See src/api/shared/queryOptions.ts for the convention.
+export * from './api/qServer/hooks';
 
 export type {
     GetStatusResponse,
@@ -287,8 +347,9 @@ export type {
     PostItemAddResponse,
     PostItemExecuteResponse,
     PostItemRemoveResponse,
-    PostEnvironmentOpenResponse,
-    PostREResponse,
+    // The retired PostEnvironmentOpenResponse and PostREResponse are these two.
+    EnvironmentResponse,
+    ReControlResponse,
     BaseQueueItem,
     QueueItem,
     FailedQueueItem,
@@ -314,52 +375,57 @@ export type { Device, Devices } from './types/deviceControllerTypes';
 //CONTEXT PROVIDERS
 export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 
-// Tiled API namespace - groups all Tiled functionality under a clear namespace
-import * as TiledAPI from '@blueskyproject/tiled';
+// Tiled API namespace - groups all Tiled functionality under a clear namespace.
+//
+// Rebuilt onto the client API that @blueskyproject/tiled 0.0.33 introduced: the flat free functions
+// this used to point at (getSearchResults, searchBySpecs, getItemMetadata, getTableDataAsJson,
+// setReverseSort, resetGlobalState, …) no longer exist. The old names are kept as keys wherever there
+// is a faithful replacement, so most call sites keep working.
+import * as TiledPackage from '@blueskyproject/tiled';
 
 export const Tiled = {
     // Path management
-    setInitialPath: TiledAPI.setInitialPath,
-    getInitialPath: TiledAPI.getInitialPath,
+    setInitialPath: TiledPackage.setDefaultInitialPath,
+    getInitialPath: TiledPackage.getDefaultTiledInitialPath,
 
     // Authentication and server configuration
-    setAuthErrorCallback: TiledAPI.setAuthErrorCallback,
-    getDefaultUrl: TiledAPI.getDefaultTiledUrl,
-    setBearerToken: TiledAPI.setBearerToken,
-    getServerInfo: TiledAPI.getServerInfo,
-    loginWithPassword: TiledAPI.loginUserWithNamePassword,
+    setAuthErrorCallback: TiledPackage.setDefaultAuthErrorCallback,
+    getDefaultUrl: () => TiledPackage.getDefaultTiledApiClient().getBaseUrl(),
+    setDefaultUrl: TiledPackage.setDefaultTiledUrl,
+    setApiKey: TiledPackage.setGlobalApiKey,
+    setBearerToken: TiledPackage.setDefaultBearerToken,
+    getServerInfo: TiledPackage.getTiledServerInfo,
+    loginWithPassword: TiledPackage.loginWithDefaultTiledClient,
+
+    // The client itself, for anything the helpers below do not cover
+    getClient: TiledPackage.getDefaultTiledApiClient,
+    setClient: TiledPackage.setDefaultTiledApiClient,
+    resetClient: TiledPackage.resetDefaultTiledApiClient,
 
     // Search and data retrieval
-    getSearchResults: TiledAPI.getSearchResults,
-    getSearchResultsBySpecs: TiledAPI.getSearchResultsBySpecs,
-    getItemMetadata: TiledAPI.getItemMetadata,
-    getBlueskyPlanMetadata: TiledAPI.getBlueskyPlanMetadata,
-    getFirstSearchWithApiKey: TiledAPI.getFirstSearchWithApiKey,
-    getTableDataAsJson: TiledAPI.getTableDataAsJson,
-    getTableDataAsSequence: TiledAPI.getTableDataAsSequence,
-    getStructuredArrayData: TiledAPI.getStructuredArrayData,
-    getXArrayData: TiledAPI.getXArrayData,
+    getSearchResults: TiledPackage.getTiledSearch,
+    getItemMetadata: TiledPackage.getTiledMetadata,
+    getTableDataAsJson: TiledPackage.getTiledTablePartitionAsJSON,
+    getTableDataAsSequence: TiledPackage.getTiledTablePartitionAsJSONSequence,
+    getTableFullAsJson: TiledPackage.getTiledTableFullAsJSON,
+    getTableFullAsSequence: TiledPackage.getTiledTableFullAsJSONSequence,
+    getArrayData: TiledPackage.getTiledArrayAsJSON,
 
     // Comprehensive search functions
-    searchBySpecs: TiledAPI.searchBySpecs,
-    searchByFulltext: TiledAPI.searchByFulltext,
-    searchByMetadataEquals: TiledAPI.searchByMetadataEquals,
-    searchByMetadataComparison: TiledAPI.searchByMetadataComparison,
-    searchByRegex: TiledAPI.searchByRegex,
-    searchByStructureFamily: TiledAPI.searchByStructureFamily,
+    searchBySpecs: TiledPackage.getTiledSearchBySpecs,
+    searchByFulltext: TiledPackage.getTiledSearchByFullText,
+    searchByMetadataEquals: TiledPackage.getTiledSearchByMetadataEquals,
+    searchByStructureFamily: TiledPackage.getTiledSearchByStructureFamily,
 
     // Image handling
-    generateFullImagePngPath: TiledAPI.generateFullImagePngPath,
-    getAuthenticatedImage: TiledAPI.getAuthenticatedImage,
-
-    // Configuration and state management
-    setReverseSort: TiledAPI.setReverseSort,
-    resetGlobalState: TiledAPI.resetGlobalState,
+    generateFullImagePngPath: TiledPackage.getTiledArrayAsImagePath,
+    getAuthenticatedImage: TiledPackage.getTiledArrayAsPng,
+    setMaxArrayBytes: TiledPackage.setGlobalMaxArrayBytes,
 
     // Type guards
-    isArrayStructure: TiledAPI.isArrayStructure,
-    isTableStructure: TiledAPI.isTableStructure,
-    isContainerStructure: TiledAPI.isContainerStructure,
+    isArrayStructure: TiledPackage.isArrayStructure,
+    isTableStructure: TiledPackage.isTableStructure,
+    isContainerStructure: TiledPackage.isContainerStructure,
 };
 
 export type { FinchConfig } from './app/FinchConfigProvider';

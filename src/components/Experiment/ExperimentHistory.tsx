@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react';
-import { getSearchResults, TiledSearchConfig, TiledSearchResult } from '@blueskyproject/tiled';
+import { useState } from 'react';
+import { useTiledSearchQuery, type TiledSearchConfig } from '@/api/tiled';
 import dayjs from 'dayjs';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 import { SpinnerGap } from '@phosphor-icons/react';
 type ExperimentHistoryProps = {
-    /** Filters results to only Bluesky runs whose `start.exact_plan_name` matches this value. */
+    /** Filters results to only Bluesky runs whose plan-name metadata matches this value. */
     planName?: string;
+    /**
+     * Which metadata key `planName` is matched against.
+     *
+     * Defaults to `start.exact_plan_name`, the field the beamline-specific plans write. Use
+     * `start.plan_name` — what bluesky records for every run — when filtering an arbitrary plan.
+     */
+    planNameMetadataKey?: string;
     /** Additional CSS class names to apply to the results table. */
     className?: string;
     /** Full-text search string applied to run metadata (e.g. a username). */
@@ -25,6 +32,7 @@ type ExperimentHistoryProps = {
 };
 export default function ExperimentHistory({
     planName,
+    planNameMetadataKey = 'start.exact_plan_name',
     className,
     metadataFulltextSearch,
     tiledBaseUrl,
@@ -34,40 +42,41 @@ export default function ExperimentHistory({
     enablePersistentSelection,
     initialSelectedItemId,
 }: ExperimentHistoryProps) {
-    const [searchResults, setSearchResults] = useState<TiledSearchResult | null>(null);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(
         initialSelectedItemId || null,
     );
-    useEffect(() => {
-        const fetchData = async () => {
-            //eventually uncomment this and get the key contains working once that's updated in tiled api
-            const searchConfig: TiledSearchConfig = {
-                baseUrl: tiledBaseUrl || undefined,
-                initialPath: tiledInitialSearchPath || undefined,
-                options: {
-                    pageLimit: tiledPageLimit || 10,
-                    sort: '-',
-                },
-                filters: {
-                    specs: { include: ['BlueskyRun'], exclude: [] },
-                    fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
-                    contains: planName
-                        ? {
-                              key: 'start.exact_plan_name',
-                              value: planName,
-                          }
-                        : undefined,
-                },
-            };
-            try {
-                const results: TiledSearchResult | null = await getSearchResults(searchConfig);
-                setSearchResults(results);
-            } catch (error) {
-                console.error('Error fetching ExperimentHistory data:', error);
-            }
-        };
-        fetchData();
-    }, [planName, metadataFulltextSearch, tiledBaseUrl, tiledInitialSearchPath, tiledPageLimit]);
+
+    //eventually uncomment this and get the key contains working once that's updated in tiled api
+    // Filters and pagination are the two halves of the config; transport is the last argument.
+    const searchConfig: TiledSearchConfig = {
+        searchOptions: {
+            pageLimit: tiledPageLimit || 10,
+            sort: '-',
+        },
+        searchFilters: {
+            specs: { include: ['BlueskyRun'], exclude: [] },
+            fulltext: metadataFulltextSearch ? { text: metadataFulltextSearch } : undefined,
+            contains: planName ? { key: planNameMetadataKey, value: planName } : undefined,
+        },
+    };
+
+    // A fresh config object each render is safe: it goes into the query key, and TanStack hashes
+    // keys by value with sorted keys, so an equal config is the same entry.
+    const searchQuery = useTiledSearchQuery('', searchConfig, undefined, {
+        baseUrl: tiledBaseUrl || undefined,
+        initialPath: tiledInitialSearchPath || undefined,
+    });
+    const searchResults = searchQuery.data;
+
+    if (searchQuery.isError) {
+        return (
+            <section>
+                <p className="text-red-700">
+                    Could not load experiment history: {searchQuery.error.message}
+                </p>
+            </section>
+        );
+    }
 
     return (
         <section>

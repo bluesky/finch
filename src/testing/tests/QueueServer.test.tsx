@@ -63,9 +63,9 @@ vi.mock('../../components/QServer/hooks/useQueueServer', () => ({
     useQueueServer: () => useQueueServerMock(),
 }));
 
-vi.mock('@/api/qServer/hooks', () => ({
-    useStatusQuery: vi.fn(() => ({ data: null, error: null })),
-    useOpenEnvironmentMutation: vi.fn(() => ({ mutate: vi.fn() })),
+vi.mock('@/api/qServer', () => ({
+    useQueueGetStatusQuery: vi.fn(() => ({ data: null, error: null })),
+    useQueueOpenEnvironmentMutation: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
 // Mock the two QSList instances — distinguish by `type` prop for targeted clicks

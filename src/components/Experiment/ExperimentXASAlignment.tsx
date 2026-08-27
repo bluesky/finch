@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
-import { useQueueQuery } from '@/api/qServer/hooks';
+import { useQueueGetQuery } from '@/api/qServer';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import ExperimentHistory from './ExperimentHistory';
-import { useTiledSearchResultsQuery } from '@/api/tiled/hooks';
+import { useTiledSearchQuery } from '@/api/tiled';
 
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { PostItemAddResponse } from '@/api/qServer';
 import { cn } from '@/lib/utils';
 import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
 
@@ -62,7 +62,7 @@ export default function ExperimentXASAlignment({
     const [viewMode, setViewMode] = useState<'form' | 'history'>('form');
 
     // Keep the queue query around so the Execute button can detect a busy queue.
-    useQueueQuery({ refetchInterval: 1000 });
+    useQueueGetQuery({ refetchInterval: 1000 });
 
     useEffect(() => {
         localStorage.setItem('xas_alignment_user', user);
@@ -98,10 +98,11 @@ export default function ExperimentXASAlignment({
     const firstUserRunId = runList[0] ?? '';
 
     // Look up the first user-initiated run's metadata to extract sequence_uid.
-    const { data: firstRunMeta } = useTiledSearchResultsQuery(
+    const { data: firstRunMeta } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 1 },
-            filters: {
+            searchOptions: { pageLimit: 1 },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.uid', value: firstUserRunId },
             },
@@ -120,10 +121,11 @@ export default function ExperimentXASAlignment({
     // Poll Tiled for the most recent xas_alignment run started anywhere (e.g.
     // from a notebook). If its sequence_uid differs from the one being shown,
     // switch to it.
-    const { data: latestAlignmentResult } = useTiledSearchResultsQuery(
+    const { data: latestAlignmentResult } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 1, sort: '-' },
-            filters: {
+            searchOptions: { pageLimit: 1, sort: '-' },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.plan_name', value: 'xas_alignment' },
             },
@@ -146,10 +148,11 @@ export default function ExperimentXASAlignment({
     }, [userSequenceUid, externalSequenceUid, executedItemUid, viewMode, currentSequenceUid]);
 
     // ── Sibling resolution: find both runs sharing the sequence_uid ───────────
-    const { data: siblings } = useTiledSearchResultsQuery(
+    const { data: siblings } = useTiledSearchQuery(
+        '',
         {
-            options: { pageLimit: 5, sort: '-' },
-            filters: {
+            searchOptions: { pageLimit: 5, sort: '-' },
+            searchFilters: {
                 specs: { include: ['BlueskyRun'], exclude: [] },
                 contains: { key: 'start.alignment_sequence_uid', value: currentSequenceUid },
             },

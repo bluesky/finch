@@ -1,6 +1,6 @@
 import { tailwindIcons } from '../../assets/icons';
 import { getPlanColor } from './utils/qItemColorData';
-import { BaseQueueItem, QueueItem, HistoryItem, RunningQueueItem } from '@/api/qServer/types';
+import { BaseQueueItem, QueueItem, HistoryItem, RunningQueueItem } from '@/api/qServer';
 import { ParameterInput } from './types/types';
 
 type QItemProps = {

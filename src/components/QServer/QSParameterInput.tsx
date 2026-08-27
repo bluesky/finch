@@ -23,6 +23,7 @@ type QSParameterInputProps = {
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;
     globalMetadata: GlobalMetadata;
+    className?: string;
 };
 export default function QSParameterInput({
     allowedDevices,
@@ -34,6 +35,7 @@ export default function QSParameterInput({
     copiedPlan = null,
     isGlobalMetadataChecked = false,
     globalMetadata = {},
+    className,
 }: QSParameterInputProps) {
     //to do: refactor to remove parameterName and change param to a string
 
@@ -137,6 +139,7 @@ export default function QSParameterInput({
                 allowedDevices={allowedDevices}
                 required={parameter.required}
                 description={parameter.description}
+                className={className}
             />
         );
     } else {
@@ -150,6 +153,7 @@ export default function QSParameterInput({
                     label={parameterName}
                     allowedDevices={allowedDevices}
                     description={parameter.description}
+                    className={className}
                 />
             );
         } else if (dictionaryInputTypeList.includes(parameterName)) {
@@ -163,6 +167,7 @@ export default function QSParameterInput({
                     resetInputsTrigger={resetInputsTrigger}
                     isGlobalMetadataChecked={isGlobalMetadataChecked}
                     globalMetadata={globalMetadata}
+                    className={className}
                 />
             );
         } else {
@@ -176,6 +181,7 @@ export default function QSParameterInput({
                     description={parameter.description}
                     resetInputsTrigger={resetInputsTrigger}
                     type={parameter.annotation?.type ? parameter.annotation.type : 'text'}
+                    className={className}
                 />
             );
         }

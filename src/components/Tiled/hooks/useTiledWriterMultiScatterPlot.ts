@@ -1,16 +1,9 @@
 import { useMemo } from 'react';
 import { useQueries } from '@tanstack/react-query';
-import { getSearchResults, TiledSearchConfig } from '@blueskyproject/tiled';
+import { tiledQueryKeys, useTiledClient, useTiledQueryScope } from '@/api/tiled';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
 import { useTiledApiUrls } from 'src/utils/apiUtils';
 import { cleanTiledInitialPath } from 'src/components/Tiled/utils/tiledUtils';
-
-async function searchById(config: TiledSearchConfig): Promise<unknown | null> {
-    try {
-        return await getSearchResults(config);
-    } catch {
-        return null;
-    }
-}
 
 type UseTiledWriterMultiScatterPlotReturn = {
     /** Resolved Tiled paths, one per run ID. `null` while the path is still being located. */
@@ -40,15 +33,28 @@ export const useTiledWriterMultiScatterPlot = (
             ? `${cleanTiledInitialPath(options.initialPath)}/`
             : '';
 
+    // One query per run — a list whose length changes between renders, so this cannot be built from
+    // `useTiledSearchQuery` (hooks cannot be called in a loop). It stays consistent with the hooks in
+    // the three ways that matter: the same key factory, so its entries sit alongside theirs and are
+    // refreshed by the same `['tiled','search']` invalidation; the *resolved* client, so a client
+    // injected through `TiledApiProvider` is honoured rather than silently bypassed; and TanStack's
+    // `signal`, so unmounting cancels the requests in flight.
+    const { client, requestDefaults } = useTiledClient();
+    const scope = useTiledQueryScope({ baseUrl, initialPath: '' });
     const primaryQueries = useQueries({
         queries: blueskyRunIds.map((id) => ({
-            queryKey: ['tiled', 'searchById', baseUrl, { path: `${startPath}${id}/primary` }],
-            queryFn: () =>
-                searchById({
-                    baseUrl,
-                    apiKey,
-                    path: `${startPath}${id}/primary`,
-                }),
+            queryKey: tiledQueryKeys.search(scope, {
+                searchPath: `${startPath}${id}/primary`,
+                config: null,
+            }),
+            queryFn: ({ signal }: { signal: AbortSignal }) =>
+                client.getSearch(
+                    `${startPath}${id}/primary`,
+                    undefined,
+                    // `mergeRequestOptions` rather than a spread: it copies only *defined* keys, so an
+                    // absent `apiKey` inherits the configured one instead of erasing it.
+                    mergeRequestOptions(requestDefaults, { baseUrl, apiKey }, signal),
+                ),
             enabled: !!id?.trim(),
             retry: false,
         })),

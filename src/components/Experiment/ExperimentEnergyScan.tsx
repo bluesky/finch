@@ -8,7 +8,7 @@ import ExperimentHistory from './ExperimentHistory';
 import { cn } from '@/lib/utils';
 
 import { ClockCounterClockwise, PersonSimpleRun, Images, ChartLine } from '@phosphor-icons/react';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { PostItemAddResponse } from '@/api/qServer';
 
 type ExperimentEnergyScanProps = {
     /** Additional CSS class names to apply to the root container. */
