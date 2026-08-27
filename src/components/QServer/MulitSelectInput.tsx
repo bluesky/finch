@@ -123,7 +123,7 @@ export default function MultiSelectInput({
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setDropdownVisible(true)}
-                    className={`flex-1 border-none bg-transparent focus:outline-none min-w-36 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
+                    className={`flex-1 border-none bg-transparent focus:outline-none min-w-36 min-h-12 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
                 />
             </div>
             {dropdownVisible && (

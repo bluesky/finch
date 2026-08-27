@@ -109,7 +109,7 @@ export default function ExperimentExecutePlanButtonGeneric({
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col items-center">
             <Button
                 text={getButtonText()}
                 cb={handleExecuteClick}
