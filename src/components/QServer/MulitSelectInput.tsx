@@ -102,7 +102,7 @@ export default function MultiSelectInput({
                 style={{ maxWidth: '500px', height: 'fit-content' }}
                 delayShow={400}
             />
-            <div className="flex flex-wrap justify-around rounded p-2">
+            <div className="flex flex-wrap justify-around rounded-b-lg bg-white p-2">
                 {selectedItems.map((item) => (
                     <div
                         key={item}
@@ -123,7 +123,7 @@ export default function MultiSelectInput({
                     onChange={handleInputChange}
                     onKeyDown={handleKeyDown}
                     onFocus={() => setDropdownVisible(true)}
-                    className={`flex-1 border-none focus:outline-none min-w-36 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
+                    className={`flex-1 border-none bg-transparent focus:outline-none min-w-36 pl-2 ${isWiggling ? 'animate-wiggle' : ''}`}
                 />
             </div>
             {dropdownVisible && (
