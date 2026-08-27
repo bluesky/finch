@@ -159,13 +159,35 @@ function initializeParameters(plan: Plan): ParameterInputDict {
  *
  * `QSParameterInput` switches to its multi-select widget on `Array.isArray(value)`, so this is what
  * decides between "pick one detector" and "pick several". The signal is the annotation the server
- * sends — `typing.List[__DEVICE__]` / `typing.Sequence[...]` — rather than a hard-coded list of
- * parameter names, so an unfamiliar plan gets the right widget too.
+ * sends — `typing.List[__DEVICE__]` / `collections.abc.Sequence[__READABLE__]` — rather than a
+ * hard-coded list of parameter names, so an unfamiliar plan gets the right widget too.
+ *
+ * Being a collection is not enough on its own: the multi-select widget only offers device names, so a
+ * collection of anything else has to stay a text input. `count`'s `delay` is annotated
+ * `float | collections.abc.Iterable[float]`, and matching on `Iterable` alone turned a number field
+ * into a device picker.
  */
 function initialValueFor(parameter: Parameter): string | string[] {
+    return isDeviceCollection(parameter) ? [] : '';
+}
+
+/** Matches the placeholder the queue server substitutes for a device type in an annotation. */
+const DEVICE_PLACEHOLDER = /__[A-Z_]*(DEVICE|READABLE|MOVABLE|FLYABLE)[A-Z_]*__/;
+
+/**
+ * Whether this parameter takes *several devices*, the one case the multi-select widget handles.
+ *
+ * The element type has to look like a device: either the annotation names one through a
+ * `__DEVICE__`-style placeholder, or the server sends the device list / `convert_device_names` that
+ * only a device parameter carries.
+ */
+function isDeviceCollection(parameter: Parameter): boolean {
     const annotationType = parameter.annotation?.type ?? '';
     const isCollection = /\b(List|Sequence|Tuple|Iterable)\b/i.test(annotationType);
-    return isCollection ? [] : '';
+    if (!isCollection) return false;
+    if (DEVICE_PLACEHOLDER.test(annotationType)) return true;
+    if (parameter.annotation?.devices) return true;
+    return parameter.convert_device_names === true;
 }
 
 /**
