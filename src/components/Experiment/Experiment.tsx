@@ -11,6 +11,7 @@ import {
 } from '@/api/qServer';
 import { useTiledSearchQuery } from '@/api/tiled';
 import TiledWriterScatterPlot from '@/components/Tiled/TiledWriterScatterPlot';
+import { useTiledRunTableColumns } from '@/components/Tiled/hooks/useTiledRunTableColumns';
 import { useGetBlueskyRunList } from '@/components/QServer/utils/qServerApiUtils';
 import { cn } from '@/lib/utils';
 import ExperimentExecutePlanButtonGeneric from './ExperimentExecutePlanButtonGeneric';
@@ -19,10 +20,12 @@ import ExperimentHistory from './ExperimentHistory';
 
 /**
  * Columns every Bluesky primary stream has, so they are safe defaults for a plan nobody has
- * configured axes for yet.
+ * configured axes for yet — and the only choices the axis dropdowns can offer before a run's own
+ * columns are known.
  */
 const DEFAULT_X_AXIS = 'seq_num';
 const DEFAULT_Y_AXIS = 'time';
+const FALLBACK_AXIS_COLUMNS = [DEFAULT_X_AXIS, DEFAULT_Y_AXIS];
 
 type ExperimentProps = {
     /** Additional CSS class names to apply to the root container. */
@@ -48,10 +51,11 @@ type ExperimentProps = {
 /**
  * Run any plan the queue server allows, and watch it come out of Tiled.
  *
- * Where `ExperimentXASScan` hard-codes one plan, its parameters and its axes, this asks the server
+ * Where other Experiement components hard-code one plan, its parameters and its axes, this asks the server
  * what it can run: `plans_allowed` fills the dropdown, the selected plan's parameter metadata
- * generates the form (`ExperimentFormGeneric`), and the plot's axes are editable — defaulting to
- * `seq_num` / `time`, which every primary stream has.
+ * generates the form (`ExperimentFormGeneric`), and the plot's axes are picked from the columns of
+ * the run on the plot — falling back to `seq_num` / `time`, which every primary stream has, until
+ * there is a run to read them from.
  *
  * The run being plotted is discovered two ways, because a plan can start from anywhere: after an
  * execute here, the queue server is polled for the run uid it produced; independently, Tiled is polled
@@ -180,6 +184,15 @@ export default function Experiment({
         setBlueskyRunId('');
         setExecutedItemUid('');
     }, [selectedPlanName]);
+
+    // The columns of the run being plotted, which is what the axis dropdowns offer. Before a run is
+    // on the plot there is no table to ask, so the dropdowns fall back to the two columns every
+    // primary stream has.
+    const { columns: runColumns } = useTiledRunTableColumns(blueskyRunId, {
+        tiledBaseUrl,
+        initialPath: tiledInitialPath,
+    });
+    const axisColumns = runColumns.length > 0 ? runColumns : FALLBACK_AXIS_COLUMNS;
 
     const planLoadError = plansQuery.isError
         ? 'Could not read the allowed plans from the queue server.'
@@ -328,9 +341,9 @@ export default function Experiment({
                             </button>
                         </span>
 
-                        {/* Axis pickers: the column names come from the run's own table, which is why
-                            they are free text rather than a dropdown — the table is not read until a
-                            run exists, and `seq_num` / `time` are always present. */}
+                        {/* Axis pickers: the choices are the columns of the run on the plot, read from
+                            its table's structure. Until a run is there, that is `seq_num` / `time`,
+                            which every primary stream has. */}
                         <div className="flex flex-wrap items-end gap-3 pb-2">
                             <div>
                                 <label
@@ -339,14 +352,18 @@ export default function Experiment({
                                 >
                                     X axis column:
                                 </label>
-                                <input
+                                <select
                                     id="experiment-x-axis"
-                                    type="text"
                                     value={xAxis}
                                     onChange={(event) => setXAxis(event.target.value)}
-                                    placeholder={DEFAULT_X_AXIS}
-                                    className="w-44 px-2 py-1 border border-gray-300 rounded-md text-sm"
-                                />
+                                    className="w-44 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white"
+                                >
+                                    {axisOptions(axisColumns, xAxis).map((column) => (
+                                        <option key={column} value={column}>
+                                            {column}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <div>
                                 <label
@@ -355,14 +372,18 @@ export default function Experiment({
                                 >
                                     Y axis column:
                                 </label>
-                                <input
+                                <select
                                     id="experiment-y-axis"
-                                    type="text"
                                     value={yAxis}
                                     onChange={(event) => setYAxis(event.target.value)}
-                                    placeholder={DEFAULT_Y_AXIS}
-                                    className="w-44 px-2 py-1 border border-gray-300 rounded-md text-sm"
-                                />
+                                    className="w-44 px-2 py-1 border border-gray-300 rounded-md text-sm bg-white"
+                                >
+                                    {axisOptions(axisColumns, yAxis).map((column) => (
+                                        <option key={column} value={column}>
+                                            {column}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                             <button
                                 onClick={() => {
@@ -399,4 +420,17 @@ export default function Experiment({
             </div>
         </div>
     );
+}
+
+/**
+ * The options one axis dropdown shows: the run's columns, plus the selected one if it is not among
+ * them.
+ *
+ * A `<select>` whose value matches no option shows the first option instead, silently disagreeing with
+ * the column the plot is actually drawing — which is what happens with a `defaultXAxis` the run does
+ * not have, or with a selection held across a switch to a run whose columns differ.
+ */
+function axisOptions(columns: string[], selected: string): string[] {
+    if (!selected || columns.includes(selected)) return columns;
+    return [selected, ...columns];
 }

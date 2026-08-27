@@ -10,7 +10,7 @@ import Experiment from '@/components/Experiment/Experiment';
  */
 export default function TestPage() {
     return (
-        <div className="p-4 bg-slate-700 min-h-full">
+        <div className="p-4 min-h-full">
             <Experiment />
         </div>
     );

@@ -259,7 +259,7 @@ describe('Experiment against the simulator', { timeout: 20_000 }, () => {
         expect(numField.className).not.toMatch(/\bmax-w-48\b/);
     });
 
-    it('plots seq_num against time by default, and follows the axis inputs', async () => {
+    it('plots seq_num against time by default, and follows the axis dropdowns', async () => {
         const sim = defaultQServer();
         renderExperiment(sim);
 
@@ -267,12 +267,18 @@ describe('Experiment against the simulator', { timeout: 20_000 }, () => {
         expect(plot).toHaveAttribute('data-x', 'seq_num');
         expect(plot).toHaveAttribute('data-y', 'time');
 
-        const xInput = screen.getByLabelText('X axis column:');
-        await userEvent.clear(xInput);
-        await userEvent.type(xInput, 'motor');
+        // No run is on the plot here (Tiled is not simulated), so the dropdowns offer the two columns
+        // every primary stream has and nothing else.
+        const xSelect = screen.getByLabelText('X axis column:');
+        expect(
+            within(xSelect)
+                .getAllByRole('option')
+                .map((option) => option.textContent),
+        ).toEqual(['seq_num', 'time']);
 
+        await userEvent.selectOptions(xSelect, 'time');
         await waitFor(() =>
-            expect(screen.getByTestId('scatter-plot')).toHaveAttribute('data-x', 'motor'),
+            expect(screen.getByTestId('scatter-plot')).toHaveAttribute('data-x', 'time'),
         );
 
         await userEvent.click(screen.getByRole('button', { name: /reset axes/i }));

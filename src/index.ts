@@ -224,6 +224,7 @@ export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
 export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocket';
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
+export { useTiledRunTableColumns } from './components/Tiled/hooks/useTiledRunTableColumns';
 
 // TILED HOOKS — see src/api/tiled. The retired set lives in src/api/tiled_archive; the closest
 // replacements are: useTiledSearchResultsQuery / useTiledSearchByIdQuery -> useTiledSearchQuery,
