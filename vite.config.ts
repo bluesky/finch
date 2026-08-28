@@ -9,6 +9,11 @@ import * as packageJson from "./package.json";
 /// <reference types="vitest" />
 
 
+const externalPackages = [
+  ...Object.keys(packageJson.peerDependencies),
+  ...Object.keys(packageJson.dependencies),
+];
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -73,7 +78,14 @@ export default defineConfig(({ mode }) => {
         fileName: (format) => `finch.${format}.js`,
       },
       rollupOptions: {
-        external: [...Object.keys(packageJson.peerDependencies)],
+        // Keep every declared dependency out of the bundle. Inlining them shipped
+        // all of plotly.js (and friends) to consumers that never imported a plot,
+        // and erased the module boundaries downstream bundlers shake against.
+        // CSS stays bundled so consumers still get a single finch.css.
+        external: (id) => {
+          if (id.startsWith('.') || path.isAbsolute(id) || id.endsWith('.css')) return false;
+          return externalPackages.some((dep) => id === dep || id.startsWith(`${dep}/`));
+        },
       },
     },
     test: {
