@@ -1,7 +1,7 @@
 {
   "name": "@blueskyproject/finch",
   "private": false,
-  "version": "0.1.10",
+  "version": "0.1.11-alpha.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,18 +22,20 @@
   "files": [
     "dist"
   ],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/finch.es.js",
-      "require": "./dist/finch.umd.js"
+      "import": "./dist/index.js"
     },
     "./style.css": "./dist/finch.css",
     "./dist/finch.css": "./dist/finch.css"
   },
-  "main": "./dist/finch.umd.js",
-  "module": "./dist/finch.es.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "dependencies": {
     "@blueskyproject/tiled": "^0.0.30",
     "@phosphor-icons/react": "^2.1.7",
@@ -41,14 +43,16 @@
     "@radix-ui/react-popover": "^1.1.14",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.2.3",
-    "@storybook/addons": "^7.6.17",
-    "@storybook/theming": "^8.6.14",
     "@tanstack/react-query": "^5.90.7",
+    "axios": "^1.16.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.487.0",
+    "plotly.js": "^2.35.3",
+    "react-plotly.js": "^2.6.0",
+    "react-tooltip": "^5.28.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.178.0"
@@ -64,9 +68,11 @@
     "@storybook/addon-essentials": "^8.4.7",
     "@storybook/addon-interactions": "^8.4.7",
     "@storybook/blocks": "^8.4.7",
+    "@storybook/addons": "^7.6.17",
     "@storybook/react": "^8.4.7",
     "@storybook/react-vite": "^8.4.7",
     "@storybook/test": "^8.4.7",
+    "@storybook/theming": "^8.6.14",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -78,7 +84,6 @@
     "@types/three": "^0.178.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "axios": "^1.16.0",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^5.0.0",
@@ -93,8 +98,6 @@
     "prettier": "^3.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-plotly.js": "^2.6.0",
-    "react-tooltip": "^5.28.0",
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2",
