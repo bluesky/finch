@@ -29,14 +29,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/finch.es.js",
-      "require": "./dist/finch.umd.js"
+      "import": "./dist/index.js"
     },
     "./style.css": "./dist/finch.css",
     "./dist/finch.css": "./dist/finch.css"
   },
-  "main": "./dist/finch.umd.js",
-  "module": "./dist/finch.es.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "dependencies": {
     "@blueskyproject/tiled": "^0.0.30",
     "@phosphor-icons/react": "^2.1.7",
@@ -51,25 +50,17 @@
     "d3-shape": "^3.2.0",
     "dayjs": "^1.11.13",
     "lucide-react": "^0.487.0",
+    "plotly.js": "^2.35.3",
+    "react-plotly.js": "^2.6.0",
     "react-tooltip": "^5.28.0",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.178.0"
   },
   "peerDependencies": {
-    "plotly.js": "^2 || ^3",
     "react": ">16.8.x",
     "react-dom": ">16.8.x",
-    "react-plotly.js": "^2.6.0",
     "react-router": "^7"
-  },
-  "peerDependenciesMeta": {
-    "plotly.js": {
-      "optional": true
-    },
-    "react-plotly.js": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.3",
@@ -103,12 +94,10 @@
     "happy-dom": "^20.8.3",
     "husky": "^9.1.7",
     "jsdom": "^28.1.0",
-    "plotly.js": "^2.35.3",
     "postcss": "^8.4.49",
     "prettier": "^3.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-plotly.js": "^2.6.0",
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.6.2",

@@ -71,20 +71,26 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      // ESM only. UMD cannot preserve module boundaries, and its script-tag
+      // path was already broken (rollup was guessing globals for every external).
       lib: {
         entry: resolve('src', 'index.ts'),
-        name: 'Finch',
-        formats: ['es', 'umd'],
-        fileName: (format) => `finch.${format}.js`,
+        formats: ['es'],
       },
       rollupOptions: {
         // Keep every declared dependency out of the bundle. Inlining them shipped
-        // all of plotly.js (and friends) to consumers that never imported a plot,
-        // and erased the module boundaries downstream bundlers shake against.
+        // all of plotly.js (and friends) to consumers that never imported a plot.
         // CSS stays bundled so consumers still get a single finch.css.
         external: (id) => {
           if (id.startsWith('.') || path.isAbsolute(id) || id.endsWith('.css')) return false;
           return externalPackages.some((dep) => id === dep || id.startsWith(`${dep}/`));
+        },
+        output: {
+          // One output file per source module, so a consumer importing Paper
+          // never walks the edge into PlotlyScatter -> react-plotly.js.
+          preserveModules: true,
+          preserveModulesRoot: 'src',
+          entryFileNames: '[name].js',
         },
       },
     },
