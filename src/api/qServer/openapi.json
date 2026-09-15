@@ -1,0 +1,4643 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Bluesky HTTP Server",
+    "description": "Control Experiments using Bluesky Queue Server",
+    "version": "0.0.15.dev56+ga8093be87"
+  },
+  "paths": {
+    "/api/ping": {
+      "get": {
+        "summary": "Ping Handler",
+        "description": "May be called to get some response from the server. Currently returns status of RE Manager.",
+        "operationId": "ping_handler_api_ping_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:status"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/": {
+      "get": {
+        "summary": "Ping Handler",
+        "description": "May be called to get some response from the server. Currently returns status of RE Manager.",
+        "operationId": "ping_handler_api__get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:status"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/status": {
+      "get": {
+        "summary": "Status Handler",
+        "description": "Returns status of RE Manager.",
+        "operationId": "status_handler_api_status_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:status"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:status"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/config/get": {
+      "get": {
+        "summary": "Queue Config Get",
+        "description": "Get manager configuration.",
+        "operationId": "queue_config_get_api_config_get_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:config"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/autostart": {
+      "post": {
+        "summary": "Queue Autostart Handler",
+        "description": "Set queue mode.",
+        "operationId": "queue_autostart_handler_api_queue_autostart_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/mode/set": {
+      "post": {
+        "summary": "Queue Mode Set Handler",
+        "description": "Set queue mode.",
+        "operationId": "queue_mode_set_handler_api_queue_mode_set_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/get": {
+      "get": {
+        "summary": "Queue Get Handler",
+        "description": "Returns the contents of the current queue.",
+        "operationId": "queue_get_handler_api_queue_get_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:queue"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/clear": {
+      "post": {
+        "summary": "Queue Clear Handler",
+        "description": "Clear the plan queue.",
+        "operationId": "queue_clear_handler_api_queue_clear_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/start": {
+      "post": {
+        "summary": "Queue Start Handler",
+        "description": "Start execution of the loaded queue. Additional runs can be added to the queue while\nit is executed. If the queue is empty, then nothing will happen.",
+        "operationId": "queue_start_handler_api_queue_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/stop": {
+      "post": {
+        "summary": "Queue Stop",
+        "description": "Activate the sequence of stopping the queue. The currently running plan will be completed,\nbut the next plan will not be started. The request will be rejected if no plans are currently\nrunning",
+        "operationId": "queue_stop_api_queue_stop_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/stop/cancel": {
+      "post": {
+        "summary": "Queue Stop Cancel",
+        "description": "Cancel pending request to stop the queue while the current plan is still running.\nIt may be useful if the `/queue/stop` request was issued by mistake or the operator\nchanged his mind. Since `/queue/stop` takes effect only after the currently running\nplan is completed, user may have time to cancel the request and continue execution of\nthe queue. The command always succeeds, but it has no effect if no queue stop\nrequests are pending.",
+        "operationId": "queue_stop_cancel_api_queue_stop_cancel_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/add": {
+      "post": {
+        "summary": "Queue Item Add Handler",
+        "description": "Adds new plan to the queue",
+        "operationId": "queue_item_add_handler_api_queue_item_add_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/execute": {
+      "post": {
+        "summary": "Queue Item Execute Handler",
+        "description": "Immediately execute an item",
+        "operationId": "queue_item_execute_handler_api_queue_item_execute_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:execute"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/add/batch": {
+      "post": {
+        "summary": "Queue Item Add Batch Handler",
+        "description": "Adds new plan to the queue",
+        "operationId": "queue_item_add_batch_handler_api_queue_item_add_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/upload/spreadsheet": {
+      "post": {
+        "summary": "Queue Upload Spreadsheet",
+        "description": "The endpoint receives uploaded spreadsheet, converts it to the list of plans and adds\nthe plans to the queue.\n\nParameters\n----------\nspreadsheet : File\n    uploaded excel file\ndata_type : str\n    user defined spreadsheet type, which determines which processing function is used to\n    process the spreadsheet.\n\nReturns\n-------\nsuccess : boolean\n    Indicates if the spreadsheet was successfully converted to a sequence of plans.\n    ``True`` value does not indicate that the plans were accepted by the RE Manager and\n    successfully added to the queue.\nmsg : str\n    Error message in case of failure to process the spreadsheet\nitem_list : list(dict)\n    The list of parameter dictionaries returned by RE Manager in response to requests\n    to add each plan in the list. Check ``success`` parameter in each dictionary to\n    see if the plan was accepted and ``msg`` parameter for an error message in case\n    the plan was rejected. The list may be empty if the spreadsheet contains no items\n    or processing of the spreadsheet failed.",
+        "operationId": "queue_upload_spreadsheet_api_queue_upload_spreadsheet_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_queue_upload_spreadsheet_api_queue_upload_spreadsheet_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/update": {
+      "post": {
+        "summary": "Queue Item Update Handler",
+        "description": "Update existing plan in the queue",
+        "operationId": "queue_item_update_handler_api_queue_item_update_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/remove": {
+      "post": {
+        "summary": "Queue Item Remove Handler",
+        "description": "Remove plan from the queue",
+        "operationId": "queue_item_remove_handler_api_queue_item_remove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/remove/batch": {
+      "post": {
+        "summary": "Queue Item Remove Batch Handler",
+        "description": "Remove a batch of plans from the queue",
+        "operationId": "queue_item_remove_batch_handler_api_queue_item_remove_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/move": {
+      "post": {
+        "summary": "Queue Item Move Handler",
+        "description": "Move plan in the queue",
+        "operationId": "queue_item_move_handler_api_queue_item_move_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/move/batch": {
+      "post": {
+        "summary": "Queue Item Move Batch Handler",
+        "description": "Move a batch of plans in the queue",
+        "operationId": "queue_item_move_batch_handler_api_queue_item_move_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/queue/item/get": {
+      "get": {
+        "summary": "Queue Item Get Handler",
+        "description": "Get a plan from the queue",
+        "operationId": "queue_item_get_handler_api_queue_item_get_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:queue"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:queue"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/history/get": {
+      "get": {
+        "summary": "History Get Handler",
+        "description": "Returns the plan history (list of dicts).",
+        "operationId": "history_get_handler_api_history_get_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:history"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:history"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:history"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:history"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/history/clear": {
+      "post": {
+        "summary": "History Clear Handler",
+        "description": "Clear plan history.",
+        "operationId": "history_clear_handler_api_history_clear_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:history:edit"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:history:edit"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:history:edit"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:history:edit"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/environment/open": {
+      "post": {
+        "summary": "Environment Open Handler",
+        "description": "Creates RE environment: creates RE Worker process, starts and configures Run Engine.",
+        "operationId": "environment_open_handler_api_environment_open_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:manager:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/environment/close": {
+      "post": {
+        "summary": "Environment Close Handler",
+        "description": "Orderly closes of RE environment. The command returns success only if no plan is running,\ni.e. RE Manager is in the idle state. The command is rejected if a plan is running.",
+        "operationId": "environment_close_handler_api_environment_close_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:manager:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/environment/destroy": {
+      "post": {
+        "summary": "Environment Destroy Handler",
+        "description": "Destroys RE environment by killing RE Worker process. This is a last resort command which\nshould be made available only to expert level users.",
+        "operationId": "environment_destroy_handler_api_environment_destroy_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:manager:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:manager:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/environment/update": {
+      "post": {
+        "summary": "Environment Update Handler",
+        "description": "Updates RE environment cache.",
+        "operationId": "environment_update_handler_api_environment_update_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/pause": {
+      "post": {
+        "summary": "Re Pause Handler",
+        "description": "Pause Run Engine.",
+        "operationId": "re_pause_handler_api_re_pause_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:plan:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/resume": {
+      "post": {
+        "summary": "Re Resume Handler",
+        "description": "Run Engine: resume execution of a paused plan",
+        "operationId": "re_resume_handler_api_re_resume_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:plan:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/stop": {
+      "post": {
+        "summary": "Re Stop Handler",
+        "description": "Run Engine: stop execution of a paused plan",
+        "operationId": "re_stop_handler_api_re_stop_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:plan:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/abort": {
+      "post": {
+        "summary": "Re Abort Handler",
+        "description": "Run Engine: abort execution of a paused plan",
+        "operationId": "re_abort_handler_api_re_abort_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:plan:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/halt": {
+      "post": {
+        "summary": "Re Halt Handler",
+        "description": "Run Engine: halt execution of a paused plan",
+        "operationId": "re_halt_handler_api_re_halt_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:plan:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:plan:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/runs": {
+      "post": {
+        "summary": "Re Runs Handler",
+        "description": "Run Engine: download the list of active, open or closed runs (runs that were opened\nduring execution of the currently running plan and combines the subsets of 'open' and\n'closed' runs.) The parameter ``options`` is used to select the category of runs\n(``'active'``, ``'open'`` or ``'closed'``). By default the API returns the active runs.",
+        "operationId": "re_runs_handler_api_re_runs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/runs/active": {
+      "get": {
+        "summary": "Re Runs Active Handler",
+        "description": "Run Engine: download the list of active runs (runs that were opened during execution of\nthe currently running plan and combines the subsets of 'open' and 'closed' runs.)",
+        "operationId": "re_runs_active_handler_api_re_runs_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/runs/open": {
+      "get": {
+        "summary": "Re Runs Open Handler",
+        "description": "Run Engine: download the subset of active runs that includes runs that were open, but not yet closed.",
+        "operationId": "re_runs_open_handler_api_re_runs_open_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/runs/closed": {
+      "get": {
+        "summary": "Re Runs Closed Handler",
+        "description": "Run Engine: download the subset of active runs that includes runs that were already closed.",
+        "operationId": "re_runs_closed_handler_api_re_runs_closed_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/re/metadata": {
+      "get": {
+        "summary": "Re Metadata",
+        "description": "Run Engine: download the metadata of the currently running plan.",
+        "operationId": "re_metadata_api_re_metadata_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/plans/allowed": {
+      "get": {
+        "summary": "Plans Allowed Handler",
+        "description": "Returns the lists of allowed plans. If boolean optional parameter ``reduced``\nis ``True``(default value is ``False`), then simplify plan descriptions before\ncalling the API.",
+        "operationId": "plans_allowed_handler_api_plans_allowed_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:resources"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/devices/allowed": {
+      "get": {
+        "summary": "Devices Allowed Handler",
+        "description": "Returns the lists of allowed devices.",
+        "operationId": "devices_allowed_handler_api_devices_allowed_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:resources"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/plans/existing": {
+      "get": {
+        "summary": "Plans Existing Handler",
+        "description": "Returns the lists of existing plans. If boolean optional parameter ``reduced``\nis ``True``(default value is ``False`), then simplify plan descriptions before\ncalling the API.",
+        "operationId": "plans_existing_handler_api_plans_existing_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/existing": {
+      "get": {
+        "summary": "Devices Existing Handler",
+        "description": "Returns the lists of existing devices.",
+        "operationId": "devices_existing_handler_api_devices_existing_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:resources"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:resources"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/permissions/reload": {
+      "post": {
+        "summary": "Permissions Reload Handler",
+        "description": "Reloads the list of allowed plans and devices and user group permission from the default location\nor location set using command line parameters of RE Manager. Use this request to reload the data\nif the respective files were changed on disk.",
+        "operationId": "permissions_reload_handler_api_permissions_reload_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:config"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:config"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:config"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:config"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/permissions/get": {
+      "get": {
+        "summary": "Permissions Get Handler",
+        "description": "Download the dictionary of user group permissions.",
+        "operationId": "permissions_get_handler_api_permissions_get_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:config"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:config"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/permissions/set": {
+      "post": {
+        "summary": "Permissions Set Handler",
+        "description": "Upload the dictionary of user group permissions (parameter: ``user_group_permissions``).",
+        "operationId": "permissions_set_handler_api_permissions_set_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:permissions"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:permissions"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:permissions"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:permissions"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/function/execute": {
+      "post": {
+        "summary": "Function Execute Handler",
+        "description": "Execute function defined in startup scripts in RE Worker environment.",
+        "operationId": "function_execute_handler_api_function_execute_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:execute"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:execute"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/script/upload": {
+      "post": {
+        "summary": "Script Upload Handler",
+        "description": "Upload and execute script in RE Worker environment.",
+        "operationId": "script_upload_handler_api_script_upload_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:scripts"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:scripts"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:scripts"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:scripts"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/task/status": {
+      "get": {
+        "summary": "Task Status",
+        "description": "Return status of one or more running tasks.",
+        "operationId": "task_status_api_task_status_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/task/result": {
+      "get": {
+        "summary": "Task Result",
+        "description": "Return result of execution of a running or completed task.",
+        "operationId": "task_result_api_task_result_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:monitor"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:monitor"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/kernel/interrupt": {
+      "post": {
+        "summary": "Kernel Interrupt Handler",
+        "description": "Interrupt IPython kernel.",
+        "operationId": "kernel_interrupt_handler_api_kernel_interrupt_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:queue:control"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:queue:control"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/lock": {
+      "post": {
+        "summary": "Lock Handler",
+        "description": "Lock RE Manager.",
+        "operationId": "lock_handler_api_lock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:lock"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/unlock": {
+      "post": {
+        "summary": "Unlock Handler",
+        "description": "Unlock RE Manager.",
+        "operationId": "unlock_handler_api_unlock_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:lock"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:lock"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/lock/info": {
+      "get": {
+        "summary": "Lock Info Handler",
+        "description": "Unlock RE Manager.",
+        "operationId": "lock_info_handler_api_lock_info_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:lock"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:lock"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:lock"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:lock"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/manager/stop": {
+      "post": {
+        "summary": "Manager Stop Handler",
+        "description": "Stops of RE Manager. RE Manager will not be restarted after it is stoped.",
+        "operationId": "manager_stop_handler_api_manager_stop_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:manager:stop"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:manager:stop"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:manager:stop"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:manager:stop"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/test/manager/kill": {
+      "post": {
+        "summary": "Test Manager Kill Handler",
+        "description": "The command stops event loop of RE Manager process. Used for testing of RE Manager\nstability and handling of communication timeouts.",
+        "operationId": "test_manager_kill_handler_api_test_manager_kill_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "write:testing"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "write:testing"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "write:testing"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "write:testing"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/test/server/sleep": {
+      "get": {
+        "summary": "Test Server Sleep Handler",
+        "description": "The API is intended for testing how the client applications and API libraries handle timeouts.\nThe handler waits for the requested number of seconds and then returns the message indicating success.\nThe API call is safe, since it does not block the event loop or calls to RE Manager",
+        "operationId": "test_server_sleep_handler_api_test_server_sleep_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:testing"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:testing"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:testing"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:testing"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/stream_console_output": {
+      "get": {
+        "summary": "Stream Console Output",
+        "operationId": "stream_console_output_api_stream_console_output_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:console"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/console_output": {
+      "get": {
+        "summary": "Console Output",
+        "operationId": "console_output_api_console_output_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload",
+                "default": {
+
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:console"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/console_output/uid": {
+      "get": {
+        "summary": "Console Output Uid",
+        "description": "UID of the text buffer. Use with ``console_output`` API.",
+        "operationId": "console_output_uid_api_console_output_uid_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:console"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/console_output_update": {
+      "get": {
+        "summary": "Console Output Update",
+        "description": "Download the list of new messages that were accumulated at the server. The API\naccepts a required parameter ``last_msg_uid`` with UID of the last downloaded message.\nIf the UID is not found in the buffer, an empty message list and valid UID is\nreturned. If UID is ``\"ALL\"``, then all accumulated messages in the buffer is\nreturned. If UID is found in the buffer, then the list of new messages is returned.\n\nAt the client: initialize the system by sending request with ``last_msg_uid`` set\nto random string or ``\"ALL\"``. In each request use ``last_msg_uid`` returned by the previous\nrequest to download new messages.",
+        "operationId": "console_output_update_api_console_output_update_get",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "read:console"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "read:console"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/auth/principal": {
+      "get": {
+        "summary": "Principal List",
+        "description": "List Principals (users and services).",
+        "operationId": "principal_list_api_auth_principal_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "admin:read:principals"
+            ]
+          }
+        ]
+      }
+    },
+    "/api/auth/principal/{uuid}": {
+      "get": {
+        "summary": "Principal",
+        "description": "Get information about one Principal (user or service).",
+        "operationId": "principal_api_auth_principal__uuid__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "admin:read:principals"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "admin:read:principals"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/principal/{uuid}/apikey": {
+      "post": {
+        "summary": "Apikey For Principal",
+        "description": "Generate an API key for a Principal.",
+        "operationId": "apikey_for_principal_api_auth_principal__uuid__apikey_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "admin:apikeys"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "admin:apikeys"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "admin:apikeys"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "admin:apikeys"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyRequestParams"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyWithSecret"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/session/refresh": {
+      "post": {
+        "summary": "Refresh Session",
+        "description": "Obtain a new access token and refresh token.",
+        "operationId": "refresh_session_api_auth_session_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshToken"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessAndRefreshTokens"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/session/revoke/{session_id}": {
+      "delete": {
+        "summary": "Revoke Session",
+        "description": "Mark a Session as revoked so it cannot be refreshed again.",
+        "operationId": "revoke_session_api_auth_session_revoke__session_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          },
+          {
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyAuthorizationHeader": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/apikey": {
+      "post": {
+        "summary": "New Apikey",
+        "description": "Generate an API for the currently-authenticated user or service.",
+        "operationId": "new_apikey_api_auth_apikey_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "user:apikeys"
+            ]
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/APIKeyRequestParams"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKeyWithSecret"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Current Apikey Info",
+        "description": "Give info about the API key used to authentication the current request.\n\nThis provides a way to look up the API uuid, given the API secret.",
+        "operationId": "current_apikey_info_api_auth_apikey_get",
+        "security": [
+          {
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyAuthorizationHeader": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIKey"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke Apikey",
+        "description": "Revoke an API belonging to the currently-authenticated user or service.",
+        "operationId": "revoke_apikey_api_auth_apikey_delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyQuery": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyAuthorizationHeader": [
+              "user:apikeys"
+            ]
+          },
+          {
+            "APIKeyCookie": [
+              "user:apikeys"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "first_eight",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "First Eight"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/whoami": {
+      "get": {
+        "summary": "Whoami",
+        "operationId": "whoami_api_auth_whoami_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          },
+          {
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyAuthorizationHeader": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/scopes": {
+      "get": {
+        "summary": "Scopes",
+        "operationId": "scopes_api_auth_scopes_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Principal"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          },
+          {
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyAuthorizationHeader": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "summary": "Logout",
+        "operationId": "logout_api_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          },
+          {
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyAuthorizationHeader": []
+          },
+          {
+            "APIKeyCookie": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "APIKey": {
+        "properties": {
+          "first_eight": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 8,
+            "title": "First Eight"
+          },
+          "expiration_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiration Time"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "latest_activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Activity"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first_eight",
+          "scopes"
+        ],
+        "title": "APIKey"
+      },
+      "APIKeyRequestParams": {
+        "properties": {
+          "expires_in": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires In",
+            "example": 600
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes",
+            "default": [
+              "inherit"
+            ],
+            "example": [
+              "inherit"
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expires_in"
+        ],
+        "title": "APIKeyRequestParams"
+      },
+      "APIKeyWithSecret": {
+        "properties": {
+          "first_eight": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 8,
+            "title": "First Eight"
+          },
+          "expiration_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiration Time"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "scopes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Scopes"
+          },
+          "latest_activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Activity"
+          },
+          "secret": {
+            "type": "string",
+            "title": "Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first_eight",
+          "scopes",
+          "secret"
+        ],
+        "title": "APIKeyWithSecret"
+      },
+      "AccessAndRefreshTokens": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "refresh_token_expires_in": {
+            "type": "integer",
+            "title": "Refresh Token Expires In"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "expires_in",
+          "refresh_token",
+          "refresh_token_expires_in",
+          "token_type"
+        ],
+        "title": "AccessAndRefreshTokens"
+      },
+      "Body_queue_upload_spreadsheet_api_queue_upload_spreadsheet_post": {
+        "properties": {
+          "spreadsheet": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Spreadsheet"
+          },
+          "data_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "spreadsheet"
+        ],
+        "title": "Body_queue_upload_spreadsheet_api_queue_upload_spreadsheet_post"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Identity": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Id"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Provider"
+          },
+          "latest_login": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Login"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "provider"
+        ],
+        "title": "Identity"
+      },
+      "Principal": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "type": {
+            "$ref": "#/components/schemas/PrincipalType"
+          },
+          "identities": {
+            "items": {
+              "$ref": "#/components/schemas/Identity"
+            },
+            "type": "array",
+            "title": "Identities",
+            "default": []
+          },
+          "api_keys": {
+            "items": {
+              "$ref": "#/components/schemas/APIKey"
+            },
+            "type": "array",
+            "title": "Api Keys",
+            "default": []
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/Session"
+            },
+            "type": "array",
+            "title": "Sessions",
+            "default": []
+          },
+          "latest_activity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Activity"
+          },
+          "roles": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roles",
+            "default": []
+          },
+          "scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scopes",
+            "default": []
+          },
+          "api_key_scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key Scopes"
+          },
+          "access_token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Access Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "type"
+        ],
+        "title": "Principal",
+        "description": "Represents a User or Service"
+      },
+      "PrincipalType": {
+        "type": "string",
+        "enum": [
+          "user",
+          "service"
+        ],
+        "title": "PrincipalType"
+      },
+      "RefreshToken": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshToken"
+      },
+      "Session": {
+        "properties": {
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Uuid"
+          },
+          "expiration_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expiration Time"
+          },
+          "revoked": {
+            "type": "boolean",
+            "title": "Revoked"
+          },
+          "state": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "State",
+            "default": {
+
+            }
+          }
+        },
+        "type": "object",
+        "required": [
+          "uuid",
+          "expiration_time",
+          "revoked"
+        ],
+        "title": "Session",
+        "description": "This related to refresh tokens, which have a session uuid (\"sid\") claim.\n\nWhen the client attempts to use a refresh token, we first check\nhere to ensure that the \"session\", which is associated with a chain\nof refresh tokens that came from a single authentication, are still valid."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "OAuth2PasswordBearer": {
+        "type": "oauth2",
+        "flows": {
+          "password": {
+            "scopes": {
+
+            },
+            "tokenUrl": "PLACEHOLDER",
+            "refreshUrl": "token/refresh"
+          }
+        }
+      },
+      "APIKeyQuery": {
+        "type": "apiKey",
+        "in": "query",
+        "name": "api_key"
+      },
+      "APIKeyAuthorizationHeader": {
+        "type": "apiKey",
+        "description": "Prefix value with 'Apikey ' as in, 'Apikey SECRET'",
+        "in": "header",
+        "name": "Authorization"
+      },
+      "APIKeyCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "bluesky_httpserver_api_key"
+      }
+    }
+  }
+}

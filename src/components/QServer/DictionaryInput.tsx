@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tooltip } from 'react-tooltip';
 import { CopiedPlan, GlobalMetadata, ParameterInput } from './types/types';
+import { cn } from '@/lib/utils';
 
 type InputField = {
     key: string;
@@ -17,7 +18,7 @@ type DictionaryInputProps = {
     label: string;
     required: boolean;
     description: string | undefined;
-    styles?: string;
+    className?: string;
     resetInputsTrigger: boolean;
     copiedPlan: CopiedPlan | null;
     isGlobalMetadataChecked: boolean;
@@ -48,7 +49,7 @@ export default function DictionaryInput({
     label = '',
     required = true,
     description = '',
-    styles = '',
+    className = '',
     resetInputsTrigger = false,
     copiedPlan,
     isGlobalMetadataChecked = false,
@@ -146,7 +147,10 @@ export default function DictionaryInput({
 
     return (
         <div
-            className={`border-2 border-slate-300 rounded-lg w-11/12 max-w-96 min-w-72 mt-2 h-fit ${styles}`}
+            className={cn(
+                'border-2 border-slate-300 rounded-lg w-11/12 max-w-96 min-w-72 mt-2 h-fit',
+                className,
+            )}
         >
             <p
                 id={label + 'ParamInputTooltip'}

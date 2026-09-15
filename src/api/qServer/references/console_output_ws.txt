@@ -1,0 +1,95 @@
+# Example messages from the /api/console_output/ws
+
+# After closing existing environment
+[I 2026-08-13 09:53:55,127 bluesky_queueserver.manager.manager] Closing existing RE environment ...
+
+
+
+# After opening an environment
+[I 2026-08-13 09:55:25,006 bluesky_queueserver.manager.manager] Opening the new RE environment ...
+[I 2026-08-13 09:55:25,019 bluesky_queueserver.manager.start_manager] Starting RE Worker ...
+[I 2026-08-13 09:55:25,030 bluesky_queueserver.manager.manager] Waiting for RE worker to start ...
+[I 2026-08-13 09:55:26,298 bluesky_queueserver.manager.profile_ops] Loading RE Worker startup code from directory '/Users/seij/Repos/postman-demo/queue-server/startup_sim' ...
+[I 2026-08-13 09:55:26,298 bluesky_queueserver.manager.profile_ops] Startup directory: '/Users/seij/Repos/postman-demo/queue-server/startup_sim'
+[I 2026-08-13 09:55:26,299 bluesky_queueserver.manager.profile_ops] Loading startup file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/00_base.py' ...
+[E 2026-08-13 09:55:27,048 bluesky_queueserver.manager.comms] Unexpected message received: {'result': {'running_item_uid': None,
+            'running_plan_completed': True,
+            're_report_available': False,
+            're_state': None,
+            're_deferred_pause_requested': False,
+            'environment_state': 'initializing',
+            'run_list_updated': False,
+            'plans_and_devices_list_updated': False,
+            'running_task_uid': None,
+            'completed_tasks_available': False,
+            'background_tasks_num': 0,
+            'ip_kernel_state': 'disabled',
+            'ip_kernel_captured': False,
+            'unexpected_shutdown': False},
+ 'id': 'db0b4f02-885a-43ea-ba83-e220047ffc5b',
+ 'jsonrpc': '2.0'}. The message is ignored
+Loading file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/00_base.py'
+[I 2026-08-13 09:55:30,746 bluesky_queueserver.manager.profile_ops] Loading startup file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/01_devices.py' ...
+[I 2026-08-13 09:55:30,747 bluesky_queueserver.manager.profile_ops] Loading startup file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/15_plans.py' ...
+Loading file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/15_plans.py'
+[I 2026-08-13 09:55:30,750 bluesky_queueserver.manager.profile_ops] Loading startup file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/99_custom.py' ...
+Loading file '/Users/seij/Repos/postman-demo/queue-server/startup_sim/99_custom.py'
+[I 2026-08-13 09:55:30,776 bluesky_queueserver.manager.worker] Startup code was successfully loaded.
+[I 2026-08-13 09:55:30,776 bluesky_queueserver.manager.worker] Generating lists of allowed plans and devices
+[I 2026-08-13 09:55:30,780 bluesky_queueserver.manager.worker] List of allowed plans and devices was successfully generated
+[I 2026-08-13 09:55:30,932 bluesky_queueserver.manager.manager] Downloading the lists of existing plans and devices from the worker environment
+[I 2026-08-13 09:55:31,067 bluesky_queueserver.manager.worker] Instantiating and configuring Run Engine ...
+[I 2026-08-13 09:55:31,067 bluesky_queueserver.manager.worker] RE Environment is ready
+[I 2026-08-13 09:55:31,434 bluesky_queueserver.manager.manager] Worker started successfully.
+
+
+# After adding a plan
+[I 2026-08-13 10:05:30,665 bluesky_queueserver.manager.manager] Item added: success=True item_type='plan' name='count' item_uid='3a5540c6-a7a8-4ad2-9abe-f75622471fe2' qsize=2.
+
+
+
+# After deleting a plan in the queue
+[I 2026-08-13 10:18:54,849 bluesky_queueserver.manager.manager] Removing item from the queue ...
+
+
+
+
+# Running a plan
+[I 2026-08-13 10:15:43,436 bluesky_queueserver.manager.manager] Starting queue processing ...
+[I 2026-08-13 10:15:43,440 bluesky_queueserver.manager.manager] Processing the next queue item: 1 plans are left in the queue.
+[I 2026-08-13 10:15:43,443 bluesky_queueserver.manager.manager] Starting the plan:
+{'name': 'count',
+ 'args': [['det1']],
+ 'kwargs': {'num': 5, 'delay': 1},
+ 'user': 'UNAUTHENTICATED_SINGLE_USER',
+ 'user_group': 'primary',
+ 'meta': {},
+ 'item_uid': '91d7ec83-a28e-4bef-8c04-639df0eb82b6'}.
+[I 2026-08-13 10:15:43,444 bluesky_queueserver.manager.worker] Starting execution of a plan ...
+[I 2026-08-13 10:15:43,444 bluesky_queueserver.manager.worker] Starting a plan 'count'.
+
+
+Transient Scan ID: 3     Time: 2026-08-13 10:15:43
+Persistent Unique Scan ID: 'cb75fc37-d3d0-4354-a330-8192f3bb9b50'
+[I 2026-08-13 10:15:43,575 bluesky_queueserver.manager.plan_monitoring] New run was open: 'cb75fc37-d3d0-4354-a330-8192f3bb9b50'
+New stream: 'primary'
++-----------+------------+------------+
+|   seq_num |       time |       det1 |
++-----------+------------+------------+
+|         1 | 10:15:43.6 |      5.000 |
+|         2 | 10:15:44.5 |      5.000 |
+|         3 | 10:15:45.5 |      5.000 |
+|         4 | 10:15:46.5 |      5.000 |
+|         5 | 10:15:47.5 |      5.000 |
++-----------+------------+------------+
+generator count ['cb75fc37'] (scan num: 3)
+
+
+
+[I 2026-08-13 10:15:48,800 bluesky_queueserver.manager.plan_monitoring] Run was closed: 'cb75fc37-d3d0-4354-a330-8192f3bb9b50'
+[I 2026-08-13 10:15:48,803 bluesky_queueserver.manager.worker] The plan was exited. Plan state: completed
+[I 2026-08-13 10:15:49,241 bluesky_queueserver.manager.manager] No items are left in the queue.
+[I 2026-08-13 10:15:49,242 bluesky_queueserver.manager.manager] Queue is empty.
+
+
+

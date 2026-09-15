@@ -1,0 +1,20 @@
+import { Markdown, Meta } from '@storybook/addon-docs/blocks';
+import QServerHooksDoc from './QServerHooks.md?raw';
+import QServerHooksDemo from './demos/QServerHooksDemo';
+
+<Meta title="Documentation/QServer Query Hooks" />
+
+# QServer Query Hooks
+
+A TanStack Query hook for every queue-server endpoint — 29 queries and 41 mutations — reading their
+server URL and API key from `FinchConfigProvider`.
+
+The demo below is running the real hooks against [qserver-sim](?path=/docs/documentation-qserver-sim--docs),
+so the tables update as you add and run plans. Nothing here calls `invalidateQueries`: each mutation
+refreshes the caches it affects.
+
+<div style={{ margin: '1rem 0 2rem' }}>
+    <QServerHooksDemo />
+</div>
+
+<Markdown>{QServerHooksDoc}</Markdown>
