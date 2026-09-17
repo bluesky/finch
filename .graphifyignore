@@ -1,0 +1,57 @@
+# Keep the minimal graph files that teammates can use without rebuilding.
+# These are the shareable artifacts; everything else stays ignored.
+graphify-out/*
+!graphify-out/graph.json
+!graphify-out/manifest.json
+!graphify-out/GRAPH_REPORT.md
+!graphify-out/graph.html
+!graphify-out/wiki/
+!graphify-out/wiki/**
+
+graphify-out/cache/
+graphify-out/2026-09-15/
+graphify-out/.graphify_*
+graphify-out/.graphify_root
+
+graphify-out/*.log
+
+# Local caches and extracted metadata
+cache/
+.raw/
+raw/
+memory/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.venv/
+venv/
+
+# Dependency / build output directories
+node_modules/
+dist/
+build/
+out/
+coverage/
+.next/
+.nuxt/
+.parcel-cache/
+.storybook-static/
+storybook-static/
+
+# Editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environment secrets
+.env
+.env.*
+
+# Common generated logs
+*.log
