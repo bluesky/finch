@@ -20,7 +20,18 @@ type TiledWriterScatterPlotProps = {
     plotClassName?: string;
     /** When `true`, renders a status/error text line above the plot. Defaults to `true`. */
     showStatusText?: boolean;
+    /**
+     * Card colour while the run is still being written to. Defaults to white.
+     */
+    liveBackgroundColor?: string;
+    /**
+     * Card colour once the run has stopped, which is how a finished plot is told apart at a glance
+     * from one still filling in. Defaults to a light grey.
+     */
+    finishedBackgroundColor?: string;
+    /** Additional layout options for the Plotly scatter plot. */
+    layout?: Partial<Plotly.Layout>;
 };
-export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, initialPath, pollingIntervalMs, className, plotClassName, showStatusText, }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledWriterScatterPlot({ tiledTrace, blueskyRunId, isRunFinished, partition, tiledBaseUrl, initialPath, pollingIntervalMs, className, plotClassName, showStatusText, liveBackgroundColor, finishedBackgroundColor, layout, }: TiledWriterScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledWriterScatterPlot.d.ts.map

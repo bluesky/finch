@@ -1,4 +1,4 @@
-import { RunningQueueItem } from '../../api/qServer/types';
+import { RunningQueueItem } from '../../api/qServer';
 type QSRunEngineWorkerProps = {
     isREToggleOn?: boolean;
     setIsREToggleOn?: (arg: boolean) => void;

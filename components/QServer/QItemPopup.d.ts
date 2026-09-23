@@ -1,5 +1,5 @@
 import { PopupItem } from './types/types';
-import { ArbitraryKwargs } from '../../api/qServer/types';
+import { ArbitraryKwargs } from '../../api/qServer';
 type QItemPopupProps = {
     popupItem: PopupItem;
     handleQItemPopupClose: () => void;

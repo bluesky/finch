@@ -14,11 +14,19 @@ type TiledScatterPlotProps = {
     enablePolling?: boolean;
     /** Milliseconds between data refetches when `enablePolling` is `true`. Defaults to `1000`. */
     pollingIntervalMs?: number;
+    /**
+     * CSS colour for the card *and* the plot inside it, so the two are one surface — a colour set only
+     * on the Plotly layout leaves the card's padding as a frame around it. Defaults to white. Applied
+     * as an inline style, so it beats any background in `className`.
+     */
+    backgroundColor?: string;
     /** Additional class names applied to the outer container element. */
     className?: string;
     /** Additional class names applied to the `PlotlyScatter` element. */
     plotClassName?: string;
+    /** Additional layout options for the Plotly scatter plot. */
+    layout?: Partial<Plotly.Layout>;
 };
-export default function TiledScatterPlot({ blueskyRunId, tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, className, plotClassName, }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
+export default function TiledScatterPlot({ blueskyRunId, tiledTrace, path, partition, tiledBaseUrl, enablePolling, pollingIntervalMs, backgroundColor, className, plotClassName, layout, }: TiledScatterPlotProps): import("react/jsx-runtime").JSX.Element;
 export {};
 //# sourceMappingURL=TiledScatterPlot.d.ts.map

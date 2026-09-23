@@ -1,4 +1,4 @@
-import { Parameter, Device, QueueItem, HistoryItem, RunningQueueItem, ArbitraryKwargs } from '../../../api/qServer/types';
+import { Parameter, Device, QueueItem, HistoryItem, RunningQueueItem, ArbitraryKwargs } from '../../../api/qServer';
 export type PopupItem = QueueItem | HistoryItem | RunningQueueItem;
 export interface HistoryResultRow {
     name: string;

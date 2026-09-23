@@ -1,0 +1,1 @@
+{"version":3,"file":"createQServerSocket.d.ts","sourceRoot":"","sources":["../../../../src/api/qServer/sockets/createQServerSocket.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAGR,oBAAoB,EAEpB,sBAAsB,EAGzB,MAAM,SAAS,CAAC;AAcjB;;;;;;;;;;;GAWG;AACH,wBAAgB,mBAAmB,CAAC,MAAM,EACtC,OAAO,EAAE,oBAAoB,CAAC,MAAM,CAAC,GACtC,sBAAsB,CAAC,MAAM,CAAC,CA+OhC"}

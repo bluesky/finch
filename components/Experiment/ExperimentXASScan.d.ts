@@ -1,4 +1,4 @@
-import { PostItemAddResponse } from '../../api/qServer/types';
+import { PostItemAddResponse } from '../../api/qServer';
 type ExperimentXASScanProps = {
     /** Additional CSS class names to apply to the root container. */
     className?: string;

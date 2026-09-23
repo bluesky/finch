@@ -1,5 +1,5 @@
 import { CopiedPlan, ParameterInputDict } from '../types/types';
-import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody, AddQueueItemBody } from '../../../api/qServer/types';
+import { Plan, Device, PostItemAddResponse, ExecuteQueueItemBody, AddQueueItemBody } from '../../../api/qServer';
 interface UseQSAddItemProps {
     copiedPlan?: CopiedPlan | null;
     isGlobalMetadataChecked?: boolean;

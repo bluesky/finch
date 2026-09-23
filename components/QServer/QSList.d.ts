@@ -1,5 +1,5 @@
 import { PopupItem } from './types/types';
-import { HistoryItem } from '../../api/qServer/types';
+import { HistoryItem } from '../../api/qServer';
 type QSListProps = {
     queueData: PopupItem[] | HistoryItem[];
     handleQItemClick: (arg: PopupItem | HistoryItem, showDeleteButton: boolean) => void;

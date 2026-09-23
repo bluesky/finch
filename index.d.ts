@@ -115,6 +115,8 @@ export { default as Histogram } from './components/Histogram/Histogram';
 export { default as HistogramDeviceController } from './components/Histogram/HistogramDeviceController';
 export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
+export { default as Experiment } from './components/Experiment/Experiment';
+export { default as ExperimentFormGeneric } from './components/Experiment/ExperimentFormGeneric';
 export { default as ExperimentHistory } from './components/Experiment/ExperimentHistory';
 export { default as ExperimentAngleScan } from './components/Experiment/ExperimentAngleScan';
 export { default as ExperimentEnergyScan } from './components/Experiment/ExperimentEnergyScan';
@@ -144,54 +146,68 @@ export { default as useOphydPVSocket } from './api/ophyd/useOphydPVSocket';
 export { default as useOphydDeviceSocket } from './api/ophyd/useOphydDeviceSocket';
 export { default as useSimOphydPVSocket } from './api/ophyd/useSimOphydPVSocket';
 export { useTiledMostRecentDetImage } from './components/Tiled/hooks/useTiledMostRecentDetImage';
-export { useTiledSearchResultsQuery, useTiledSearchByIdQuery, useTiledSearchBySpecsQuery, useTiledSearchByFulltextQuery, useTiledSearchByMetadataEqualsQuery, useTiledSearchByMetadataComparisonQuery, useTiledSearchByRegexQuery, useTiledSearchByStructureFamilyQuery, useTiledItemMetadataQuery, useTiledBlueskyPlanMetadataQuery, useTiledTableDataAsSequenceQuery, useTiledTableDataAsJsonQuery, useTiledStructuredArrayDataQuery, useTiledXArrayDataQuery, useTiledServerInfoQuery, } from './api/tiled/hooks';
+export { useTiledRunTableColumns } from './components/Tiled/hooks/useTiledRunTableColumns';
+export { useTiledSearchQuery, useTiledSearchBySpecsQuery, useTiledSearchByFullTextQuery, useTiledSearchByMetadataEqualsQuery, useTiledSearchByStructureFamilyQuery, useTiledSearchByRegexQuery, useTiledSearchByMetadataComparisonQuery, useTiledMetadataQuery, useTiledArrayAsQuery, useTiledArrayAsJSONQuery, useTiledArrayAsPngQuery, useTiledArrayAsBufferQuery, useTiledArrayImagePath, useTiledTableAsQuery, useTiledTablePartitionAsJSONQuery, useTiledTablePartitionAsJSONSequenceQuery, useTiledTableFullAsJSONQuery, useTiledTableFullAsJSONSequenceQuery, useTiledServerInfoQuery, useTiledLoginMutation, useTiledClient, useTiledQueryScope, useTiledInvalidate, tiledQueryKeys, tiledQueryRoots, invalidateTiledRoots, invalidateAllTiledQueries, TILED_INVALIDATION_BUNDLES, TILED_QUERY_ROOT, TiledEndpointUnavailableError, isTiledEndpointUnavailableError, FinchMissingArgumentError, isFinchMissingArgumentError, TiledApiProvider, useTiledApiClient, useTiledApiClientOptional, } from './api/tiled';
+export type { TiledApiProviderProps, TiledClientLike, TiledClientResolution, TiledHookError, TiledLoginVariables, TiledQueryScope, TiledQueryRootName, TiledInvalidationBundleName, FinchQueryOptions, FinchMutationOptions, } from './api/tiled';
+export type { FinchRequestOptions, FinchHttpRequestOptions } from './api/shared/requestOptions';
 export * as OphydDeviceSocketTypes from './api/ophyd/ophydDeviceSocketTypes';
 export * as OphydPVSocketTypes from './api/ophyd/ophydPVSocketTypes';
 export { ophydSocketTIFFPath, ophydSocketCameraPath, ophydSocketDevicePath, ophydSocketPVPath, } from './api/ophyd/socketPaths';
-export { createQServerApiClient } from './api/qServer/client';
-export type { QServerApiConfig } from './api/qServer/client';
-export * as QServerRequests from './api/qServer/requests';
-export { useQueueQuery, useQueueHistoryQuery, useStatusQuery, usePlansAllowedQuery, useDevicesAllowedQuery, useQueueItemQuery, useRunsActiveQuery, useAddQueueItemMutation, useExecuteQueueItemMutation, useRemoveQueueItemMutation, useOpenEnvironmentMutation, useStartREMutation, usePauseREMutation, useResumeREMutation, useAbortREMutation, } from './api/qServer/hooks';
-export type { GetStatusResponse, GetQueueResponse, GetHistoryResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetQueueItemResponse, GetRunsActiveResponse, PostItemAddResponse, PostItemExecuteResponse, PostItemRemoveResponse, PostEnvironmentOpenResponse, PostREResponse, BaseQueueItem, QueueItem, FailedQueueItem, RunningQueueItem, HistoryItem, ArbitraryKwargs, MetadataKwarg, AddQueueItemBody, ExecuteQueueItemBody, RemoveQueueItemBody, RunsActiveListItem, Component, Device as QServerDevice, Parameter, Plan, Result, } from './api/qServer/types';
+export { QServerApiClient, createQServerApiClient } from './api/qServer';
+export type { QServerClientConfig, QServerRequestOptions } from './api/qServer';
+/**
+ * The 70 free functions over the app-wide default client, plus its configuration setters.
+ *
+ * Namespaced because several names (`getStatus`, `getQueue`, …) are far too generic to sit in a
+ * library's top-level namespace. Inside a component prefer the hooks below.
+ */
+export * as QServerRequests from './api/qServer/client/facade';
+/** Everything in the queue-server layer, also available as a namespace. */
+export * as QServerAPI from './api/qServer';
+/**
+ * Everything in the Tiled layer, also available as a namespace.
+ *
+ * The hooks themselves are exported flat above; this adds the package re-exports (`TiledApiClient`,
+ * `setDefaultTiledUrl`, the `getTiled*` request functions, the structure guards) without putting two
+ * dozen more names in the top-level namespace.
+ */
+export * as TiledAPI from './api/tiled';
+export * from './api/qServer/hooks';
+export type { GetStatusResponse, GetQueueResponse, GetHistoryResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetQueueItemResponse, GetRunsActiveResponse, PostItemAddResponse, PostItemExecuteResponse, PostItemRemoveResponse, EnvironmentResponse, ReControlResponse, BaseQueueItem, QueueItem, FailedQueueItem, RunningQueueItem, HistoryItem, ArbitraryKwargs, MetadataKwarg, AddQueueItemBody, ExecuteQueueItemBody, RemoveQueueItemBody, RunsActiveListItem, Component, Device as QServerDevice, Parameter, Plan, Result, } from './api/qServer/types';
 export type { RouteItem, RouteTab } from './types/navigationRouterTypes';
 export type { Device, Devices } from './types/deviceControllerTypes';
 export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
-import * as TiledAPI from '@blueskyproject/tiled';
+import * as TiledPackage from '@blueskyproject/tiled';
 export declare const Tiled: {
-    setInitialPath: (path: string | null) => string | null;
-    getInitialPath: () => string | null;
-    setAuthErrorCallback: (callback: (error: any) => void) => void;
+    setInitialPath: typeof TiledPackage.setDefaultInitialPath;
+    getInitialPath: typeof TiledPackage.getDefaultTiledInitialPath;
+    setAuthErrorCallback: typeof TiledPackage.setDefaultAuthErrorCallback;
     getDefaultUrl: () => string;
-    setBearerToken: (token: string) => void;
-    getServerInfo: (url?: string) => Promise<import('@blueskyproject/tiled/dist/components/Tiled/types').TiledInfoResponse | null>;
-    loginWithPassword: (username: string, password: string, url?: string, provider?: import('@blueskyproject/tiled/dist/components/Tiled/types').TiledAuthProvider) => Promise<{
-        access_token: string;
-        refresh_token: string;
-    } | null>;
-    getSearchResults: (config: TiledAPI.TiledSearchConfig, cb?: (res: TiledAPI.TiledSearchResult) => void) => Promise<TiledAPI.TiledSearchResult>;
-    getSearchResultsBySpecs: (searchPath?: string, includeSpecs?: string[], excludeSpecs?: string[], url?: string, cb?: (res: TiledAPI.TiledSearchResult) => void) => Promise<TiledAPI.TiledSearchResult | null>;
-    getItemMetadata: (searchPath: string, url?: string, cb?: (metadata: {
-        [key: string]: unknown;
-    }) => void) => Promise<import('@blueskyproject/tiled/dist/components/Tiled/types').TiledSearchMetadataResult | null>;
-    getBlueskyPlanMetadata: (searchPath: string, url?: string, cb?: (metadata: TiledAPI.TiledBlueskyPlanMetadataResponse) => void) => Promise<TiledAPI.TiledBlueskyPlanMetadataResponse | null>;
-    getFirstSearchWithApiKey: (apiKey: string, searchPath?: string, url?: string, cb?: (res: TiledAPI.TiledSearchResult) => void, mock?: boolean) => Promise<TiledAPI.TiledSearchResult | null>;
-    getTableDataAsJson: (searchPath: string, partition: number, url?: string, cb?: (parsedData: TiledAPI.TiledTableJSONResponse) => void) => Promise<TiledAPI.TiledTableJSONResponse>;
-    getTableDataAsSequence: (searchPath: string, partition: number, url?: string, cb?: (parsedData: TiledAPI.TiledTableRow[]) => void) => Promise<any[] | null>;
-    getStructuredArrayData: (searchPath: string, block: number, url?: string, cb?: (parsedData: import('@blueskyproject/tiled/dist/components/Tiled/types').TiledStructuredArrayData) => void) => Promise<any>;
-    getXArrayData: (searchPath: string, stack: number[], url?: string, cb?: (parsedData: number[][]) => void) => Promise<any>;
-    searchBySpecs: (baseUrl: string, include: string[], exclude?: string[], path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    searchByFulltext: (baseUrl: string, text: string, path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    searchByMetadataEquals: (baseUrl: string, key: string, value: string, path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    searchByMetadataComparison: (baseUrl: string, key: string, operator: "gt" | "gte" | "lt" | "lte", value: string, path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    searchByRegex: (baseUrl: string, key: string, pattern: string, caseSensitive?: boolean, path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    searchByStructureFamily: (baseUrl: string, structureFamily: "container" | "array" | "table" | "awkward" | "sparse", path?: string, options?: TiledAPI.TiledSearchOptions, apiKey?: string, initialPath?: string) => Promise<TiledAPI.TiledSearchResult>;
-    generateFullImagePngPath: (searchPath?: string, stepY?: number, stepX?: number, stack?: number[], url?: string) => string;
-    getAuthenticatedImage: (imagePath: string) => Promise<string>;
-    setReverseSort: (reverse: boolean | undefined) => void;
-    resetGlobalState: () => void;
-    isArrayStructure: (item: TiledAPI.TiledSearchItem<any>) => item is TiledAPI.TiledSearchItem<TiledAPI.ArrayStructure>;
-    isTableStructure: (item: TiledAPI.TiledSearchItem<any>) => item is TiledAPI.TiledSearchItem<TiledAPI.TableStructure>;
-    isContainerStructure: (item: TiledAPI.TiledSearchItem<any>) => item is TiledAPI.TiledSearchItem<TiledAPI.ContainerStructure>;
+    setDefaultUrl: typeof TiledPackage.setDefaultTiledUrl;
+    setApiKey: typeof TiledPackage.setGlobalApiKey;
+    setBearerToken: typeof TiledPackage.setDefaultBearerToken;
+    getServerInfo: typeof TiledPackage.getTiledServerInfo;
+    loginWithPassword: typeof TiledPackage.loginWithDefaultTiledClient;
+    getClient: typeof TiledPackage.getDefaultTiledApiClient;
+    setClient: typeof TiledPackage.setDefaultTiledApiClient;
+    resetClient: typeof TiledPackage.resetDefaultTiledApiClient;
+    getSearchResults: typeof TiledPackage.getTiledSearch;
+    getItemMetadata: typeof TiledPackage.getTiledMetadata;
+    getTableDataAsJson: typeof TiledPackage.getTiledTablePartitionAsJSON;
+    getTableDataAsSequence: typeof TiledPackage.getTiledTablePartitionAsJSONSequence;
+    getTableFullAsJson: typeof TiledPackage.getTiledTableFullAsJSON;
+    getTableFullAsSequence: typeof TiledPackage.getTiledTableFullAsJSONSequence;
+    getArrayData: typeof TiledPackage.getTiledArrayAsJSON;
+    searchBySpecs: typeof TiledPackage.getTiledSearchBySpecs;
+    searchByFulltext: typeof TiledPackage.getTiledSearchByFullText;
+    searchByMetadataEquals: typeof TiledPackage.getTiledSearchByMetadataEquals;
+    searchByStructureFamily: typeof TiledPackage.getTiledSearchByStructureFamily;
+    generateFullImagePngPath: typeof TiledPackage.getTiledArrayAsImagePath;
+    getAuthenticatedImage: typeof TiledPackage.getTiledArrayAsPng;
+    setMaxArrayBytes: typeof TiledPackage.setGlobalMaxArrayBytes;
+    isArrayStructure: (item: TiledPackage.TiledSearchItem<any>) => item is TiledPackage.TiledSearchItem<TiledPackage.ArrayStructure>;
+    isTableStructure: (item: TiledPackage.TiledSearchItem<any>) => item is TiledPackage.TiledSearchItem<TiledPackage.TableStructure>;
+    isContainerStructure: (item: TiledPackage.TiledSearchItem<any>) => item is TiledPackage.TiledSearchItem<TiledPackage.ContainerStructure>;
 };
 export type { FinchConfig } from './app/FinchConfigProvider';
 //# sourceMappingURL=index.d.ts.map

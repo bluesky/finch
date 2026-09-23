@@ -1,4 +1,4 @@
-import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../../../api/qServer/types';
+import { GetHistoryResponse, GetQueueResponse, GetStatusResponse, RunningQueueItem } from '../../../api/qServer';
 import { GlobalMetadata, CopiedPlan } from '../types/types';
 export declare const useQueueServer: () => {
     currentQueue: GetQueueResponse | null;

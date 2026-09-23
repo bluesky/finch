@@ -1,4 +1,4 @@
-import { PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, PostEnvironmentOpenResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from '../../../api/qServer/types';
+import { PostItemAddResponse, GetPlansAllowedResponse, GetDevicesAllowedResponse, GetHistoryResponse, GetStatusResponse, EnvironmentResponse, PostItemExecuteResponse, PostItemRemoveResponse, GetRunsActiveResponse, GetQueueResponse, QueueItem } from '../../../api/qServer';
 export declare const mockGetApiStatusResponse: GetStatusResponse;
 export declare const mockGetRunsActiveResponse: GetRunsActiveResponse;
 export declare const mockGetDevicesAllowedResponse: GetDevicesAllowedResponse;
@@ -53,6 +53,6 @@ export declare const sampleQueueData: QueueItem[];
 export declare const mockGetQueueResponse: GetQueueResponse;
 export declare const mockGetHistoryResponse: GetHistoryResponse;
 export declare const mockGetStatusResponse: GetStatusResponse;
-export declare const mockEnvironmentOpenResponse: PostEnvironmentOpenResponse;
+export declare const mockEnvironmentOpenResponse: EnvironmentResponse;
 export declare const mockRemoveQueueItemResponse: PostItemRemoveResponse;
 //# sourceMappingURL=qServerMockData.d.ts.map

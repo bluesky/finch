@@ -1,4 +1,4 @@
-import { BaseQueueItem, QueueItem, HistoryItem, RunningQueueItem } from '../../api/qServer/types';
+import { BaseQueueItem, QueueItem, HistoryItem, RunningQueueItem } from '../../api/qServer';
 type QItemProps = {
     item: BaseQueueItem | QueueItem | HistoryItem | RunningQueueItem | null;
     label?: string;

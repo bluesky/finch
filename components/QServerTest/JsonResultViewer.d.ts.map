@@ -1,0 +1,1 @@
+{"version":3,"file":"JsonResultViewer.d.ts","sourceRoot":"","sources":["../../../src/components/QServerTest/JsonResultViewer.tsx"],"names":[],"mappings":"AAEA,MAAM,WAAW,qBAAqB;IAClC,KAAK,EAAE,OAAO,CAAC;IACf,qDAAqD;IACrD,cAAc,CAAC,EAAE,MAAM,CAAC;CAC3B;AAID,2DAA2D;AAC3D,MAAM,CAAC,OAAO,UAAU,gBAAgB,CAAC,EACrC,KAAK,EACL,cAA2B,GAC9B,EAAE,qBAAqB,2CAiDvB"}

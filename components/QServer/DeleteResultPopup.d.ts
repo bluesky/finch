@@ -1,4 +1,4 @@
-import { PostItemRemoveResponse } from '../../api/qServer/types';
+import { PostItemRemoveResponse } from '../../api/qServer';
 type DeleteResultPopupProps = {
     handleCloseClick: () => void;
     response: PostItemRemoveResponse | null;

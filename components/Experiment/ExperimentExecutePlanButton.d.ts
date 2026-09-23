@@ -1,4 +1,4 @@
-import { PostItemAddResponse } from '../../api/qServer/types';
+import { PostItemAddResponse } from '../../api/qServer';
 type ExperimentExecutePlanButtonProps = {
     /** List of detector names passed to the `count` plan. Defaults to `["motor1"]`. */
     detectors?: string[];

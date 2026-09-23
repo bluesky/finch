@@ -1,4 +1,4 @@
-import { ArbitraryKwargs, PostItemAddResponse } from '../../api/qServer/types';
+import { ArbitraryKwargs, PostItemAddResponse } from '../../api/qServer';
 type ExperimentExecutePlanButtonGenericProps = {
     /** The name of the QServer plan to execute (e.g. `'count'`, `'energy_scan'`). */
     planName: string;

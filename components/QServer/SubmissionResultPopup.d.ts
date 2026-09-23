@@ -1,4 +1,4 @@
-import { PostItemAddResponse } from '../../api/qServer/types';
+import { PostItemAddResponse } from '../../api/qServer';
 type SubmissionResultPopupProps = {
     cb: (success: boolean) => void;
     response: PostItemAddResponse;

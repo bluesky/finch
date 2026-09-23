@@ -1,5 +1,5 @@
 import { default as React } from '../../../node_modules/react';
-import { HistoryItem, QueueItem } from '../../api/qServer/types';
+import { HistoryItem, QueueItem } from '../../api/qServer';
 type SidePanelProps = {
     queueData: QueueItem[];
     queueHistoryData: HistoryItem[];
