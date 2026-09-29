@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { usePlansAllowedQuery, useExecuteQueueItemMutation } from '@/api/qServer/hooks';
-import { PostItemAddResponse } from '@/api/qServer/types';
+import { useQueueGetPlansAllowedQuery, useQueueExecuteItemMutation } from '@/api/qServer';
+import { PostItemAddResponse } from '@/api/qServer';
 import Button from '../Button';
 
 type ExperimentExecutePlanButtonProps = {
@@ -32,8 +32,8 @@ export default function ExperimentExecutePlanButton({
     onSuccess,
     onError,
 }: ExperimentExecutePlanButtonProps) {
-    const plansQuery = usePlansAllowedQuery();
-    const executeMutation = useExecuteQueueItemMutation();
+    const plansQuery = useQueueGetPlansAllowedQuery();
+    const executeMutation = useQueueExecuteItemMutation();
 
     const isCountPlanAvailable =
         plansQuery.data?.success && plansQuery.data?.plans_allowed

@@ -1,0 +1,17 @@
+import { Markdown, Meta } from '@storybook/addon-docs/blocks';
+import QServerSimDoc from './QServerSim.md?raw';
+import QServerSimDocDemo from './demos/QServerSimDocDemo';
+
+<Meta title="Documentation/QServer Sim" />
+
+# QServer Sim
+
+A browser-side simulator for the Bluesky queue server — queue, history, Run Engine states,
+environment lifecycle and console output — that drives finch's normal queue-server client without
+an RE Manager or any backend.
+
+<div style={{ margin: '1rem 0 2rem' }}>
+    <QServerSimDocDemo />
+</div>
+
+<Markdown>{QServerSimDoc}</Markdown>
