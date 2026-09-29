@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useQueueQuery, useQueueHistoryQuery, useStatusQuery } from '@/api/qServer/hooks';
+import { useQueueGetQuery, useQueueGetHistoryQuery, useQueueGetStatusQuery } from '@/api/qServer';
 import {
     GetHistoryResponse,
     GetQueueResponse,
     GetStatusResponse,
     RunningQueueItem,
-} from '@/api/qServer/types';
+} from '@/api/qServer';
 import { GlobalMetadata, CopiedPlan } from '../types/types';
 
 export const useQueueServer = () => {
@@ -19,15 +19,9 @@ export const useQueueServer = () => {
     const [apiStatus, setApiStatus] = useState<GetStatusResponse | null>(null);
 
     //poll every second to keep the UI updated
-    const queueQuery = useQueueQuery({
-        refetchInterval: 1000,
-    });
-    const historyQuery = useQueueHistoryQuery({
-        refetchInterval: 1000,
-    });
-    const statusQuery = useStatusQuery({
-        refetchInterval: 1000,
-    });
+    const queueQuery = useQueueGetQuery({ refetchInterval: 1000 });
+    const historyQuery = useQueueGetHistoryQuery({ refetchInterval: 1000 });
+    const statusQuery = useQueueGetStatusQuery({ refetchInterval: 1000 });
 
     const handleQueueDataResponse = (res: GetQueueResponse) => {
         try {

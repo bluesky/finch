@@ -3,7 +3,8 @@ import { useQueries } from '@tanstack/react-query';
 import PlotlyScatter from '../PlotlyScatter';
 import { PlotData } from 'plotly.js';
 
-import { getTableDataAsJson } from '@blueskyproject/tiled';
+import { tiledQueryKeys, useTiledClient, useTiledQueryScope } from '@/api/tiled';
+import { mergeRequestOptions } from '@/api/shared/requestOptions';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
 
 type TiledMultiScatterPlotProps = {
@@ -41,10 +42,29 @@ export default function TiledMultiScatterPlot({
     traceNames,
     popupMessage,
 }: TiledMultiScatterPlotProps) {
+    // One query per path — a list whose length changes between renders, so this cannot be built from
+    // `useTiledTablePartitionAsJSONQuery` (hooks cannot be called in a loop). It stays consistent
+    // with the hooks in the three ways that matter: the same key factory, so its entries sit
+    // alongside theirs and are refreshed by the same `['tiled','table']` invalidation; the *resolved*
+    // client, so a client injected through `TiledApiProvider` is honoured rather than silently
+    // bypassed; and TanStack's `signal`, so unmounting cancels the requests in flight.
+    const { client, requestDefaults } = useTiledClient();
+    const scope = useTiledQueryScope({ baseUrl: tiledBaseUrl });
     const results = useQueries({
         queries: paths.map((path) => ({
-            queryKey: ['tiled', 'table', path ?? ''],
-            queryFn: () => getTableDataAsJson(path!, partition, tiledBaseUrl),
+            queryKey: tiledQueryKeys.table(scope, {
+                tablePath: path ?? '',
+                type: 'JSON' as const,
+                endpoint: 'partition' as const,
+                options: { partition },
+            }),
+            queryFn: ({ signal }: { signal: AbortSignal }) =>
+                client.getTablePartitionAsJSON(path ?? '', {
+                    partition,
+                    // `mergeRequestOptions` rather than a spread: it copies only *defined* keys, so
+                    // an absent `baseUrl` inherits the configured one instead of erasing it.
+                    ...mergeRequestOptions(requestDefaults, { baseUrl: tiledBaseUrl }, signal),
+                }),
             enabled: path !== null,
         })),
     });

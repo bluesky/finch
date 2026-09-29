@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
-    usePlansAllowedQuery,
-    useDevicesAllowedQuery,
-    useAddQueueItemMutation,
-    useExecuteQueueItemMutation,
-} from '@/api/qServer/hooks';
+    useQueueGetPlansAllowedQuery,
+    useQueueGetDevicesAllowedQuery,
+    useQueueAddItemMutation,
+    useQueueExecuteItemMutation,
+} from '@/api/qServer';
 import { CopiedPlan, ParameterInputDict } from '../types/types';
 import {
     Plan,
@@ -12,7 +12,7 @@ import {
     PostItemAddResponse,
     ExecuteQueueItemBody,
     AddQueueItemBody,
-} from '@/api/qServer/types';
+} from '@/api/qServer';
 
 const sampleBody = {
     item: {
@@ -35,10 +35,10 @@ export function useQSAddItem({
     globalMetadata = {},
 }: UseQSAddItemProps = {}) {
     // State variables
-    const plansQuery = usePlansAllowedQuery();
-    const devicesQuery = useDevicesAllowedQuery();
-    const addMutation = useAddQueueItemMutation();
-    const executeMutation = useExecuteQueueItemMutation();
+    const plansQuery = useQueueGetPlansAllowedQuery();
+    const devicesQuery = useQueueGetDevicesAllowedQuery();
+    const addMutation = useQueueAddItemMutation();
+    const executeMutation = useQueueExecuteItemMutation();
 
     const allowedPlans = useMemo(() => {
         if (!plansQuery.data?.plans_allowed) return {};

@@ -3,7 +3,7 @@ import QItem from './QItem';
 import dayjs from 'dayjs';
 import './styles/qserver.css';
 import { PopupItem } from './types/types';
-import { HistoryItem } from '@/api/qServer/types';
+import { HistoryItem } from '@/api/qServer';
 
 type QSListProps = {
     queueData: PopupItem[] | HistoryItem[];

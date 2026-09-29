@@ -15,8 +15,18 @@ vi.mock('@tanstack/react-query', () => ({
 }));
 
 vi.mock('../../components/PlotlyScatter', () => ({
-    default: ({ data }: { data?: { x?: unknown[] }[] }) => (
-        <div data-testid="plotly-scatter" data-point-count={data?.[0]?.x?.length ?? 0} />
+    default: ({
+        data,
+        layout,
+    }: {
+        data?: { x?: unknown[] }[];
+        layout?: { plot_bgcolor?: string };
+    }) => (
+        <div
+            data-testid="plotly-scatter"
+            data-point-count={data?.[0]?.x?.length ?? 0}
+            data-plot-bgcolor={layout?.plot_bgcolor ?? ''}
+        />
     ),
 }));
 
@@ -100,6 +110,20 @@ describe('TiledScatterPlot', () => {
             isLoading: false,
             error: null,
         } as unknown as ReturnType<typeof useQuery>);
+    });
+
+    it('paints the card and the plot the same colour, so neither frames the other', () => {
+        render(<TiledScatterPlot tiledTrace={trace} path="/some/path" backgroundColor="#f1f5f9" />);
+        const plot = screen.getByTestId('plotly-scatter');
+        expect(plot).toHaveAttribute('data-plot-bgcolor', '#f1f5f9');
+        expect(plot.parentElement).toHaveStyle({ backgroundColor: '#f1f5f9' });
+    });
+
+    it('defaults to a white card and plot', () => {
+        render(<TiledScatterPlot tiledTrace={trace} path="/some/path" />);
+        const plot = screen.getByTestId('plotly-scatter');
+        expect(plot).toHaveAttribute('data-plot-bgcolor', '#ffffff');
+        expect(plot.parentElement).toHaveStyle({ backgroundColor: '#ffffff' });
     });
 
     it('shows waiting message when path is null', () => {
@@ -288,8 +312,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
     });
 
@@ -299,8 +321,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: true,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Loading Tiled data for run run-1...')).toBeInTheDocument();
@@ -312,8 +332,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: 'Waiting for run ID',
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(screen.getByText('Error: Waiting for run ID')).toBeInTheDocument();
@@ -330,8 +348,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(
@@ -345,13 +361,40 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: true,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         expect(
             screen.getByText('Found Tiled path: /run/primary (Live - polling enabled)'),
         ).toBeInTheDocument();
+    });
+
+    it('greys the plot out once the run has stopped, and leaves an ongoing one white', () => {
+        // Polling and "the run is still going" are the same state: the hook stops polling exactly when
+        // the run's stop document appears.
+        vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
+            tiledPath: '/run/primary',
+            isLoading: false,
+            error: null,
+            enablePolling: true,
+        });
+        const { rerender } = render(
+            <TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />,
+        );
+        expect(screen.getByTestId('plotly-scatter').parentElement).toHaveStyle({
+            backgroundColor: '#ffffff',
+        });
+
+        vi.mocked(useTiledWriterScatterPlot).mockReturnValue({
+            tiledPath: '/run/primary',
+            isLoading: false,
+            error: null,
+            enablePolling: false,
+        });
+        rerender(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
+        const finished = screen.getByTestId('plotly-scatter');
+        expect(finished.parentElement).toHaveStyle({ backgroundColor: '#f1f5f9' });
+        // The plot itself matches the card, so the card's padding is not left as a white frame.
+        expect(finished).toHaveAttribute('data-plot-bgcolor', '#f1f5f9');
     });
 
     it('hides status text when showStatusText is false', () => {
@@ -382,8 +425,6 @@ describe('TiledWriterScatterPlot', () => {
             isLoading: false,
             error: null,
             enablePolling: false,
-            startCompletionPolling: vi.fn(),
-            stopCompletionPolling: vi.fn(),
         });
         render(<TiledWriterScatterPlot tiledTrace={trace} blueskyRunId="run-1" />);
         // TiledScatterPlot with a real path and no data shows "No data available" (not the null-path message)
