@@ -80,7 +80,64 @@ To verify what you're about to publish, you can check out the /dist folder.
 
 The build can be viewed at [https://www.npmjs.com/package/@blueskyproject/finch](https://www.npmjs.com/package/@blueskyproject/finch).
 
-### Updating Storybook on GH Pages
+## Publishing an Alpha Release
+
+Alpha releases are published using the `alpha` npm dist-tag so they do not replace the normal `latest` release.
+
+### 1. Increment the alpha version
+
+From the package root:
+
+```bash
+npm version prerelease --preid=alpha
+```
+
+For example:
+
+```text
+0.1.11-alpha.1 → 0.1.11-alpha.2
+```
+
+This updates the version in `package.json` and creates a corresponding Git commit and tag.
+
+### 2. Publish the alpha release
+
+```bash
+npm publish --tag alpha
+```
+
+Always include `--tag alpha`. Publishing without it may assign the prerelease to npm's `latest` tag.
+
+### 3. Install the newest alpha release
+
+To install whichever version is currently tagged as `alpha`:
+
+```bash
+npm install @blueskyproject/finch@alpha
+```
+
+For example, if `0.1.11-alpha.2` is the newest alpha, the command above installs that version.
+
+To install a specific alpha version instead:
+
+```bash
+npm install @blueskyproject/finch@0.1.11-alpha.2
+```
+
+### Typical release workflow
+
+```bash
+npm version prerelease --preid=alpha
+npm publish --tag alpha
+```
+
+Consumers can then install it with:
+
+```bash
+npm install @blueskyproject/finch@alpha
+```
+
+## Updating Storybook on GH Pages
 Storybook is updated automatically via github actions on merges into main. Manual update methods are shown below.
 
 Please note that storybook on gh pages is hosted with a /finch path, and local development is served at /. The storybook manager is configured to look at the current path before deciding where to make files available at.
