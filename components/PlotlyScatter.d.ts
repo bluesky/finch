@@ -1,5 +1,5 @@
 import { default as React } from '../../node_modules/react';
-import { PlotParams } from 'react-plotly.js';
+import { PlotParams } from '../lib/plot';
 import { Layout, LayoutAxis } from 'plotly.js';
 export type PlotlyScatterProps = {
     /** Plotly trace array to render. Defaults to a sample line+marker dataset. */
