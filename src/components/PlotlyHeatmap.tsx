@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import Plot from 'react-plotly.js';
+import Plot from '@/lib/plot';
 import { cn } from '@/lib/utils';
 
 export type PlotlyHeatmapProps = {
