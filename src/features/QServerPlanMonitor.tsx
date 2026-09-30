@@ -4,7 +4,7 @@ import SidePanel from '@/components/QServer/SidePanel';
 import QSList from '@/components/QServer/QSList';
 import QItemPopup from '@/components/QServer/QItemPopup';
 import QSRunEngineWorker from '@/components/QServer/QSRunEngineWorker';
-import { RunningQueueItem } from '@/api/qServer/types';
+import { RunningQueueItem } from '@/api/qServer';
 import { PopupItem } from '@/components/QServer/types/types';
 import { cn } from '@/lib/utils';
 

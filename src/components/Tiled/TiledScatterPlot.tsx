@@ -1,10 +1,12 @@
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
 import PlotlyScatter from '../PlotlyScatter';
 import { PlotData } from 'plotly.js';
 
-import { getTableDataAsJson } from '@blueskyproject/tiled';
+import { useTiledTablePartitionAsJSONQuery } from '@/api/tiled';
 import { TiledPlotlyTrace } from './types/tiledPlotTypes';
+
+/** The card and plot colour when the caller does not name one. */
+const DEFAULT_BACKGROUND = '#ffffff';
 
 type TiledScatterPlotProps = {
     /**Bluesky Run ID saved into Tiled */
@@ -21,10 +23,18 @@ type TiledScatterPlotProps = {
     enablePolling?: boolean;
     /** Milliseconds between data refetches when `enablePolling` is `true`. Defaults to `1000`. */
     pollingIntervalMs?: number;
+    /**
+     * CSS colour for the card *and* the plot inside it, so the two are one surface — a colour set only
+     * on the Plotly layout leaves the card's padding as a frame around it. Defaults to white. Applied
+     * as an inline style, so it beats any background in `className`.
+     */
+    backgroundColor?: string;
     /** Additional class names applied to the outer container element. */
     className?: string;
     /** Additional class names applied to the `PlotlyScatter` element. */
     plotClassName?: string;
+    /** Additional layout options for the Plotly scatter plot. */
+    layout?: Partial<Plotly.Layout>;
 };
 
 export default function TiledScatterPlot({
@@ -35,14 +45,18 @@ export default function TiledScatterPlot({
     tiledBaseUrl,
     enablePolling,
     pollingIntervalMs = 1000,
+    backgroundColor = DEFAULT_BACKGROUND,
     className,
     plotClassName,
+    layout = {},
 }: TiledScatterPlotProps) {
-    const { data, isLoading, error } = useQuery({
-        queryKey: ['tiled', 'table', path],
-        queryFn: () => getTableDataAsJson(path ? path : '', partition, tiledBaseUrl),
-        refetchInterval: enablePolling ? pollingIntervalMs : false,
-    });
+    // An empty path holds the query idle, which is what the "waiting for data" state below reports.
+    const { data, isLoading, error } = useTiledTablePartitionAsJSONQuery(
+        path ?? '',
+        { partition },
+        { refetchInterval: enablePolling ? pollingIntervalMs : false },
+        { baseUrl: tiledBaseUrl },
+    );
 
     // Determine status text based on current state
     const getStatusText = () => {
@@ -86,10 +100,8 @@ export default function TiledScatterPlot({
 
     return (
         <div
-            className={cn(
-                'flex-grow h-[30rem] p-4 rounded-lg bg-white min-w-0 shadow-md',
-                className,
-            )}
+            className={cn('flex-grow h-[30rem] p-4 rounded-lg min-w-0 shadow-md', className)}
+            style={{ backgroundColor }}
         >
             <span className="flex items-center h-8 space-x-8">
                 <p className="text-sm text-gray-600">{getStatusText()}</p>
@@ -100,7 +112,11 @@ export default function TiledScatterPlot({
                 yAxisTitle={yName}
                 className={plotClassName}
                 title={'bluesky run: ' + blueskyRunId}
-                layout={{ plot_bgcolor: '#ffffff', paper_bgcolor: '#ffffff' }}
+                layout={{
+                    plot_bgcolor: backgroundColor,
+                    paper_bgcolor: backgroundColor,
+                    ...layout,
+                }}
             />
         </div>
     );

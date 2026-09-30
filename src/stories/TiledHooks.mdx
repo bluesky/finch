@@ -1,0 +1,17 @@
+import { Markdown, Meta } from '@storybook/addon-docs/blocks';
+import TiledHooksDoc from './TiledHooks.md?raw';
+
+<Meta title="Documentation/Tiled Query Hooks" />
+
+# Tiled Query Hooks
+
+A TanStack Query hook for every method on `@blueskyproject/tiled`'s client — 18 queries, one mutation
+and one URL helper — reading their server URL and API key from `FinchConfigProvider`.
+
+There is no live demo on this page: unlike the queue-server hooks there is no Tiled simulator, so a demo
+would have to reach a real server and would show something different every time you opened it. To try
+the hooks against the public demo server, wrap a component in `TiledApiProvider` with
+`new TiledApiClient({ baseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1' })`, or pass that URL as
+`requestOptions.baseUrl` on a single hook.
+
+<Markdown>{TiledHooksDoc}</Markdown>

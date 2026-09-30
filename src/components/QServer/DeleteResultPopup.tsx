@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { tailwindIcons } from '../../assets/icons';
 import Button from '../Button';
-import { PostItemRemoveResponse } from '@/api/qServer/types';
+import { PostItemRemoveResponse } from '@/api/qServer';
 type DeleteResultPopupProps = {
     handleCloseClick: () => void;
     response: PostItemRemoveResponse | null;
@@ -20,7 +20,10 @@ export default function DeleteResultPopup({
             <Fragment>
                 <p className="text-lg font-semibold text-sky-900">Success</p>
                 <p>Deleted item from queue</p>
-                <p>UID: {response.item.item_uid}</p>
+                {/* A rejected removal answers with a bare item carrying no uid, so this narrows
+                    rather than assuming. The retired types declared `item: QueueItem` here, which was
+                    only true on success. */}
+                <p>UID: {'item_uid' in response.item ? response.item.item_uid : '—'}</p>
             </Fragment>
         );
     };
