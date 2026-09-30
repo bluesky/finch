@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import Plot from 'react-plotly.js';
+import Plot from '@/lib/plot';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import InputSliderRange from '../InputSliderRange';
 import HistogramPlotSettings from './HistogramPlotSettings';
