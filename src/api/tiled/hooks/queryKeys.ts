@@ -77,8 +77,15 @@ export type TiledQueryRootName = keyof typeof tiledQueryRoots;
 /** Every resource prefix, for bulk invalidation helpers. */
 export const TILED_QUERY_ROOT_NAMES = Object.keys(tiledQueryRoots) as TiledQueryRootName[];
 
-/** Which whole-server read a `serverInfo` entry is. `null` is the About document itself. */
-export type TiledServerInfoVariant = 'healthz' | 'uiSettings' | 'metrics';
+/**
+ * Which whole-server read a `serverInfo` entry is. `null` is `useTiledServerInfoQuery`.
+ *
+ * `'about'` is the strict reader (`useTiledAboutQuery`). It is a separate entry from the `null` one
+ * even though both `GET /api/v1/`, because they do not return the same thing: the nullable hook
+ * resolves `null` for an unreachable server where the strict one rejects. Sharing a key let the
+ * strict hook hand a caller a cached `null` its type says is impossible.
+ */
+export type TiledServerInfoVariant = 'about' | 'healthz' | 'uiSettings' | 'metrics';
 
 /** What identifies one search request: where it looked, and what it asked for. */
 export interface TiledSearchKeyArgs {
@@ -173,9 +180,10 @@ export const tiledQueryKeys = {
         [...tiledQueryRoots.webhooks, args, scope] as const,
     serverInfo: (scope: TiledQueryScope) => [...tiledQueryRoots.serverInfo, null, scope] as const,
     /**
-     * The other whole-server reads — `/healthz`, `/tiled-ui-settings`, `/api/v1/metrics`.
+     * The other whole-server reads — the strict About reader, `/healthz`, `/tiled-ui-settings` and
+     * `/api/v1/metrics`.
      *
-     * They share the `serverInfo` root rather than getting three roots of their own: they are all
+     * They share the `serverInfo` root rather than getting four roots of their own: they are all
      * "ask the server about itself", nothing invalidates one without invalidating the others, and a
      * root per endpoint would make `['tiled','serverInfo']` stop meaning what it says. The variant
      * name sits in the args slot, which is what keeps their entries distinct.

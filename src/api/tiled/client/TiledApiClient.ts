@@ -118,8 +118,18 @@ export interface TiledApiClientConfig {
  */
 const TILED_PARAMS_SERIALIZER = { indexes: null } as const;
 
-/** Marks a request that opted out of credentials entirely (`options.apiKey === null`). */
-type AuthAwareConfig = InternalAxiosRequestConfig & { __tiledNoAuth?: boolean };
+/**
+ * Flags the auth interceptor and the 401 handler read off a request.
+ *
+ * `__tiledNoAuth` means the caller opted this one call out of credentials entirely
+ * (`options.apiKey === null`). `__tiledCallerCredentials` is wider: the caller chose *which*
+ * credentials this call carries, whether that is a one-off key, an explicit `Authorization` header,
+ * or none at all. The 401 handler refuses to substitute the stored session for either.
+ */
+type AuthAwareConfig = InternalAxiosRequestConfig & {
+    __tiledNoAuth?: boolean;
+    __tiledCallerCredentials?: boolean;
+};
 /** Marks a request that has already been retried once after a 401. */
 type RetryableConfig = InternalAxiosRequestConfig & { __tiledRetried?: boolean };
 
@@ -415,10 +425,26 @@ export class TiledApiClient {
         return config;
     }
 
-    /** Single-flight 401 refresh, then one retry of the original request. */
+    /**
+     * Single-flight 401 refresh, then one retry of the original request.
+     *
+     * Two conditions beyond "it was a 401" decide whether a refresh is even attempted, and both
+     * exist to stop the client overriding a decision the caller made:
+     *
+     * - **The caller did not choose this call's credentials.** A request sent with
+     *   `apiKey: null`, a one-off key, or an explicit `Authorization` header said what identity to
+     *   use. Refreshing and retrying with the stored session's bearer token would substitute
+     *   credentials the caller deliberately did not send — turning an intentionally anonymous probe
+     *   into an authenticated one, and silently.
+     * - **The request went to this client's own server.** The stored refresh token was issued by
+     *   the configured server. A per-call `baseUrl` points somewhere else, and sending that token
+     *   there would hand a credential to a third party that never had it. Related:
+     *   {@link doTokenRefresh} now always talks to the configured server rather than to whichever
+     *   host the failed request used.
+     */
     private async handleResponseError(error: unknown): Promise<AxiosResponse> {
         const originalRequest = axios.isAxiosError(error)
-            ? (error.config as RetryableConfig | undefined)
+            ? (error.config as (RetryableConfig & AuthAwareConfig) | undefined)
             : undefined;
         const status = axios.isAxiosError(error) ? error.response?.status : undefined;
 
@@ -426,14 +452,15 @@ export class TiledApiClient {
             status === 401 &&
             !!originalRequest &&
             !originalRequest.__tiledRetried &&
+            !originalRequest.__tiledCallerCredentials &&
+            this.isOwnServer(originalRequest.baseURL) &&
             !!this.tokenStorage.read();
 
         if (!canRetry) throw error;
 
         originalRequest.__tiledRetried = true;
         if (!this.refreshPromise) {
-            const origin = tiledOriginFromBaseUrl(originalRequest.baseURL ?? this.baseUrl);
-            this.refreshPromise = this.doTokenRefresh(origin).finally(() => {
+            this.refreshPromise = this.doTokenRefresh().finally(() => {
                 this.refreshPromise = null;
             });
         }
@@ -451,14 +478,34 @@ export class TiledApiClient {
     }
 
     /**
+     * Whether a request went to this client's own server.
+     *
+     * `baseURL` is absent only on a request built outside `buildConfig`, which means it inherited
+     * the axios instance's default — this client's own. A per-call override is compared after
+     * normalisation, and the derived origin counts as the same server because the origin-scoped
+     * routes (`/healthz`, `/tiled-ui-settings`, zarr) are legitimately issued against it.
+     */
+    private isOwnServer(baseURL?: string): boolean {
+        if (!baseURL) return true;
+        const normalized = normalizeTiledBaseUrl(baseURL);
+        return normalized === this.baseUrl || normalized === tiledOriginFromBaseUrl(this.baseUrl);
+    }
+
+    /**
      * Exchange the refresh token for a new access token.
      *
      * Issued through a bare `axios`, not `this.client`, so a failure cannot re-enter this handler
      * and recurse. Two endpoints are tried because Tiled moved the route: `/auth/session/refresh`
      * is current, `/auth/refresh` is what older servers answer, and a 404 on the first is the
      * documented signal to try the second. Upstream does the same.
+     *
+     * **The target is always this client's configured server**, never the host of the request that
+     * 401'd. Deriving it from the failed request meant a per-call `baseUrl` override could send the
+     * stored refresh token to an unrelated server. `QServerApiClient.doTokenRefresh` has always
+     * worked this way; this now matches it.
      */
-    private async doTokenRefresh(origin: string): Promise<string> {
+    private async doTokenRefresh(): Promise<string> {
+        const origin = tiledOriginFromBaseUrl(this.baseUrl);
         const stored = this.tokenStorage.read();
         if (!stored) {
             this.authErrorCallback?.(null);
@@ -546,6 +593,11 @@ export class TiledApiClient {
             else headers.Authorization = `${this.apiKeyScheme} ${options.apiKey}`;
         }
 
+        // Whether the caller decided this call's identity: a one-off key, an explicit header, or
+        // `null` for none. The 401 handler checks this before substituting the stored session.
+        const callerCredentials =
+            options?.apiKey !== undefined || headers.Authorization !== undefined;
+
         return {
             ...options?.axiosConfig,
             baseURL: this.resolveBaseUrl(options, extras?.origin),
@@ -560,6 +612,7 @@ export class TiledApiClient {
             // An explicit `null` means "no credentials for this call" — distinct from `undefined`,
             // which inherits the client's. Flagged here so the auth interceptor can tell them apart.
             ...(options?.apiKey === null ? { __tiledNoAuth: true } : {}),
+            ...(callerCredentials ? { __tiledCallerCredentials: true } : {}),
         } as AxiosRequestConfig;
     }
 
@@ -1831,13 +1884,24 @@ export class TiledApiClient {
      * **Resolves `null` on a failed login rather than rejecting.** That is upstream's behaviour and
      * callers depend on it — a wrong password is an expected outcome of a login form, not an
      * exception. Check the resolved value, not `isError`.
+     *
+     * @param url Server override. Kept as a positional parameter for compatibility; equivalent to
+     * `options.baseUrl`, and wins over it when both are given.
+     * @param options Transport, like every other method: a substitute client and an abort signal
+     * apply to both the server-info probe and the login request itself.
      */
     async loginWithUsernamePassword(
         username: string,
         password: string,
         url?: string,
         provider?: TiledAuthProvider,
+        options: TiledRequestOptions = {},
     ): Promise<TiledLoginTokens | null> {
+        // `url` is the long-standing explicit server override and still wins; `options.baseUrl` is
+        // the ordinary transport route into the same thing, so the two are reconciled once here
+        // rather than at each use below.
+        const transport: TiledRequestOptions = url ? { ...options, baseUrl: url } : options;
+
         try {
             let authEndpoint: string;
 
@@ -1848,7 +1912,7 @@ export class TiledApiClient {
                 }
                 authEndpoint = provider.links.auth_endpoint;
             } else {
-                const info = await this.getServerInfo(url ? { baseUrl: url } : {});
+                const info = await this.getServerInfo(transport);
                 const providers = info?.authentication?.providers;
                 if (!providers?.length) {
                     console.error('No authentication providers found in server info');
@@ -1868,9 +1932,21 @@ export class TiledApiClient {
             form.append('username', username);
             form.append('password', password);
 
-            const response = await this.client.post<Partial<TiledLoginTokens>>(authEndpoint, form, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            // `authEndpoint` is an absolute URL from the provider's links, so no `baseURL` applies.
+            // The substitute client and the abort signal still do, which is why this resolves them
+            // rather than reaching for `this.client` directly as it used to.
+            const response = await this.resolveClient(transport).post<Partial<TiledLoginTokens>>(
+                authEndpoint,
+                form,
+                {
+                    ...transport.axiosConfig,
+                    headers: {
+                        ...transport.headers,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                    signal: transport.signal ?? this.signal,
+                },
+            );
 
             const { access_token, refresh_token } = response.data;
             if (!access_token || !refresh_token) {
@@ -1947,14 +2023,28 @@ export class TiledApiClient {
         });
     }
 
-    /** Log out, then drop every local credential. */
+    /**
+     * Log out, then drop every local credential.
+     *
+     * **Local state is always cleared**, including when the server cannot be reached or does not
+     * advertise a logout endpoint at all. Someone who pressed log out is logged out of this tab
+     * regardless of whether the server agreed, which is the only behaviour that is safe on a shared
+     * machine.
+     *
+     * The `finally` therefore wraps the endpoint *discovery* as well as the request. It did not
+     * originally, which meant the common failure — an unreachable server, or one with
+     * authentication disabled, where `requireAuthLink` throws — left the bearer token and the
+     * stored session exactly where they were while appearing to fail at logging out.
+     *
+     * The call still rejects on failure; it clears first. A caller who wants "log out locally and
+     * do not tell me if the server was unreachable" should catch, and can rely on the credentials
+     * being gone.
+     */
     async logout(options: TiledRequestOptions = {}): Promise<unknown> {
-        const url = await this.requireAuthLink('logout', options);
         try {
+            const url = await this.requireAuthLink('logout', options);
             return await this.post<unknown>(url, {}, { ...options, baseUrl: '' });
         } finally {
-            // Local state is cleared whether or not the server acknowledged — a user who pressed
-            // log out should be logged out of this tab regardless.
             this.clearAuth();
         }
     }

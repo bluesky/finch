@@ -73,8 +73,11 @@ export function useTiledLoginMutation<TContext = unknown>(
     requestOptions?: TiledRequestOptions,
 ): UseMutationResult<TiledLoginTokens | null, TiledHookError, TiledLoginVariables, TContext> {
     return useTiledMutation({
-        perform: (client, { username, password, url, provider }) =>
-            client.loginWithUsernamePassword(username, password, url, provider),
+        // `request` is forwarded like every other mutation's. It used to be dropped, so `baseUrl`,
+        // a substitute client and cancellation silently did nothing on this one hook — the only
+        // place in the layer where `requestOptions` was accepted and ignored.
+        perform: (client, { username, password, url, provider }, request) =>
+            client.loginWithUsernamePassword(username, password, url, provider, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledLoginMutation,
         requestOptions,
         mutationOptions,

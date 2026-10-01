@@ -90,10 +90,29 @@ call it in `beforeEach` so tests do not leak configuration into one another.
 | API key in the query | `setGlobalTiledApiKeyLocation('query')` → `?api_key=<key>` |
 | Bearer token | `setDefaultBearerToken(jwt)`; takes precedence over the API key |
 | No credentials, one call | `options.apiKey: null` — distinct from omitting it, which inherits |
-| Refresh on 401 | automatic, single-flight, then one retry. `/auth/session/refresh`, falling back to `/auth/refresh` on a 404 |
+| Refresh on 401 | automatic, single-flight, then one retry — but only when the call did not choose its own credentials and went to the configured server (see below). `/auth/session/refresh`, falling back to `/auth/refresh` on a 404 |
 
 The key is read **at request time** by a built-in interceptor, which is why `setApiKey` takes effect
 immediately.
+
+#### The 401 refresh will not override you
+
+Two conditions beyond "it was a 401" decide whether a refresh is attempted, and both exist so the
+client cannot quietly undo a decision the caller made:
+
+- **The caller did not choose this call's credentials.** A request sent with `apiKey: null`, a
+  one-off key, or an explicit `Authorization` header already said what identity to use. Refreshing
+  and retrying with the stored session's bearer token would substitute credentials the caller
+  deliberately withheld — turning an intentionally anonymous probe into an authenticated one,
+  invisibly. Such a call surfaces the 401 instead.
+- **The request went to this client's own server.** The stored refresh token was issued by the
+  configured server; a per-call `baseUrl` points somewhere else. The refresh always targets the
+  configured server and is skipped entirely for a redirected call, so the token is never offered to
+  a host that did not issue it.
+
+`logout()` is the mirror image: it clears local credentials in a `finally` that covers endpoint
+discovery as well as the request, so an unreachable server — or one with authentication disabled —
+still logs you out of this tab. It rejects afterwards so the failure is reportable.
 
 `'query'` mode exists for the two places a header cannot go: an `<img src>` built by
 `getArrayAsImagePath`, and — once they land — websocket handshakes, which browsers will not let you
@@ -316,6 +335,11 @@ relative request paths, so the same relative path under two prefixes is two diff
 directly would rewrite the key every render and refetch forever, so only the fields that change the
 response take part. `structure` / `arrayItem` are excluded on purpose — they only let the client skip
 a metadata round-trip on the way to identical bytes.
+
+The rule when adding an option is **include it unless it provably cannot change the bytes the server
+sends**. `column` is the cautionary case: it narrows a table response, so leaving it out of the key
+made a read of `['energy']` and a read of `['intensity']` one cache entry, and let each be served the
+other's columns.
 
 Mutations invalidate named bundles automatically, awaited before `mutateAsync` resolves. Three rules
 decide the map:

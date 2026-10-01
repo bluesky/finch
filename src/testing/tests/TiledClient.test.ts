@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import axios, { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from 'axios';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TiledApiClient, createMemoryTokenStorage } from '../../api/tiled';
+import { tableKeyParts } from '../../api/tiled/hooks/internal/keyParts';
 import {
     buildArraySlice,
     computeDownsampleSteps,
@@ -306,5 +309,242 @@ describe('errors', () => {
         ) as TiledApiError;
         expect(error.status).toBeUndefined();
         expect(error.message).toBe('GET /x failed: Network Error');
+    });
+});
+
+describe('table cache key parts', () => {
+    /**
+     * `column` narrows the response, so it has to reach the key.
+     *
+     * Without it, a read of `['energy']` and a read of `['intensity']` from the same path hashed
+     * identically and each could be served the other's columns — silently, and looking like the
+     * server had returned the wrong thing.
+     */
+    it('distinguishes column selections', () => {
+        const energy = tableKeyParts({ column: ['energy'] });
+        const intensity = tableKeyParts({ column: ['intensity'] });
+
+        expect(energy).toEqual({ column: ['energy'] });
+        expect(JSON.stringify(energy)).not.toBe(JSON.stringify(intensity));
+    });
+
+    /** No selection and an empty selection both mean "every column", so they share an entry. */
+    it('treats an empty column list as no selection', () => {
+        expect(tableKeyParts({ column: [] })).toEqual({});
+        expect(tableKeyParts({})).toEqual({});
+    });
+
+    it('keys by value, so a fresh array each render is the same key', () => {
+        expect(JSON.stringify(tableKeyParts({ column: ['a', 'b'] }))).toBe(
+            JSON.stringify(tableKeyParts({ column: ['a', 'b'] })),
+        );
+    });
+
+    it('still excludes the fields that cannot change the response', () => {
+        const parts = tableKeyParts({
+            partition: 1,
+            format: 'application/json',
+            structure: { arrow_schema: 'x', npartitions: 1, columns: ['a'], resizable: false },
+        });
+        expect(parts).toEqual({ partition: 1, format: 'application/json' });
+    });
+});
+
+/** Resolve or reject exactly as a real axios adapter would for a given status. */
+function respond(config: InternalAxiosRequestConfig, status: number): Promise<AxiosResponse> {
+    const response = {
+        data: {},
+        status,
+        statusText: '',
+        headers: {},
+        config,
+    } as AxiosResponse;
+
+    if (status >= 400) {
+        return Promise.reject(
+            new AxiosError(
+                `Request failed with status code ${status}`,
+                String(status),
+                config,
+                null,
+                response,
+            ),
+        );
+    }
+    return Promise.resolve(response);
+}
+
+describe('401 refresh and credential isolation', () => {
+    const BASE = 'http://tiled.test:8000/api/v1';
+
+    /**
+     * A client whose transport is a stub adapter, so requests never leave the process.
+     *
+     * The adapter rejects a failing status itself rather than resolving it: axios applies `settle`
+     * inside its built-in adapters, not around a custom one, so a resolved 401 would never reach
+     * the response interceptor this suite is about.
+     */
+    function makeClient(status: number) {
+        const seen: InternalAxiosRequestConfig[] = [];
+        const transport = axios.create({
+            adapter: (config) => {
+                seen.push(config as InternalAxiosRequestConfig);
+                return respond(
+                    config as InternalAxiosRequestConfig,
+                    seen.length === 1 ? status : 200,
+                );
+            },
+        });
+
+        const storage = createMemoryTokenStorage();
+        storage.write({ accessToken: 'stored-access', refreshToken: 'stored-refresh' });
+
+        const client = new TiledApiClient({
+            baseUrl: BASE,
+            apiKey: 'client-key',
+            client: transport,
+            tokenStorage: storage,
+        });
+
+        return { client, seen };
+    }
+
+    /** Intercepts the bare `axios.post` the refresh uses, and reports where it was aimed. */
+    function stubRefresh() {
+        return vi
+            .spyOn(axios, 'post')
+            .mockResolvedValue({ status: 200, data: { access_token: 'refreshed' } });
+    }
+
+    afterEach(() => vi.restoreAllMocks());
+
+    it('refreshes and retries an ordinary 401', async () => {
+        const refresh = stubRefresh();
+        const { client, seen } = makeClient(401);
+
+        await client.getSearch('');
+
+        expect(refresh).toHaveBeenCalledOnce();
+        expect(seen).toHaveLength(2);
+        expect(seen[1].headers.Authorization).toBe('Bearer refreshed');
+    });
+
+    /**
+     * A call that opted out of credentials must not be retried with the stored session.
+     *
+     * `apiKey: null` means "send nothing" — an anonymous probe of a public endpoint, say. Refreshing
+     * and retrying with a bearer token substitutes an identity the caller deliberately withheld, and
+     * does it invisibly.
+     */
+    it('does not substitute the stored session for an apiKey: null call', async () => {
+        const refresh = stubRefresh();
+        const { client, seen } = makeClient(401);
+
+        await expect(client.getSearch('', {}, { apiKey: null })).rejects.toThrow();
+
+        expect(refresh).not.toHaveBeenCalled();
+        expect(seen).toHaveLength(1);
+    });
+
+    it('does not substitute the stored session for a one-off key', async () => {
+        const refresh = stubRefresh();
+        const { client, seen } = makeClient(401);
+
+        await expect(client.getSearch('', {}, { apiKey: 'other-key' })).rejects.toThrow();
+
+        expect(refresh).not.toHaveBeenCalled();
+        expect(seen).toHaveLength(1);
+    });
+
+    it('does not substitute the stored session when the caller set an Authorization header', async () => {
+        const refresh = stubRefresh();
+        const { client, seen } = makeClient(401);
+
+        await expect(
+            client.getSearch('', {}, { headers: { Authorization: 'Bearer caller-token' } }),
+        ).rejects.toThrow();
+
+        expect(refresh).not.toHaveBeenCalled();
+        expect(seen).toHaveLength(1);
+    });
+
+    /**
+     * The stored refresh token belongs to the configured server and must not be offered elsewhere.
+     *
+     * A per-call `baseUrl` points at a different host; a 401 from it used to derive the refresh
+     * origin from that request, handing the credential to a server that never issued it.
+     */
+    it('does not send the refresh token to a server named by a per-call baseUrl', async () => {
+        const refresh = stubRefresh();
+        const { client, seen } = makeClient(401);
+
+        await expect(
+            client.getSearch('', {}, { baseUrl: 'http://elsewhere.test:8000/api/v1' }),
+        ).rejects.toThrow();
+
+        expect(refresh).not.toHaveBeenCalled();
+        expect(seen).toHaveLength(1);
+    });
+
+    it('refreshes against the configured server, not the failed request host', async () => {
+        const refresh = stubRefresh();
+        const { client } = makeClient(401);
+
+        await client.getHealth(); // origin-scoped: baseURL is the derived origin, still our server
+
+        expect(refresh).toHaveBeenCalledOnce();
+        expect(String(refresh.mock.calls[0][0])).toContain('http://tiled.test:8000');
+    });
+
+    it('retries at most once', async () => {
+        stubRefresh();
+        const seen: InternalAxiosRequestConfig[] = [];
+        const transport = axios.create({
+            adapter: (config) => {
+                seen.push(config as InternalAxiosRequestConfig);
+                return respond(config as InternalAxiosRequestConfig, 401);
+            },
+        });
+        const storage = createMemoryTokenStorage();
+        storage.write({ accessToken: 'a', refreshToken: 'r' });
+        const client = new TiledApiClient({
+            baseUrl: BASE,
+            client: transport,
+            tokenStorage: storage,
+        });
+
+        await expect(client.getSearch('')).rejects.toThrow();
+        expect(seen).toHaveLength(2);
+    });
+});
+
+describe('logout', () => {
+    /**
+     * Local credentials go whatever the server says — including when it says nothing.
+     *
+     * Endpoint discovery used to sit outside the `finally`, so the most likely failure (an
+     * unreachable server, or one with authentication disabled, where `requireAuthLink` throws) left
+     * the bearer token and stored session untouched while appearing to fail at logging out.
+     */
+    it('clears credentials even when the auth endpoint cannot be discovered', async () => {
+        const storage = createMemoryTokenStorage();
+        storage.write({ accessToken: 'a', refreshToken: 'r' });
+
+        const transport = axios.create({
+            adapter: () => Promise.reject(new Error('server unreachable')),
+        });
+        const client = new TiledApiClient({
+            baseUrl: 'http://tiled.test:8000/api/v1',
+            apiKey: 'key',
+            bearerToken: 'token',
+            client: transport,
+            tokenStorage: storage,
+        });
+
+        await expect(client.logout()).rejects.toThrow();
+
+        expect(client.getApiKey()).toBeNull();
+        expect(client.getBearerToken()).toBeNull();
+        expect(storage.read()).toBeNull();
     });
 });

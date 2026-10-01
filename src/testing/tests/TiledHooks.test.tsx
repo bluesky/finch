@@ -543,6 +543,58 @@ describe('filter value encoding', () => {
     });
 });
 
+describe('table column selections', () => {
+    /**
+     * The hook-level form of the key-parts bug: two selections from one path, two entries.
+     *
+     * With `column` missing from the key these shared one entry, so whichever resolved second
+     * overwrote the first and both hooks rendered the same columns — the wrong ones for one of them.
+     */
+    it('gives each column selection its own cache entry', async () => {
+        const { client } = makeStub();
+        const { wrapper, queryClient } = makeWrapper({ injected: client });
+
+        renderHook(
+            () => {
+                tiled.useTiledTableFullAsJSONQuery('scan/primary', { column: ['energy'] });
+                tiled.useTiledTableFullAsJSONQuery('scan/primary', { column: ['intensity'] });
+            },
+            { wrapper },
+        );
+
+        await waitFor(() =>
+            expect(
+                queryClient
+                    .getQueryCache()
+                    .getAll()
+                    .filter((entry) => entry.queryKey[1] === 'table').length,
+            ).toBe(2),
+        );
+    });
+
+    it('shares one entry when the selection is the same', async () => {
+        const { client } = makeStub();
+        const { wrapper, queryClient } = makeWrapper({ injected: client });
+
+        renderHook(
+            () => {
+                tiled.useTiledTableFullAsJSONQuery('scan/primary', { column: ['energy'] });
+                tiled.useTiledTableFullAsJSONQuery('scan/primary', { column: ['energy'] });
+            },
+            { wrapper },
+        );
+
+        await waitFor(() =>
+            expect(
+                queryClient
+                    .getQueryCache()
+                    .getAll()
+                    .filter((entry) => entry.queryKey[1] === 'table').length,
+            ).toBe(1),
+        );
+    });
+});
+
 describe('client resolution', () => {
     it('carries Finch config on the very first request, with no provider involved', async () => {
         const { wrapper } = makeWrapper({
@@ -768,6 +820,45 @@ describe('server info', () => {
         expect(result.current.data).toBeNull();
         expect(result.current.isError).toBe(false);
     });
+
+    /**
+     * The nullable and strict readers of `GET /api/v1/` must not share a cache entry.
+     *
+     * They read the same endpoint but promise different things about it: `useTiledServerInfoQuery`
+     * resolves `null` for an unreachable server, `useTiledAboutQuery` rejects. On one key, whichever
+     * ran first satisfied the other — so the strict hook could hand a caller a cached `null` that
+     * its own return type rules out.
+     */
+    it('keys the strict About reader separately from the nullable one', async () => {
+        const { client } = makeStub();
+        const { wrapper, queryClient } = makeWrapper({ injected: client });
+
+        renderHook(
+            () => ({
+                nullable: tiled.useTiledServerInfoQuery(),
+                strict: tiled.useTiledAboutQuery(),
+            }),
+            { wrapper },
+        );
+
+        await waitFor(() =>
+            expect(
+                queryClient
+                    .getQueryCache()
+                    .getAll()
+                    .filter((entry) => entry.queryKey[1] === 'serverInfo').length,
+            ).toBe(2),
+        );
+
+        const args = queryClient
+            .getQueryCache()
+            .getAll()
+            .filter((entry) => entry.queryKey[1] === 'serverInfo')
+            .map((entry) => entry.queryKey[2]);
+
+        expect(args).toContain(null);
+        expect(args).toContain('about');
+    });
 });
 
 describe('the image-path helper', () => {
@@ -844,6 +935,33 @@ describe('the image-path helper', () => {
 });
 
 describe('login', () => {
+    /**
+     * `requestOptions` has to reach the client, like it does on every other mutation.
+     *
+     * This hook used to accept the parameter and drop it on the floor — the only place in the layer
+     * where that was true — so `baseUrl`, a substitute client and cancellation silently did nothing
+     * for login while appearing to be supported.
+     */
+    it('forwards requestOptions to the client', async () => {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper({ injected: client });
+
+        const { result } = renderHook(
+            () =>
+                tiled.useTiledLoginMutation(undefined, {
+                    baseUrl: 'http://other.test:8000/api/v1',
+                }),
+            { wrapper },
+        );
+
+        await result.current.mutateAsync({ username: 'alice', password: 'secret' });
+
+        const login = calls.find((call) => call.method === 'loginWithUsernamePassword');
+        expect(login).toBeDefined();
+        // (username, password, url, provider, options) — the fifth slot is the transport.
+        expect(login?.args[4]).toMatchObject({ baseUrl: 'http://other.test:8000/api/v1' });
+    });
+
     it('invalidates every Tiled root on success', async () => {
         const { client } = makeStub();
         const { wrapper, queryClient } = makeWrapper({ injected: client });

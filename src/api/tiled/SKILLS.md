@@ -168,6 +168,19 @@ normalisation.
   you pass `false`.
 - **Never put a raw options object in a query key.** A `signal` in a key refetches forever. Project
   through `keyParts.ts`.
+- **An option left out of `keyParts.ts` is a cache collision, not just a stale entry.** Include any
+  option that can change the response; `column` was omitted once and made two column selections
+  share an entry, each serving the other's data.
+- **The 401 refresh refuses to override the caller.** It is skipped when the request chose its own
+  credentials (`__tiledCallerCredentials`: `apiKey` given, or an `Authorization` header) and when it
+  went to a server other than the configured one. `doTokenRefresh` always targets the configured
+  server — never the host of the request that failed, which would leak the refresh token.
+- **`logout()` clears local state in a `finally` that wraps endpoint discovery too.** Moving the
+  `requireAuthLink` call out of the `try` reintroduces a logout that leaves credentials behind
+  whenever the server is unreachable.
+- **`useTiledServerInfoQuery` and `useTiledAboutQuery` key separately** (`null` vs the `'about'`
+  variant). Same endpoint, different contracts — one resolves `null`, the other rejects — so sharing
+  a key let the strict hook return a cached `null` its type forbids.
 - **`enabled` goes after the caller's spread**, with `??`. Before it, a caller spreading an options
   object containing `enabled: undefined` clobbers the guard and fetches with an empty path.
 - **`initialPath` belongs in the cache scope.** The client prepends it to relative paths, so keying on

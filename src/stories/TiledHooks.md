@@ -364,6 +364,10 @@ Six more auth mutations sit beside it — `useTiledLogoutMutation`, `useTiledCre
 `useTiledRevokeApiKeyMutation`, `useTiledRefreshSessionMutation`, `useTiledRevokeSessionMutation` —
 plus `useTiledWhoamiQuery`.
 
+`useTiledLogoutMutation` **always clears local credentials**, including when the server is
+unreachable or advertises no logout endpoint. The mutation still rejects so you can report the
+failure; the credentials are gone either way.
+
 **These routes are not in Tiled's OpenAPI schema.** The server generates it without its auth router, so
 the client resolves every auth URL from `GET /api/v1/`'s `authentication.links` at call time. A server
 with authentication disabled reports `links: null`, and those hooks then fail with a `TiledApiError`
@@ -384,7 +388,11 @@ pass one from `useTiledServerInfoQuery().data?.authentication?.providers` instea
 pick the first password provider.
 
 On success the tokens are persisted — `localStorage` in a browser, memory elsewhere — set as the
-client's bearer token, and refreshed automatically on a later 401. The hook then invalidates **every**
+client's bearer token, and refreshed automatically on a later 401. That automatic refresh is skipped
+for any call that chose its own credentials (`apiKey: null`, a one-off key, an explicit
+`Authorization` header) or that was sent to a different server with `requestOptions.baseUrl`, so it
+can never substitute the stored session for an identity you picked, or offer the refresh token to a
+server that did not issue it. The hook then invalidates **every**
 Tiled query: what you are allowed to see changes with your identity, so every cached read is suspect,
 including a search that legitimately returned nothing.
 
@@ -510,8 +518,11 @@ resolves the prefix to `''` because such a request ignores it.
 
 **Array and table keys hold a projection of the options, not the object.** Only the fields that change
 the response take part — `stack`, `downSampleRatio`, `maxBytesAllowed`, `format`, `isRGB`,
-`channelFirst`, `partition`. `signal`, `client`, `structure` and `arrayItem` are excluded, which is what
-makes it safe to pass a fresh options object (and a fresh `AbortSignal`) on every render.
+`channelFirst`, `partition`, `column`. `signal`, `client`, `structure` and `arrayItem` are excluded,
+which is what makes it safe to pass a fresh options object (and a fresh `AbortSignal`) on every render.
+
+`column` is in that list because it narrows the response: two reads of the same table differing only
+in their column selection are different data and get different entries.
 
 The API key is deliberately not part of any key: it would put a secret into the Devtools cache
 inspector, and because auth is applied at request time a credential change invalidates everything rather

@@ -584,8 +584,15 @@ export function loginWithDefaultTiledClient(
     password: string,
     url?: string,
     provider?: TiledAuthProvider,
+    options?: TiledRequestOptions,
 ): Promise<TiledLoginTokens | null> {
-    return getDefaultTiledApiClient().loginWithUsernamePassword(username, password, url, provider);
+    return getDefaultTiledApiClient().loginWithUsernamePassword(
+        username,
+        password,
+        url,
+        provider,
+        options,
+    );
 }
 
 export function tiledWhoami(options?: TiledRequestOptions): Promise<unknown> {

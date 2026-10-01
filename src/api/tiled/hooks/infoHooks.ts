@@ -51,12 +51,18 @@ export function useTiledServerInfoQuery<TData = TiledInfoResponse | null>(
  * Use this when a failure is a failure — a settings page showing whether the configured server is
  * reachable wants `isError` and an error message, not a silent `null` indistinguishable from a
  * server that answered with something unexpected.
+ *
+ * **It keys separately from `useTiledServerInfoQuery`**, under the `'about'` variant, even though
+ * both read `GET /api/v1/`. They promise different things about the same endpoint — one can resolve
+ * `null`, this one cannot — so a shared entry let whichever ran first satisfy the other, and this
+ * hook could hand back a cached `null` its own type rules out. Two entries and one extra request is
+ * the right trade for a type that tells the truth.
  */
 export function useTiledAboutQuery<TData = TiledInfoResponse>(
     queryOptions?: FinchQueryOptions<
         TiledInfoResponse,
         TData,
-        TiledQueryKeyFor<'serverInfo'>,
+        TiledServerInfoVariantKey,
         TiledHookError
     >,
     requestOptions?: TiledRequestOptions,
@@ -64,7 +70,7 @@ export function useTiledAboutQuery<TData = TiledInfoResponse>(
     const scope = useTiledQueryScope(requestOptions);
 
     return useTiledQuery({
-        queryKey: tiledQueryKeys.serverInfo(scope),
+        queryKey: tiledQueryKeys.serverInfoVariant(scope, 'about'),
         fetch: (client, request) => client.getAbout(request),
         requestOptions,
         queryOptions,
