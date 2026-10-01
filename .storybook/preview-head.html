@@ -1,2 +1,14 @@
 <!-- assumes hosted at /finch  -->
 <link rel="icon" href="/finch/finchFavicon.ico" type="image/x-icon" />
+<!-- Object/array controls in the Docs args table expand one row per element;
+     cap their height so large data arrays scroll inside the cell. -->
+<style>
+    .rejt-tree {
+        max-height: 12rem;
+        overflow: auto;
+    }
+    /* Keep long values and their hover buttons on one line, without blank wrapped rows. */
+    .rejt-tree li {
+        white-space: nowrap;
+    }
+</style>
