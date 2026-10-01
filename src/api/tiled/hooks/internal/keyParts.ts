@@ -2,7 +2,7 @@ import { stripUndefined } from '@/api/shared/requestOptions';
 import type {
     TiledArrayAnyEndpointOptions,
     TiledTableAnyEndpointOptions,
-} from '../../types/packageAliases';
+} from '../../types/dataOptions';
 
 /**
  * Projections of the array/table endpoint options for use in a cache key.

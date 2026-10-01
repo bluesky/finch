@@ -1,5 +1,5 @@
 /**
- * TanStack Query hooks for Tiled — 18 queries, one mutation, one URL helper.
+ * TanStack Query hooks for Tiled — one per operation.
  *
  * ```tsx
  * import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled';
@@ -9,15 +9,20 @@
  * ```
  *
  * Arguments are positional and always in the same order: the endpoint's own arguments, then TanStack
- * options, then `requestOptions` — transport last, because it is the rarest thing to pass. The array
- * and table hooks carry an extra endpoint slot (`arrayOptions` / `tableOptions`), since the package's
- * own option types merge endpoint parameters with transport and these do not. See `../README.md` for
- * the full contract, and `@/api/shared/queryOptions` for the cross-backend convention.
+ * options, then `requestOptions` — transport last, because it is the rarest thing to pass. The array,
+ * table and node hooks carry an extra endpoint slot (`arrayOptions` / `tableOptions` /
+ * `nodeOptions`), since the client's own option types merge endpoint parameters with transport and
+ * these do not. See `../README.md` for the full contract, and `@/api/shared/queryOptions` for the
+ * cross-backend convention.
+ *
+ * Mutations take their arguments through `mutate(variables)`, so one hook instance performs many
+ * writes — the path is part of the variables, not of the hook.
  */
 
 // Shared types and errors
 export type { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 export { TiledEndpointUnavailableError, isTiledEndpointUnavailableError } from './errors';
+export { TiledApiError, isTiledApiError } from '../types/errors';
 // Shared across backends; no Tiled hook raises it today, but it is part of the common surface.
 export { FinchMissingArgumentError, isFinchMissingArgumentError } from '@/api/shared/errors';
 
@@ -35,11 +40,18 @@ export {
 } from './queryKeys';
 export type {
     TiledArrayKeyArgs,
+    TiledAssetKeyArgs,
+    TiledDistinctKeyArgs,
+    TiledNodeKeyArgs,
     TiledQueryKeyFor,
     TiledQueryRootName,
     TiledQueryScope,
+    TiledRevisionsKeyArgs,
     TiledSearchKeyArgs,
+    TiledServerInfoVariant,
+    TiledServerInfoVariantKey,
     TiledTableKeyArgs,
+    TiledWebhookKeyArgs,
 } from './queryKeys';
 export { arrayKeyParts, tableKeyParts } from './internal/keyParts';
 export type { TiledArrayKeyParts, TiledTableKeyParts } from './internal/keyParts';
@@ -67,7 +79,21 @@ export {
     useTiledSearchByMetadataComparisonQuery,
 } from './searchHooks';
 
-export { useTiledMetadataQuery } from './metadataHooks';
+export { useTiledDistinctQuery } from './distinctHooks';
+
+export {
+    useTiledMetadataQuery,
+    useTiledCreateNodeMutation,
+    useTiledUpdateMetadataMutation,
+    useTiledPatchMetadataMutation,
+    useTiledDeleteNodeMutation,
+} from './metadataHooks';
+export type {
+    TiledCreateNodeVariables,
+    TiledUpdateMetadataVariables,
+    TiledPatchMetadataVariables,
+    TiledDeleteNodeVariables,
+} from './metadataHooks';
 
 export {
     useTiledArrayAsQuery,
@@ -75,6 +101,16 @@ export {
     useTiledArrayAsPngQuery,
     useTiledArrayAsBufferQuery,
     useTiledArrayImagePath,
+    useTiledArrayBlockQuery,
+    useTiledPutArrayFullMutation,
+    useTiledPutArrayBlockMutation,
+    useTiledPatchArrayFullMutation,
+} from './arrayHooks';
+export type {
+    TiledArrayBlockParams,
+    TiledPutArrayFullVariables,
+    TiledPutArrayBlockVariables,
+    TiledPatchArrayFullVariables,
 } from './arrayHooks';
 
 export {
@@ -83,11 +119,76 @@ export {
     useTiledTablePartitionAsJSONSequenceQuery,
     useTiledTableFullAsJSONQuery,
     useTiledTableFullAsJSONSequenceQuery,
+    useTiledTableFullAsQuery,
+    useTiledPostTableFullQuery,
+    useTiledPostTablePartitionQuery,
+    useTiledPutTablePartitionMutation,
+    useTiledPatchTablePartitionMutation,
+    useTiledPutTableFullMutation,
 } from './tableHooks';
+export type { TiledPutTablePartitionVariables, TiledPutTableFullVariables } from './tableHooks';
 
-export { useTiledServerInfoQuery } from './infoHooks';
+export {
+    useTiledContainerFullQuery,
+    useTiledPostContainerFullQuery,
+    useTiledNodeFullQuery,
+    useTiledPutNodeFullMutation,
+    useTiledAwkwardFullQuery,
+    useTiledAwkwardBuffersQuery,
+    useTiledPostAwkwardBuffersQuery,
+    useTiledPutAwkwardFullMutation,
+    useTiledRaggedFullQuery,
+    useTiledPutRaggedFullMutation,
+    useTiledPutRaggedBlockMutation,
+    useTiledPatchRaggedFullMutation,
+} from './nodeHooks';
+export type {
+    TiledPutNodeFullVariables,
+    TiledPutAwkwardFullVariables,
+    TiledPutRaggedVariables,
+    TiledPutRaggedBlockVariables,
+    TiledPatchRaggedFullVariables,
+} from './nodeHooks';
 
-export { useTiledLoginMutation } from './authHooks';
-export type { TiledLoginVariables } from './authHooks';
+export {
+    useTiledRegisterMutation,
+    useTiledPutDataSourceMutation,
+    useTiledRevisionsQuery,
+    useTiledDeleteRevisionMutation,
+    useTiledAssetBytesQuery,
+    useTiledAssetManifestQuery,
+    useTiledWebhooksQuery,
+    useTiledWebhookHistoryQuery,
+    useTiledRegisterWebhookMutation,
+    useTiledDeleteWebhookMutation,
+    useTiledCloseStreamMutation,
+} from './managementHooks';
+export type {
+    TiledRegisterVariables,
+    TiledPutDataSourceVariables,
+    TiledRevisionsParams,
+    TiledDeleteRevisionVariables,
+    TiledAssetParams,
+    TiledRegisterWebhookVariables,
+} from './managementHooks';
+
+export {
+    useTiledServerInfoQuery,
+    useTiledAboutQuery,
+    useTiledHealthQuery,
+    useTiledUiSettingsQuery,
+    useTiledMetricsQuery,
+} from './infoHooks';
+
+export {
+    useTiledLoginMutation,
+    useTiledLogoutMutation,
+    useTiledWhoamiQuery,
+    useTiledCreateApiKeyMutation,
+    useTiledRevokeApiKeyMutation,
+    useTiledRefreshSessionMutation,
+    useTiledRevokeSessionMutation,
+} from './authHooks';
+export type { TiledLoginVariables, TiledCreateApiKeyVariables } from './authHooks';
 
 // #endregion

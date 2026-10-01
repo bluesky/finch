@@ -1,27 +1,35 @@
-# Tiled query layer (`tiled`)
+# Tiled API client (`tiled`)
 
-TanStack Query hooks over [`@blueskyproject/tiled`](https://www.npmjs.com/package/@blueskyproject/tiled)
-— **18 queries, one mutation and one URL helper** — plus a provider for injecting a client and
-re-exports of the package's own client and configuration functions.
+A complete client for [Tiled](https://github.com/bluesky/tiled): **all 48 API operations** from
+`openapi.json`, the seven auth routes the spec omits, zarr URL builders, and a TanStack Query hook
+for every one of them.
 
-> This replaced the hand-rolled hooks now parked in `src/api/tiled_archive/hooks.ts`. That file is kept
-> for reference only: nothing imports it, and `tsconfig.json` excludes it because it cannot compile
-> against `@blueskyproject/tiled` 0.0.33. See the bottom of `SKILLS.md` for the old-to-new hook map.
+Built on the client in
+[tiled-viewer-react](https://github.com/bluesky/tiled-viewer-react/tree/main/src/components/Tiled/api)
+— the read paths are ports, not rewrites — and shaped like
+[`src/api/qServer`](../qServer/README.md), so the two backends are learnable as one thing: a
+`TiledApiClient` class, a module-level default instance, a flat free-function facade, and hooks with
+the same argument order, key shape and invalidation model.
+
+> **This replaced a hook layer over `@blueskyproject/tiled`.** Nothing under `src/api/tiled` imports
+> that package any more. Every name it used to re-export is exported from here with the same
+> signature, so no call site changed — but the implementation is Finch's, the types come from Tiled's
+> own OpenAPI schema, and the write half of the API exists for the first time.
 
 ## Quickstart
 
+```ts
+import { getTiledSearch, setDefaultTiledUrl, setGlobalTiledApiKey } from '@/api/tiled';
+
+setDefaultTiledUrl('http://localhost:8000/api/v1'); // include the version segment
+setGlobalTiledApiKey('…');
+
+const runs = await getTiledSearch('', { searchFilters: { specs: { include: ['BlueskyRun'], exclude: [] } } });
+console.log(runs.meta.count);
+```
+
 ```tsx
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { FinchConfigProvider } from '@/app/FinchConfigProvider';
 import { useTiledSearchBySpecsQuery, useTiledMetadataQuery } from '@/api/tiled';
-
-const queryClient = new QueryClient();
-
-<FinchConfigProvider config={{ tiledApiUrl: 'http://localhost:8000/api/v1' }}>
-    <QueryClientProvider client={queryClient}>
-        <RunBrowser />
-    </QueryClientProvider>
-</FinchConfigProvider>;
 
 function RunBrowser() {
     const runs = useTiledSearchBySpecsQuery('', { include: ['BlueskyRun'], exclude: [] });
@@ -30,224 +38,404 @@ function RunBrowser() {
 
     if (runs.isPending) return <p>loading…</p>;
     if (runs.isError) return <p>{runs.error.message}</p>;
-    return (
-        <ul>
-            {runs.data.data.map((run) => (
-                <li key={run.id}>{run.id}</li>
-            ))}
-        </ul>
-    );
+    return <ul>{runs.data.data.map((run) => <li key={run.id}>{run.id}</li>)}</ul>;
 }
 ```
 
-The base URL must include the API version segment — `http://host:8000/api/v1` — because that is what
-the package expects. Nothing here appends it: guessing would silently point a misconfigured app at a
-URL it never asked for.
+### The base URL includes the API version
 
-## Positional arguments
+`http://host:8000/api/v1`. Nothing appends it: guessing would silently point a misconfigured app at
+a URL it never asked for. This is the opposite of the queue-server rule, where the base URL is the
+bare origin because its spec paths already start with `/api/` — each is forced by its own server.
 
-Every hook takes its arguments positionally, always in the same order:
+The handful of routes outside the version segment — `/healthz`, `/tiled-ui-settings`, every zarr
+route — are issued against the origin derived from the base URL. `tiledOriginFromBaseUrl` drops
+everything from the **last** `/api/v1`, so a server mounted under a sub-path works too.
+
+## Three levels of control
+
+```ts
+// 1. the app-wide client
+import { getTiledSearch, setGlobalTiledApiKey } from '@/api/tiled';
+setGlobalTiledApiKey('another-key'); // affects the very next request; no rebuild
+await getTiledSearch('');
+
+// 2. your own instance
+import { createTiledApiClient, setDefaultTiledApiClient } from '@/api/tiled';
+const client = createTiledApiClient({
+    baseUrl: 'http://localhost:8000/api/v1',
+    apiKey: '…',
+    client: myAxiosInstance, // optional: adopt an existing axios instance
+    maxArrayBytes: 2_000_000,
+});
+setDefaultTiledApiClient(client); // optional: make it the app-wide one
+
+// 3. one call at a time
+await getTiledSearch('', undefined, {
+    baseUrl: 'http://other-host:8000/api/v1',
+    apiKey: 'one-off',
+    signal: controller.signal,
+});
+```
+
+Per-request options never touch client state. `resetDefaultTiledApiClient()` discards the singleton —
+call it in `beforeEach` so tests do not leak configuration into one another.
+
+### Authentication
+
+| What | How |
+| --- | --- |
+| API key in a header | default; `Authorization: ApiKey <key>` (the casing the package sends) |
+| Spec casing | `setGlobalTiledApiKeyScheme('Apikey')` |
+| API key in the query | `setGlobalTiledApiKeyLocation('query')` → `?api_key=<key>` |
+| Bearer token | `setDefaultBearerToken(jwt)`; takes precedence over the API key |
+| No credentials, one call | `options.apiKey: null` — distinct from omitting it, which inherits |
+| Refresh on 401 | automatic, single-flight, then one retry. `/auth/session/refresh`, falling back to `/auth/refresh` on a 404 |
+
+The key is read **at request time** by a built-in interceptor, which is why `setApiKey` takes effect
+immediately.
+
+`'query'` mode exists for the two places a header cannot go: an `<img src>` built by
+`getArrayAsImagePath`, and — once they land — websocket handshakes, which browsers will not let you
+set headers on. Note it puts the key in the DOM and in any referrer logging.
+
+**Login tokens are shared with the `<Tiled>` viewer component.** Both write `tiledAccessToken` and
+`tiledRefreshToken` to `localStorage` under the same keys, so a login through either is a login for
+both. Storage is injectable (`tokenStorage`), defaulting to `localStorage` in a browser and memory
+elsewhere — which is what makes this work under SSR and keeps auth tests from leaking into one
+another.
+
+### The auth routes are not in the spec
+
+Tiled generates `openapi.json` **without its auth router**, so there is no spec entry for `whoami`,
+`apikey`, `refresh_session`, `revoke_session` or `logout`. What the spec does carry is
+`AboutAuthenticationLinks`, so the client resolves every auth URL from `GET /api/v1/`'s
+`authentication.links` rather than hard-coding paths.
+
+A server with authentication disabled reports `{ required: false, providers: [], links: null }`
+(verified against Tiled 0.2.15b1). Every auth method then fails with a `TiledApiError` saying so,
+rather than requesting a URL built from `null`. Check
+`useTiledServerInfoQuery().data?.authentication?.required` before offering a login UI at all.
+
+### Interceptors
+
+```ts
+import { addRequestInterceptor, clearInterceptors, ejectInterceptor } from '@/api/tiled';
+
+const handle = addRequestInterceptor((config) => {
+    console.log(config.method, config.url);
+    return config;
+});
+
+ejectInterceptor(handle);
+clearInterceptors(); // removes only YOUR interceptors
+```
+
+The built-in auth and refresh handlers are tracked separately and survive `clearInterceptors()`.
+`setAxiosClient(next)` re-installs everything — built-ins first, then yours in registration order.
+Axios runs request interceptors last-registered-first, so yours sees the config *before*
+`Authorization` is attached.
+
+## Four wire-format corrections
+
+These were found by probing a live Tiled 0.2.15b1, not by reading the spec — the spec says a
+parameter's *type*, not how a list is serialised, and Tiled uses two different conventions. Each one
+failed quietly under `@blueskyproject/tiled`.
+
+**1. Three filter names were wrong.** FastAPI drops an unknown query parameter rather than rejecting
+it, so these filters simply never applied and the search came back unfiltered — which reads as "the
+filter matched everything", not as a bug.
+
+| Filter | Package sent | Server expects |
+| --- | --- | --- |
+| `keysFilter` | `filter[keys][condition][keys][]` | `filter[keys_filter][condition][keys]` |
+| `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]` |
+| `accessBlob` | `filter[access_blob][condition][…]` | `filter[access_blob_filter][condition][…]` |
+
+**2. Axios brackets array parameters by default.** `column[]=a&column[]=b` where FastAPI reads
+`column=a&column=b`. So `column` and `field` selections silently returned *everything*, and `fields`
+never narrowed a response. Fixed with `paramsSerializer: { indexes: null }` on every request.
+
+**3. Four filters want one JSON array, not repeated keys.** `keys_filter.keys`, `in.value`,
+`notin.value` and `specs.include`/`exclude` travel as
+`filter[in][condition][value]=["count"]`. Sent as repeated keys, `in` matches nothing and
+`keys_filter` answers **500**. `specs` additionally needs *both* `include` and `exclude` present —
+sending one alone is a 500, which is why `TiledSpecsFilter` requires both.
+
+**4. Filter values are JSON-encoded for you.** Six filters — `eq`, `noteq`, `comparison`,
+`contains`, `in`, `notin` — have a `value` the server reads with `json.loads`, so matching the string
+`xas_scan` requires sending `"xas_scan"`, quotes included. Pass the value itself:
+
+```ts
+useTiledSearchQuery('', { searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } } });
+// on the wire: filter[contains][condition][value]="xas_scan"
+```
+
+`string | number | boolean | null` are all accepted. Encoding is unconditional — there is no attempt
+to detect an already-encoded value, because it is not decidable (given `"5"`, is that the number 5
+encoded, or the two-character string `5`?). Pre-quoting is a bug the widened types now catch.
+
+## The hooks
+
+One per operation, in [`hooks/`](./hooks). Arguments are positional, always in the same order:
 
 ```ts
 useTiledSomethingQuery(...endpointArgs, queryOptions?, requestOptions?);
 useTiledSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
-| position                     | what it is                                                                        |
-| ---------------------------- | --------------------------------------------------------------------------------- |
+| position | what it is |
+| --- | --- |
 | the endpoint's own arguments | a path, a filter, a format — named and typed, so hover tells you what is required |
-| TanStack options             | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations             |
-| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`                |
+| TanStack options | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations |
+| `requestOptions` | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`, `headers`, `query`, `axiosConfig` |
 
 **`requestOptions` is always last**, and means exactly the same thing on every Finch backend — where
 this one call goes and who it is. The queue-server hooks use the identical order; the convention is
-stated in full, once, in [`src/api/shared/queryOptions.ts`](../shared/queryOptions.ts). Transport goes
-last because it is the rarest thing to pass, so the common call needs no placeholder:
+stated in full, once, in [`src/api/shared/queryOptions.ts`](../shared/queryOptions.ts). Transport
+goes last because it is the rarest thing to pass, so the common call needs no placeholder.
+
+Mutations take their arguments through `mutate`, so one hook instance performs many writes — the
+path is part of the variables, not of the hook:
 
 ```ts
-useTiledMetadataQuery('scan/detector', { staleTime: 60_000 });
-useTiledSearchQuery('', undefined, undefined, { baseUrl: 'http://other:8000/api/v1' });
+const patch = useTiledPatchMetadataMutation();
+patch.mutate({ path: 'scan/1', metadata: { comment: 'calibration run' } });
 ```
 
-**The array and table hooks take one extra slot** for the endpoint's own parameters, because the
-package merges them with transport — its `TiledArrayRequestOptions` extends `TiledRequestOptions`, so
-`stack` and `baseUrl` arrive in one object. The hooks split them apart (`TiledArrayJSONEndpointOptions`
-is `Omit<TiledArrayJSONOptions, keyof TiledRequestOptions>`) and recombine before calling through, so
-that `requestOptions` does not mean two different things depending on which hook you are looking at:
+**The array, table and node hooks take one extra slot** for the endpoint's own parameters, because
+the client's option types merge them with transport (`TiledArrayRequestOptions extends
+TiledRequestOptions`, so `stack` and `baseUrl` arrive in one object). The hooks split them apart and
+recombine before calling through, so `requestOptions` does not mean two different things depending
+on which hook you are looking at. `hooks/typeTests.ts` asserts that no transport key survives in the
+endpoint types.
+
+### What is covered
+
+| Group | Queries | Mutations |
+| --- | --- | --- |
+| Search | `useTiledSearchQuery` + 6 filter conveniences, `useTiledDistinctQuery` | — |
+| Metadata | `useTiledMetadataQuery` | create, update, patch, delete |
+| Arrays | 4 formats, `useTiledArrayBlockQuery`, `useTiledArrayImagePath` | put full, put block, patch full |
+| Ragged | `useTiledRaggedFullQuery` | put full, put block, patch full |
+| Tables | 5 JSON reads, `useTiledTableFullAsQuery` (CSV/parquet/arrow/…), 2 POST reads | put partition, patch partition, put full |
+| Containers / nodes | full reads + POST variants | put node full |
+| Awkward | full, buffers, POST buffers | put full |
+| Management | revisions, assets | register, put data source, delete revision, close stream |
+| Webhooks | list, history | register, delete |
+| Server info | about, health, UI settings, metrics | — |
+| Auth | whoami | login, logout, API key create/revoke, session refresh/revoke |
+
+### `useTiledDistinctQuery` is the one to know about
+
+It did not exist before. It answers "which plan names are in this catalogue, and how many runs does
+each have" in **one request**, over the same filters a search takes — so a facet count can be scoped
+to the current query. The alternative was paginating the whole container client-side and counting.
 
 ```ts
-useTiledArrayAsJSONQuery('scan/detector', { stack: [4], maxBytesAllowed: 2_000_000 });
-useTiledTablePartitionAsJSONQuery('scan/primary', { partition: 0 }, { refetchInterval: 1000 });
-useTiledTablePartitionAsJSONQuery('scan/primary', { partition: 0 }, undefined, { baseUrl });
+const facets = useTiledDistinctQuery('', {
+    metadata: ['start.plan_name'],
+    counts: true,
+    searchFilters: { comparison: { operator: 'gt', key: 'start.time', value: lastWeek } },
+});
 ```
 
-`hooks/typeTests.ts` asserts that no transport key survives in the endpoint types, so a future package
-version that moves `stack` into `TiledRequestOptions` breaks the build rather than the split.
+### Two return values that surprise people
 
-`queryKey`, `queryFn` and `mutationFn` are omitted from the TanStack option types — the hook owns them,
-and overriding the key would detach the entry from the invalidation map. `hooks/typeTests.ts` pins this
-at compile time.
+- **`useTiledServerInfoQuery().data` can be `null`** — an unreachable server resolves `null` instead
+  of throwing, so `isError` stays `false`. Inherited deliberately: the login screen probes servers it
+  knows nothing about and needs an answer, not an exception. Use `useTiledAboutQuery` when you want
+  the error.
+- **`useTiledLoginMutation()` resolves `null` on a wrong password** rather than rejecting. A wrong
+  password is an expected outcome of a login form. Check the resolved value, not `isError`.
 
-## The hooks
+### Guarded queries
 
-### Search — `searchHooks.ts`
+`enabled` is applied **after** the caller's options, with `??` — so an options object carrying
+`enabled: undefined` (trivially produced by spreading props) falls through to the guard instead of
+clobbering it.
 
-All seven call `GET /api/v1/search/{path}`; the six conveniences just build the filter for you. Shape:
-`(searchPath, filter, searchOptions?, queryOptions?, requestOptions?)`.
+Every path-addressed query idles while its path is empty, so `useTiledMetadataQuery(selected ?? '')`
+makes no request until something is selected. Queries whose argument cannot be defaulted —
+`useTiledArrayBlockQuery`, the asset hooks, `useTiledWebhookHistoryQuery` — idle while it is
+`undefined`, and raise `FinchMissingArgumentError` if `enabled: true` forces them past the guard.
 
-| hook                                      | filter type                               |
-| ----------------------------------------- | ----------------------------------------- |
-| `useTiledSearchQuery`                     | a whole `TiledSearchConfig` (second slot) |
-| `useTiledSearchBySpecsQuery`              | `{ include, exclude }`                    |
-| `useTiledSearchByFullTextQuery`           | `{ text }`                                |
-| `useTiledSearchByMetadataEqualsQuery`     | `{ key, value }`                          |
-| `useTiledSearchByStructureFamilyQuery`    | `{ value: 'array' \| … }`                 |
-| `useTiledSearchByRegexQuery`              | `{ key, pattern, caseSensitive? }`        |
-| `useTiledSearchByMetadataComparisonQuery` | `{ operator, key, value }`                |
-
-**Filter values are passed as themselves, not as hand-written JSON.** Six filters — `eq`, `noteq`,
-`comparison`, `contains`, `in`, `notin` — have a `value` that Tiled reads with `json.loads`, so the raw
-API needs the quotes baked into the string. The hooks encode for you:
+## Writing data
 
 ```ts
-// what you write
-useTiledSearchQuery('', {
-    searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+const create = useTiledCreateNodeMutation();
+const write = useTiledPutArrayFullMutation();
+
+await create.mutateAsync({
+    parentPath: '',            // the CONTAINER to create in, not the new node's path
+    body: {
+        id: 'processed',       // the new node's key; omit for a server-assigned uuid
+        structure_family: 'array',
+        metadata: {},
+        specs: [],
+        access_blob: {},
+        data_sources: [{ /* … structure describing what you are about to write … */ }],
+    },
 });
 
-// what the server receives
-// filter[contains][condition][value]="xas_scan"
+await write.mutateAsync({ path: 'processed', data: new Float64Array([1, 2, 3, 4, 5, 6]) });
 ```
 
-`string | number | boolean | null` are all accepted, and `in` / `notin` encode each element. The other
-filters are untouched: `fulltext.text`, `regex.pattern`, `like.pattern`, `lookup.key` and
-`structureFamily.value` are plain strings server-side, and the package already encodes `specs`.
+Three things to get right, all verified against a live server:
 
-Encoding is unconditional — there is no attempt to detect an already-quoted value, because it is not
-decidable (given `"5"`, is that the number 5 encoded, or the string `5`?). If you have a value that
-looks pre-quoted, it is a bug; the widened types now make it a compile error rather than a 422. See
-`hooks/internal/encodeSearchConfig.ts`.
+- **`POST /metadata/{path}` addresses the parent.** The new node's key goes in `body.id`. Posting to
+  the path you want the node to have answers 404 `No such entry`.
+- **An array or table node needs its structure up front**, in `data_sources[0].structure`. The server
+  allocates from it and does not infer it later.
+- **`DELETE` defaults to `external_only: true`**, which refuses with a 409 when any of the tree is
+  internally managed — deleting those records would delete the underlying data files. Pass
+  `external_only: false` to mean it.
 
-`searchPath: ''` is the **root container**, and legal — so unlike the data hooks these have no path
-guard. The first four mirror functions the package ships; regex and comparison do not exist in the
-package but did in the legacy Finch hooks, and `TiledSearchFilters` supports them. For the other nine
-filters (`lookup`, `keysFilter`, `noteq`, `contains`, `in`, `notin`, `keyPresent`, `like`, `accessBlob`)
-use `useTiledSearchQuery` directly.
+Binary writes take an `ArrayBuffer`, a typed array or a `Blob`, sent as `application/octet-stream` in
+the array's own dtype and C order — the server trusts the declared structure and does not convert. A
+nested `number[][]` is sent as JSON instead. **Nothing converts one into the other**: a dtype
+mismatch writes plausible-looking garbage rather than failing, so that encoding is left to the
+caller, who knows the dtype.
 
-### Metadata, data and info
+Table writes additionally require an explicit `mimetype` (`'application/x-parquet'`, `'text/csv'`,
+`'application/vnd.apache.arrow.file'`) because the server dispatches its reader on exactly that
+header.
 
-| hook                                              | reads                                           |
-| ------------------------------------------------- | ----------------------------------------------- |
-| `useTiledMetadataQuery(path)`                     | one item's metadata, specs, links and structure |
-| `useTiledArrayAsQuery(path, type)`                | an array in any of the four formats             |
-| `useTiledArrayAsJSONQuery(path)`                  | `number[][]` by default; override the shape     |
-| `useTiledArrayAsPngQuery(path)`                   | a PNG `Blob`                                    |
-| `useTiledArrayAsBufferQuery(path)`                | a raw `ArrayBuffer`                             |
-| `useTiledArrayImagePath(path)`                    | **not a query** — a URL for `<img src>`         |
-| `useTiledTableAsQuery(path, type, endpoint)`      | a table in either format, either endpoint       |
-| `useTiledTablePartitionAsJSONQuery(path)`         | one partition, column-oriented                  |
-| `useTiledTablePartitionAsJSONSequenceQuery(path)` | one partition, row-oriented                     |
-| `useTiledTableFullAsJSONQuery(path)`              | every partition, column-oriented                |
-| `useTiledTableFullAsJSONSequenceQuery(path)`      | every partition, row-oriented                   |
-| `useTiledServerInfoQuery()`                       | the `/api/v1/` root document                    |
-| `useTiledLoginMutation()`                         | username/password login (the only mutation)     |
+## Keys and invalidation
 
-Narrow a metadata structure by passing it: `useTiledMetadataQuery<ArrayStructure>(path)` types
-`data.attributes.structure.shape`. Or use the re-exported `isArrayStructure` / `isTableStructure` /
-`isContainerStructure` guards.
+Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with fourteen resources.
+The scope is last so prefixes like `['tiled','search']` still match.
 
-Two return values that surprise people, both the package's behaviour rather than ours:
+**The scope carries `initialPath`, not just `baseUrl`.** Tiled prepends the client's initial path to
+relative request paths, so the same relative path under two prefixes is two different pieces of data.
+`pathMode: 'absolute'` resolves the prefix to `''`, because such a request ignores it entirely.
 
-- **`useTiledServerInfoQuery().data` can be `null`** — an unreachable server resolves `null` instead of
-  throwing, so `isError` stays `false`.
-- **`useTiledLoginMutation()` resolves `null` on a wrong password** rather than rejecting. Check the
-  resolved value, not `isError`.
+**Args are projections, never raw option objects** — see
+[`hooks/internal/keyParts.ts`](./hooks/internal/keyParts.ts). An options object carries a `signal`
+(a fresh identity most renders), possibly a `client`, and possibly a whole `arrayItem`. Keying on it
+directly would rewrite the key every render and refetch forever, so only the fields that change the
+response take part. `structure` / `arrayItem` are excluded on purpose — they only let the client skip
+a metadata round-trip on the way to identical bytes.
+
+Mutations invalidate named bundles automatically, awaited before `mutateAsync` resolves. Three rules
+decide the map:
+
+- a **metadata write** refreshes that node and the searches that could have matched on what changed;
+- a **data write** refreshes the data *and* the metadata, because a write can change a structure —
+  `patchArrayFull` with `extend: true` grows the shape, and a cached structure saying otherwise is
+  what the downsampling maths reads;
+- a **create, delete or register** uses the `structure` bundle, which also covers the parent
+  container's contents.
+
+The API key is deliberately absent from every key: it would put a secret in the Devtools cache
+inspector, and a credential change invalidates everything rather than one entry. That is why every
+auth mutation invalidates `all`.
+
+```ts
+const invalidate = useTiledInvalidate();
+await invalidate.roots('search');   // one resource
+await invalidate.bundles('data');   // every structure family's payloads
+await invalidate.all();
+```
+
+## Errors
+
+Every failure is a `TiledApiError` carrying `status`, `method`, `path`, `responseBody`, and — for
+FastAPI's 422 — `isValidationError` plus parsed `validationErrors`. The message is assembled from
+whichever envelope Tiled used, so `GET /metadata/x failed with 404: No such entry` is what you get
+rather than `Request failed with status code 404`.
+
+```ts
+import { isTiledApiError } from '@/api/tiled';
+
+try {
+    await createTiledNode('', body);
+} catch (error) {
+    if (isTiledApiError(error) && error.isValidationError) console.warn(error.validationErrors);
+}
+```
+
+A cancelled request passes through untouched, so TanStack can still recognise the `AbortError`.
+`TiledEndpointUnavailableError` is raised instead when a hook's method is missing from a client
+injected through `TiledApiProvider`.
 
 ## Where the client comes from
 
 1. the client injected via `TiledApiProvider`, if there is one — the seam that lets a stub drive
    hook-based components in tests and Storybook;
-2. otherwise the package's module-level singleton, `getDefaultTiledApiClient()`.
+2. otherwise the module-level default client.
 
 Setting `tiledApiUrl` / `tiledApiKey` on `FinchConfigProvider` is enough: those values are applied to
-the default client _and_ carried on every request, so even the first fetch of the first render uses the
-configured server. Absent Finch config the client's own configuration stands, so
-`setDefaultTiledApiClient` and `setDefaultTiledUrl` keep working. An **injected client is never
-redirected** — it is the caller's explicit choice, so Finch config is ignored for that subtree.
+the default client *and* carried on every request, so even the first fetch of the first render uses
+the configured server. Absent Finch config the client's own configuration stands. An **injected
+client is never redirected** — it is the caller's explicit choice, so Finch config is ignored for
+that subtree.
 
 A partial injected client (a hand-written stub missing some methods) makes the affected hooks reject
-with `TiledEndpointUnavailableError` rather than silently falling through to the network.
+with `TiledEndpointUnavailableError` rather than silently falling through to the network. The surface
+is now the whole API rather than seventeen methods, which is a real cost for stub authors; a stub
+only needs the methods its component actually calls.
 
-## Keys and invalidation
+## Types
 
-Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with five resources:
-`search`, `metadata`, `array`, `table`, `serverInfo`. The scope is last so prefixes like
-`['tiled','search']` still match — including the ones existing code already invalidates with.
+`openapi-typescript` output lives in [`generated/schema.d.ts`](./generated/) and is **authoritative
+for nearly everything** — request bodies, structures, enums, envelopes — which is the opposite of the
+queue server, whose spec declares every body as an untyped object. `types/generatedAliases.ts` gives
+them readable names.
 
-Three things worth knowing:
+Hand-written types are confined to three places: `types/auth.ts`-shaped content in `types/info.ts`
+(the auth routes are not in the spec), `types/searchFilters.ts` (the deliberate widening above), and
+`types/structures.ts` / `types/nodes.ts`.
 
-**All seven search hooks share the `search` root.** They call one endpoint, and the built
-`TiledSearchConfig` fully determines the response, so two hooks that produce identical filters
-correctly share one cache entry and `['tiled','search']` refreshes every search however it was written.
-The legacy hooks had eight separate search roots; of their keys only `['tiled','search']` and
-`['tiled','serverInfo']` still match here.
+**Those last two are ports, deliberately.** `ArrayStructure`, `TiledSearchItem` and friends keep the
+exact shapes `@blueskyproject/tiled` used, because every Tiled component in this repo already
+destructures them and a shape change would be a silent breakage dressed up as a type improvement. The
+spec's own versions are exported alongside under a `Schema` prefix, and they do differ — the spec's
+`ArrayStructure.data_type` is `BuiltinDtype | StructDtype` where Finch's is the builtin form alone.
+**Reading** a response: use the unprefixed ones. **Building** a request body: use `Schema…`, which is
+what the validator on the other end checks against.
 
-**The scope carries `initialPath`, not just `baseUrl`.** Tiled prepends the client's initial path to
-relative request paths, so the same relative path under two prefixes is two different pieces of data.
-A per-call `requestOptions.baseUrl` or `initialPath` overrides the scope; `pathMode: 'absolute'`
-resolves the prefix to `''`, because such a request ignores it entirely.
+One correction was made: `attributes.data_sources` is `unknown[] | null`, not `string | null`. The
+spec and the server both contradict the package, and nothing in this repo read the field.
 
-**Args are projections, never raw option objects** — see [`hooks/internal/keyParts.ts`](./hooks/internal/keyParts.ts).
-An array/table options object carries a `signal` (a fresh identity most renders), possibly a `client`,
-and possibly a whole `arrayItem`. Keying on it directly would rewrite the key every render and refetch
-forever, so only the fields that change the response take part: `stack`, `downSampleRatio`,
-`maxBytesAllowed`, `format`, `isRGB`, `channelFirst` for arrays; `partition` and `format` for tables.
-`structure` / `arrayItem` are excluded on purpose — they only let the client skip a metadata round-trip
-on the way to identical bytes.
+## `@blueskyproject/tiled` is still a dependency
 
-The API key is deliberately absent from every key: it would put a secret in the Devtools cache
-inspector, and a credential change invalidates everything rather than one entry. `useTiledLoginMutation`
-therefore invalidates all five roots, and `invalidateAllTiledQueries(queryClient)` is the hook-free way
-to do the same after rotating a key.
+For the `<Tiled>` **viewer component** and its CSS only — `src/components/Tiled/Tiled.tsx`,
+`src/features/TiledHeatmapSelector.tsx`, `src/app/App.tsx`.
 
-```ts
-const invalidate = useTiledInvalidate();
-await invalidate.roots('search'); // one resource
-await invalidate.bundles('data'); // array + table
-await invalidate.all(); // everything
-```
+That component keeps its own internal client and its own singleton, so `setGlobalTiledApiKey` here
+does **not** configure it. `Tiled.tsx` passes the URL and key as props from Finch config, which is the
+arrangement to keep. Login tokens *are* shared, through the `localStorage` keys above.
 
-## Guarded queries
+## Completeness is checked, not claimed
 
-`enabled` is applied **after** the caller's options, with `??` — so an options object carrying
-`enabled: undefined` (trivially produced by spreading props) falls through to the guard instead of
-clobbering it. That is a real bug in the legacy hooks.
+[`src/testing/tests/TiledRegistry.test.ts`](../../testing/tests/TiledRegistry.test.ts) diffs
+`endpointRegistry.ts` against the committed `openapi.json` and fails on any operation with no client
+method. Regenerate the spec when the Tiled version changes (see `generated/README.md`); a new route
+then fails that suite, which is the signal to add a path, a method, a hook and a descriptor.
 
-| hook                                            | idle until                 |
-| ----------------------------------------------- | -------------------------- |
-| `useTiledMetadataQuery`                         | `path` is non-empty        |
-| the four array hooks + `useTiledArrayImagePath` | `arrayPath` is non-empty   |
-| the five table hooks                            | `tablePath` is non-empty   |
-| `useTiledSearchByFullTextQuery`                 | `filter.text` is non-empty |
+Ten spec operations are deliberately unimplemented and listed in that test: `/ui/{path}` and `/`
+serve the server's own web UI, and the eight per-file zarr routes (`.zattrs`, `.zgroup`, `.zarray`,
+`zarr.json`, chunk paths) are derived by a zarr reader from the two base URLs `getZarrV2Url` /
+`getZarrV3Url` return. Shipping typed fetchers for those would invite a consumer that should have
+used a zarr library.
 
-So `useTiledMetadataQuery(selected ?? '')` makes no request until something is selected. Pass
-`enabled` in the last parameter to override.
+## Not here yet
 
-## Notes
+**Websockets and GraphQL.** Three seams are reserved so they land additively:
 
-- **Cancellation composes.** TanStack's signal and any `requestOptions.signal` are merged, so
-  unmounting or `cancelQueries` aborts the in-flight request whether or not you passed one.
-- **The hooks call client methods, not the package's free functions.** `getTiledSearch(…)` and friends
-  are hard-wired to the package's own singleton, so there would be no way to inject a client. The
-  methods are what those functions call anyway.
-- **`useTiledArrayImagePath` is not a query.** `getArrayAsImagePath` is synchronous — it composes a URL
-  and makes no request — so caching it would only cache string concatenation. Being synchronous it
-  cannot fetch the array structure either: pass `structure` or `arrayItem` if you want downsampling.
-- **Some package types are derived, not imported.** `TiledInfoResponse`, the array/table format unions
-  and the option maps are not exported from the package index, and its `exports` map forbids deep
-  imports — so [`types/packageAliases.ts`](./types/packageAliases.ts) derives them from the public
-  method signatures. Watch out for `TiledTableJSONResponse` in particular: the package exports that
-  name from two modules with two different definitions, and only the one beside the table methods
-  matches what they resolve to. Use `TiledTableJSONData` from here instead.
-- **No write hooks.** This version of the package has no POST endpoints. The invalidation bundles are
-  already shaped for them.
+- `apiKeyLocation: 'query'` is implemented already, because a browser websocket handshake cannot set
+  headers and query-string auth is the only mode that will work. The queue server learned this the
+  hard way; [its README](../qServer/README.md) documents the whole matrix.
+- `closeStream` and the spec's `EventType` enum (`container-child-created`,
+  `container-child-metadata-updated`, `stream-closed`) are the streaming vocabulary. Webhooks already
+  model delivery; a socket transport will reuse those types rather than inventing parallel ones.
+- Query roots are keyed by resource, not transport, so a socket that pushes an update invalidates
+  through the same `useTiledInvalidate()` surface.
+
+## Known duplication
+
+`client/interceptorRegistry.ts` is a copy of the queue server's. Both want to live in `@/api/shared`,
+but moving it would mean editing `src/api/qServer`, which this work deliberately did not touch. The
+duplication is on purpose and the deduplication is a clean separate change. If you fix a bug in one,
+fix it in the other.

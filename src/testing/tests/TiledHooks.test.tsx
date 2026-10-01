@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ReactNode } from 'react';
-import { resetDefaultTiledApiClient, setDefaultTiledApiClient } from '@blueskyproject/tiled';
+import { resetDefaultTiledApiClient, setDefaultTiledApiClient } from '../../api/tiled';
 import { FinchConfigProvider } from '../../app/FinchConfigProvider';
 import * as tiled from '../../api/tiled';
 import { TiledApiProvider } from '../../api/tiled/runtime/TiledApiProvider';
@@ -15,6 +15,7 @@ import {
     TILED_MUTATION_INVALIDATIONS,
 } from '../../api/tiled/hooks/invalidation';
 import { tiledQueryRoots } from '../../api/tiled/hooks/queryKeys';
+import { buildFilterParams } from '../../api/tiled/client/searchParams';
 import type { TiledRequestOptions, TiledSearchResult } from '../../api/tiled/types/common';
 
 const BASE_URL = 'http://tiled.test:8000/api/v1';
@@ -134,13 +135,20 @@ afterEach(() => {
 describe('hook coverage', () => {
     const exported = tiled as unknown as Record<string, unknown>;
 
-    it('exports 18 queries, 1 mutation and the image-path helper', () => {
+    /**
+     * Counts rather than a name list, so adding a hook does not mean editing a fixture — but a
+     * *removal* still fails here, which is what this is for.
+     *
+     * The numbers moved a long way when the client came in-house: 18 queries and 1 mutation over
+     * `@blueskyproject/tiled`'s read-only surface, against the whole API now.
+     */
+    it('exports a query and mutation hook for the whole API surface', () => {
         const names = Object.keys(exported).filter(
             (name) => name.startsWith('useTiled') && typeof exported[name] === 'function',
         );
 
-        expect(names.filter((name) => name.endsWith('Query'))).toHaveLength(18);
-        expect(names.filter((name) => name.endsWith('Mutation'))).toHaveLength(1);
+        expect(names.filter((name) => name.endsWith('Query')).length).toBeGreaterThanOrEqual(33);
+        expect(names.filter((name) => name.endsWith('Mutation')).length).toBeGreaterThanOrEqual(26);
         expect(names).toContain('useTiledArrayImagePath');
     });
 
@@ -149,26 +157,93 @@ describe('hook coverage', () => {
         // synchronous one, and the three config getters exist only for cache scoping.
         const notEndpoints = ['getBaseUrl', 'getInitialPath', 'getApiKey'];
         const covered: Record<string, string> = {
+            // info
+            getServerInfo: 'useTiledServerInfoQuery',
+            getAbout: 'useTiledAboutQuery',
+            getHealth: 'useTiledHealthQuery',
+            getUiSettings: 'useTiledUiSettingsQuery',
+            getMetrics: 'useTiledMetricsQuery',
+            // search
             getSearch: 'useTiledSearchQuery',
+            getDistinct: 'useTiledDistinctQuery',
+            // metadata
             getMetadata: 'useTiledMetadataQuery',
+            createNode: 'useTiledCreateNodeMutation',
+            updateMetadata: 'useTiledUpdateMetadataMutation',
+            patchMetadata: 'useTiledPatchMetadataMutation',
+            patchMetadataMerge: 'useTiledPatchMetadataMutation',
+            patchMetadataJsonPatch: 'useTiledPatchMetadataMutation',
+            deleteNode: 'useTiledDeleteNodeMutation',
+            // arrays
             getArrayAs: 'useTiledArrayAsQuery',
             getArrayAsJSON: 'useTiledArrayAsJSONQuery',
             getArrayAsPng: 'useTiledArrayAsPngQuery',
             getArrayAsBuffer: 'useTiledArrayAsBufferQuery',
             getArrayAsImagePath: 'useTiledArrayImagePath',
+            getArrayBlock: 'useTiledArrayBlockQuery',
+            putArrayFull: 'useTiledPutArrayFullMutation',
+            putArrayBlock: 'useTiledPutArrayBlockMutation',
+            patchArrayFull: 'useTiledPatchArrayFullMutation',
+            // ragged
+            getRaggedFull: 'useTiledRaggedFullQuery',
+            putRaggedFull: 'useTiledPutRaggedFullMutation',
+            putRaggedBlock: 'useTiledPutRaggedBlockMutation',
+            patchRaggedFull: 'useTiledPatchRaggedFullMutation',
+            // tables
             getTableAs: 'useTiledTableAsQuery',
             getTablePartitionAsJSON: 'useTiledTablePartitionAsJSONQuery',
             getTablePartitionAsJSONSequence: 'useTiledTablePartitionAsJSONSequenceQuery',
             getTableFullAsJSON: 'useTiledTableFullAsJSONQuery',
             getTableFullAsJSONSequence: 'useTiledTableFullAsJSONSequenceQuery',
-            getServerInfo: 'useTiledServerInfoQuery',
+            getTableFullAs: 'useTiledTableFullAsQuery',
+            postTableFull: 'useTiledPostTableFullQuery',
+            postTablePartition: 'useTiledPostTablePartitionQuery',
+            putTablePartition: 'useTiledPutTablePartitionMutation',
+            patchTablePartition: 'useTiledPatchTablePartitionMutation',
+            putTableFull: 'useTiledPutTableFullMutation',
+            // containers and nodes
+            getContainerFull: 'useTiledContainerFullQuery',
+            postContainerFull: 'useTiledPostContainerFullQuery',
+            getNodeFull: 'useTiledNodeFullQuery',
+            putNodeFull: 'useTiledPutNodeFullMutation',
+            // awkward
+            getAwkwardFull: 'useTiledAwkwardFullQuery',
+            getAwkwardBuffers: 'useTiledAwkwardBuffersQuery',
+            postAwkwardBuffers: 'useTiledPostAwkwardBuffersQuery',
+            putAwkwardFull: 'useTiledPutAwkwardFullMutation',
+            // registration, data sources, revisions, streams
+            postRegister: 'useTiledRegisterMutation',
+            putDataSource: 'useTiledPutDataSourceMutation',
+            getRevisions: 'useTiledRevisionsQuery',
+            deleteRevision: 'useTiledDeleteRevisionMutation',
+            closeStream: 'useTiledCloseStreamMutation',
+            // assets
+            getAssetBytes: 'useTiledAssetBytesQuery',
+            getAssetManifest: 'useTiledAssetManifestQuery',
+            // webhooks
+            listWebhooks: 'useTiledWebhooksQuery',
+            registerWebhook: 'useTiledRegisterWebhookMutation',
+            deleteWebhook: 'useTiledDeleteWebhookMutation',
+            getWebhookHistory: 'useTiledWebhookHistoryQuery',
+            // auth
             loginWithUsernamePassword: 'useTiledLoginMutation',
+            whoami: 'useTiledWhoamiQuery',
+            createApiKey: 'useTiledCreateApiKeyMutation',
+            revokeApiKey: 'useTiledRevokeApiKeyMutation',
+            refreshSession: 'useTiledRefreshSessionMutation',
+            revokeSession: 'useTiledRevokeSessionMutation',
+            logout: 'useTiledLogoutMutation',
+            // zarr — URL builders, deliberately not hooks. A URL needs no cache entry, and these
+            // exist to be handed to a zarr reader that does its own fetching.
+            getZarrV2Url: 'NOT_A_HOOK',
+            getZarrV3Url: 'NOT_A_HOOK',
         };
 
         for (const method of TILED_CLIENT_LIKE_METHODS) {
             if (notEndpoints.includes(method)) continue;
             const hook = covered[method];
             expect(hook, `no hook mapped for ${method}`).toBeDefined();
+            if (hook === 'NOT_A_HOOK') continue;
             expect(typeof exported[hook], hook).toBe('function');
         }
     });
@@ -311,100 +386,130 @@ describe('query keys', () => {
  * forgetting to quote only breaks strings and looks intermittent.
  */
 describe('filter value encoding', () => {
-    /** The `searchFilters` the stub client actually received. */
-    async function filtersSentBy(render: () => unknown) {
-        const { client, calls } = makeStub();
-        const { wrapper } = makeWrapper({ injected: client });
-        renderHook(render, { wrapper });
-        await waitFor(() => expect(calls.length).toBeGreaterThan(0));
-        const config = calls[0].args[1] as { searchFilters?: Record<string, unknown> };
-        return config?.searchFilters ?? {};
-    }
+    /**
+     * The encoding now lives in `client/searchParams.ts`, not in the hook layer.
+     *
+     * That is the point of the move: the free functions (`getTiledSearch`, …) and anyone calling the
+     * client directly get the same encoding a hook gets. It also means these assertions are made
+     * against the query parameters that actually go on the wire, rather than against an intermediate
+     * config object the hook used to hand to the package — a strictly stronger test, and the only
+     * one that can catch a wrong *parameter name*.
+     */
+    const condition = (filter: string, field: string) => `filter[${filter}][condition][${field}]`;
 
-    it('JSON-encodes a string value, so the caller never hand-quotes', async () => {
-        const filters = await filtersSentBy(() =>
-            tiled.useTiledSearchQuery('', {
-                searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
-            }),
-        );
-        expect(filters.contains).toEqual({ key: 'start.plan_name', value: '"xas_scan"' });
-    });
-
-    it('encodes numbers, booleans and null as themselves', async () => {
-        const filters = await filtersSentBy(() =>
-            tiled.useTiledSearchQuery('', {
-                searchFilters: {
-                    eq: { key: 'start.scan_id', value: 5 },
-                    noteq: { key: 'start.ok', value: true },
-                    comparison: { operator: 'gt', key: 'start.time', value: 1700000000 },
-                    contains: { key: 'start.tag', value: null },
-                },
-            }),
-        );
-        expect(filters.eq).toEqual({ key: 'start.scan_id', value: '5' });
-        expect(filters.noteq).toEqual({ key: 'start.ok', value: 'true' });
-        expect(filters.comparison).toEqual({
-            operator: 'gt',
-            key: 'start.time',
-            value: '1700000000',
+    it('JSON-encodes a string value, so the caller never hand-quotes', () => {
+        const params = buildFilterParams({
+            contains: { key: 'start.plan_name', value: 'xas_scan' },
         });
-        expect(filters.contains).toEqual({ key: 'start.tag', value: 'null' });
+        expect(params[condition('contains', 'key')]).toBe('start.plan_name');
+        expect(params[condition('contains', 'value')]).toBe('"xas_scan"');
     });
 
-    it('encodes each element of an in/notin set', async () => {
-        const filters = await filtersSentBy(() =>
-            tiled.useTiledSearchQuery('', {
-                searchFilters: {
-                    in: { key: 'start.plan_name', value: ['count', 'scan'] },
-                    notin: { key: 'start.scan_id', value: [1, 2] },
-                },
-            }),
-        );
-        expect(filters.in).toEqual({ key: 'start.plan_name', value: ['"count"', '"scan"'] });
-        expect(filters.notin).toEqual({ key: 'start.scan_id', value: ['1', '2'] });
-    });
-
-    /** Encoding these would break them: the server reads them as plain strings, not JSON. */
-    it('leaves the string-valued filters alone', async () => {
-        const filters = await filtersSentBy(() =>
-            tiled.useTiledSearchQuery('', {
-                searchFilters: {
-                    fulltext: { text: 'alice' },
-                    regex: { key: 'start.plan_name', pattern: '^xas' },
-                    like: { key: 'start.plan_name', pattern: 'xas%' },
-                    lookup: { key: 'start.uid' },
-                    structureFamily: { value: 'array' },
-                    keyPresent: { key: 'stop.time', exists: true },
-                },
-            }),
-        );
-        expect(filters.fulltext).toEqual({ text: 'alice' });
-        expect(filters.regex).toEqual({ key: 'start.plan_name', pattern: '^xas' });
-        expect(filters.like).toEqual({ key: 'start.plan_name', pattern: 'xas%' });
-        expect(filters.lookup).toEqual({ key: 'start.uid' });
-        expect(filters.structureFamily).toEqual({ value: 'array' });
-        expect(filters.keyPresent).toEqual({ key: 'stop.time', exists: true });
-    });
-
-    it('passes the convenience hooks through the same encoding', async () => {
-        const equals = await filtersSentBy(() =>
-            tiled.useTiledSearchByMetadataEqualsQuery('', {
-                key: 'start.plan_name',
-                value: 'count',
-            }),
-        );
-        expect(equals.eq).toEqual({ key: 'start.plan_name', value: '"count"' });
+    it('encodes numbers, booleans and null as themselves', () => {
+        const params = buildFilterParams({
+            eq: { key: 'start.scan_id', value: 5 },
+            noteq: { key: 'start.ok', value: true },
+            comparison: { operator: 'gt', key: 'start.time', value: 1700000000 },
+            contains: { key: 'start.tag', value: null },
+        });
+        expect(params[condition('eq', 'value')]).toBe('5');
+        expect(params[condition('noteq', 'value')]).toBe('true');
+        expect(params[condition('comparison', 'value')]).toBe('1700000000');
+        expect(params[condition('comparison', 'operator')]).toBe('gt');
+        expect(params[condition('contains', 'value')]).toBe('null');
     });
 
     /**
-     * The key holds the *encoded* config, because that is what identifies the request.
+     * `in` / `notin` take **one JSON array in one parameter**, not repeated keys.
      *
-     * Also the reason `5` and `'5'` stay separate entries: they encode to `5` and `"5"`, two
-     * different searches. (Keying on the raw config would separate them too, so the cache-count
-     * assertion below is not on its own evidence that encoding happens before keying — the key
-     * contents are.)
+     * Verified against Tiled 0.2.15b1: sent as repeated keys the filter matches nothing, silently.
+     * `keys_filter` encodes the same way and answers 500 when it is wrong, which is how this was
+     * found.
      */
-    it('keys on the encoded config', async () => {
+    it('sends an in/notin set as a single JSON array', () => {
+        const params = buildFilterParams({
+            in: { key: 'start.plan_name', value: ['count', 'scan'] },
+            notin: { key: 'start.scan_id', value: [1, 2] },
+        });
+        expect(params[condition('in', 'value')]).toBe('["count","scan"]');
+        expect(params[condition('notin', 'value')]).toBe('[1,2]');
+    });
+
+    it('leaves the plain-string filters alone', () => {
+        const params = buildFilterParams({
+            fulltext: { text: 'alice' },
+            regex: { key: 'start.plan_name', pattern: '^xas' },
+            like: { key: 'start.plan_name', pattern: 'xas%' },
+            lookup: { key: 'start.uid' },
+            structureFamily: { value: 'array' },
+            keyPresent: { key: 'stop.time', exists: true },
+        });
+        expect(params[condition('fulltext', 'text')]).toBe('alice');
+        expect(params[condition('regex', 'pattern')]).toBe('^xas');
+        expect(params[condition('like', 'pattern')]).toBe('xas%');
+        expect(params[condition('lookup', 'key')]).toBe('start.uid');
+        expect(params[condition('structure_family', 'value')]).toBe('array');
+        expect(params[condition('keypresent', 'exists')]).toBe(true);
+    });
+
+    it('JSON-encodes the specs lists as whole arrays', () => {
+        const params = buildFilterParams({ specs: { include: ['BlueskyRun'], exclude: [] } });
+        expect(params[condition('specs', 'include')]).toBe('["BlueskyRun"]');
+        expect(params[condition('specs', 'exclude')]).toBe('[]');
+    });
+
+    /**
+     * The three parameter names `@blueskyproject/tiled` gets wrong.
+     *
+     * FastAPI silently drops an unknown query parameter, so under the package these three filters
+     * never applied and the search came back unfiltered — which reads as "the filter matched
+     * everything" rather than as a bug. Pinned here against the names in `openapi.json`, which the
+     * live server's own `About.queries` agrees with.
+     */
+    it('uses the parameter names the server actually accepts', () => {
+        expect(buildFilterParams({ keysFilter: { keys: ['a', 'b'] } })).toEqual({
+            'filter[keys_filter][condition][keys]': '["a","b"]',
+        });
+
+        expect(buildFilterParams({ keyPresent: { key: 'stop.time', exists: true } })).toEqual({
+            'filter[keypresent][condition][key]': 'stop.time',
+            'filter[keypresent][condition][exists]': true,
+        });
+
+        expect(buildFilterParams({ accessBlob: { userId: 'alice', tags: ['x'] } })).toEqual({
+            'filter[access_blob_filter][condition][user_id]': 'alice',
+            'filter[access_blob_filter][condition][tags]': '["x"]',
+        });
+    });
+
+    it('hands the hook config straight to the client, unencoded', async () => {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper({ injected: client });
+
+        renderHook(
+            () =>
+                tiled.useTiledSearchQuery('', {
+                    searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+                }),
+            { wrapper },
+        );
+        await waitFor(() => expect(calls.length).toBeGreaterThan(0));
+
+        const config = calls[0].args[1] as {
+            searchFilters: { contains: { value: unknown } };
+        };
+        // The raw value, not `'"xas_scan"'` — encoding happens inside the client, on the way out.
+        expect(config.searchFilters.contains.value).toBe('xas_scan');
+    });
+
+    /**
+     * `5` and `'5'` are two different searches and get two cache entries.
+     *
+     * This used to hold because the hook encoded before keying. It holds for a simpler reason now:
+     * a TanStack key hash already distinguishes the number from the string, so keying on the raw
+     * config is enough.
+     */
+    it('keeps a number and its string form in separate cache entries', async () => {
         const { client } = makeStub();
         const { wrapper, queryClient } = makeWrapper({ injected: client });
 
@@ -429,11 +534,12 @@ describe('filter value encoding', () => {
                 (entry) =>
                     (
                         entry.queryKey[2] as {
-                            config: { searchFilters: { eq: { value: string } } };
+                            config: { searchFilters: { eq: { value: unknown } } };
                         }
                     ).config.searchFilters.eq.value,
             );
-        expect(values.sort()).toEqual(['"5"', '5']);
+        expect(values).toContain(5);
+        expect(values).toContain('5');
     });
 });
 
