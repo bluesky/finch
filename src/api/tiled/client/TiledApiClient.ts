@@ -279,6 +279,32 @@ export class TiledApiClient {
         return this.tokenStorage.read();
     }
 
+    /**
+     * Seed or clear the session: the bearer token *and* the stored refresh token together.
+     *
+     * The counterpart to {@link getStoredTokens}, which could read a session the client had no way
+     * to write. `setBearerToken` sets only the in-memory half, and the refresh token lived in a
+     * `TiledTokenStorage` a caller could replace wholesale but not update — so handing the client a
+     * session you already held (from another tab, a test fixture, or a UI that asks for one) meant
+     * constructing a storage object yourself.
+     *
+     * `null` clears both, equivalent to {@link clearAuth} minus the API key.
+     *
+     * **Mind which storage is installed.** The default browser storage shares its keys with the
+     * `<Tiled>` viewer component, so writing an experimental token here changes the session for
+     * anything else reading those keys. Install a memory storage first when that is not what you
+     * want — see `createMemoryTokenStorage`.
+     */
+    setSession(tokens: TiledStoredTokens | null): void {
+        if (!tokens) {
+            this.tokenStorage.clear();
+            this.setBearerToken(null);
+            return;
+        }
+        this.tokenStorage.write(tokens);
+        this.setBearerToken(tokens.accessToken);
+    }
+
     setTokenStorage(storage: TiledTokenStorage): void {
         this.tokenStorage = storage;
     }

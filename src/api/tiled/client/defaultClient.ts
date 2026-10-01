@@ -11,7 +11,7 @@ import type {
     TiledAuthErrorCallback,
 } from '../types/requestOptions';
 import { TiledApiClient, type TiledApiClientConfig } from './TiledApiClient';
-import type { TiledTokenStorage } from './tokenStorage';
+import type { TiledStoredTokens, TiledTokenStorage } from './tokenStorage';
 import { defaultTiledBaseUrl } from './urlUtils';
 
 /**
@@ -133,6 +133,15 @@ export function getGlobalApiKey(): string | null {
 
 export function setDefaultBearerToken(token: string | null): void {
     getDefaultTiledApiClient().setBearerToken(token);
+}
+
+/** Seed or clear the app-wide client's session — bearer token and stored refresh token together. */
+export function setGlobalTiledSession(tokens: TiledStoredTokens | null): void {
+    getDefaultTiledApiClient().setSession(tokens);
+}
+
+export function getGlobalTiledSession(): TiledStoredTokens | null {
+    return getDefaultTiledApiClient().getStoredTokens();
 }
 
 export function clearGlobalTiledAuth(): void {
