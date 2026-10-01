@@ -548,3 +548,41 @@ describe('logout', () => {
         expect(storage.read()).toBeNull();
     });
 });
+
+describe('session seeding', () => {
+    /**
+     * `setSession` closes the read/write asymmetry: the client could read a stored session through
+     * `getStoredTokens` but had no way to write one, so handing it a session you already held meant
+     * constructing a `TiledTokenStorage` yourself.
+     */
+    it('sets the bearer token and persists both halves', () => {
+        const storage = createMemoryTokenStorage();
+        const client = new TiledApiClient({ baseUrl: 'http://h/api/v1', tokenStorage: storage });
+
+        client.setSession({ accessToken: 'access', refreshToken: 'refresh' });
+
+        expect(client.getBearerToken()).toBe('access');
+        expect(storage.read()).toEqual({ accessToken: 'access', refreshToken: 'refresh' });
+        expect(client.getStoredTokens()).toEqual({
+            accessToken: 'access',
+            refreshToken: 'refresh',
+        });
+    });
+
+    it('clears both halves on null, leaving the API key alone', () => {
+        const storage = createMemoryTokenStorage();
+        const client = new TiledApiClient({
+            baseUrl: 'http://h/api/v1',
+            apiKey: 'key',
+            tokenStorage: storage,
+        });
+        client.setSession({ accessToken: 'a', refreshToken: 'r' });
+
+        client.setSession(null);
+
+        expect(client.getBearerToken()).toBeNull();
+        expect(storage.read()).toBeNull();
+        // `clearAuth` drops the key too; this is the narrower operation.
+        expect(client.getApiKey()).toBe('key');
+    });
+});

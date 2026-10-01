@@ -11,7 +11,7 @@ import {
 import type { TiledEndpointDescriptor, TiledEndpointGroup } from '@/api/tiled';
 import { useTiledApiUrls } from '@/utils/apiUtils';
 import TiledEndpointRow from './TiledEndpointRow';
-import TiledNodeBrowser from './TiledNodeBrowser';
+import TiledNodeBrowser from '../devtools/TiledNodeBrowser';
 import { useTiledEndpointRunner } from './useTiledEndpointRunner';
 
 /**

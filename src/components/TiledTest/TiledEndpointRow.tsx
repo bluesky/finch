@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { TiledEndpointDescriptor, TiledEndpointInvocation } from '@/api/tiled';
-import JsonResultViewer from '../QServerTest/JsonResultViewer';
+import JsonResultViewer from '../devtools/JsonResultViewer';
 import type { TiledRunState } from './useTiledEndpointRunner';
 
 export interface TiledEndpointRowProps {
@@ -222,15 +222,7 @@ export default function TiledEndpointRow({
                         </p>
                     )}
 
-                    {state?.result !== undefined && (
-                        // The viewer is shared with the queue-server harness, which renders on a
-                        // light page; this one sits inside Finch's dark app chrome, where the
-                        // inherited text colour would be light on the viewer's light background.
-                        // Setting it here rather than in the shared component keeps that page as-is.
-                        <div className="text-slate-900 dark:text-slate-100">
-                            <JsonResultViewer value={state.result} />
-                        </div>
-                    )}
+                    {state?.result !== undefined && <JsonResultViewer value={state.result} />}
                 </div>
             )}
         </div>

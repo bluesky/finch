@@ -8,7 +8,17 @@ export interface JsonResultViewerProps {
 
 const PREVIEW_LIMIT = 4000;
 
-/** Pretty-printed, collapsible JSON with a copy button. */
+/**
+ * Pretty-printed, collapsible JSON with a copy button.
+ *
+ * Shared by the queue-server and Tiled dev harnesses, which is why it lives in `devtools/` rather
+ * than beside either of them.
+ *
+ * It sets its own text colour explicitly. The harnesses render inside Finch's dark app chrome,
+ * which supplies a light inherited colour, while this panel has a light background of its own —
+ * inheriting gave white-on-white. Tailwind's `dark:` variants are keyed off a class the app does
+ * not set, so they are not a substitute for being explicit here.
+ */
 export default function JsonResultViewer({
     value,
     maxHeightClass = 'max-h-72',
@@ -36,7 +46,7 @@ export default function JsonResultViewer({
     };
 
     return (
-        <div className="rounded border border-slate-300 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+        <div className="rounded border border-slate-300 bg-slate-50 text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
             <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-2 py-1 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
                 <span>{text.length.toLocaleString()} chars</span>
                 <div className="flex gap-2">
