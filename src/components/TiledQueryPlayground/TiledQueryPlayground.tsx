@@ -12,11 +12,23 @@ import TiledConnectionBar, {
     emptyTiledConnection,
     type TiledConnectionConfig,
 } from '../devtools/TiledConnectionBar';
+import {
+    clearTiledConnection,
+    hasStoredTiledConnection,
+    loadTiledConnection,
+    saveTiledConnection,
+} from '../devtools/tiledConnectionStorage';
 import QueryCacheInspector from './QueryCacheInspector';
 import QueryCatalogList from './QueryCatalogList';
 import QueryDetailPanel from './QueryDetailPanel';
-import { TILED_QUERY_CATALOG, getQueryById } from './catalog';
+import { TILED_PLAYGROUND_CATALOG, getQueryById } from './catalog';
 import { defaultValues, type PlaygroundQueryOptions } from './types';
+
+/**
+ * Separate from `TestTiled`'s, so pointing one harness at a scratch container does not move the
+ * other. They are different investigations and usually want different servers.
+ */
+const CONNECTION_STORAGE = 'playground' as const;
 
 /**
  * A manual testbed for the Tiled **query hooks**.
@@ -25,6 +37,12 @@ import { defaultValues, type PlaygroundQueryOptions } from './types';
  * and never calls a hook. That one answers "does the request work"; this one answers "does the hook
  * layer behave" — keys, cache sharing, staleness, guards, invalidation. Both of the cache bugs
  * found in review were invisible from a client-level harness.
+ *
+ * It covers **reads and writes**: 41 query hooks and 27 mutation hooks. The writes are here for one
+ * reason, since `TestTiled` already fires every one of them with better binary handling —
+ * invalidation. `useTiledMutation` awaits a hand-written bundle map before `mutateAsync` resolves,
+ * and pinning a query while running a mutation against the same node is the only way to see whether
+ * the right entries actually refetched.
  *
  * ## Two things it deliberately owns
  *
@@ -42,10 +60,21 @@ import { defaultValues, type PlaygroundQueryOptions } from './types';
 export default function TiledQueryPlayground() {
     const configured = useTiledApiUrls();
 
-    const [applied, setApplied] = useState<TiledConnectionConfig>(() => ({
-        ...emptyTiledConnection(configured.httpBaseUrl),
-        apiKey: configured.apiKey ?? '',
-    }));
+    // Finch config supplies the defaults; a connection saved by a previous Apply overrides them
+    // field by field. Read once, in the initializer, so a later render never silently reverts what
+    // is on screen to what is on disk.
+    const [applied, setApplied] = useState<TiledConnectionConfig>(() =>
+        loadTiledConnection(CONNECTION_STORAGE, {
+            ...emptyTiledConnection(configured.httpBaseUrl),
+            apiKey: configured.apiKey ?? '',
+        }),
+    );
+
+    // Apply is the commit point for the client, so it is the commit point for storage too.
+    const apply = (config: TiledConnectionConfig) => {
+        setApplied(config);
+        saveTiledConnection(CONNECTION_STORAGE, config);
+    };
 
     // Rebuilt only when Apply commits a change — the bar stages edits precisely so that typing a
     // URL does not remount every mounted query and fire a request per keystroke.
@@ -93,7 +122,7 @@ export default function TiledQueryPlayground() {
     return (
         <QueryClientProvider client={queryClient}>
             <TiledApiProvider client={client}>
-                <PlaygroundBody applied={applied} onApply={setApplied} />
+                <PlaygroundBody applied={applied} onApply={apply} />
             </TiledApiProvider>
         </QueryClientProvider>
     );
@@ -112,7 +141,11 @@ function PlaygroundBody({
     applied: TiledConnectionConfig;
     onApply: (config: TiledConnectionConfig) => void;
 }) {
-    const [selectedId, setSelectedId] = useState(TILED_QUERY_CATALOG[0].id);
+    // Only tracked so *Forget* can disappear once there is nothing left to forget; the stored
+    // config itself was read in the parent's initializer and is not re-read here.
+    const [stored, setStored] = useState(() => hasStoredTiledConnection(CONNECTION_STORAGE));
+
+    const [selectedId, setSelectedId] = useState(TILED_PLAYGROUND_CATALOG[0].id);
     const [pinnedIds, setPinnedIds] = useState<string[]>([]);
 
     // Field values and per-query options live here rather than in the panel, so switching away and
@@ -142,7 +175,18 @@ function PlaygroundBody({
         <div className="space-y-4">
             <TiledConnectionBar
                 applied={applied}
-                onApply={onApply}
+                onApply={(config) => {
+                    onApply(config);
+                    setStored(true);
+                }}
+                onForget={
+                    stored
+                        ? () => {
+                              clearTiledConnection(CONNECTION_STORAGE);
+                              setStored(false);
+                          }
+                        : undefined
+                }
                 status={
                     <>
                         {info.isPending && 'connecting…'}

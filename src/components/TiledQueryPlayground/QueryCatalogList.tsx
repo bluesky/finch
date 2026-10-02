@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { TILED_GROUP_LABELS } from '@/api/tiled';
-import { groupedQueries } from './catalog';
-import type { QueryDescriptor } from './types';
+import { groupedQueries, type CatalogFilter } from './catalog';
+import type { PlaygroundDescriptor } from './types';
 
 export interface QueryCatalogListProps {
     selectedId: string;
@@ -18,11 +18,12 @@ export default function QueryCatalogList({
     onTogglePin,
 }: QueryCatalogListProps) {
     const [filter, setFilter] = useState('');
+    const [kind, setKind] = useState<CatalogFilter>('all');
 
     const groups = useMemo(() => {
         const needle = filter.trim().toLowerCase();
-        if (!needle) return groupedQueries();
-        return groupedQueries()
+        if (!needle) return groupedQueries(kind);
+        return groupedQueries(kind)
             .map((entry) => ({
                 ...entry,
                 queries: entry.queries.filter(
@@ -33,7 +34,7 @@ export default function QueryCatalogList({
                 ),
             }))
             .filter((entry) => entry.queries.length > 0);
-    }, [filter]);
+    }, [filter, kind]);
 
     const total = groups.reduce((count, entry) => count + entry.queries.length, 0);
 
@@ -46,8 +47,26 @@ export default function QueryCatalogList({
                 placeholder="filter by id, hook or summary"
                 className="w-full rounded border border-slate-300 bg-white px-2 py-1 text-xs text-slate-900 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
             />
+            {/* 68 entries is too many to scan, and reads and writes are rarely wanted at once. */}
+            <div className="flex gap-1">
+                {(['all', 'queries', 'mutations'] as const).map((option) => (
+                    <button
+                        key={option}
+                        type="button"
+                        onClick={() => setKind(option)}
+                        className={`rounded px-1.5 py-0.5 text-[10px] ${
+                            kind === option
+                                ? 'bg-slate-300 text-slate-900 dark:bg-slate-600 dark:text-slate-100'
+                                : 'text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        {option === 'queries' ? 'reads' : option === 'mutations' ? 'writes' : 'all'}
+                    </button>
+                ))}
+            </div>
+
             <p className="text-[10px] text-slate-500">
-                {total} quer{total === 1 ? 'y' : 'ies'}
+                {total} hook{total === 1 ? '' : 's'}
                 {pinnedIds.length > 0 && ` · ${pinnedIds.length} pinned`}
             </p>
 
@@ -81,7 +100,7 @@ function Row({
     onSelect,
     onTogglePin,
 }: {
-    query: QueryDescriptor;
+    query: PlaygroundDescriptor;
     selected: boolean;
     pinned: boolean;
     onSelect: () => void;
@@ -100,6 +119,16 @@ function Row({
                 title={query.summary}
             >
                 {query.id.split('.')[1] ?? query.id}
+                {query.kind === 'mutation' && (
+                    <span
+                        className={`ml-1 text-[9px] ${
+                            query.destructive ? 'text-red-600' : 'text-amber-600'
+                        }`}
+                        title={query.destructive ? 'destructive write' : 'write'}
+                    >
+                        ●
+                    </span>
+                )}
             </button>
             <button
                 type="button"

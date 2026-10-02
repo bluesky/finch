@@ -24,7 +24,10 @@ export type QueryFieldKind =
     | 'enum'
     | 'stringList'
     | 'numberList'
-    | 'json';
+    | 'json'
+    // A binary body, for the eleven writes that take bytes rather than JSON. There is no useful
+    // way to type array bytes into a textarea, so these get a file picker.
+    | 'file';
 
 export interface QueryFieldSpec {
     /** Key into the values record, and the hook argument it feeds. */
@@ -64,7 +67,25 @@ export interface PlaygroundQueryOptions {
     refetchInterval?: number | false;
 }
 
-/** What every Runner receives. */
+/** What a mutation Runner receives. It owns its own trigger, so there is no options slot. */
+export interface MutationRunnerProps {
+    /** Current field values, keyed by `QueryFieldSpec.name`. */
+    values: Record<string, unknown>;
+    /**
+     * Gate a destructive write behind a second, deliberate click.
+     *
+     * Returns false the first time and arms the Run button, which relabels itself with `summary`
+     * until the next click or a few seconds pass. It is **not** `window.confirm`: a native dialog
+     * blocks the renderer entirely, which freezes the page for anything driving the browser and is
+     * a poor fit for a panel you are clicking through repeatedly. A two-step button is just as
+     * deliberate and does not stop the world.
+     */
+    confirm: (summary: string) => boolean;
+    /** Normally empty — the connection bar binds through `TiledApiProvider` instead. */
+    requestOptions?: TiledRequestOptions;
+}
+
+/** What every query Runner receives. */
 export interface QueryRunnerProps {
     /** Current field values, keyed by `QueryFieldSpec.name`. */
     values: Record<string, unknown>;
@@ -74,7 +95,8 @@ export interface QueryRunnerProps {
     requestOptions?: TiledRequestOptions;
 }
 
-export interface QueryDescriptor {
+/** What every descriptor carries, read or write. */
+interface DescriptorBase {
     /** Stable id, `<group>.<name>` — matches the endpoint registry's convention. */
     id: string;
     /** The registry's groups, so both harnesses order and name things identically. */
@@ -83,6 +105,11 @@ export interface QueryDescriptor {
     hookName: string;
     summary: string;
     fields: readonly QueryFieldSpec[];
+    resultKind: QueryResultKind;
+}
+
+export interface QueryDescriptor extends DescriptorBase {
+    kind: 'query';
     /**
      * Field names the hook idles on.
      *
@@ -91,9 +118,35 @@ export interface QueryDescriptor {
      * broken.
      */
     guardedBy?: readonly string[];
-    resultKind: QueryResultKind;
     Runner: ComponentType<QueryRunnerProps>;
 }
+
+/**
+ * A write.
+ *
+ * The important difference from a query is not the verb — it is that a mutation **does not run on
+ * mount**. A query fetches as soon as it is observed; a mutation waits for `mutate()`. So its
+ * Runner owns a Run button and renders mutation state rather than query state.
+ *
+ * What a mutation adds over calling the client directly — which `TestTiled` already does, with
+ * better binary handling — is **invalidation**. `useTiledMutation` awaits the bundles in
+ * `TILED_MUTATION_INVALIDATIONS` before `mutateAsync` resolves, and that map is hand-written. Pin a
+ * query, run a mutation against the same node, and the cache inspector shows whether the right
+ * entries actually refetched. No other harness can show that.
+ */
+export interface MutationDescriptor extends DescriptorBase {
+    kind: 'mutation';
+    /**
+     * Changes server state in a way a tester should confirm first.
+     *
+     * Mirrors the endpoint registry's flag so the two harnesses cannot disagree about what is
+     * dangerous.
+     */
+    destructive?: boolean;
+    Runner: ComponentType<MutationRunnerProps>;
+}
+
+export type PlaygroundDescriptor = QueryDescriptor | MutationDescriptor;
 
 /** Read a field value with a fallback, for the Runners. */
 export function str(values: Record<string, unknown>, name: string, fallback = ''): string {
@@ -137,8 +190,30 @@ export function json<T>(values: Record<string, unknown>, name: string): T | unde
     return value === undefined || value === null ? undefined : (value as T);
 }
 
+/** A `file` field's value, or `undefined` when nothing was picked. */
+export function file(values: Record<string, unknown>, name: string): File | undefined {
+    const value = values[name];
+    return typeof File !== 'undefined' && value instanceof File ? value : undefined;
+}
+
+/**
+ * The bytes of a `file` field, read lazily at submit time.
+ *
+ * Reading on pick would hold every chosen file in memory for as long as the page is open; a write
+ * harness is exactly where someone selects a 200 MB array and then changes their mind.
+ */
+export async function fileBytes(
+    values: Record<string, unknown>,
+    name: string,
+): Promise<ArrayBuffer> {
+    const picked = file(values, name);
+    // An empty body still exercises the request shape, and the server's complaint about it is
+    // informative — more so than refusing to send anything.
+    return picked ? picked.arrayBuffer() : new ArrayBuffer(0);
+}
+
 /** Initial values for a descriptor, from its field defaults. */
-export function defaultValues(descriptor: QueryDescriptor): Record<string, unknown> {
+export function defaultValues(descriptor: PlaygroundDescriptor): Record<string, unknown> {
     const values: Record<string, unknown> = {};
     for (const field of descriptor.fields) {
         if (field.defaultValue !== undefined) values[field.name] = field.defaultValue;

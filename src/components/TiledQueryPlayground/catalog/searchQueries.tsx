@@ -192,6 +192,7 @@ function MetadataRunner({ values, queryOptions, requestOptions }: QueryRunnerPro
 export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'search.search',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchQuery',
         summary: 'The general form: a whole TiledSearchConfig of filters and options.',
@@ -211,6 +212,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.bySpecs',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchBySpecsQuery',
         summary: 'Filter by spec name. Both lists travel as whole JSON arrays.',
@@ -230,6 +232,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.byFullText',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchByFullTextQuery',
         summary: 'Full-text across metadata. Idles while the text is empty.',
@@ -244,6 +247,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.byMetadataEquals',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchByMetadataEqualsQuery',
         summary: 'Exact match on a metadata key. Pass the value itself, not pre-quoted JSON.',
@@ -264,6 +268,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.byStructureFamily',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchByStructureFamilyQuery',
         summary: 'Filter by structure family.',
@@ -283,6 +288,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.byRegex',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchByRegexQuery',
         summary: 'Regular-expression match. The pattern is a plain string, not JSON-encoded.',
@@ -298,6 +304,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.byComparison',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledSearchByMetadataComparisonQuery',
         summary: 'Ordered comparison on a metadata key.',
@@ -319,6 +326,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'search.distinct',
+        kind: 'query',
         group: 'search',
         hookName: 'useTiledDistinctQuery',
         summary:
@@ -343,6 +351,7 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'metadata.get',
+        kind: 'query',
         group: 'metadata',
         hookName: 'useTiledMetadataQuery',
         summary: "One node's metadata, specs, structure and links. Idles on an empty path.",

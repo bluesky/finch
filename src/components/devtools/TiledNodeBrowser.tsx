@@ -22,7 +22,7 @@ export default function TiledNodeBrowser({ path, onPathChange }: TiledNodeBrowse
     const segments = path.split('/').filter(Boolean);
 
     return (
-        <div className="rounded border border-slate-300 p-3 dark:border-slate-700">
+        <div className="rounded border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
             <div className="mb-2 flex flex-wrap items-center gap-1 text-sm">
                 <button
                     type="button"
@@ -67,7 +67,7 @@ export default function TiledNodeBrowser({ path, onPathChange }: TiledNodeBrowse
                                 className="w-full rounded px-1 text-left font-mono text-xs hover:bg-slate-200 dark:hover:bg-slate-700"
                                 onClick={() => onPathChange(path ? `${path}/${item.id}` : item.id)}
                             >
-                                <span className="text-slate-400">
+                                <span className="text-slate-500">
                                     [{item.attributes.structure_family}]
                                 </span>{' '}
                                 {item.id}

@@ -77,6 +77,8 @@ export {
     setGlobalTiledApiKeyLocation,
     setGlobalTiledApiKeyScheme,
     setGlobalTiledTokenStorage,
+    setGlobalTiledSession,
+    getGlobalTiledSession,
     getGlobalApiKey,
     // interceptors
     addRequestInterceptor,

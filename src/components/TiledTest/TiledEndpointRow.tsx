@@ -168,7 +168,7 @@ export default function TiledEndpointRow({
                                 {param.name}
                                 {param.required && <span className="text-red-500"> *</span>}
                                 {param.description && (
-                                    <span className="ml-1 text-slate-400">
+                                    <span className="ml-1 text-slate-500">
                                         — {param.description}
                                     </span>
                                 )}

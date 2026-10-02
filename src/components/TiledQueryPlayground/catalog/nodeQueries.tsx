@@ -144,6 +144,7 @@ function RaggedFullRunner({ values, queryOptions, requestOptions }: QueryRunnerP
 export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'container.full',
+        kind: 'query',
         group: 'container',
         hookName: 'useTiledContainerFullQuery',
         summary:
@@ -155,6 +156,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'container.postFull',
+        kind: 'query',
         group: 'container',
         hookName: 'useTiledPostContainerFullQuery',
         summary: 'The same with the field list in the body. A read, despite the verb.',
@@ -169,6 +171,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'node.full',
+        kind: 'query',
         group: 'node',
         hookName: 'useTiledNodeFullQuery',
         summary:
@@ -180,6 +183,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'awkward.full',
+        kind: 'query',
         group: 'awkward',
         hookName: 'useTiledAwkwardFullQuery',
         summary: 'A whole awkward array.',
@@ -190,6 +194,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'awkward.buffers',
+        kind: 'query',
         group: 'awkward',
         hookName: 'useTiledAwkwardBuffersQuery',
         summary: 'Selected buffers by form key — one field of a nested record without the rest.',
@@ -200,6 +205,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'awkward.postBuffers',
+        kind: 'query',
         group: 'awkward',
         hookName: 'useTiledPostAwkwardBuffersQuery',
         summary: 'The same with the form-key list in the body.',
@@ -214,6 +220,7 @@ export const nodeQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'ragged.full',
+        kind: 'query',
         group: 'ragged',
         hookName: 'useTiledRaggedFullQuery',
         summary: 'A ragged array — rows of varying length.',

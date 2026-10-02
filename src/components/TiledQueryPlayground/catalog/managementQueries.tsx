@@ -122,6 +122,7 @@ function WebhookHistoryRunner({ values, queryOptions, requestOptions }: QueryRun
 export const managementQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'management.revisions',
+        kind: 'query',
         group: 'management',
         hookName: 'useTiledRevisionsQuery',
         summary: "A node's metadata revision history — the audit trail behind the write hooks.",
@@ -136,6 +137,7 @@ export const managementQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'asset.bytes',
+        kind: 'query',
         group: 'asset',
         hookName: 'useTiledAssetBytesQuery',
         summary: 'The file as stored, bypassing the structure layer. Needs an asset id.',
@@ -156,6 +158,7 @@ export const managementQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'asset.manifest',
+        kind: 'query',
         group: 'asset',
         hookName: 'useTiledAssetManifestQuery',
         summary: 'The file list of a directory-shaped asset.',
@@ -166,6 +169,7 @@ export const managementQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'webhooks.list',
+        kind: 'query',
         group: 'webhooks',
         hookName: 'useTiledWebhooksQuery',
         summary: 'The webhooks registered on a node.',
@@ -176,6 +180,7 @@ export const managementQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'webhooks.history',
+        kind: 'query',
         group: 'webhooks',
         hookName: 'useTiledWebhookHistoryQuery',
         summary: 'Delivery attempts for one webhook. Idles until an id is given.',

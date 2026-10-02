@@ -165,6 +165,7 @@ function PostPartitionRunner({ values, queryOptions, requestOptions }: QueryRunn
 export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'table.partitionAsJSON',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTablePartitionAsJSONQuery',
         summary: 'One partition, column-oriented — what a plotting library wants.',
@@ -175,6 +176,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.partitionAsJSONSequence',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTablePartitionAsJSONSequenceQuery',
         summary: 'One partition, row-oriented — what a table wants.',
@@ -185,6 +187,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.fullAsJSON',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTableFullAsJSONQuery',
         summary: 'Every partition, column-oriented.',
@@ -195,6 +198,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.fullAsJSONSequence',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTableFullAsJSONSequenceQuery',
         summary: 'Every partition, row-oriented.',
@@ -205,6 +209,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.as',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTableAsQuery',
         summary: 'The generic dispatcher: format × endpoint.',
@@ -233,6 +238,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.fullAs',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledTableFullAsQuery',
         summary: 'Any representation — CSV, parquet, arrow, Excel. What a download button reads.',
@@ -253,6 +259,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.postFull',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledPostTableFullQuery',
         summary:
@@ -268,6 +275,7 @@ export const tableQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'table.postPartition',
+        kind: 'query',
         group: 'table',
         hookName: 'useTiledPostTablePartitionQuery',
         summary: 'The same, for one partition.',

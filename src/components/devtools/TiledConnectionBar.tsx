@@ -43,6 +43,13 @@ export interface TiledConnectionBarProps {
     /** The committed config — what the harness is actually using. */
     applied: TiledConnectionConfig;
     onApply: (config: TiledConnectionConfig) => void;
+    /**
+     * Drops a persisted copy of this config, if the harness keeps one.
+     *
+     * Supplying it renders *Forget*. The harness owns the storage — see `tiledConnectionStorage` —
+     * because what a committed config is worth saving to is its business, not the form's.
+     */
+    onForget?: () => void;
     /** Rendered beside the controls: version, auth mode, whatever the harness knows. */
     status?: React.ReactNode;
     /** Extra controls (sweep buttons, counters) rendered on the action row. */
@@ -60,6 +67,7 @@ const buttonClass =
 export default function TiledConnectionBar({
     applied,
     onApply,
+    onForget,
     status,
     actions,
 }: TiledConnectionBarProps) {
@@ -199,6 +207,16 @@ export default function TiledConnectionBar({
                 >
                     {showSecrets ? 'Hide' : 'Show'} secrets
                 </button>
+                {onForget && (
+                    <button
+                        type="button"
+                        className={buttonClass}
+                        onClick={onForget}
+                        title="Remove the saved connection — API key and tokens included — from localStorage. The session in front of you is unaffected."
+                    >
+                        Forget saved
+                    </button>
+                )}
                 {actions}
             </div>
 

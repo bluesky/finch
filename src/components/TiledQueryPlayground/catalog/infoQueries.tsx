@@ -56,6 +56,7 @@ function WhoamiRunner({ queryOptions, requestOptions }: QueryRunnerProps) {
 export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'info.serverInfo',
+        kind: 'query',
         group: 'info',
         hookName: 'useTiledServerInfoQuery',
         summary:
@@ -66,6 +67,7 @@ export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'info.about',
+        kind: 'query',
         group: 'info',
         hookName: 'useTiledAboutQuery',
         summary:
@@ -76,6 +78,7 @@ export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'info.healthz',
+        kind: 'query',
         group: 'info',
         hookName: 'useTiledHealthQuery',
         summary: 'Liveness. Outside /api/v1, so it goes to the origin derived from the base URL.',
@@ -85,6 +88,7 @@ export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'info.uiSettings',
+        kind: 'query',
         group: 'info',
         hookName: 'useTiledUiSettingsQuery',
         summary: "The server's hints for its own web UI. Also origin-scoped.",
@@ -94,6 +98,7 @@ export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'info.metrics',
+        kind: 'query',
         group: 'info',
         hookName: 'useTiledMetricsQuery',
         summary: 'Prometheus text. Often restricted, so a 403 here is a deployment choice.',
@@ -103,6 +108,7 @@ export const infoQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'auth.whoami',
+        kind: 'query',
         group: 'auth',
         hookName: 'useTiledWhoamiQuery',
         summary:

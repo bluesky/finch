@@ -44,6 +44,8 @@ function Control({ field, value, onChange }: QueryFieldEditorProps) {
             return <PathControl value={String(value ?? '')} onChange={onChange} />;
         case 'json':
             return <JsonControl value={value} onChange={onChange} />;
+        case 'file':
+            return <FileControl value={value} onChange={onChange} />;
         case 'stringList':
             return <StringListControl value={value} onChange={onChange} />;
         case 'numberList':
@@ -208,6 +210,32 @@ function StringListControl({
                 placeholder="type and press Enter"
                 className={inputClass}
             />
+        </div>
+    );
+}
+
+/**
+ * A binary body.
+ *
+ * The `File` itself goes into the values record, not its bytes — reading on pick would hold every
+ * chosen file in memory for as long as the page is open, and a write harness is exactly where
+ * someone selects a large array and then changes their mind. `fileBytes` reads it at submit time.
+ */
+function FileControl({ value, onChange }: { value: unknown; onChange: (v: unknown) => void }) {
+    const picked = typeof File !== 'undefined' && value instanceof File ? value : null;
+
+    return (
+        <div className="space-y-1">
+            <input
+                type="file"
+                onChange={(event) => onChange(event.target.files?.[0] ?? undefined)}
+                className="block w-full py-1 text-xs"
+            />
+            <p className="text-slate-500">
+                {picked
+                    ? `${picked.name} · ${picked.size.toLocaleString()} bytes`
+                    : 'No file — an empty body still exercises the request shape.'}
+            </p>
         </div>
     );
 }

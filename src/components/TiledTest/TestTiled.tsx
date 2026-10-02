@@ -55,7 +55,7 @@ export default function TestTiled() {
 
     return (
         <div className="space-y-4">
-            <section className="space-y-2 rounded border border-slate-300 p-3 dark:border-slate-700">
+            <section className="space-y-2 rounded border border-slate-300 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
                 <h2 className="font-semibold">Connection</h2>
                 <div className="flex flex-wrap gap-2">
                     <label className="flex-1 text-xs">
@@ -115,7 +115,7 @@ export default function TestTiled() {
                     </button>
                     <span className="self-center text-xs text-slate-500">exercised {coverage}</span>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                     A sweep points every endpoint at the browsed path, so the ones for other
                     structure families answer a 404 naming the mismatch. That is the server being
                     right, not a failure.
@@ -135,7 +135,7 @@ export default function TestTiled() {
                     return (
                         <div
                             key={group}
-                            className="rounded border border-slate-300 dark:border-slate-700"
+                            className="rounded border border-slate-300 bg-white dark:border-slate-700 dark:bg-slate-900"
                         >
                             <button
                                 type="button"

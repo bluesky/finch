@@ -18,7 +18,7 @@ export const simDetectorConfig = rawSimDetectorConfig as DetectorConfig;
 
 /**
  * Beamstop scenario backing the <Beamstop /> feature. Provides the exact PV
- * names that component references on TestPage:
+ * names that component references on the Test route:
  *
  * Devices:
  *  - bl531_xps2:beamstop_x_mm        — X motor setpoint (+ .RBV / .MOVN)

@@ -174,6 +174,7 @@ function ArrayImagePathRunner({ values, requestOptions }: QueryRunnerProps) {
 export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     {
         id: 'array.asJSON',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayAsJSONQuery',
         summary: 'An array as JSON — number[][] by default.',
@@ -184,6 +185,7 @@ export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'array.asPng',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayAsPngQuery',
         summary: 'An array as a PNG Blob, rendered here as a picture.',
@@ -194,6 +196,7 @@ export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'array.asBuffer',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayAsBufferQuery',
         summary: 'Raw bytes in the array dtype and C order.',
@@ -204,6 +207,7 @@ export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'array.as',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayAsQuery',
         summary:
@@ -225,6 +229,7 @@ export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'array.block',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayBlockQuery',
         summary: 'One chunk, addressed by its block index. Idles until block is given.',
@@ -245,6 +250,7 @@ export const arrayQueryDescriptors: readonly QueryDescriptor[] = [
     },
     {
         id: 'array.imagePath',
+        kind: 'query',
         group: 'array',
         hookName: 'useTiledArrayImagePath',
         summary: 'A URL for <img src>. Synchronous — not a query.',
