@@ -14,17 +14,43 @@ import { TILED_QUERY_ROOT, tiledQueryRoots, type TiledQueryRootName } from './qu
  * matches the resource prefix and ignores the scope, so it refreshes that resource on every server —
  * over-invalidating a multi-server app is far cheaper than serving it stale data.
  *
- * This version of `@blueskyproject/tiled` exposes no write endpoints, so the only mutation is login.
- * The structure is here anyway, ready for the POST endpoints when they land.
+ * The structure was here before any of the writes were; it finally has writes to serve.
  */
 export const TILED_INVALIDATION_BUNDLES = {
-    search: ['search'],
-    metadata: ['metadata'],
-    /** Array and table reads — the actual data payloads. */
-    data: ['array', 'table'],
+    /** Anything that changes which nodes match a query. */
+    search: ['search', 'distinct'],
+    /** A node's own metadata, and the revision trail that records changes to it. */
+    metadata: ['metadata', 'revisions'],
+    /** The data payloads, across every structure family. */
+    data: ['array', 'table', 'container', 'node', 'awkward', 'ragged'],
+    /**
+     * A node appeared or disappeared.
+     *
+     * Wider than `metadata` on purpose: creating, deleting or registering a node changes what a
+     * *search* returns and what a parent *container* read contains, not just that node's own entry.
+     */
+    structure: ['search', 'distinct', 'metadata', 'revisions', 'container', 'node'],
+    webhooks: ['webhooks'],
     info: ['serverInfo'],
+    /** Identity changed. */
+    auth: ['auth'],
     /** Everything. Use after any change of identity. */
-    all: ['search', 'metadata', 'array', 'table', 'serverInfo'],
+    all: [
+        'search',
+        'distinct',
+        'metadata',
+        'array',
+        'table',
+        'container',
+        'node',
+        'awkward',
+        'ragged',
+        'revisions',
+        'asset',
+        'webhooks',
+        'serverInfo',
+        'auth',
+    ],
 } as const satisfies Record<string, readonly TiledQueryRootName[]>;
 
 export type TiledInvalidationBundleName = keyof typeof TILED_INVALIDATION_BUNDLES;
@@ -32,13 +58,59 @@ export type TiledInvalidationBundleName = keyof typeof TILED_INVALIDATION_BUNDLE
 /**
  * Bundles each mutation hook invalidates on success.
  *
- * Login invalidates everything: what a caller is allowed to see changes with the credentials, so every
- * cached read — including a search that legitimately returned nothing — is now suspect. Credentials are
- * deliberately absent from the query keys (a secret does not belong in the Devtools cache inspector),
- * which is exactly why the change has to be handled by invalidating rather than by re-keying.
+ * Three rules decide these:
+ *
+ * - **A metadata write** refreshes that node and the searches that could have matched on what
+ *   changed. A caller who renames a run expects the run list to agree.
+ * - **A data write** refreshes the data *and* the metadata, because a write can change a structure —
+ *   `patchArrayFull` with `extend: true` grows the array's shape, and a cached structure that still
+ *   says otherwise is what the downsampling maths reads.
+ * - **A create, delete or register** uses `structure`, which also covers the parent container's
+ *   contents.
+ *
+ * Every auth mutation invalidates everything: what a caller is allowed to see changes with their
+ * credentials, so every cached read — including a search that legitimately returned nothing — is now
+ * suspect. Credentials are deliberately absent from the query keys, which is exactly why this has to
+ * be handled by invalidating rather than by re-keying.
  */
 export const TILED_MUTATION_INVALIDATIONS = {
+    // metadata
+    useTiledCreateNodeMutation: ['structure'],
+    useTiledUpdateMetadataMutation: ['metadata', 'search'],
+    useTiledPatchMetadataMutation: ['metadata', 'search'],
+    useTiledDeleteNodeMutation: ['structure', 'data'],
+    // arrays
+    useTiledPutArrayFullMutation: ['data', 'metadata'],
+    useTiledPutArrayBlockMutation: ['data', 'metadata'],
+    useTiledPatchArrayFullMutation: ['data', 'metadata'],
+    // ragged
+    useTiledPutRaggedFullMutation: ['data', 'metadata'],
+    useTiledPutRaggedBlockMutation: ['data', 'metadata'],
+    useTiledPatchRaggedFullMutation: ['data', 'metadata'],
+    // tables
+    useTiledPutTablePartitionMutation: ['data', 'metadata'],
+    useTiledPatchTablePartitionMutation: ['data', 'metadata'],
+    useTiledPutTableFullMutation: ['data', 'metadata'],
+    // nodes and awkward
+    useTiledPutNodeFullMutation: ['data', 'metadata'],
+    useTiledPutAwkwardFullMutation: ['data', 'metadata'],
+    // registration and data sources
+    useTiledRegisterMutation: ['structure'],
+    useTiledPutDataSourceMutation: ['structure', 'data'],
+    // revisions
+    useTiledDeleteRevisionMutation: ['metadata'],
+    // streams
+    useTiledCloseStreamMutation: ['data', 'metadata'],
+    // webhooks
+    useTiledRegisterWebhookMutation: ['webhooks'],
+    useTiledDeleteWebhookMutation: ['webhooks'],
+    // auth
     useTiledLoginMutation: ['all'],
+    useTiledLogoutMutation: ['all'],
+    useTiledCreateApiKeyMutation: ['auth'],
+    useTiledRevokeApiKeyMutation: ['auth'],
+    useTiledRefreshSessionMutation: ['all'],
+    useTiledRevokeSessionMutation: ['all'],
 } as const satisfies Record<string, readonly TiledInvalidationBundleName[]>;
 
 export type TiledMutationHookName = keyof typeof TILED_MUTATION_INVALIDATIONS;

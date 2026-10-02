@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import type { UseQueryResult } from '@tanstack/react-query';
+import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import { requireArg } from '@/api/shared/errors';
 import { mergeRequestOptions } from '@/api/shared/requestOptions';
-import type { TiledRequestOptions } from '../types/common';
+import type { TiledBinaryBody, TiledRequestOptions } from '../types/common';
 import type {
     TiledArrayBufferEndpointOptions,
     TiledArrayEndpointOptionsMap,
@@ -11,19 +12,21 @@ import type {
     TiledArrayPngEndpointOptions,
     TiledArrayReturnMap,
     TiledArrayReturnType,
-} from '../types/packageAliases';
+} from '../types/dataOptions';
 import { arrayKeyParts } from './internal/keyParts';
+import { useTiledMutation } from './internal/useTiledMutation';
 import { useTiledQuery } from './internal/useTiledQuery';
+import { TILED_MUTATION_INVALIDATIONS } from './invalidation';
 import { tiledQueryKeys, type TiledQueryKeyFor } from './queryKeys';
-import type { FinchQueryOptions, TiledHookError } from './types';
+import type { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 import { useTiledClient, useTiledQueryScope } from './useTiledClient';
 
 /**
- * Array-read hooks: `GET /api/v1/array/block/{path}` and friends.
+ * Array hooks — four format reads, a chunk read, a URL builder and three writes.
  *
  * These take an extra slot the search hooks do not — `arrayOptions`, for the parameters that change
- * what the server returns: `stack`, `downSampleRatio`, `maxBytesAllowed`, `format`. The package
- * bundles those into one object with the transport fields (its `TiledArrayRequestOptions` extends
+ * what the server returns: `stack`, `downSampleRatio`, `maxBytesAllowed`, `format`. The client's own
+ * option types bundle those together with the transport fields (`TiledArrayRequestOptions` extends
  * `TiledRequestOptions`); the hooks keep them apart and recombine before calling through, so
  * `requestOptions` means transport here exactly as it does on every other Finch hook.
  *
@@ -38,7 +41,7 @@ import { useTiledClient, useTiledQueryScope } from './useTiledClient';
  * Read an array in whichever format `type` names.
  *
  * The generic dispatcher — prefer the typed hooks below, which infer `data` without a type argument.
- * `'IMAGE_PATH'` is accepted for completeness but resolves synchronously in the package; prefer
+ * `'IMAGE_PATH'` is accepted for completeness but resolves synchronously; prefer
  * `useTiledArrayImagePath`.
  *
  * @param arrayPath **Required.** Tiled path to the array. Idle while empty.
@@ -245,3 +248,159 @@ export function useTiledArrayImagePath(
         clientOverride,
     ]);
 }
+
+// #region block reads and writes
+
+/** What `useTiledArrayBlockQuery` reads: one chunk, addressed by its block index. */
+export interface TiledArrayBlockParams {
+    /** The chunk's index along each axis, e.g. `[0, 2]`. */
+    block: number[];
+    slice?: string;
+    expected_shape?: string;
+    format?: string;
+}
+
+/**
+ * Read one chunk of an array — `GET /api/v1/array/block/{path}`.
+ *
+ * Chunk-addressed rather than slice-addressed: this is the endpoint a chunked reader uses, where
+ * `useTiledArrayAsJSONQuery` is the one a plot uses. Resolves raw bytes; decode them according to
+ * the array's dtype.
+ *
+ * @param arrayPath **Required.** Idle while empty.
+ * @param params **Required.** `block` locates the chunk.
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export function useTiledArrayBlockQuery<TData = ArrayBuffer>(
+    arrayPath: string,
+    params: TiledArrayBlockParams | undefined,
+    queryOptions?: FinchQueryOptions<ArrayBuffer, TData, TiledQueryKeyFor<'array'>, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.array(scope, {
+            arrayPath,
+            type: 'BUFFER',
+            options: arrayKeyParts(params ? { stack: params.block } : undefined),
+        }),
+        fetch: (client, request) =>
+            client.getArrayBlock(
+                arrayPath,
+                requireArg(params, 'useTiledArrayBlockQuery', 'params'),
+                request,
+            ),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: arrayPath.length > 0 && params !== undefined,
+    });
+}
+
+/**
+ * Array writes.
+ *
+ * All three accept bytes (`ArrayBuffer`, a typed array, a `Blob`) or a nested `number[][]`. Bytes go
+ * as `application/octet-stream` and must already be in the array's own dtype and C order — the
+ * server trusts the declared structure and does not convert. `number[][]` goes as JSON, which is
+ * slower but needs no dtype knowledge. Nothing converts one to the other; see the client's
+ * `putArrayFull` for why.
+ *
+ * Each invalidates `data` **and** `metadata`, because a write can change a structure —
+ * `patchArrayFull` with `extend: true` grows the shape, and a cached structure that still says
+ * otherwise is what the downsampling maths reads.
+ */
+
+/** What `useTiledPutArrayFullMutation().mutate` takes. */
+export interface TiledPutArrayFullVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    /** Flush to storage rather than leaving the write in the server's cache. */
+    persist?: boolean;
+}
+
+/** Write a whole array — `PUT /api/v1/array/full/{path}`. */
+export function useTiledPutArrayFullMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPutArrayFullVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPutArrayFullVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, persist }, request) =>
+            client.putArrayFull(path, data, { persist }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPutArrayFullMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+/** What `useTiledPutArrayBlockMutation().mutate` takes. */
+export interface TiledPutArrayBlockVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    block: number[];
+    persist?: boolean;
+}
+
+/** Write one chunk — `PUT /api/v1/array/block/{path}`. */
+export function useTiledPutArrayBlockMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPutArrayBlockVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPutArrayBlockVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, block, persist }, request) =>
+            client.putArrayBlock(path, data, { block, persist }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPutArrayBlockMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+/** What `useTiledPatchArrayFullMutation().mutate` takes. */
+export interface TiledPatchArrayFullVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    /** Where the region starts, per axis. */
+    offset: number[];
+    /** The region's size, per axis. */
+    shape: number[];
+    /** Allow the write to grow a resizable array past its current bounds — how a scan appends. */
+    extend?: boolean;
+    persist?: boolean;
+}
+
+/**
+ * Write a sub-region of an array — `PATCH /api/v1/array/full/{path}`.
+ *
+ * With `extend: true` this is how an in-progress acquisition appends frames: write at
+ * `offset: [n, 0, 0]` with `shape: [1, h, w]` and the array grows by one frame.
+ */
+export function useTiledPatchArrayFullMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPatchArrayFullVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPatchArrayFullVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, offset, shape, extend, persist }, request) =>
+            client.patchArrayFull(path, data, { offset, shape, extend, persist }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPatchArrayFullMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+// #endregion

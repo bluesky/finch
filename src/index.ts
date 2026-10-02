@@ -377,55 +377,72 @@ export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigPr
 
 // Tiled API namespace - groups all Tiled functionality under a clear namespace.
 //
-// Rebuilt onto the client API that @blueskyproject/tiled 0.0.33 introduced: the flat free functions
-// this used to point at (getSearchResults, searchBySpecs, getItemMetadata, getTableDataAsJson,
-// setReverseSort, resetGlobalState, …) no longer exist. The old names are kept as keys wherever there
-// is a faithful replacement, so most call sites keep working.
-import * as TiledPackage from '@blueskyproject/tiled';
+// Now backed by Finch's own client in `@/api/tiled` rather than by @blueskyproject/tiled. Every key
+// below keeps its name and signature, so no consumer of this namespace changes; what sits behind
+// them is Finch code, typed from Tiled's OpenAPI schema, with the write half of the API available
+// for the first time.
+//
+// This namespace stays deliberately small — it is the legacy surface, kept so existing call sites
+// keep working. New code should import from `@/api/tiled` directly, where the hooks, the full
+// client and the remaining ~40 operations live.
+import * as TiledApi from './api/tiled';
 
 export const Tiled = {
     // Path management
-    setInitialPath: TiledPackage.setDefaultInitialPath,
-    getInitialPath: TiledPackage.getDefaultTiledInitialPath,
+    setInitialPath: TiledApi.setDefaultInitialPath,
+    getInitialPath: TiledApi.getDefaultTiledInitialPath,
 
     // Authentication and server configuration
-    setAuthErrorCallback: TiledPackage.setDefaultAuthErrorCallback,
-    getDefaultUrl: () => TiledPackage.getDefaultTiledApiClient().getBaseUrl(),
-    setDefaultUrl: TiledPackage.setDefaultTiledUrl,
-    setApiKey: TiledPackage.setGlobalApiKey,
-    setBearerToken: TiledPackage.setDefaultBearerToken,
-    getServerInfo: TiledPackage.getTiledServerInfo,
-    loginWithPassword: TiledPackage.loginWithDefaultTiledClient,
+    setAuthErrorCallback: TiledApi.setDefaultAuthErrorCallback,
+    getDefaultUrl: () => TiledApi.getDefaultTiledApiClient().getBaseUrl(),
+    setDefaultUrl: TiledApi.setDefaultTiledUrl,
+    setApiKey: TiledApi.setGlobalApiKey,
+    setBearerToken: TiledApi.setDefaultBearerToken,
+    getServerInfo: TiledApi.getTiledServerInfo,
+    loginWithPassword: TiledApi.loginWithDefaultTiledClient,
 
     // The client itself, for anything the helpers below do not cover
-    getClient: TiledPackage.getDefaultTiledApiClient,
-    setClient: TiledPackage.setDefaultTiledApiClient,
-    resetClient: TiledPackage.resetDefaultTiledApiClient,
+    getClient: TiledApi.getDefaultTiledApiClient,
+    setClient: TiledApi.setDefaultTiledApiClient,
+    resetClient: TiledApi.resetDefaultTiledApiClient,
 
     // Search and data retrieval
-    getSearchResults: TiledPackage.getTiledSearch,
-    getItemMetadata: TiledPackage.getTiledMetadata,
-    getTableDataAsJson: TiledPackage.getTiledTablePartitionAsJSON,
-    getTableDataAsSequence: TiledPackage.getTiledTablePartitionAsJSONSequence,
-    getTableFullAsJson: TiledPackage.getTiledTableFullAsJSON,
-    getTableFullAsSequence: TiledPackage.getTiledTableFullAsJSONSequence,
-    getArrayData: TiledPackage.getTiledArrayAsJSON,
+    getSearchResults: TiledApi.getTiledSearch,
+    getItemMetadata: TiledApi.getTiledMetadata,
+    getTableDataAsJson: TiledApi.getTiledTablePartitionAsJSON,
+    getTableDataAsSequence: TiledApi.getTiledTablePartitionAsJSONSequence,
+    getTableFullAsJson: TiledApi.getTiledTableFullAsJSON,
+    getTableFullAsSequence: TiledApi.getTiledTableFullAsJSONSequence,
+    getArrayData: TiledApi.getTiledArrayAsJSON,
 
     // Comprehensive search functions
-    searchBySpecs: TiledPackage.getTiledSearchBySpecs,
-    searchByFulltext: TiledPackage.getTiledSearchByFullText,
-    searchByMetadataEquals: TiledPackage.getTiledSearchByMetadataEquals,
-    searchByStructureFamily: TiledPackage.getTiledSearchByStructureFamily,
+    searchBySpecs: TiledApi.getTiledSearchBySpecs,
+    searchByFulltext: TiledApi.getTiledSearchByFullText,
+    searchByMetadataEquals: TiledApi.getTiledSearchByMetadataEquals,
+    searchByStructureFamily: TiledApi.getTiledSearchByStructureFamily,
 
     // Image handling
-    generateFullImagePngPath: TiledPackage.getTiledArrayAsImagePath,
-    getAuthenticatedImage: TiledPackage.getTiledArrayAsPng,
-    setMaxArrayBytes: TiledPackage.setGlobalMaxArrayBytes,
+    generateFullImagePngPath: TiledApi.getTiledArrayAsImagePath,
+    getAuthenticatedImage: TiledApi.getTiledArrayAsPng,
+    setMaxArrayBytes: TiledApi.setGlobalMaxArrayBytes,
 
     // Type guards
-    isArrayStructure: TiledPackage.isArrayStructure,
-    isTableStructure: TiledPackage.isTableStructure,
-    isContainerStructure: TiledPackage.isContainerStructure,
+    isArrayStructure: TiledApi.isArrayStructure,
+    isTableStructure: TiledApi.isTableStructure,
+    isContainerStructure: TiledApi.isContainerStructure,
+
+    // Writes. New — there was no equivalent while this wrapped the package.
+    createNode: TiledApi.createTiledNode,
+    updateMetadata: TiledApi.updateTiledMetadata,
+    patchMetadata: TiledApi.patchTiledMetadata,
+    deleteNode: TiledApi.deleteTiledNode,
+    putArrayFull: TiledApi.putTiledArrayFull,
+    patchArrayFull: TiledApi.patchTiledArrayFull,
+
+    // Faceting, revisions and webhooks. Also new.
+    getDistinct: TiledApi.getTiledDistinct,
+    getRevisions: TiledApi.getTiledRevisions,
+    listWebhooks: TiledApi.listTiledWebhooks,
 };
 
 export type { FinchConfig } from './app/FinchConfigProvider';

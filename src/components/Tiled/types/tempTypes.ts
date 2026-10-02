@@ -1,4 +1,11 @@
-//Temporary file used for types, this is to be replaced by the types exported in the <Tiled /> component once available
+// Temporary file used for types, to be replaced by the types exported from the <Tiled /> component
+// once available.
+//
+// The node, structure and info types here are now also defined — and owned — in `@/api/tiled`, which
+// is where new code should get them: `TiledSearchItem`, `TiledStructures`, `TiledInfoResponse` and
+// friends. The copies below are kept only for the <Tiled /> viewer's own prop types, and they have
+// drifted: this file still types `attributes.data_sources` as `string | null`, which the server and
+// the OpenAPI schema both contradict (it is a list of data sources). Do not add call sites.
 /* eslint-disable @typescript-eslint/no-explicit-any*/
 /** A single Tiled node path entry with its data structure family. */
 export type PathItem = {
