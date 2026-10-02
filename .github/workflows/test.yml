@@ -78,6 +78,7 @@ jobs:
           npm run test:run -- src/testing/tests/InputStringBoxRounded.test.tsx
           npm run test:run -- src/testing/tests/Main.test.tsx
           npm run test:run -- src/testing/tests/MaskOverlayCanvas.test.tsx
+          npm run test:run -- src/testing/tests/MaskOverlayCanvasLegend.test.tsx
           npm run test:run -- src/testing/tests/Paper.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx

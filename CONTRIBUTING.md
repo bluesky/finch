@@ -42,6 +42,8 @@ New components should have tests added for them under `src/testing/tests` using 
 
 For new components, manually add the new test file to `/github/workflows/test.yml` to ensure coverage via github actions.
 
+Tests need Node 20.19 or later in the 20.x line, or 22.12 or later. The jsdom test environment loads ES modules through `require()`, which older releases (including Node 21) do not support, so the whole suite fails to start with `ERR_REQUIRE_ESM`. Run `nvm use` to pick up the version pinned in `.nvmrc`, which matches CI.
+
 ## Pull Request Guidelines
 
 - Ensure that you have ran `npm run test`, `npm run lint:fix`, `npm run format:fix`, and `npm run build` prior to opening a PR

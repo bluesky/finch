@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { computeHistogram, cumulativeCounts, valueToPercentile } from '@/utils/histogramUtils';
+import {
+    computeHistogram,
+    cumulativeCounts,
+    edgesFromCenters,
+    percentileBelowEdge,
+} from '@/utils/histogramUtils';
 
 /** Cross-axis extent of the SVG viewBox. Arbitrary — the SVG is stretched to the container. */
 const THICKNESS = 44;
@@ -31,23 +36,49 @@ export type HistogramRangeProps = Omit<
 > & {
     /** Pre-binned counts, one entry per bin. Takes precedence over `values`. */
     counts?: number[];
-    /** Bin centers in data units, same length as `counts`. Defaults to bin indices. */
+    /**
+     * Bin boundaries in data units, length `counts.length + 1`. Bin `i` spans
+     * `binEdges[i]` to `binEdges[i + 1]`. These govern the selectable range and the
+     * values reported by `onChange`. Bins may be irregularly spaced. When omitted,
+     * edges are derived from `binCenters`, then from `domain`, then from bin indices.
+     */
+    binEdges?: number[];
+    /**
+     * Bin centers in data units, same length as `counts`. Only used to derive
+     * `binEdges` when those are not supplied: interior edges are the midpoints
+     * between neighbouring centers and the outer edges extend half a bin beyond
+     * the first and last center, so irregular spacing is preserved.
+     */
     binCenters?: number[];
-    /** Raw values, binned internally when `counts` is omitted. */
+    /**
+     * Raw values, binned internally when `counts` is omitted. Re-binned whenever the
+     * array identity changes, which scans the whole array; memoize it, or pre-bin
+     * with `computeHistogram` and pass `counts` + `binEdges`, when the parent
+     * re-renders often.
+     */
     values?: ArrayLike<number>;
     /** Bin count used when binning `values`. Defaults to `256`. Ignored when `counts` is given. */
     bins?: number;
     /** Data domain as `[min, max]`. Defaults to the extent of the data. */
     domain?: [number, number];
-    /** Selected range in data units. Supplying this makes the component controlled. `null` selects the full domain. */
+    /**
+     * Selected range in data units, as `[min, max]` thresholds. Supplying this makes
+     * the component controlled. `null` selects the full domain.
+     *
+     * `min` is the left edge of the first included bin and `max` is the right edge
+     * of the last included bin, so the selection covers every sample in
+     * `[min, max)`. Incoming values that fall between edges snap to the nearest edge.
+     */
     value?: [number, number] | null;
-    /** Initial selection for uncontrolled use. Defaults to the full domain. */
+    /** Initial selection for uncontrolled use, with the same semantics as `value`. Defaults to the full domain. */
     defaultValue?: [number, number] | null;
     /**
      * Fired continuously while dragging, throttled to one call per animation frame.
-     * The second argument is the same selection expressed as percentiles (0–100) of
-     * the total counts, so a companion percentile control can stay in sync without a
-     * server round-trip.
+     *
+     * The first argument is `[min, max]` in data units: the left edge of the first
+     * included bin and the right edge of the last included bin. The second is the
+     * percentage (0–100) of the total population lying below each of those edges,
+     * so a companion percentile control can stay in sync without a server round-trip.
      */
     onChange?: (range: [number, number], percentiles: [number, number]) => void;
     /** Fired once when a drag or keyboard adjustment finishes, with the same arguments as `onChange`. */
@@ -60,12 +91,12 @@ export type HistogramRangeProps = Omit<
     readOnly?: boolean;
     /** Draw bins outside the selection in a lighter color. Defaults to `true`. */
     fadeOutsideSelection?: boolean;
-    /** Minimum separation between the two handles, in bins. Defaults to `1`. */
+    /** Minimum number of bins the selection must cover. Defaults to `1`. */
     minBinSeparation?: number;
     /**
-     * Fixed dimensions. Defaults to `'full'`, which fills the parent — note that
-     * `h-full` resolves to zero unless an ancestor has a real height, so either give
-     * the parent a height or pass an explicit size.
+     * Fixed dimensions. Defaults to `'medium'`. `'full'` fills the parent — note that
+     * `h-full` resolves to zero unless an ancestor has a real height, so give the
+     * parent a height when using it.
      */
     size?: 'small' | 'medium' | 'large' | 'full';
     /** Optional heading rendered above the plot. */
@@ -87,22 +118,57 @@ export type HistogramRangeProps = Omit<
 type DragTarget = 'lo' | 'hi' | 'band';
 
 /**
+ * Index of the edge nearest to `v`, by binary search, so irregular spacing works.
+ *
+ * When `v` sits exactly halfway between two edges it rounds to the upper one.
+ * That tie-break exists only to make mapping an arbitrary incoming value back into
+ * edge-index space deterministic — a controlled parent that feeds back a
+ * bin-center value then always lands on the same edge instead of oscillating. It
+ * does not define which edge a threshold means; see the `value` prop for that.
+ */
+function nearestEdgeIndex(edges: number[], v: number): number {
+    const last = edges.length - 1;
+    if (last <= 0) return 0;
+    if (!(v > edges[0])) return 0;
+    if (v >= edges[last]) return last;
+    // First index whose edge is >= v.
+    let lo = 0;
+    let hi = last;
+    while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (edges[mid] < v) lo = mid + 1;
+        else hi = mid;
+    }
+    const below = edges[lo - 1];
+    const above = edges[lo];
+    return v - below < above - v ? lo - 1 : lo;
+}
+
+/**
  * An interactive histogram with a draggable range selection.
  *
- * Renders a binned distribution as a single stretched SVG path and overlays two
- * handles that select a sub-range. Either handle can be dragged, or the band
- * between them can be dragged to pan the window while preserving its width.
+ * Renders a binned distribution as filled bars and overlays two handles that
+ * select a sub-range. Either handle can be dragged, or the band between them can
+ * be dragged to pan the window while preserving its width.
  *
- * Accepts either pre-binned `counts` (with optional `binCenters`) or raw `values`,
- * which are binned internally. The selection is reported in data units, with
- * percentiles of the distribution supplied alongside so a companion percentile
- * control can be kept in sync.
+ * Handles sit on bin edges. Bin `i` is bounded by `edges[i]` and `edges[i + 1]`.
+ * The lower handle is the left edge of the first included bin and the upper handle
+ * is the right edge of the last included bin, so a selection between edge indices
+ * `lo` and `hi` covers bins `lo .. hi - 1` and reports `[edges[lo], edges[hi]]`.
+ * For example, with edges `[0, 1, 2, 3, 4]`, selecting bins 1 and 2 reports
+ * `[1, 3]`. The full selection therefore spans the whole data domain.
+ *
+ * Accepts either pre-binned `counts` (with optional `binEdges` or `binCenters`) or
+ * raw `values`, which are binned internally. The component is agnostic to the data
+ * type and to where the histogram was computed. The selection is reported in data
+ * units, with the population percentile below each edge supplied alongside.
  *
  * This is a presentational component: it never fetches its own data. For the
  * simple PV-driven spectrum display, see `Histogram` instead.
  */
 export default function HistogramRange({
     counts: countsProp,
+    binEdges: binEdgesProp,
     binCenters: binCentersProp,
     values,
     bins = 256,
@@ -116,7 +182,7 @@ export default function HistogramRange({
     readOnly = false,
     fadeOutsideSelection = true,
     minBinSeparation = 1,
-    size = 'full',
+    size = 'medium',
     title,
     ariaLabel = 'Histogram range',
     className,
@@ -141,48 +207,42 @@ export default function HistogramRange({
         () => countsProp ?? binned?.counts ?? EMPTY_COUNTS,
         [countsProp, binned],
     );
+    /** Number of bins. Handles take edge indices `0..n`. */
     const n = counts.length;
-    const lastIdx = Math.max(0, n - 1);
 
-    const binCenters = useMemo(() => {
-        if (binCentersProp && binCentersProp.length === n) return binCentersProp;
-        if (binned) return binned.binCenters;
-        if (domain && n > 1) {
+    const edges = useMemo(() => {
+        if (n === 0) return [];
+        if (binEdgesProp && binEdgesProp.length === n + 1) return binEdgesProp;
+        if (binned) return binned.binEdges;
+        if (binCentersProp && binCentersProp.length === n) return edgesFromCenters(binCentersProp);
+        if (domain) {
             const [lo, hi] = domain;
             const step = (hi - lo) / n;
-            return Array.from({ length: n }, (_, i) => lo + (i + 0.5) * step);
+            return Array.from({ length: n + 1 }, (_, i) => lo + i * step);
         }
-        return Array.from({ length: n }, (_, i) => i);
-    }, [binCentersProp, binned, domain, n]);
+        return Array.from({ length: n + 1 }, (_, i) => i);
+    }, [binEdgesProp, binned, binCentersProp, domain, n]);
 
-    const domainMin = binCenters[0] ?? 0;
-    const domainMax = binCenters[lastIdx] ?? 1;
+    const domainMin = edges[0] ?? 0;
+    const domainMax = edges[n] ?? 1;
 
     const { cumulative, total } = useMemo(() => cumulativeCounts(counts), [counts]);
 
-    const valueToIdx = useCallback(
-        (v: number) => {
-            if (lastIdx === 0) return 0;
-            const span = domainMax - domainMin;
-            const t = span === 0 ? 0 : (v - domainMin) / span;
-            return Math.max(0, Math.min(lastIdx, Math.round(t * lastIdx)));
-        },
-        [domainMin, domainMax, lastIdx],
-    );
+    const valueToIdx = useCallback((v: number) => nearestEdgeIndex(edges, v), [edges]);
 
     const idxToValue = useCallback(
-        (i: number) => binCenters[Math.max(0, Math.min(lastIdx, i))] ?? 0,
-        [binCenters, lastIdx],
+        (i: number) => edges[Math.max(0, Math.min(n, i))] ?? 0,
+        [edges, n],
     );
 
-    // Selection lives in bin-index space: the drag math stays exact and stays
+    // Selection lives in edge-index space: the drag math stays exact and stays
     // independent of how the bins are spaced in data units.
     const toIndices = useCallback(
         (range: [number, number] | null | undefined): [number, number] => {
-            if (!range) return [0, lastIdx];
+            if (!range) return [0, n];
             return [valueToIdx(range[0]), valueToIdx(range[1])];
         },
-        [lastIdx, valueToIdx],
+        [n, valueToIdx],
     );
 
     const isControlled = value !== undefined;
@@ -192,10 +252,10 @@ export default function HistogramRange({
 
     const percentilesFor = useCallback(
         (lo: number, hi: number): [number, number] => [
-            valueToPercentile(idxToValue(lo), binCenters, cumulative, total),
-            valueToPercentile(idxToValue(hi), binCenters, cumulative, total),
+            percentileBelowEdge(lo, cumulative, total),
+            percentileBelowEdge(hi, cumulative, total),
         ],
-        [binCenters, cumulative, total, idxToValue],
+        [cumulative, total],
     );
 
     // Coalesce one call per animation frame: a pointermove burst collapses into a
@@ -235,7 +295,12 @@ export default function HistogramRange({
         [onChangeCommitted, idxToValue, percentilesFor],
     );
 
-    /** Bars, coalesced into contiguous faded and normal runs so the SVG holds two paths, not one per bin. */
+    /**
+     * Bars as filled one-bin-wide rectangles, coalesced into contiguous faded and
+     * normal runs so the SVG holds a couple of paths rather than one per bin.
+     * Filling (rather than stroking a hairline) keeps the bars solid at any bin
+     * count and any rendered width.
+     */
     const segments = useMemo(() => {
         if (n === 0) return [];
         const scale = (c: number) => (logCounts ? Math.log1p(Math.max(0, c)) : Math.max(0, c));
@@ -245,22 +310,23 @@ export default function HistogramRange({
 
         const runs: { faded: boolean; points: string[] }[] = [];
         for (let i = 0; i < n; i += 1) {
-            const faded = fadeOutsideSelection && (i < loIdx || i > hiIdx);
+            const faded = fadeOutsideSelection && (i < loIdx || i >= hiIdx);
             let run = runs[runs.length - 1];
             if (!run || run.faded !== faded) {
                 run = { faded, points: [] };
                 runs.push(run);
             }
             const h = (scale(counts[i]) / max) * THICKNESS;
+            if (h <= 0) continue;
             if (isHorizontal) {
-                run.points.push(`M${i},${THICKNESS} L${i},${THICKNESS - h}`);
+                run.points.push(`M${i},${THICKNESS}h1v${-h}h-1z`);
             } else {
-                const row = lastIdx - i;
-                run.points.push(`M${THICKNESS},${row} L${THICKNESS - h},${row}`);
+                const row = n - 1 - i;
+                run.points.push(`M${THICKNESS},${row}v1h${-h}v-1z`);
             }
         }
-        return runs.map((run) => ({ faded: run.faded, d: run.points.join(' ') }));
-    }, [counts, n, logCounts, fadeOutsideSelection, loIdx, hiIdx, isHorizontal, lastIdx]);
+        return runs.map((run) => ({ faded: run.faded, d: run.points.join('') }));
+    }, [counts, n, logCounts, fadeOutsideSelection, loIdx, hiIdx, isHorizontal]);
 
     const trackRef = useRef<HTMLDivElement>(null);
     const dragRef = useRef<{ target: DragTarget; startIdx: number; lo: number; hi: number } | null>(
@@ -270,14 +336,14 @@ export default function HistogramRange({
     const pointerToIdx = useCallback(
         (clientX: number, clientY: number) => {
             const el = trackRef.current;
-            if (!el || lastIdx === 0) return 0;
+            if (!el || n === 0) return 0;
             const rect = el.getBoundingClientRect();
             const t = isHorizontal
                 ? (clientX - rect.left) / (rect.width || 1)
                 : 1 - (clientY - rect.top) / (rect.height || 1);
-            return Math.max(0, Math.min(lastIdx, Math.round(t * lastIdx)));
+            return Math.max(0, Math.min(n, Math.round(t * n)));
         },
-        [isHorizontal, lastIdx],
+        [isHorizontal, n],
     );
 
     const applyDrag = useCallback(
@@ -290,7 +356,7 @@ export default function HistogramRange({
             if (drag.target === 'band') {
                 const width = drag.hi - drag.lo;
                 let lo = drag.lo + (idx - drag.startIdx);
-                lo = Math.max(0, Math.min(lastIdx - width, lo));
+                lo = Math.max(0, Math.min(n - width, lo));
                 emit(lo, lo + width);
                 return;
             }
@@ -298,13 +364,13 @@ export default function HistogramRange({
                 emit(Math.max(0, Math.min(idx, drag.hi - gap)), drag.hi);
                 return;
             }
-            emit(drag.lo, Math.min(lastIdx, Math.max(idx, drag.lo + gap)));
+            emit(drag.lo, Math.min(n, Math.max(idx, drag.lo + gap)));
         },
-        [pointerToIdx, minBinSeparation, lastIdx, emit],
+        [pointerToIdx, minBinSeparation, n, emit],
     );
 
     const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-        if (readOnly || lastIdx === 0) return;
+        if (readOnly || n === 0) return;
         const idx = pointerToIdx(event.clientX, event.clientY);
         const dLo = Math.abs(idx - loIdx);
         const dHi = Math.abs(idx - hiIdx);
@@ -312,7 +378,7 @@ export default function HistogramRange({
         // both handles — but only when the band has somewhere to go. A selection
         // covering the full domain is pinned, so treating a press as a band drag
         // there would swallow it and leave the handles unreachable.
-        const canPan = hiIdx - loIdx < lastIdx;
+        const canPan = hiIdx - loIdx < n;
         const insideBand = idx > loIdx && idx < hiIdx;
         const clearOfHandles = Math.min(dLo, dHi) > BAND_GRAB_MARGIN;
 
@@ -337,14 +403,16 @@ export default function HistogramRange({
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
         }
-        // Flush any frame still queued so the committed value is never stale.
+        // Flush a frame still queued so the committed value is never stale. A
+        // frame that already ran has reported the latest value, so it is not
+        // re-sent.
+        const next = pendingRef.current;
         if (rafRef.current !== null) {
             cancelAnimationFrame(rafRef.current);
             rafRef.current = null;
-        }
-        const next = pendingRef.current;
-        if (next && onChange) {
-            onChange([idxToValue(next[0]), idxToValue(next[1])], percentilesFor(...next));
+            if (next && onChange) {
+                onChange([idxToValue(next[0]), idxToValue(next[1])], percentilesFor(...next));
+            }
         }
         pendingRef.current = null;
         const [lo, hi] = next ?? selection;
@@ -352,13 +420,13 @@ export default function HistogramRange({
     };
 
     const handleKeyDown = (which: 'lo' | 'hi') => (event: React.KeyboardEvent<HTMLDivElement>) => {
-        if (readOnly || lastIdx === 0) return;
+        if (readOnly || n === 0) return;
         const step = event.shiftKey ? 10 : 1;
         let delta = 0;
         if (event.key === 'ArrowRight' || event.key === 'ArrowUp') delta = step;
         else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') delta = -step;
-        else if (event.key === 'Home') delta = -lastIdx;
-        else if (event.key === 'End') delta = lastIdx;
+        else if (event.key === 'Home') delta = -n;
+        else if (event.key === 'End') delta = n;
         else return;
 
         event.preventDefault();
@@ -366,13 +434,13 @@ export default function HistogramRange({
         let lo = loIdx;
         let hi = hiIdx;
         if (which === 'lo') lo = Math.max(0, Math.min(loIdx + delta, hiIdx - gap));
-        else hi = Math.min(lastIdx, Math.max(hiIdx + delta, loIdx + gap));
+        else hi = Math.min(n, Math.max(hiIdx + delta, loIdx + gap));
         if (lo === loIdx && hi === hiIdx) return;
         emit(lo, hi);
         commit(lo, hi);
     };
 
-    const fraction = (idx: number) => (lastIdx === 0 ? 0 : (idx / lastIdx) * 100);
+    const fraction = (idx: number) => (n === 0 ? 0 : (idx / n) * 100);
 
     const handleStyle = (idx: number): React.CSSProperties =>
         isHorizontal
@@ -382,7 +450,7 @@ export default function HistogramRange({
     const sizeClass = (isHorizontal ? SIZE_CLASS_MAP : SIZE_CLASS_MAP_VERTICAL)[size];
 
     // viewBox extents must never be zero, or the SVG collapses.
-    const viewBoxSpan = Math.max(1, lastIdx);
+    const viewBoxSpan = Math.max(1, n);
 
     return (
         <div className={cn('flex flex-col gap-1 text-slate-700', sizeClass, className)} {...props}>
@@ -417,7 +485,7 @@ export default function HistogramRange({
                         <rect
                             className={cn('fill-sky-500/20', classNameSelection)}
                             x={isHorizontal ? loIdx : 0}
-                            y={isHorizontal ? 0 : lastIdx - hiIdx}
+                            y={isHorizontal ? 0 : n - hiIdx}
                             width={isHorizontal ? Math.max(0, hiIdx - loIdx) : THICKNESS}
                             height={isHorizontal ? THICKNESS : Math.max(0, hiIdx - loIdx)}
                         />
@@ -426,10 +494,8 @@ export default function HistogramRange({
                         <path
                             key={i}
                             d={segment.d}
-                            fill="none"
-                            strokeWidth={1}
-                            vectorEffect="non-scaling-stroke"
-                            className={segment.faded ? 'stroke-slate-300' : 'stroke-slate-500'}
+                            data-faded={segment.faded ? 'true' : 'false'}
+                            className={segment.faded ? 'fill-slate-300' : 'fill-slate-500'}
                         />
                     ))}
                 </svg>

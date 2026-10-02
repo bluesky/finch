@@ -113,5 +113,8 @@
   },
   "homepage": "https://github.com/bluesky/finch#readme",
   "author": "Seij De Leon",
-  "license": "BSD-3-Clause"
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
 }

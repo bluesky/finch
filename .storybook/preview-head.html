@@ -11,4 +11,10 @@
     .rejt-tree li {
         white-space: nowrap;
     }
+    /* Storybook indents object/array controls by 1rem, so they start further right
+       than the radio, text and select controls in the same column. Align them.
+       The element-qualified selector outranks Storybook's own scoped rule. */
+    table.docblock-argstable .rejt-tree {
+        margin-left: 0;
+    }
 </style>

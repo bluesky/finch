@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 
+import DocsPageWithoutPrimaryCopy from './DocsPageWithoutPrimaryCopy';
+
 import HistogramRange from '../components/HistogramRange';
 import type { HistogramRangeProps } from '../components/HistogramRange';
 
@@ -11,6 +13,9 @@ const meta = {
     parameters: {
         layout: 'centered',
         docs: {
+            // Controls drive the story at the top; see the helper for why the
+            // Stories list does not repeat it.
+            page: DocsPageWithoutPrimaryCopy,
             description: {
                 component: `
 An interactive histogram with a draggable range selection.
@@ -19,22 +24,33 @@ Either handle can be dragged, or the band between them can be dragged to pan the
 window while keeping its width. Handles are keyboard accessible: arrow keys nudge
 by one bin, Shift+arrow by ten, and Home/End jump to the limits.
 
-Accepts pre-binned \`counts\` or raw \`values\` (binned internally). The selection is
-reported in data units, with percentiles of the distribution supplied as a second
-argument so a companion percentile control can stay in sync without a round-trip.
+Accepts pre-binned \`counts\` with \`binEdges\` (or \`binCenters\`, from which edges
+are derived), or raw \`values\`, binned internally. It is agnostic to the data type and
+to where the histogram was computed.
 
-> The default \`size="full"\` fills its parent, so give the parent a real height —
-> every story below is wrapped in a sized container.
+**Thresholds sit on bin edges.** Bin \`i\` spans \`binEdges[i]\` to \`binEdges[i + 1]\`.
+The lower handle is the left edge of the first included bin and the upper handle is
+the right edge of the last included bin, so the full selection spans the whole data
+domain. With edges \`[0, 1, 2, 3, 4]\`, selecting bins 1 and 2 reports \`[1, 3]\`.
+
+The selection is reported in data units. The second \`onChange\` argument gives the
+percentage of the population lying below each edge, so a companion percentile control
+can stay in sync without a round-trip.
+
+> The default \`size\` is \`"medium"\`. The stories below pass \`size="full"\` to fill a
+> sized container; \`"full"\` needs a parent with a real height.
                 `,
             },
         },
     },
+    // Every story below draws into a sized container, so they fill it.
+    args: { size: 'full' },
 } satisfies Meta<typeof HistogramRange>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A bimodal intensity distribution, the shape a detector frame usually produces. */
+/** A bimodal intensity distribution used as sample data. */
 function sampleCounts(bins = 128): number[] {
     const gaussian = (x: number, mu: number, sigma: number) =>
         Math.exp(-((x - mu) ** 2) / (2 * sigma ** 2));
@@ -59,26 +75,67 @@ function sampleValues(count = 20000): number[] {
 }
 
 const COUNTS = sampleCounts();
-const BIN_CENTERS = COUNTS.map((_, i) => (i / (COUNTS.length - 1)) * 1000);
+/** Evenly spaced edges over 0–1000: one more entry than there are bins. */
+const BIN_EDGES = Array.from({ length: COUNTS.length + 1 }, (_, i) => (i / COUNTS.length) * 1000);
 const VALUES = sampleValues();
 
 function RenderWithState(args: HistogramRangeProps) {
     const [value, setValue] = useState<[number, number] | null>(
         args.value ?? args.defaultValue ?? null,
     );
-    const vertical = args.orientation === 'vertical';
     return (
-        <div className={vertical ? 'h-80 w-24' : 'h-32 w-[32rem]'}>
+        <Frame size={args.size} vertical={args.orientation === 'vertical'}>
             <HistogramRange {...args} value={value} onChange={(range) => setValue(range)} />
+        </Frame>
+    );
+}
+
+function RenderWithPercentileReadout(args: HistogramRangeProps) {
+    const [range, setRange] = useState<[number, number]>([200, 700]);
+    const [percentiles, setPercentiles] = useState<[number, number]>([0, 100]);
+    return (
+        <div className="flex w-fit flex-col gap-2">
+            <Frame size={args.size}>
+                <HistogramRange
+                    {...args}
+                    value={range}
+                    onChange={(next, nextPercentiles) => {
+                        setRange(next);
+                        setPercentiles(nextPercentiles);
+                    }}
+                />
+            </Frame>
+            <p className="text-xs font-light text-slate-600">
+                {`Range ${range[0].toFixed(1)} – ${range[1].toFixed(1)}`}
+                {`  ·  Percentile ${percentiles[0].toFixed(1)}% – ${percentiles[1].toFixed(1)}%`}
+            </p>
         </div>
     );
+}
+
+/**
+ * A fixed box for `size="full"`, which fills its parent and needs a real height.
+ * Fixed sizes set their own dimensions, so they render unwrapped; wrapping them
+ * would clip the larger sizes and make the Docs preview scroll.
+ */
+function Frame({
+    size,
+    vertical = false,
+    children,
+}: {
+    size: HistogramRangeProps['size'];
+    vertical?: boolean;
+    children: React.ReactNode;
+}) {
+    if (size !== 'full') return <>{children}</>;
+    return <div className={vertical ? 'h-80 w-24' : 'h-32 w-[32rem]'}>{children}</div>;
 }
 
 export const Default: Story = {
     render: RenderWithState,
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         title: 'Intensity',
         defaultValue: [200, 700],
     },
@@ -119,7 +176,7 @@ export const Vertical: Story = {
     },
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         orientation: 'vertical',
         defaultValue: [150, 800],
     },
@@ -130,13 +187,13 @@ export const ReadOnly: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Without handles the component is just a distribution plot. The selection highlight and fading still apply, so it can display a range chosen elsewhere.',
+                story: 'With `readOnly` the handles are hidden and the component is a distribution plot. The selection highlight and fading still apply, so it can display a range chosen elsewhere.',
             },
         },
     },
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         readOnly: true,
         defaultValue: [250, 650],
         title: 'Distribution',
@@ -154,7 +211,7 @@ export const LinearCounts: Story = {
     },
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         logCounts: false,
         title: 'Linear count axis',
     },
@@ -171,7 +228,7 @@ export const NoFading: Story = {
     },
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         fadeOutsideSelection: false,
         defaultValue: [300, 600],
     },
@@ -182,17 +239,19 @@ export const WithPercentileReadout: Story = {
         docs: {
             description: {
                 story: `
-\`onChange\` supplies percentiles alongside the data-unit range, computed from the
-cumulative counts. That lets a percentile-based control track the histogram without
-asking the server to convert.
+\`onChange\` supplies, alongside the data-unit range, the percentage of the population
+lying below each threshold, computed from the cumulative counts. Use it to keep a
+percentile control in sync without a server round-trip.
+Use \`edgeAtPercentile\` for the reverse direction when the percentile is the stored
+state.
 
 \`\`\`tsx
 <HistogramRange
   counts={counts}
-  binCenters={binCenters}
-  onChange={([min, max], [pMin, pMax]) => {
+  binEdges={binEdges}
+  onChange={([min, max], [pBelowMin, pBelowMax]) => {
     setRange([min, max]);
-    setPercentiles([pMin, pMax]);
+    setPercentiles([pBelowMin, pBelowMax]);
   }}
 />
 \`\`\`
@@ -200,31 +259,10 @@ asking the server to convert.
             },
         },
     },
-    render: (args: HistogramRangeProps) => {
-        const [range, setRange] = useState<[number, number]>([200, 700]);
-        const [percentiles, setPercentiles] = useState<[number, number]>([0, 100]);
-        return (
-            <div className="flex w-[32rem] flex-col gap-2">
-                <div className="h-32">
-                    <HistogramRange
-                        {...args}
-                        value={range}
-                        onChange={(next, nextPercentiles) => {
-                            setRange(next);
-                            setPercentiles(nextPercentiles);
-                        }}
-                    />
-                </div>
-                <p className="text-xs font-light text-slate-600">
-                    {`Range ${range[0].toFixed(1)} – ${range[1].toFixed(1)}`}
-                    {`  ·  Percentile ${percentiles[0].toFixed(1)}% – ${percentiles[1].toFixed(1)}%`}
-                </p>
-            </div>
-        );
-    },
+    render: RenderWithPercentileReadout,
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         title: 'Intensity',
     },
 };
@@ -240,7 +278,7 @@ export const MinimumSeparation: Story = {
     },
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         minBinSeparation: 20,
         defaultValue: [300, 600],
         title: 'At least 20 bins',
@@ -251,7 +289,7 @@ export const Sizes: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Fixed sizes for laying out next to other controls. The default, `full`, fills whatever box you put it in.',
+                story: 'Fixed sizes for laying out next to other controls. The default is `medium`; `full` fills its parent. Bars stay solid at any bin count and width.',
             },
         },
     },
@@ -264,7 +302,7 @@ export const Sizes: Story = {
     ),
     args: {
         counts: COUNTS,
-        binCenters: BIN_CENTERS,
+        binEdges: BIN_EDGES,
         defaultValue: [200, 700],
     },
 };

@@ -9,7 +9,11 @@
  */
 
 import { colormapLut, hexToRgb } from '@/utils/colorUtils';
+import { valueRange } from '@/utils/histogramUtils';
 import type { MaskLayer, ResolvedMaskClass } from '@/components/MaskOverlayCanvas/types';
+
+/** Largest class id handled by the dense lookup table in {@link labelsToRgba}. */
+const MAX_DENSE_LABEL = 65535;
 
 /** A row-major RGBA pixel buffer. `data.length` is `width * height * 4`. */
 export type RgbaBuffer = {
@@ -25,10 +29,25 @@ export type RgbaBuffer = {
 export type ArrayToRgbaOptions = {
     /** Colormap id from `COLORMAPS`. Defaults to `'gray'`. */
     colormap?: string;
-    /** Display range as `[min, max]`. Defaults to the extent of the finite data. */
+    /**
+     * Display range as `[min, max]` in data units. Defaults to the extent of the
+     * finite data. Under `log` a lower bound at or below zero does not set the
+     * bottom of the colormap: it becomes the smallest positive sample within the
+     * domain. A positive lower bound is used exactly.
+     */
     domain?: [number, number];
-    /** Apply `log10` to positive values before normalizing. Defaults to `false`. */
+    /**
+     * Apply `log10` before normalizing. Values at or below zero are outside the
+     * log domain and are painted with `underRangeColor` instead of a colormap
+     * color, so `0` never shares a color with the smallest positive value.
+     * Defaults to `false`.
+     */
     log?: boolean;
+    /**
+     * RGBA (0–255 each) for non-positive pixels under `log`. Defaults to fully
+     * transparent `[0, 0, 0, 0]`. Unused without `log`.
+     */
+    underRangeColor?: [number, number, number, number];
 };
 
 /**
@@ -47,18 +66,58 @@ export function labelsToRgba(
     classes: ResolvedMaskClass[],
 ): RgbaBuffer {
     const data = new Uint8ClampedArray(width * height * 4);
+    const pixels = Math.min(labels.length, width * height);
 
-    // Dense lookup keyed by label value, so the per-pixel loop is a single index
-    // rather than a search through `classes`.
+    const visible = classes.filter((cls) => cls.visible);
+    if (visible.length === 0) return { data, width, height };
+
+    // Fast path: when every visible id is a small non-negative integer, build a
+    // dense RGBA table indexed directly by label value. A typed-array read per
+    // pixel is several times faster than a `Map.get` on a detector-sized mask.
+    let maxId = -1;
+    let dense = true;
+    for (const cls of visible) {
+        if (!Number.isInteger(cls.id) || cls.id < 0 || cls.id > MAX_DENSE_LABEL) {
+            dense = false;
+            break;
+        }
+        if (cls.id > maxId) maxId = cls.id;
+    }
+
+    if (dense) {
+        const lut = new Uint8ClampedArray((maxId + 1) * 4);
+        for (const cls of visible) {
+            const [r, g, b] = hexToRgb(cls.color);
+            const o = cls.id * 4;
+            lut[o] = r;
+            lut[o + 1] = g;
+            lut[o + 2] = b;
+            lut[o + 3] = Math.max(0, Math.min(1, cls.opacity)) * 255;
+        }
+        const lutLength = maxId + 1;
+        for (let i = 0; i < pixels; i += 1) {
+            const v = labels[i];
+            // `v >>> 0 !== v` rejects negatives and fractions; the bound check
+            // rejects labels above every class. Either way the pixel stays clear.
+            // Ids inside the table with no class hold zeros, which is also clear.
+            if (v >>> 0 !== v || v >= lutLength) continue;
+            const s = v * 4;
+            const o = i * 4;
+            data[o] = lut[s];
+            data[o + 1] = lut[s + 1];
+            data[o + 2] = lut[s + 2];
+            data[o + 3] = lut[s + 3];
+        }
+        return { data, width, height };
+    }
+
+    // General path for negative, fractional or very large ids: a hash lookup.
     const byId = new Map<number, { r: number; g: number; b: number; a: number }>();
-    for (const cls of classes) {
-        if (!cls.visible) continue;
+    for (const cls of visible) {
         const [r, g, b] = hexToRgb(cls.color);
         byId.set(cls.id, { r, g, b, a: Math.max(0, Math.min(1, cls.opacity)) * 255 });
     }
-    if (byId.size === 0) return { data, width, height };
 
-    const pixels = Math.min(labels.length, width * height);
     for (let i = 0; i < pixels; i += 1) {
         const entry = byId.get(labels[i]);
         if (entry === undefined) continue;
@@ -109,12 +168,14 @@ export function binaryMasksToRgba(
 }
 
 /**
- * Color-maps a raw intensity array to opaque RGBA.
+ * Color-maps a raw intensity array to RGBA.
  *
- * Mirrors the server-side rendering used by the calibration backend: optional
- * `log10` of positive values, clip-normalize into `domain`, then a lookup-table
- * read. Non-finite samples are treated as the domain minimum so a stray `NaN`
- * renders as the low end of the colormap rather than a transparent hole.
+ * Clip-normalizes into `domain` (after `log10` when `log` is set), then reads a
+ * lookup table. Values outside the domain clamp to the ends of the colormap.
+ * Under `log`, non-positive values are under-range rather than clamped, and take
+ * `underRangeColor`. Non-finite samples are treated as the domain minimum so a
+ * stray `NaN` renders as the low end of the colormap rather than a hole. Every
+ * pixel is opaque except under-range pixels with a translucent `underRangeColor`.
  */
 export function arrayToRgba(
     values: ArrayLike<number>,
@@ -122,41 +183,28 @@ export function arrayToRgba(
     height: number,
     options: ArrayToRgbaOptions = {},
 ): RgbaBuffer {
-    const { colormap = 'gray', domain, log = false } = options;
+    const { colormap = 'gray', domain, log = false, underRangeColor = [0, 0, 0, 0] } = options;
     const data = new Uint8ClampedArray(width * height * 4);
     const lut = colormapLut(colormap);
     const pixels = Math.min(values.length, width * height);
 
-    const transform = (v: number) => (log && v > 0 ? Math.log10(v) : v);
-
-    let lo: number;
-    let hi: number;
-    if (domain) {
-        lo = transform(domain[0]);
-        hi = transform(domain[1]);
-    } else {
-        lo = Infinity;
-        hi = -Infinity;
-        for (let i = 0; i < pixels; i += 1) {
-            const v = transform(values[i]);
-            if (!Number.isFinite(v)) continue;
-            if (v < lo) lo = v;
-            if (v > hi) hi = v;
-        }
-        if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
-            lo = 0;
-            hi = 1;
-        }
-    }
-
+    const [lo, hi] = valueRange(values, pixels, domain, log);
     const span = hi - lo;
     for (let i = 0; i < pixels; i += 1) {
-        const v = transform(values[i]);
+        const raw = values[i];
+        const o = i * 4;
+        if (log && raw <= 0) {
+            data[o] = underRangeColor[0];
+            data[o + 1] = underRangeColor[1];
+            data[o + 2] = underRangeColor[2];
+            data[o + 3] = underRangeColor[3];
+            continue;
+        }
+        const v = log ? Math.log10(raw) : raw;
         // A flat domain maps everything to the bottom of the colormap, matching
         // how a zero-range image renders server-side.
         const t = !Number.isFinite(v) || span <= 0 ? 0 : Math.max(0, Math.min(1, (v - lo) / span));
         const idx = Math.round(t * 255) * 3;
-        const o = i * 4;
         data[o] = lut[idx];
         data[o + 1] = lut[idx + 1];
         data[o + 2] = lut[idx + 2];

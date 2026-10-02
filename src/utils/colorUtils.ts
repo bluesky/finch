@@ -68,20 +68,32 @@ function parseStops(stops: string): [number, number, number][] {
     return colors.length > 0 ? colors : [FALLBACK_RGB];
 }
 
-const lutCache = new Map<string, Uint8ClampedArray>();
+/**
+ * LUT cache, keyed first on the colormap list (by identity) and then on the id.
+ * Keying on the list means a caller passing its own list that reuses an id such
+ * as `'gray'` gets its own LUT and cannot poison the default one. A `WeakMap`
+ * lets a discarded custom list be garbage-collected along with its LUTs.
+ */
+const lutCache = new WeakMap<ColormapDef[], Map<string, Uint8ClampedArray>>();
 
 /**
  * Builds a 256-entry RGB lookup table for a colormap, as a flat `Uint8ClampedArray`
  * of length 768 (`[r0, g0, b0, r1, g1, b1, ...]`).
  *
- * `colormap` is an id from `COLORMAPS` (e.g. `'viridis'`, `'gray'`). Unknown ids
- * fall back to `'gray'`. Results are cached, so repeated calls are free.
+ * `colormap` is an id from `colormaps` (e.g. `'viridis'`, `'gray'`). Unknown ids
+ * fall back to black-to-white. Results are cached per `colormaps` list, so pass a
+ * stable (module-level) list to benefit from the cache.
  */
 export function colormapLut(
     colormap: string,
     colormaps: ColormapDef[] = COLORMAPS,
 ): Uint8ClampedArray {
-    const cached = lutCache.get(colormap);
+    let listCache = lutCache.get(colormaps);
+    if (!listCache) {
+        listCache = new Map();
+        lutCache.set(colormaps, listCache);
+    }
+    const cached = listCache.get(colormap);
     if (cached) return cached;
 
     const def =
@@ -109,7 +121,7 @@ export function colormapLut(
         lut[i * 3 + 2] = a[2] + (b[2] - a[2]) * frac;
     }
 
-    lutCache.set(colormap, lut);
+    listCache.set(colormap, lut);
     return lut;
 }
 

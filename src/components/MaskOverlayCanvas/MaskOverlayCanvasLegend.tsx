@@ -1,5 +1,6 @@
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
+import { withAlpha } from '@/utils/colorUtils';
 import type { ResolvedMaskClass } from './types';
 
 export type MaskOverlayCanvasLegendProps = Omit<
@@ -43,8 +44,11 @@ export default function MaskOverlayCanvasLegend({
                 <li key={cls.id} className={cn('flex items-center gap-2', classNameRow)}>
                     <span
                         aria-hidden="true"
+                        data-testid="mask-legend-swatch"
                         className="h-3 w-3 shrink-0 rounded-sm border border-black/10"
-                        style={{ backgroundColor: cls.color }}
+                        // Parsed through the same helper as the raster, so a bad
+                        // color shows the same magenta fallback in both places.
+                        style={{ backgroundColor: withAlpha(cls.color, 1) }}
                     />
                     <span
                         className={cn(
@@ -57,8 +61,11 @@ export default function MaskOverlayCanvasLegend({
                     {interactive && (
                         <button
                             type="button"
-                            aria-label={`${cls.visible ? 'Hide' : 'Show'} ${cls.label}`}
-                            aria-pressed={!cls.visible}
+                            // A fixed label with a pressed state, so a screen reader
+                            // announces "Class 1 visible, pressed" or "not pressed"
+                            // rather than a label that contradicts its own state.
+                            aria-label={`${cls.label} visible`}
+                            aria-pressed={cls.visible}
                             onClick={() => onToggle?.(cls.id, !cls.visible)}
                             className="shrink-0 rounded p-0.5 text-slate-500 hover:cursor-pointer hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
                         >

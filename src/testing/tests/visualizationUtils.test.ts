@@ -4,7 +4,11 @@ import {
     cumulativeCounts,
     valueToPercentile,
     percentileToValue,
+    percentileBelowEdge,
+    edgeAtPercentile,
+    edgesFromCenters,
 } from '../../utils/histogramUtils';
+import type { ColormapDef } from '../../components/ColormapPicker/colormaps';
 import {
     hexToRgb,
     withAlpha,
@@ -88,6 +92,60 @@ describe('computeHistogram', () => {
         expect(counts).toEqual([1, 1]);
     });
 
+    describe('log mode with non-positive values', () => {
+        const binOf = (edges: number[], v: number) => {
+            const t = Math.log10(v);
+            const i = edges.findIndex((e, k) => k > 0 && t <= e);
+            return Math.max(0, i - 1);
+        };
+
+        it('excludes zero but counts every positive sample under a zero-based domain', () => {
+            const { counts } = computeHistogram([0, 0.5, 1, 10], {
+                bins: 16,
+                domain: [0, 1000],
+                log: true,
+            });
+            expect(counts.reduce((a, b) => a + b, 0)).toBe(3);
+        });
+
+        it('excludes negative values', () => {
+            const { counts } = computeHistogram([-3, -0.1, 0, 2], { bins: 4, log: true });
+            expect(counts.reduce((a, b) => a + b, 0)).toBe(1);
+        });
+
+        it('starts the bins at the smallest positive sample when the lower bound is non-positive', () => {
+            const { binEdges } = computeHistogram([0, 0.5, 1, 10], {
+                bins: 16,
+                domain: [0, 1000],
+                log: true,
+            });
+            expect(binEdges[0]).toBeCloseTo(Math.log10(0.5));
+            expect(binEdges[binEdges.length - 1]).toBeCloseTo(3);
+            for (let i = 1; i < binEdges.length; i += 1) {
+                expect(binEdges[i]).toBeGreaterThan(binEdges[i - 1]);
+            }
+        });
+
+        it('uses a positive lower bound exactly', () => {
+            const { binEdges, counts } = computeHistogram([0.5, 1, 10], {
+                bins: 4,
+                domain: [1, 1000],
+                log: true,
+            });
+            expect(binEdges[0]).toBeCloseTo(0);
+            // 0.5 is below the explicit domain, so it is filtered out.
+            expect(counts.reduce((a, b) => a + b, 0)).toBe(2);
+        });
+
+        it('keeps sub-unit, unit and larger positive samples in distinct bins', () => {
+            const values = [0.5, 1, 10];
+            const { binEdges, counts } = computeHistogram(values, { bins: 8, log: true });
+            const indices = values.map((v) => binOf(binEdges, v));
+            expect(new Set(indices).size).toBe(3);
+            for (const i of indices) expect(counts[i]).toBe(1);
+        });
+    });
+
     it('accepts a typed array', () => {
         const { counts } = computeHistogram(new Uint8Array([0, 0, 255]), {
             bins: 2,
@@ -135,6 +193,64 @@ describe('cumulativeCounts and percentile conversion', () => {
         const { cumulative, total } = cumulativeCounts([1, 1]);
         expect(valueToPercentile(-999, [0, 1], cumulative, total)).toBeGreaterThanOrEqual(0);
         expect(valueToPercentile(999, [0, 1], cumulative, total)).toBeLessThanOrEqual(100);
+    });
+});
+
+describe('edge-based percentiles', () => {
+    // Four bins with counts 1, 2, 3, 4 between edges 0, 10, 20, 30, 40.
+    const EDGES = [0, 10, 20, 30, 40];
+    const { cumulative, total } = cumulativeCounts([1, 2, 3, 4]);
+
+    it('reports the population strictly below each edge', () => {
+        expect(percentileBelowEdge(0, cumulative, total)).toBe(0);
+        expect(percentileBelowEdge(1, cumulative, total)).toBeCloseTo(10, 10);
+        expect(percentileBelowEdge(2, cumulative, total)).toBeCloseTo(30, 10);
+        expect(percentileBelowEdge(3, cumulative, total)).toBeCloseTo(60, 10);
+        expect(percentileBelowEdge(4, cumulative, total)).toBe(100);
+    });
+
+    it('clamps edge indices outside the edge range', () => {
+        expect(percentileBelowEdge(-3, cumulative, total)).toBe(0);
+        expect(percentileBelowEdge(99, cumulative, total)).toBe(100);
+    });
+
+    it('maps 0% and 100% to the outer edges', () => {
+        expect(edgeAtPercentile(0, EDGES, cumulative, total)).toBe(0);
+        expect(edgeAtPercentile(100, EDGES, cumulative, total)).toBe(40);
+    });
+
+    it('round-trips exactly at every edge', () => {
+        EDGES.forEach((edge, i) => {
+            const p = percentileBelowEdge(i, cumulative, total);
+            expect(edgeAtPercentile(p, EDGES, cumulative, total)).toBe(edge);
+        });
+    });
+
+    it('returns the first edge with at least the requested population below it', () => {
+        // 10% lies below edge 10 and 30% below edge 20, so 15% needs edge 20.
+        expect(edgeAtPercentile(15, EDGES, cumulative, total)).toBe(20);
+    });
+
+    it('handles an empty distribution', () => {
+        expect(percentileBelowEdge(2, [], 0)).toBe(0);
+        expect(edgeAtPercentile(50, [], [], 0)).toBe(0);
+        expect(edgeAtPercentile(50, [5, 6], [0], 0)).toBe(5);
+    });
+});
+
+describe('edgesFromCenters', () => {
+    it('reproduces the edges of evenly spaced bins exactly', () => {
+        const { binCenters, binEdges } = computeHistogram([0, 10], { bins: 5, domain: [0, 10] });
+        expect(edgesFromCenters(binCenters)).toEqual(binEdges);
+    });
+
+    it('keeps irregular spacing, extending half a bin at each end', () => {
+        expect(edgesFromCenters([1, 2, 4, 8])).toEqual([0.5, 1.5, 3, 6, 10]);
+    });
+
+    it('gives a single center a unit-width bin and handles no centers', () => {
+        expect(edgesFromCenters([3])).toEqual([2.5, 3.5]);
+        expect(edgesFromCenters([])).toEqual([]);
     });
 });
 
@@ -186,6 +302,18 @@ describe('colormapLut and sampleColormap', () => {
         const lut = colormapLut('does-not-exist');
         expect([lut[0], lut[1], lut[2]]).toEqual([0, 0, 0]);
         expect([lut[765], lut[766], lut[767]]).toEqual([255, 255, 255]);
+    });
+
+    it('caches per colormap list, so a custom list cannot poison the default', () => {
+        const custom: ColormapDef[] = [{ id: 'gray', label: 'Red ramp', stops: '#000000,#ff0000' }];
+        const customLut = colormapLut('gray', custom);
+        const defaultLut = colormapLut('gray');
+        // The custom ramp ends in pure red; the default gray ends in white.
+        expect(Array.from(customLut.slice(765, 768))).toEqual([255, 0, 0]);
+        expect(Array.from(defaultLut.slice(765, 768))).toEqual([255, 255, 255]);
+        // Repeated calls hit the cache for each list independently.
+        expect(colormapLut('gray', custom)).toBe(customLut);
+        expect(colormapLut('gray')).toBe(defaultLut);
     });
 
     it('strips CSS position tokens from stops such as tab10', () => {
@@ -284,6 +412,38 @@ describe('labelsToRgba', () => {
         expect([...data]).toEqual(new Array(16).fill(0));
     });
 
+    it('gives the same result on the dense and general lookup paths', () => {
+        const labels = [0, 1, 2, 3, 2, 1];
+        const dense = labelsToRgba(labels, 6, 1, [
+            cls({ id: 1, color: '#ff0000' }),
+            cls({ id: 2, color: '#00ff00', opacity: 0.5 }),
+        ]);
+        // A negative id forces the general path; it matches no pixel here.
+        const general = labelsToRgba(labels, 6, 1, [
+            cls({ id: 1, color: '#ff0000' }),
+            cls({ id: 2, color: '#00ff00', opacity: 0.5 }),
+            cls({ id: -1, color: '#0000ff' }),
+        ]);
+        expect(Array.from(dense.data)).toEqual(Array.from(general.data));
+    });
+
+    it('colors negative and fractional ids on the general path', () => {
+        const { data } = labelsToRgba([-1, 1.5, 0], 3, 1, [
+            cls({ id: -1, color: '#0000ff' }),
+            cls({ id: 1.5, color: '#00ff00' }),
+        ]);
+        expect(Array.from(data.slice(0, 4))).toEqual([0, 0, 255, 255]);
+        expect(Array.from(data.slice(4, 8))).toEqual([0, 255, 0, 255]);
+        expect(data[11]).toBe(0);
+    });
+
+    it('leaves negative and fractional labels clear on the dense path', () => {
+        const { data } = labelsToRgba([-1, 1.5, 1], 3, 1, [cls({ id: 1, color: '#ff0000' })]);
+        expect(data[3]).toBe(0);
+        expect(data[7]).toBe(0);
+        expect(Array.from(data.slice(8, 12))).toEqual([255, 0, 0, 255]);
+    });
+
     it('does not read past the end of a short label array', () => {
         const { data } = labelsToRgba([1], 2, 2, classes);
         expect([...data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
@@ -368,6 +528,59 @@ describe('arrayToRgba', () => {
         expect(data[4]).toBeGreaterThan(100);
         expect(data[4]).toBeLessThan(160);
         expect(data[8]).toBe(255);
+    });
+
+    describe('log mode with non-positive values', () => {
+        const px = (data: Uint8ClampedArray, i: number) => [...data.slice(i * 4, i * 4 + 4)];
+
+        it('paints zero as under-range (transparent by default), distinct from one', () => {
+            const { data } = arrayToRgba([0, 1, 100], 3, 1, { colormap: 'gray', log: true });
+            expect(px(data, 0)).toEqual([0, 0, 0, 0]);
+            expect(px(data, 1)).toEqual([0, 0, 0, 255]);
+            expect(px(data, 0)).not.toEqual(px(data, 1));
+        });
+
+        it('paints negative values as under-range', () => {
+            const { data } = arrayToRgba([-5, 1, 100], 3, 1, { colormap: 'gray', log: true });
+            expect(px(data, 0)).toEqual([0, 0, 0, 0]);
+        });
+
+        it('honours a custom underRangeColor', () => {
+            const { data } = arrayToRgba([0, 1, 100], 3, 1, {
+                colormap: 'gray',
+                log: true,
+                underRangeColor: [255, 0, 255, 128],
+            });
+            expect(px(data, 0)).toEqual([255, 0, 255, 128]);
+        });
+
+        it('keeps sub-unit positive values log-distinguishable under a zero-based domain', () => {
+            // The lower edge becomes log10(0.5), so 0.5 sits at the bottom and 1 above it.
+            const { data } = arrayToRgba([0, 0.5, 1, 1000], 4, 1, {
+                colormap: 'gray',
+                domain: [0, 1000],
+                log: true,
+            });
+            expect(px(data, 0)[3]).toBe(0);
+            expect(data[4]).toBe(0);
+            expect(data[8]).toBeGreaterThan(data[4]);
+            expect(data[12]).toBe(255);
+        });
+
+        it('clamps positive values below a positive lower bound to the bottom of the colormap', () => {
+            const { data } = arrayToRgba([0.5, 10, 100], 3, 1, {
+                colormap: 'gray',
+                domain: [10, 100],
+                log: true,
+            });
+            expect(px(data, 0)).toEqual([0, 0, 0, 255]);
+            expect(px(data, 1)).toEqual([0, 0, 0, 255]);
+        });
+
+        it('leaves zero opaque at the bottom of the colormap without log', () => {
+            const { data } = arrayToRgba([0, 100], 2, 1, { colormap: 'gray' });
+            expect(px(data, 0)).toEqual([0, 0, 0, 255]);
+        });
     });
 
     it('defaults to the gray colormap', () => {

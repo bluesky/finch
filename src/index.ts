@@ -188,7 +188,10 @@ export type { HistogramRangeProps } from './components/HistogramRange';
 
 // MASK OVERLAY
 export { default as MaskOverlayCanvas } from './components/MaskOverlayCanvas/MaskOverlayCanvas';
-export type { MaskOverlayCanvasProps } from './components/MaskOverlayCanvas/MaskOverlayCanvas';
+export type {
+    MaskOverlayCanvasProps,
+    MaskOverlayLayer,
+} from './components/MaskOverlayCanvas/MaskOverlayCanvas';
 export { default as MaskOverlayCanvasLegend } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
 export type { MaskOverlayCanvasLegendProps } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
 export type {
@@ -204,6 +207,9 @@ export {
     cumulativeCounts,
     valueToPercentile,
     percentileToValue,
+    percentileBelowEdge,
+    edgeAtPercentile,
+    edgesFromCenters,
 } from './utils/histogramUtils';
 export type { HistogramBins, ComputeHistogramOptions } from './utils/histogramUtils';
 export {
