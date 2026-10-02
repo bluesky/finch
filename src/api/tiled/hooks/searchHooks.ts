@@ -11,7 +11,6 @@ import type {
     TiledSpecsFilter,
     TiledStructureFamilyFilter,
 } from '../types/common';
-import { encodeSearchConfig } from './internal/encodeSearchConfig';
 import { useTiledQuery } from './internal/useTiledQuery';
 import { tiledQueryKeys, type TiledQueryKeyFor } from './queryKeys';
 import type { FinchQueryOptions, TiledHookError } from './types';
@@ -44,7 +43,7 @@ import { useTiledQueryScope } from './useTiledClient';
  * });
  * ```
  *
- * See `internal/encodeSearchConfig.ts` for which filters are encoded and which are left alone.
+ * See `client/searchParams.ts` for which filters are encoded and which are left alone.
  */
 
 /** Shared shape of every search hook's TanStack options parameter. */
@@ -245,14 +244,15 @@ function useSearch<TData>(
 ): UseQueryResult<TData, TiledHookError> {
     const scope = useTiledQueryScope(requestOptions);
 
-    // Encode *before* keying, not just before fetching: `value: 5` and `value: '5'` become `5` and
-    // `"5"`, two genuinely different queries, and the encoded form is the one that identifies the
-    // request. A fresh object each render is fine — TanStack hashes keys by value.
-    const encodedConfig = encodeSearchConfig(config);
-
+    // The raw config is what goes in the key, and that is correct even though the client encodes
+    // filter values on the way out: `value: 5` and `value: '5'` are already distinct in a TanStack
+    // key hash, so they get separate cache entries exactly as the two genuinely different queries
+    // they encode to deserve. This used to encode first and key on the result, which was necessary
+    // only because the encoding lived in the hook layer; it now lives in `client/searchParams.ts`,
+    // where the free functions get it too.
     return useTiledQuery({
-        queryKey: tiledQueryKeys.search(scope, { searchPath, config: encodedConfig ?? null }),
-        fetch: (client, request) => client.getSearch(searchPath, encodedConfig, request),
+        queryKey: tiledQueryKeys.search(scope, { searchPath, config: config ?? null }),
+        fetch: (client, request) => client.getSearch(searchPath, config, request),
         queryOptions,
         requestOptions,
         defaultEnabled,

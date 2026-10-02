@@ -1,6 +1,9 @@
-import type { UseQueryResult } from '@tanstack/react-query';
-import type { TiledRequestOptions } from '../types/common';
+import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import { requireArg } from '@/api/shared/errors';
+import type { TiledBinaryBody, TiledRequestOptions } from '../types/common';
+import type { TiledFormatName } from '../client/formats';
 import type {
+    TiledTableAnyEndpointOptions,
     TiledTableEndpoint,
     TiledTableEndpointOptionsMap,
     TiledTableJSONData,
@@ -10,11 +13,13 @@ import type {
     TiledTableOptionsMap,
     TiledTableReturnMap,
     TiledTableReturnType,
-} from '../types/packageAliases';
+} from '../types/dataOptions';
 import { tableKeyParts } from './internal/keyParts';
+import { useTiledMutation } from './internal/useTiledMutation';
 import { useTiledQuery } from './internal/useTiledQuery';
+import { TILED_MUTATION_INVALIDATIONS } from './invalidation';
 import { tiledQueryKeys, type TiledQueryKeyFor } from './queryKeys';
-import type { FinchQueryOptions, TiledHookError } from './types';
+import type { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 import { useTiledQueryScope } from './useTiledClient';
 
 /**
@@ -236,3 +241,203 @@ export function useTiledTableFullAsJSONSequenceQuery<TData = TiledTableJSONSeque
         defaultEnabled: tablePath.length > 0,
     });
 }
+
+// #region exports and writes
+
+/**
+ * Read a whole table in any representation — CSV, parquet, arrow, Excel, HDF5.
+ *
+ * The format decides the return type: `'CSV'` resolves a string, `'PARQUET'` and `'ARROW'` an
+ * `ArrayBuffer`. See `client/formats.ts` for the table, and the server's own `About.formats.table`
+ * for what a given deployment supports.
+ *
+ * This is what a download button reads. Note it caches the payload like any other query, so a large
+ * export stays in the query cache — pass `gcTime: 0` if that matters.
+ *
+ * @param tablePath **Required.** Idle while empty.
+ * @param format **Required.** A `TiledFormatName` or a raw media type.
+ * @param tableOptions Table parameters: `column`, …
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export function useTiledTableFullAsQuery<TData = unknown>(
+    tablePath: string,
+    format: TiledFormatName | string,
+    tableOptions?: TiledTableAnyEndpointOptions,
+    queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.table(scope, {
+            tablePath,
+            // The format is the discriminator here, so it has to reach the key; `tableKeyParts`
+            // already carries it.
+            type: 'JSON',
+            endpoint: 'full',
+            options: tableKeyParts({ ...tableOptions, format }),
+        }),
+        fetch: (client, request) =>
+            client.getTableFullAs(tablePath, format, { ...tableOptions, ...request }),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: tablePath.length > 0,
+    });
+}
+
+/**
+ * Table writes.
+ *
+ * The payload is **encoded table bytes** and `mimetype` says which encoding — `'application/x-parquet'`,
+ * `'text/csv'` or `'application/vnd.apache.arrow.file'`. It is required rather than defaulted: the
+ * server dispatches its reader on exactly this header, so a wrong guess either fails outright or
+ * silently writes nonsense.
+ */
+
+/** What `useTiledPutTablePartitionMutation().mutate` takes. */
+export interface TiledPutTablePartitionVariables {
+    path: string;
+    data: TiledBinaryBody;
+    partition: number;
+    /** The encoding of `data`, e.g. `'application/x-parquet'`. */
+    mimetype: string;
+}
+
+/** Write one partition — `PUT /api/v1/table/partition/{path}`. */
+export function useTiledPutTablePartitionMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPutTablePartitionVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPutTablePartitionVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, partition, mimetype }, request) =>
+            client.putTablePartition(path, data, { partition, mimetype }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPutTablePartitionMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+/** Append to one partition — `PATCH /api/v1/table/partition/{path}`. */
+export function useTiledPatchTablePartitionMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPutTablePartitionVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPutTablePartitionVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, partition, mimetype }, request) =>
+            client.patchTablePartition(path, data, { partition, mimetype }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPatchTablePartitionMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+/** What `useTiledPutTableFullMutation().mutate` takes. */
+export interface TiledPutTableFullVariables {
+    path: string;
+    data: TiledBinaryBody;
+    mimetype: string;
+}
+
+/**
+ * Write a whole table — `PUT /api/v1/table/full/{path}`.
+ *
+ * The same server operation as `useTiledPutNodeFullMutation`; the spec simply mounts it at two
+ * paths.
+ */
+export function useTiledPutTableFullMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        unknown,
+        TiledPutTableFullVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<unknown, TiledHookError, TiledPutTableFullVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, data, mimetype }, request) =>
+            client.putTableFull(path, data, { mimetype }, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledPutTableFullMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+/**
+ * The POST variants of the table reads — `POST /api/v1/table/full/{path}` and
+ * `.../partition/{path}`.
+ *
+ * **Reads, despite the verb.** The body carries a column list rather than changing anything; the
+ * endpoint exists for selections too long for a query string. They are queries for the same reason
+ * `useQueueGetRunsQuery` is.
+ */
+
+/** Read a whole table with the column list in the request body. */
+export function useTiledPostTableFullQuery<TData = unknown>(
+    tablePath: string,
+    columns: string[] | null,
+    params?: { format?: string; filename?: string },
+    queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.table(scope, {
+            tablePath,
+            type: 'JSON',
+            endpoint: 'full',
+            options: tableKeyParts({ column: columns ?? undefined, format: params?.format }),
+        }),
+        fetch: (client, request) => client.postTableFull(tablePath, columns, params, request),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: tablePath.length > 0,
+    });
+}
+
+/** Read one partition with the column list in the request body. */
+export function useTiledPostTablePartitionQuery<TData = unknown>(
+    tablePath: string,
+    columns: string[] | null,
+    params: { partition: number; format?: string; filename?: string } | undefined,
+    queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.table(scope, {
+            tablePath,
+            type: 'JSON',
+            endpoint: 'partition',
+            options: tableKeyParts({
+                column: columns ?? undefined,
+                partition: params?.partition,
+                format: params?.format,
+            }),
+        }),
+        fetch: (client, request) =>
+            client.postTablePartition(
+                tablePath,
+                columns,
+                requireArg(params, 'useTiledPostTablePartitionQuery', 'params'),
+                request,
+            ),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: tablePath.length > 0 && params !== undefined,
+    });
+}
+
+// #endregion
