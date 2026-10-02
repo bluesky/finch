@@ -3,19 +3,13 @@ import TiledHooksDoc from './TiledHooks.md?raw';
 
 <Meta title="Documentation/Tiled Query Hooks" />
 
-# Tiled Query Hooks
-
-A TanStack Query hook for every operation in Tiled's API — reads and writes alike — reading their
-server URL and API key from `FinchConfigProvider`.
-
-Finch ships its own Tiled client now rather than wrapping `@blueskyproject/tiled`. Every existing hook
-kept its name and signature; what is new is the other half of the API.
-
-There is no live demo on this page: unlike the queue-server hooks there is no Tiled simulator, so a demo
-would have to reach a real server and would show something different every time you opened it. To try
-the hooks against the public demo server, wrap a component in `TiledApiProvider` with
-`new TiledApiClient({ baseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1' })`, or pass that URL as
-`requestOptions.baseUrl` on a single hook. Note that a public demo server is read-only — the write
-hooks need a server you control.
-
 <Markdown>{TiledHooksDoc}</Markdown>
+
+---
+
+There is no live demo on this page. Unlike the queue-server hooks there is no Tiled simulator, so a
+demo would have to reach a real server and would show something different every time you opened it.
+To try the hooks against the public demo server, wrap a component in `TiledApiProvider` with
+`new TiledApiClient({ baseUrl: 'https://tiled-demo.nsls2.bnl.gov/api/v1' })`, or pass that URL as
+`requestOptions.baseUrl` on a single hook — a public demo server is read-only, so the write hooks
+need a server you control.
