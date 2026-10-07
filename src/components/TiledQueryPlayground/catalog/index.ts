@@ -3,6 +3,8 @@ import type { TiledEndpointGroup } from '@/api/tiled';
 import type { MutationDescriptor, PlaygroundDescriptor, QueryDescriptor } from '../types';
 import { arrayQueryDescriptors } from './arrayQueries';
 import { dataMutationDescriptors } from './dataMutations';
+import { graphMutationDescriptors } from './graphMutations';
+import { graphQueryDescriptors } from './graphQueries';
 import { infoQueryDescriptors } from './infoQueries';
 import { managementMutationDescriptors } from './managementMutations';
 import { managementQueryDescriptors } from './managementQueries';
@@ -12,7 +14,7 @@ import { searchQueryDescriptors } from './searchQueries';
 import { tableQueryDescriptors } from './tableQueries';
 
 /**
- * Every Tiled hook, as data — 41 queries and 27 mutations.
+ * Every Tiled hook, as data — 47 queries and 36 mutations.
  *
  * `TiledQueryCatalog.test.ts` diffs this against what `@/api/tiled` actually exports, so a new hook
  * fails CI until it has a descriptor — the same arrangement that keeps the endpoint registry from
@@ -25,12 +27,14 @@ export const TILED_QUERY_CATALOG: readonly QueryDescriptor[] = [
     ...tableQueryDescriptors,
     ...nodeQueryDescriptors,
     ...managementQueryDescriptors,
+    ...graphQueryDescriptors,
 ];
 
 export const TILED_MUTATION_CATALOG: readonly MutationDescriptor[] = [
     ...metadataMutationDescriptors,
     ...dataMutationDescriptors,
     ...managementMutationDescriptors,
+    ...graphMutationDescriptors,
 ];
 
 /** Reads and writes together, which is what the sidebar lists. */

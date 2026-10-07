@@ -27,7 +27,9 @@ export type QueryFieldKind =
     | 'json'
     // A binary body, for the eleven writes that take bytes rather than JSON. There is no useful
     // way to type array bytes into a textarea, so these get a file picker.
-    | 'file';
+    | 'file'
+    // Free text over several lines — a GraphQL document for the two raw graph hooks.
+    | 'multilineText';
 
 export interface QueryFieldSpec {
     /** Key into the values record, and the hook argument it feeds. */

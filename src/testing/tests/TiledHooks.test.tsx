@@ -233,6 +233,21 @@ describe('hook coverage', () => {
             refreshSession: 'useTiledRefreshSessionMutation',
             revokeSession: 'useTiledRevokeSessionMutation',
             logout: 'useTiledLogoutMutation',
+            // graph of links
+            graphql: 'useTiledGraphQLQuery',
+            getGraphEntity: 'useTiledGraphEntityQuery',
+            getGraphEntities: 'useTiledGraphEntitiesQuery',
+            getGraphLink: 'useTiledGraphLinkQuery',
+            getGraphLinks: 'useTiledGraphLinksQuery',
+            getGraphNamespaces: 'useTiledGraphNamespacesQuery',
+            createGraphEntity: 'useTiledCreateGraphEntityMutation',
+            updateGraphEntity: 'useTiledUpdateGraphEntityMutation',
+            deleteGraphEntity: 'useTiledDeleteGraphEntityMutation',
+            createGraphLink: 'useTiledCreateGraphLinkMutation',
+            updateGraphLink: 'useTiledUpdateGraphLinkMutation',
+            deleteGraphLink: 'useTiledDeleteGraphLinkMutation',
+            upsertGraphNamespace: 'useTiledUpsertGraphNamespaceMutation',
+            deleteGraphNamespace: 'useTiledDeleteGraphNamespaceMutation',
             // zarr — URL builders, deliberately not hooks. A URL needs no cache entry, and these
             // exist to be handed to a zarr reader that does its own fetching.
             getZarrV2Url: 'NOT_A_HOOK',

@@ -22,7 +22,7 @@
 // Shared types and errors
 export type { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 export { TiledEndpointUnavailableError, isTiledEndpointUnavailableError } from './errors';
-export { TiledApiError, isTiledApiError } from '../types/errors';
+export { TiledApiError, isTiledApiError, isTiledGraphQLError } from '../types/errors';
 // Shared across backends; no Tiled hook raises it today, but it is part of the common surface.
 export { FinchMissingArgumentError, isFinchMissingArgumentError } from '@/api/shared/errors';
 
@@ -42,6 +42,7 @@ export type {
     TiledArrayKeyArgs,
     TiledAssetKeyArgs,
     TiledDistinctKeyArgs,
+    TiledGraphKeyArgs,
     TiledNodeKeyArgs,
     TiledQueryKeyFor,
     TiledQueryRootName,
@@ -190,5 +191,29 @@ export {
     useTiledRevokeSessionMutation,
 } from './authHooks';
 export type { TiledLoginVariables, TiledCreateApiKeyVariables } from './authHooks';
+
+export {
+    useTiledGraphQLQuery,
+    useTiledGraphQLMutation,
+    useTiledGraphEntityQuery,
+    useTiledGraphEntitiesQuery,
+    useTiledCreateGraphEntityMutation,
+    useTiledUpdateGraphEntityMutation,
+    useTiledDeleteGraphEntityMutation,
+    useTiledGraphLinkQuery,
+    useTiledGraphLinksQuery,
+    useTiledCreateGraphLinkMutation,
+    useTiledUpdateGraphLinkMutation,
+    useTiledDeleteGraphLinkMutation,
+    useTiledGraphNamespacesQuery,
+    useTiledUpsertGraphNamespaceMutation,
+    useTiledDeleteGraphNamespaceMutation,
+} from './graphHooks';
+export type {
+    TiledGraphQLMutationVariables,
+    TiledUpdateGraphEntityVariables,
+    TiledUpdateGraphLinkVariables,
+    TiledUpsertGraphNamespaceVariables,
+} from './graphHooks';
 
 // #endregion

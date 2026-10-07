@@ -24,6 +24,13 @@ import {
     useTiledSearchQuery,
 } from './searchHooks';
 import { useTiledTablePartitionAsJSONQuery } from './tableHooks';
+import type { TiledGraphEntity } from '../types/graph';
+import {
+    useTiledGraphEntitiesQuery,
+    useTiledGraphEntityQuery,
+    useTiledGraphQLQuery,
+    useTiledUpdateGraphEntityMutation,
+} from './graphHooks';
 
 /**
  * Compile-time assertions for the Tiled hook call shapes.
@@ -200,4 +207,25 @@ function useInferenceChecks(): void {
     // Server info can legitimately be null; that is not an error state.
     const info = useTiledSearchQuery('');
     expectType<boolean>(info.isError);
+}
+
+function useGraphChecks(): void {
+    // Typed graph reads resolve the entity shape; an id read can be `null`.
+    const entity = useTiledGraphEntityQuery('7');
+    expectType<TiledGraphEntity | null | undefined>(entity.data);
+    const entities = useTiledGraphEntitiesQuery({ entityType: 'project' });
+    expectType<string | undefined>(entities.data?.[0]?.entityType);
+    // @ts-expect-error `kind` is upstream's future name (#1499); `main` still says `entityType`
+    useTiledGraphEntitiesQuery({ kind: 'project' });
+
+    // The raw hook's result type is the caller's to declare.
+    const raw = useTiledGraphQLQuery<{ entity: { name: string } | null }>('query { … }');
+    expectType<string | undefined>(raw.data?.entity?.name);
+
+    // Updates accept `null` to clear and omission to leave alone.
+    const update = useTiledUpdateGraphEntityMutation();
+    update.mutate({ id: '7', input: { nodePathParts: null } });
+    update.mutate({ id: '7', input: { name: 'renamed' } });
+    // @ts-expect-error `properties` cannot be updated after creation
+    update.mutate({ id: '7', input: { properties: {} } });
 }

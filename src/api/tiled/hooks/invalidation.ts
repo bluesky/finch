@@ -29,11 +29,16 @@ export const TILED_INVALIDATION_BUNDLES = {
      * Wider than `metadata` on purpose: creating, deleting or registering a node changes what a
      * *search* returns and what a parent *container* read contains, not just that node's own entry.
      */
-    structure: ['search', 'distinct', 'metadata', 'revisions', 'container', 'node'],
+    structure: ['search', 'distinct', 'metadata', 'revisions', 'container', 'node', 'graph'],
     webhooks: ['webhooks'],
     info: ['serverInfo'],
     /** Identity changed. */
     auth: ['auth'],
+    /**
+     * Anything in the entity/link graph. One root for every graph read, raw documents included —
+     * see `TiledGraphKeyArgs` for why the writes cannot be scoped narrower.
+     */
+    graph: ['graph'],
     /** Everything. Use after any change of identity. */
     all: [
         'search',
@@ -50,6 +55,7 @@ export const TILED_INVALIDATION_BUNDLES = {
         'webhooks',
         'serverInfo',
         'auth',
+        'graph',
     ],
 } as const satisfies Record<string, readonly TiledQueryRootName[]>;
 
@@ -111,6 +117,16 @@ export const TILED_MUTATION_INVALIDATIONS = {
     useTiledRevokeApiKeyMutation: ['auth'],
     useTiledRefreshSessionMutation: ['all'],
     useTiledRevokeSessionMutation: ['all'],
+    // graph of links — every write refreshes every graph read; see `TiledGraphKeyArgs`
+    useTiledGraphQLMutation: ['graph'],
+    useTiledCreateGraphEntityMutation: ['graph'],
+    useTiledUpdateGraphEntityMutation: ['graph'],
+    useTiledDeleteGraphEntityMutation: ['graph'],
+    useTiledCreateGraphLinkMutation: ['graph'],
+    useTiledUpdateGraphLinkMutation: ['graph'],
+    useTiledDeleteGraphLinkMutation: ['graph'],
+    useTiledUpsertGraphNamespaceMutation: ['graph'],
+    useTiledDeleteGraphNamespaceMutation: ['graph'],
 } as const satisfies Record<string, readonly TiledInvalidationBundleName[]>;
 
 export type TiledMutationHookName = keyof typeof TILED_MUTATION_INVALIDATIONS;
