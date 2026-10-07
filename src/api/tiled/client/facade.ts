@@ -15,6 +15,18 @@ import type {
     WebhookRegistrationRequest,
     WebhookResponse,
 } from '../types/generatedAliases';
+import type {
+    TiledGraphCreateEntityInput,
+    TiledGraphCreateLinkInput,
+    TiledGraphEntity,
+    TiledGraphEntityFilters,
+    TiledGraphLink,
+    TiledGraphLinkFilters,
+    TiledGraphNamespace,
+    TiledGraphQLVariables,
+    TiledGraphUpdateEntityInput,
+    TiledGraphUpdateLinkInput,
+} from '../types/graph';
 import type { TiledAuthProvider, TiledInfoResponse } from '../types/info';
 import type { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
 import type { TiledLoginTokens, TiledRequestOptions } from '../types/requestOptions';
@@ -626,6 +638,109 @@ export function revokeTiledSession(
 
 export function tiledLogout(options?: TiledRequestOptions): Promise<unknown> {
     return getDefaultTiledApiClient().logout(options);
+}
+
+// #endregion
+
+// #region graph of links
+
+/** Any GraphQL document against the graph endpoint; see `TiledApiClient.graphql`. */
+export function tiledGraphQL<T = Record<string, unknown>>(
+    document: string,
+    variables?: TiledGraphQLVariables,
+    options?: TiledRequestOptions,
+): Promise<T> {
+    return getDefaultTiledApiClient().graphql<T>(document, variables, options);
+}
+
+export function getTiledGraphEntity(
+    id: string,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity | null> {
+    return getDefaultTiledApiClient().getGraphEntity(id, options);
+}
+
+export function getTiledGraphEntities(
+    filters?: TiledGraphEntityFilters,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity[]> {
+    return getDefaultTiledApiClient().getGraphEntities(filters, options);
+}
+
+export function getTiledGraphLink(
+    id: string,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphLink | null> {
+    return getDefaultTiledApiClient().getGraphLink(id, options);
+}
+
+export function getTiledGraphLinks(
+    filters?: TiledGraphLinkFilters,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphLink[]> {
+    return getDefaultTiledApiClient().getGraphLinks(filters, options);
+}
+
+export function getTiledGraphNamespaces(
+    options?: TiledRequestOptions,
+): Promise<TiledGraphNamespace[]> {
+    return getDefaultTiledApiClient().getGraphNamespaces(options);
+}
+
+export function createTiledGraphEntity(
+    input: TiledGraphCreateEntityInput,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity> {
+    return getDefaultTiledApiClient().createGraphEntity(input, options);
+}
+
+export function updateTiledGraphEntity(
+    id: string,
+    input: TiledGraphUpdateEntityInput,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity | null> {
+    return getDefaultTiledApiClient().updateGraphEntity(id, input, options);
+}
+
+export function deleteTiledGraphEntity(
+    id: string,
+    options?: TiledRequestOptions,
+): Promise<boolean> {
+    return getDefaultTiledApiClient().deleteGraphEntity(id, options);
+}
+
+export function createTiledGraphLink(
+    input: TiledGraphCreateLinkInput,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphLink> {
+    return getDefaultTiledApiClient().createGraphLink(input, options);
+}
+
+export function updateTiledGraphLink(
+    id: string,
+    input: TiledGraphUpdateLinkInput,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphLink | null> {
+    return getDefaultTiledApiClient().updateGraphLink(id, input, options);
+}
+
+export function deleteTiledGraphLink(id: string, options?: TiledRequestOptions): Promise<boolean> {
+    return getDefaultTiledApiClient().deleteGraphLink(id, options);
+}
+
+export function upsertTiledGraphNamespace(
+    prefix: string,
+    uri: string,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphNamespace> {
+    return getDefaultTiledApiClient().upsertGraphNamespace(prefix, uri, options);
+}
+
+export function deleteTiledGraphNamespace(
+    prefix: string,
+    options?: TiledRequestOptions,
+): Promise<boolean> {
+    return getDefaultTiledApiClient().deleteGraphNamespace(prefix, options);
 }
 
 // #endregion

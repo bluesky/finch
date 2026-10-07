@@ -3,6 +3,7 @@ import openapi from '../../api/tiled/openapi.json';
 import {
     TILED_ENDPOINTS,
     TILED_ENDPOINT_GROUPS,
+    TILED_GRAPH_ENDPOINTS,
     TILED_GROUP_LABELS,
     getEndpointById,
     getEndpointsByGroup,
@@ -163,7 +164,13 @@ describe('registry shape', () => {
             expect(TILED_ENDPOINT_GROUPS, endpoint.id).toContain(endpoint.group);
         }
         for (const group of TILED_ENDPOINT_GROUPS) {
-            expect(getEndpointsByGroup(group).length, group).toBeGreaterThan(0);
+            // `graph` is the one group whose operations live in their own registry, because they
+            // are GraphQL rather than spec routes — see `TiledGraph.test.tsx`.
+            const count =
+                group === 'graph'
+                    ? TILED_GRAPH_ENDPOINTS.length
+                    : getEndpointsByGroup(group).length;
+            expect(count, group).toBeGreaterThan(0);
             expect(TILED_GROUP_LABELS[group], group).toBeTruthy();
         }
     });
