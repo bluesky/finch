@@ -450,8 +450,13 @@ used a zarr library.
 Tiled's **experimental** entity/link graph (upstream #1387): *entities* — a project, a sample, a
 dataset — optionally bound to a catalog node, and *links* `subject —predicate→ object` between them,
 with CURIE namespaces for predicates. It is **GraphQL, not REST**, served at `{origin}/api/graphql`
-(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server. Built against upstream
-`main` at bluesky/tiled@849c984a — see [`graph/README.md`](./graph/README.md).
+(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server.
+
+**Requires Tiled 0.2.19 or later** (0.2.19rc1+ on PyPI). The graph has been in Tiled since 0.2.15,
+but 0.2.15–0.2.18 serve an older shape (`nodeId`, `catalogNodeId`, `accessBlob`) that this client
+does not support; against one, entity and link calls reject with an "upgrade the server" error. Built
+against bluesky/tiled@849c984a, whose graph code matches v0.2.19rc2 — see
+[`graph/README.md`](./graph/README.md).
 
 ```ts
 import {

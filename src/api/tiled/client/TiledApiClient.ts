@@ -27,6 +27,7 @@ import type {
     TiledGraphLink,
     TiledGraphLinkFilters,
     TiledGraphNamespace,
+    TiledGraphQLErrorEntry,
     TiledGraphQLResponse,
     TiledGraphQLVariables,
     TiledGraphUpdateEntityInput,
@@ -46,6 +47,8 @@ import {
     GRAPH_UPDATE_ENTITY,
     GRAPH_UPDATE_LINK,
     GRAPH_UPSERT_NAMESPACE,
+    TILED_GRAPH_MIN_VERSION,
+    fieldMissingFromOlderGraphApi,
     graphOperationName,
 } from '../graph/operations';
 import type {
@@ -151,6 +154,23 @@ export interface TiledApiClientConfig {
  * most of the interesting query surface.
  */
 const TILED_PARAMS_SERIALIZER = { indexes: null } as const;
+
+/**
+ * The message for a graph call rejected by a server whose graph API predates the one these
+ * documents target. Says what to do — upgrade the server — and keeps the server's own words, since
+ * the validation error alone reads like a bug in the client.
+ */
+function describeOlderGraphApi(
+    operation: string,
+    missingField: string,
+    errors: TiledGraphQLErrorEntry[],
+): string {
+    return (
+        `${operation} failed: this Tiled server's graph API is older than ${TILED_GRAPH_MIN_VERSION} ` +
+        `(it has no '${missingField}'). Finch's graph client needs Tiled ${TILED_GRAPH_MIN_VERSION} ` +
+        `or later; upgrade the server. Server said: ${formatGraphQLErrors(errors)}`
+    );
+}
 
 /**
  * Flags the auth interceptor and the 401 handler read off a request.
@@ -2172,12 +2192,28 @@ export class TiledApiClient {
                     cause: error,
                 });
             }
+            if (error instanceof TiledApiError && error.graphqlErrors) {
+                const missing = fieldMissingFromOlderGraphApi(error.graphqlErrors);
+                if (missing) {
+                    throw new TiledApiError({
+                        message: describeOlderGraphApi(operation, missing, error.graphqlErrors),
+                        method: 'POST',
+                        path: TILED_GRAPHQL_PATH,
+                        status: error.status,
+                        responseBody: error.responseBody,
+                        cause: error,
+                    });
+                }
+            }
             throw error;
         }
 
         if (body?.errors?.length) {
+            const missing = fieldMissingFromOlderGraphApi(body.errors);
             throw new TiledApiError({
-                message: `${operation} failed: ${formatGraphQLErrors(body.errors)}`,
+                message: missing
+                    ? describeOlderGraphApi(operation, missing, body.errors)
+                    : `${operation} failed: ${formatGraphQLErrors(body.errors)}`,
                 method: 'POST',
                 path: TILED_GRAPHQL_PATH,
                 status: 200,

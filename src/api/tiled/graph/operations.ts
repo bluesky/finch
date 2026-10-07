@@ -252,6 +252,40 @@ export const TILED_GRAPH_OPERATIONS: readonly TiledGraphOperation[] = [
     },
 ];
 
+/**
+ * The oldest Tiled release whose graph API these documents match.
+ *
+ * The graph has shipped since 0.2.15, but 0.2.15–0.2.18 have an older shape — an entity exposes
+ * `nodeId` instead of `isNodeBound`, is bound by `nodeId` instead of `nodePathParts`, and access
+ * control is `accessBlob` instead of `accessTags` — so every entity and link document fails
+ * validation there. Only the namespace operations work on both.
+ */
+export const TILED_GRAPH_MIN_VERSION = '0.2.19';
+
+/** Fields and arguments these documents use that first appeared in {@link TILED_GRAPH_MIN_VERSION}. */
+const FIELDS_ADDED_IN_MIN_VERSION = ['isNodeBound', 'nodePathParts', 'accessTags'] as const;
+
+/** GraphQL validation messages that mean "this schema does not have that name". */
+const UNKNOWN_NAME = /Cannot query field|Unknown argument|is not defined by type/;
+
+/**
+ * The first field newer than the server's graph API that `errors` complain about, or `undefined`.
+ *
+ * Matches the messages a Tiled 0.2.18 server actually returns for these documents, e.g.
+ * `Cannot query field 'isNodeBound' on type 'Entity'.` — so a caller gets "upgrade the server"
+ * rather than a validation error that reads like a bug in Finch.
+ */
+export function fieldMissingFromOlderGraphApi(
+    errors: readonly { message: string }[] | undefined,
+): string | undefined {
+    for (const { message } of errors ?? []) {
+        if (!UNKNOWN_NAME.test(message)) continue;
+        const field = FIELDS_ADDED_IN_MIN_VERSION.find((name) => message.includes(`'${name}'`));
+        if (field) return field;
+    }
+    return undefined;
+}
+
 /** The operation name a document declares, for error messages. `undefined` for anonymous ones. */
 export function graphOperationName(document: string): string | undefined {
     return /\b(?:query|mutation|subscription)\s+([_A-Za-z][_0-9A-Za-z]*)/.exec(document)?.[1];

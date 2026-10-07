@@ -15,6 +15,7 @@ import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
     TILED_GRAPH_ENDPOINTS,
+    TILED_GRAPH_MIN_VERSION,
     TILED_GRAPH_OPERATIONS,
     TiledApiClient,
     createMemoryTokenStorage,
@@ -307,6 +308,64 @@ describe('graph transport', () => {
         expect(error.status).toBe(404);
         expect(error.message).toContain('this server has no graph API');
         expect(error.message).toContain('TiledGraphNamespaces');
+    });
+
+    /**
+     * Tiled 0.2.15–0.2.18 serve an older graph API, and every entity and link document fails
+     * validation there. These are the messages a 0.2.18 server actually returned, verbatim, with
+     * status 200: without the translation they read like a bug in Finch, not "upgrade the server".
+     */
+    it.each([
+        ['getGraphEntity', "Cannot query field 'isNodeBound' on type 'Entity'.", 'isNodeBound'],
+        [
+            'getGraphEntities',
+            "Unknown argument 'nodePathParts' on field 'Query.entities'.",
+            'nodePathParts',
+        ],
+        [
+            'getGraphLinks',
+            "Cannot query field 'accessTags' on type 'Link'. Did you mean 'accessBlob'?",
+            'accessTags',
+        ],
+    ] as const)(
+        'tells a %s caller that the server predates 0.2.19',
+        async (method, message, field) => {
+            const { client } = makeClient({ body: { data: null, errors: [{ message }] } });
+
+            const error = (await (client[method] as (arg?: unknown) => Promise<unknown>)(
+                method === 'getGraphEntity' ? '7' : {},
+            ).catch((e: unknown) => e)) as TiledApiError;
+
+            expect(error.status).toBe(200);
+            expect(error.message).toContain(`older than ${TILED_GRAPH_MIN_VERSION}`);
+            expect(error.message).toContain(`it has no '${field}'`);
+            expect(error.message).toContain('upgrade the server');
+            // The server's own words are kept, and so is the structured error.
+            expect(error.message).toContain(message);
+            expect(error.graphqlErrors?.[0].message).toBe(message);
+        },
+    );
+
+    it('translates the same validation failure when it arrives as a 400', async () => {
+        const message = "Cannot query field 'isNodeBound' on type 'Entity'.";
+        const { client } = makeClient({ status: 400, body: { errors: [{ message }] } });
+
+        const error = (await client.getGraphEntity('7').catch((e: unknown) => e)) as TiledApiError;
+
+        expect(error.status).toBe(400);
+        expect(error.message).toContain('upgrade the server');
+    });
+
+    it('leaves other validation errors alone', async () => {
+        const { client } = makeClient({
+            body: { errors: [{ message: "Cannot query field 'kind' on type 'Entity'." }] },
+        });
+
+        const error = (await client
+            .graphql('query { entities { kind } }')
+            .catch((e: unknown) => e)) as TiledApiError;
+
+        expect(error.message).not.toContain('upgrade the server');
     });
 
     it('rejects a response with neither data nor errors', async () => {

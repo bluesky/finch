@@ -116,7 +116,7 @@ Two axes: **format** — `JSON` is column-oriented, `JSON_SEQ` row-oriented — 
 ### Graph of links
 
 Tiled's experimental entity/link graph, over GraphQL at `{origin}/api/graphql` — catalog-backed servers
-only. **Reads never answer 401** — behind an access policy an unauthenticated read is empty lists; with no
+only, **Tiled 0.2.19 or later** (older servers have an incompatible graph API). **Reads never answer 401** — behind an access policy an unauthenticated read is empty lists; with no
 policy it is everything. Lists are one page (default 100) with no total count.
 
 | hook                           | arguments                                          | `data`                                       |

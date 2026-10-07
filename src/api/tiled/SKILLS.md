@@ -183,6 +183,10 @@ normalisation.
 
 ## Gotchas
 
+- **The graph client needs Tiled ≥ 0.2.19.** 0.2.15–0.2.18 serve an older graph API (`nodeId`,
+  `accessBlob`) on which every entity and link document fails validation. `TILED_GRAPH_MIN_VERSION`
+  and the fields that first appeared in it live in `graph/operations.ts`; `graphql()` turns those
+  validation failures into an "upgrade the server" error. Bump both when the target version moves.
 - **GraphQL fails with HTTP 200.** A resolver error arrives as `{ data, errors }` with status 200;
   `graphql()` rejects whenever `errors` is non-empty. Never branch on status for a graph call.
 - **The graph never answers 401.** Graph access control filters results instead of refusing: with an
