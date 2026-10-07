@@ -1,8 +1,8 @@
 # Tiled API client (`tiled`)
 
 A complete client for [Tiled](https://github.com/bluesky/tiled): **all 48 API operations** from
-`openapi.json`, the seven auth routes the spec omits, zarr URL builders, and a TanStack Query hook
-for every one of them.
+`openapi.json`, the seven auth routes the spec omits, zarr URL builders, the experimental
+[graph of links](#graph-of-links) over GraphQL, and a TanStack Query hook for every one of them.
 
 Built on the client in
 [tiled-viewer-react](https://github.com/bluesky/tiled-viewer-react/tree/main/src/components/Tiled/api)
@@ -244,6 +244,7 @@ endpoint types.
 | Webhooks | list, history | register, delete |
 | Server info | about, health, UI settings, metrics | — |
 | Auth | whoami | login, logout, API key create/revoke, session refresh/revoke |
+| Graph of links | entity, entities, link, links, namespaces, raw `useTiledGraphQLQuery` | entity / link create, update, delete; namespace upsert, delete; raw `useTiledGraphQLMutation` |
 
 ### `useTiledDistinctQuery` is the one to know about
 
@@ -322,7 +323,7 @@ header.
 
 ## Keys and invalidation
 
-Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with fourteen resources.
+Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with fifteen resources.
 The scope is last so prefixes like `['tiled','search']` still match.
 
 **The scope carries `initialPath`, not just `baseUrl`.** Tiled prepends the client's initial path to
@@ -444,9 +445,96 @@ serve the server's own web UI, and the eight per-file zarr routes (`.zattrs`, `.
 `getZarrV3Url` return. Shipping typed fetchers for those would invite a consumer that should have
 used a zarr library.
 
+## Graph of links
+
+Tiled's **experimental** entity/link graph (upstream #1387): *entities* — a project, a sample, a
+dataset — optionally bound to a catalog node, and *links* `subject —predicate→ object` between them,
+with CURIE namespaces for predicates. It is **GraphQL, not REST**, served at `{origin}/api/graphql`
+(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server. Built against upstream
+`main` at bluesky/tiled@849c984a — see [`graph/README.md`](./graph/README.md).
+
+```ts
+import {
+    createTiledGraphEntity,
+    createTiledGraphLink,
+    upsertTiledGraphNamespace,
+} from '@/api/tiled';
+
+await upsertTiledGraphNamespace('schema', 'https://schema.org/');
+const project = await createTiledGraphEntity({
+    entityType: 'project',
+    name: 'battery-cathodes-2026',
+});
+const sample = await createTiledGraphEntity({
+    entityType: 'sample',
+    name: 'S001',
+    nodePathParts: ['raw', 'S001'], // bind to the catalog node at raw/S001
+});
+await createTiledGraphLink({
+    subjectId: sample.id,
+    predicate: 'schema:isPartOf',
+    objectId: project.id,
+});
+```
+
+The typed hooks select one level — an entity's fields, a link's fields with ids for its ends. For
+anything nested, `useTiledGraphQLQuery` sends your own document through the same transport, so a
+project's samples come back in one request:
+
+```tsx
+const PROJECT_SAMPLES = `query ($id: ID!) {
+    entity(id: $id) {
+        name
+        incomingLinks(predicate: "schema:isPartOf") { subject { id name isNodeBound } }
+    }
+}`;
+const project = useTiledGraphQLQuery<{
+    entity: { name: string; incomingLinks: { subject: { id: string; name: string } }[] } | null;
+}>(PROJECT_SAMPLES, { id: projectId });
+```
+
+Define the document at module scope — it is part of the cache key. The server caps nesting at depth
+10: four `incomingLinks { subject { … } }` hops fit, five are rejected (checked against a live server).
+
+Five things the server does that a client has to know:
+
+- **Failures arrive as HTTP 200.** A resolver error comes back as `{ data, errors }`. Every graph call
+  rejects whenever `errors` is non-empty, with `error.graphqlErrors` and `error.graphqlCode` (e.g.
+  `NODE_NOT_FOUND` for a `nodePathParts` that names no node). A server without the graph answers 404,
+  and the error says so.
+- **Reads never answer 401.** The graph filters what a caller may see rather than refusing. With an
+  access policy configured, an unauthenticated read comes back as empty lists; on a server with
+  **no** access policy (single-user `--api-key` mode, for one) it returns everything — even though
+  the same anonymous caller gets a 401 from REST `search`. So an empty graph usually means "check the
+  key", and a non-empty one proves nothing about authentication. Writes need `write:metadata`.
+- **Updates are three-state.** In `updateGraphEntity` / `updateGraphLink`, an omitted field is
+  untouched and `null` clears it — `{ nodePathParts: null }` detaches an entity from its node. The
+  client sends exactly what you pass. `properties` cannot be updated at all.
+- **Lists are pages without a count.** Every list defaults to `limit: 100`; a page shorter than
+  `limit` is the only end-of-list signal. Page with `offset`.
+- **Nothing is unique yet.** On `main`, two entities can share a type and name, and a failing field in
+  an aliased multi-mutation nulls the whole `data` after earlier fields have committed. Upstream #1499
+  adds a uniqueness constraint.
+
+**Keys and invalidation.** Every graph read — typed or raw — keys under one `graph` root, and every
+graph write refreshes all of it, because writes ripple: deleting an entity deletes its links, and a
+namespace change re-renders every predicate. Deleting a catalog node refreshes it too (the
+`structure` bundle includes `graph`), because bound entities are deleted with their node.
+
+**Coverage** is checked against [`graph/schema.graphql`](./graph/schema.graphql), not `openapi.json`:
+`TiledGraph.test.tsx` validates every document in [`graph/operations.ts`](./graph/operations.ts)
+against the snapshot and fails when the schema has a root field the client does not. Upstream is still
+renaming things (#1499: `entityType` → `kind`); `operations.ts` is the only file that spells a field
+name, so such a rename is a small edit the test points at. The operations are described in
+`TILED_GRAPH_ENDPOINTS`, separate from the spec-checked `TILED_ENDPOINTS`.
+
+Deliberately not here yet: traversal helpers, auto-pagination and batch writes. Each mostly works
+around something upstream is likely to change (no counts, no bulk mutation, no uniqueness), so they
+wait for the API to settle and for a Finch screen that needs them.
+
 ## Not here yet
 
-**Websockets and GraphQL.** Three seams are reserved so they land additively:
+**Websockets.** Three seams are reserved so they land additively:
 
 - `apiKeyLocation: 'query'` is implemented already, because a browser websocket handshake cannot set
   headers and query-string auth is the only mode that will work. The queue server learned this the
