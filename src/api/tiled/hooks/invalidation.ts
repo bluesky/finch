@@ -120,6 +120,7 @@ export const TILED_MUTATION_INVALIDATIONS = {
     // graph of links — every write refreshes every graph read; see `TiledGraphKeyArgs`
     useTiledGraphQLMutation: ['graph'],
     useTiledCreateGraphEntityMutation: ['graph'],
+    useTiledBindGraphEntityMutation: ['graph'],
     useTiledUpdateGraphEntityMutation: ['graph'],
     useTiledDeleteGraphEntityMutation: ['graph'],
     useTiledCreateGraphLinkMutation: ['graph'],

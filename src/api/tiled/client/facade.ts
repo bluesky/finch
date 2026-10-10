@@ -16,10 +16,13 @@ import type {
     WebhookResponse,
 } from '../types/generatedAliases';
 import type {
+    TiledGraphBindEntityInput,
     TiledGraphCreateEntityInput,
     TiledGraphCreateLinkInput,
     TiledGraphEntity,
     TiledGraphEntityFilters,
+    TiledGraphEntityNodePath,
+    TiledGraphNodeEntityFilters,
     TiledGraphLink,
     TiledGraphLinkFilters,
     TiledGraphNamespace,
@@ -741,6 +744,37 @@ export function deleteTiledGraphNamespace(
     options?: TiledRequestOptions,
 ): Promise<boolean> {
     return getDefaultTiledApiClient().deleteGraphNamespace(prefix, options);
+}
+
+/** Create an entity bound to the node at `path`, with `nodePathParts` and `uri` set together. */
+export function bindTiledGraphEntity(
+    path: string,
+    input: TiledGraphBindEntityInput,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity> {
+    return getDefaultTiledApiClient().bindGraphEntity(path, input, options);
+}
+
+/** A page of the entities bound to the node at `path`. */
+export function getTiledGraphNodeEntities(
+    path: string,
+    filters?: TiledGraphNodeEntityFilters,
+    options?: TiledRequestOptions,
+): Promise<TiledGraphEntity[]> {
+    return getDefaultTiledApiClient().getGraphNodeEntities(path, filters, options);
+}
+
+/** The catalog node an entity's `uri` points at, from the server root; `null` when it has none. */
+export function tiledGraphEntityNodePath(
+    entity: Pick<TiledGraphEntity, 'uri'>,
+    options?: TiledRequestOptions,
+): TiledGraphEntityNodePath | null {
+    return getDefaultTiledApiClient().graphEntityNodePath(entity, options);
+}
+
+/** The canonical `uri` for the node at `path`, e.g. to backfill an entity bound without one. */
+export function getTiledGraphNodeUri(path: string, options?: TiledRequestOptions): string {
+    return getDefaultTiledApiClient().getGraphNodeUri(path, options);
 }
 
 // #endregion

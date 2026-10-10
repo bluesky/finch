@@ -2,6 +2,7 @@
  * A Runner has to live beside its descriptor; see `managementQueries.tsx` for the reasoning.
  */
 import {
+    useTiledBindGraphEntityMutation,
     useTiledCreateGraphEntityMutation,
     useTiledCreateGraphLinkMutation,
     useTiledDeleteGraphEntityMutation,
@@ -13,6 +14,7 @@ import {
     useTiledUpsertGraphNamespaceMutation,
 } from '@/api/tiled';
 import type {
+    TiledGraphBindEntityInput,
     TiledGraphCreateEntityInput,
     TiledGraphCreateLinkInput,
     TiledGraphQLVariables,
@@ -62,6 +64,25 @@ function CreateEntityRunner({ values, confirm, requestOptions }: MutationRunnerP
             canRun={input !== undefined}
             onRun={() =>
                 input && confirm(`Create entity "${input.name}"`) && mutation.mutate(input)
+            }
+        />
+    );
+}
+
+function BindEntityRunner({ values, confirm, requestOptions }: MutationRunnerProps) {
+    const mutation = useTiledBindGraphEntityMutation(undefined, requestOptions);
+    const path = str(values, 'path');
+    const input = json<TiledGraphBindEntityInput>(values, 'input');
+    return (
+        <MutationResultPanel
+            result={mutation}
+            resultKind="json"
+            hookName="useTiledBindGraphEntityMutation"
+            canRun={path.length > 0 && input !== undefined}
+            onRun={() =>
+                input &&
+                confirm(`Bind a ${input.entityType} entity to "${path}"`) &&
+                mutation.mutate({ path, input })
             }
         />
     );
@@ -221,6 +242,25 @@ export const graphMutationDescriptors: readonly MutationDescriptor[] = [
         ],
         resultKind: 'json',
         Runner: CreateEntityRunner,
+    },
+    {
+        id: 'graph.bindEntity',
+        kind: 'mutation',
+        group: 'graph',
+        hookName: 'useTiledBindGraphEntityMutation',
+        summary: "Create an entity bound to a catalog node, with the node's URL stored as uri.",
+        fields: [
+            { name: 'path', kind: 'path', label: 'path', required: true, defaultValue: '' },
+            {
+                name: 'input',
+                kind: 'json',
+                label: 'input',
+                required: true,
+                defaultValue: { entityType: 'dataset' },
+            },
+        ],
+        resultKind: 'json',
+        Runner: BindEntityRunner,
     },
     {
         id: 'graph.updateEntity',

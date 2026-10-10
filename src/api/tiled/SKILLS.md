@@ -74,7 +74,7 @@ hooks/
   managementHooks.ts       revisions, assets, webhooks, register, data source, stream — 5q + 6m
   infoHooks.ts             5 queries
   authHooks.ts             1 query + 6 mutations
-  graphHooks.ts            graph of links — 6 queries + 9 mutations (incl. raw GraphQL), `graph` root
+  graphHooks.ts            graph of links — 7 queries + 10 mutations (incl. raw GraphQL, node binding)
   typeTests.ts             compile-time assertions (tsconfig excludes src/testing, so they live here)
   index.ts                 barrel
 ```
@@ -194,6 +194,9 @@ normalisation.
   single-user `--api-key`), it returns everything — verified against tiled@849c984a, where REST
   `search` answered 401 for the same anonymous caller. Never treat a successful graph read as proof of
   authentication, and treat an empty graph as "check the key" before "nothing there".
+- **Bind entities to nodes with `bindGraphEntity`, not raw `nodePathParts`.** The server never says
+  which node an entity is bound to, so the path survives only in `uri`, which `bindGraphEntity` sets.
+  `nodePathParts` is from the server root; Finch paths are relative to `initialPath`.
 - **Graph updates are three-state.** Omitted = untouched, `null` = clear. Pass inputs through untouched;
   any helper that maps `undefined` to `null` (or drops `null`) breaks detach.
 - **Lists travel two different ways.** Repeated keys for `fields`/`sort`/`column`/`field`/`form_key`/

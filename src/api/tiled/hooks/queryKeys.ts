@@ -8,6 +8,7 @@ import type {
 import type {
     TiledGraphEntityFilters,
     TiledGraphLinkFilters,
+    TiledGraphNodeEntityFilters,
     TiledGraphQLVariables,
 } from '../types/graph';
 import type { TiledArrayKeyParts, TiledTableKeyParts } from './internal/keyParts';
@@ -167,6 +168,12 @@ export type TiledWebhookKeyArgs =
 export type TiledGraphKeyArgs =
     | { readonly op: 'entity'; readonly id: string }
     | { readonly op: 'entities'; readonly filters: TiledGraphEntityFilters }
+    | {
+          readonly op: 'nodeEntities';
+          /** As the caller wrote it; the scope's `initialPath` completes it. */
+          readonly path: string;
+          readonly filters: TiledGraphNodeEntityFilters;
+      }
     | { readonly op: 'link'; readonly id: string }
     | { readonly op: 'links'; readonly filters: TiledGraphLinkFilters }
     | { readonly op: 'namespaces' }

@@ -7,6 +7,7 @@ import {
     useTiledGraphLinkQuery,
     useTiledGraphLinksQuery,
     useTiledGraphNamespacesQuery,
+    useTiledGraphNodeEntitiesQuery,
     useTiledGraphQLQuery,
 } from '@/api/tiled';
 import type { TiledGraphQLVariables } from '@/api/tiled';
@@ -86,6 +87,27 @@ function EntitiesRunner({ values, queryOptions, requestOptions }: QueryRunnerPro
         requestOptions,
     );
     return <QueryResultPanel result={result} resultKind="json" />;
+}
+
+function NodeEntitiesRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
+    const result = useTiledGraphNodeEntitiesQuery(
+        str(values, 'path'),
+        {
+            entityType: optionalString(values, 'entityType'),
+            limit: optionalNumber(values, 'limit'),
+            offset: optionalNumber(values, 'offset'),
+        },
+        queryOptions,
+        requestOptions,
+    );
+    return (
+        <QueryResultPanel
+            result={result}
+            resultKind="json"
+            guardedBy={['path']}
+            guardSatisfied={str(values, 'path').length > 0}
+        />
+    );
 }
 
 function LinkRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
@@ -176,6 +198,22 @@ export const graphQueryDescriptors: readonly QueryDescriptor[] = [
         ],
         resultKind: 'json',
         Runner: EntitiesRunner,
+    },
+    {
+        id: 'graph.nodeEntities',
+        kind: 'query',
+        group: 'graph',
+        hookName: 'useTiledGraphNodeEntitiesQuery',
+        summary:
+            'The entities bound to one catalog node, e.g. a Bluesky run. Idles until a path is given.',
+        fields: [
+            { name: 'path', kind: 'path', label: 'path', required: true, defaultValue: '' },
+            { name: 'entityType', kind: 'text', label: 'entityType', defaultValue: '' },
+            ...PAGE_FIELDS,
+        ],
+        guardedBy: ['path'],
+        resultKind: 'json',
+        Runner: NodeEntitiesRunner,
     },
     {
         id: 'graph.link',

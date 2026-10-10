@@ -20,10 +20,13 @@ import {
     type TiledHttpMethod,
 } from '../types/errors';
 import type {
+    TiledGraphBindEntityInput,
     TiledGraphCreateEntityInput,
     TiledGraphCreateLinkInput,
     TiledGraphEntity,
     TiledGraphEntityFilters,
+    TiledGraphEntityNodePath,
+    TiledGraphNodeEntityFilters,
     TiledGraphLink,
     TiledGraphLinkFilters,
     TiledGraphNamespace,
@@ -70,7 +73,7 @@ import {
     type TiledInfoResponse,
 } from '../types/info';
 import type { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
-import { TILED_GRAPHQL_PATH, TILED_PATHS, buildPath } from '../types/paths';
+import { TILED_API_PREFIX, TILED_GRAPHQL_PATH, TILED_PATHS, buildPath } from '../types/paths';
 import type {
     TiledApiKeyLocation,
     TiledApiKeyScheme,
@@ -116,6 +119,7 @@ import {
     normalizeTiledBaseUrl,
     normalizeTiledPath,
     resolveEncodedTiledPath,
+    resolveTiledPath,
     tiledOriginFromBaseUrl,
 } from './urlUtils';
 
@@ -2401,6 +2405,118 @@ export class TiledApiClient {
             options,
         );
         return data.deleteNamespace;
+    }
+
+    // Entities bound to catalog nodes. The server binds by `nodePathParts` but never says which node
+    // an entity is bound to (only `isNodeBound`), so upstream's convention — and its Python client's
+    // `bind_entity` — is to store the node's metadata URL in `uri` alongside the binding. These
+    // helpers do that, and resolve paths against `initialPath` the way every other method does:
+    // `nodePathParts` is from the server root, a Finch path is relative to the client's prefix.
+
+    /** A node's path from the server root, as `nodePathParts` wants it: `['bl531', 'raw', 'x']`. */
+    getGraphNodePathParts(path: string, options: TiledRequestOptions = {}): string[] {
+        const absolute = resolveTiledPath(
+            path,
+            options.initialPath ?? this.initialPath,
+            options.pathMode ?? ('relative' as TiledPathMode),
+        );
+        return absolute ? absolute.split('/') : [];
+    }
+
+    /**
+     * The node's canonical `uri`: its metadata URL on this server,
+     * `http://host:8000/api/v1/metadata/bl531/raw/x`. What `bindGraphEntity` stores, and what to
+     * pass to `updateGraphEntity(id, { uri })` to backfill an entity bound without one.
+     */
+    getGraphNodeUri(path: string, options: TiledRequestOptions = {}): string {
+        return `${this.resolveBaseUrl(options)}/metadata/${this.encodePath(path, options)}`;
+    }
+
+    /**
+     * Create an entity bound to the catalog node at `path`, with `nodePathParts` and `uri` set
+     * together so the node can be found again later (see {@link graphEntityNodePath}). `name`
+     * defaults to the node's key. Fails with `NODE_NOT_FOUND` when no node is at `path`.
+     */
+    async bindGraphEntity(
+        path: string,
+        input: TiledGraphBindEntityInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity> {
+        const nodePathParts = this.getGraphNodePathParts(path, options);
+        if (nodePathParts.length === 0) {
+            throw new TiledApiError({
+                message:
+                    'bindGraphEntity needs the path of a catalog node; the root container cannot ' +
+                    'be bound.',
+                method: 'POST',
+                path: TILED_GRAPHQL_PATH,
+            });
+        }
+        return this.createGraphEntity(
+            {
+                ...input,
+                name: input.name ?? nodePathParts[nodePathParts.length - 1],
+                nodePathParts,
+                uri: this.getGraphNodeUri(path, options),
+            },
+            options,
+        );
+    }
+
+    /** One page of the entities bound to the catalog node at `path`. */
+    getGraphNodeEntities(
+        path: string,
+        filters: TiledGraphNodeEntityFilters = {},
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity[]> {
+        return this.getGraphEntities(
+            { ...filters, nodePathParts: this.getGraphNodePathParts(path, options) },
+            options,
+        );
+    }
+
+    /**
+     * The catalog node an entity's `uri` points at, or `null` when it has no `uri` or it is not a
+     * Tiled metadata URL. The path is from the server root, so read it with `pathMode: 'absolute'`:
+     *
+     * ```ts
+     * const located = client.graphEntityNodePath(entity);
+     * if (located) await client.getMetadata(located.path, { pathMode: 'absolute' });
+     * ```
+     *
+     * `sameServer` compares the URL with this client's base URL. A mismatch usually means the
+     * server moved host since the entity was written; the path after `/api/v1/metadata/` is then
+     * still the right one to try.
+     */
+    graphEntityNodePath(
+        entity: Pick<TiledGraphEntity, 'uri'>,
+        options: TiledRequestOptions = {},
+    ): TiledGraphEntityNodePath | null {
+        const uri = entity.uri;
+        if (!uri) return null;
+        const marker = `${TILED_API_PREFIX}/metadata`;
+        // The last occurrence, as `tiledOriginFromBaseUrl` does, so a server mounted under a
+        // sub-path that itself contains `/api/v1` still parses.
+        const at = uri.lastIndexOf(marker);
+        if (at < 0) return null;
+        const rest = uri.slice(at + marker.length).split(/[?#]/)[0];
+        if (rest !== '' && !rest.startsWith('/')) return null;
+        let path: string;
+        try {
+            path = normalizeTiledPath(
+                rest
+                    .split('/')
+                    .map((segment) => decodeURIComponent(segment))
+                    .join('/'),
+            );
+        } catch {
+            return null; // malformed percent-encoding: not a URL this client wrote
+        }
+        const base = uri.slice(0, at + TILED_API_PREFIX.length);
+        return {
+            path,
+            sameServer: normalizeTiledBaseUrl(base) === this.resolveBaseUrl(options),
+        };
     }
 
     // #endregion

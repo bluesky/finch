@@ -114,6 +114,11 @@ export type TiledClientLike = Pick<
     | 'deleteGraphLink'
     | 'upsertGraphNamespace'
     | 'deleteGraphNamespace'
+    | 'bindGraphEntity'
+    | 'getGraphNodeEntities'
+    | 'getGraphNodePathParts'
+    | 'getGraphNodeUri'
+    | 'graphEntityNodePath'
     // zarr
     | 'getZarrV2Url'
     | 'getZarrV3Url'
@@ -209,6 +214,11 @@ export const TILED_CLIENT_LIKE_METHODS = [
     'deleteGraphLink',
     'upsertGraphNamespace',
     'deleteGraphNamespace',
+    'bindGraphEntity',
+    'getGraphNodeEntities',
+    'getGraphNodePathParts',
+    'getGraphNodeUri',
+    'graphEntityNodePath',
     'getZarrV2Url',
     'getZarrV3Url',
     'getBaseUrl',

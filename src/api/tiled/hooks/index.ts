@@ -200,6 +200,8 @@ export {
     useTiledCreateGraphEntityMutation,
     useTiledUpdateGraphEntityMutation,
     useTiledDeleteGraphEntityMutation,
+    useTiledGraphNodeEntitiesQuery,
+    useTiledBindGraphEntityMutation,
     useTiledGraphLinkQuery,
     useTiledGraphLinksQuery,
     useTiledCreateGraphLinkMutation,
@@ -210,6 +212,7 @@ export {
     useTiledDeleteGraphNamespaceMutation,
 } from './graphHooks';
 export type {
+    TiledBindGraphEntityVariables,
     TiledGraphQLMutationVariables,
     TiledUpdateGraphEntityVariables,
     TiledUpdateGraphLinkVariables,

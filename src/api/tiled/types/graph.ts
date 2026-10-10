@@ -107,6 +107,40 @@ export interface TiledGraphUpdateEntityInput {
     accessTags?: string[] | null;
 }
 
+/**
+ * What `bindGraphEntity` takes: a create input whose node binding and `uri` are filled in from the
+ * node's path, and whose `name` defaults to the node's key.
+ */
+export interface TiledGraphBindEntityInput extends Omit<
+    TiledGraphCreateEntityInput,
+    'nodePathParts' | 'uri' | 'name'
+> {
+    /** Defaults to the node's key, the last segment of its path. */
+    name?: string;
+}
+
+/** Filters for the entities bound to one node; the node itself is the path argument. */
+export type TiledGraphNodeEntityFilters = Omit<TiledGraphEntityFilters, 'nodePathParts'>;
+
+/**
+ * Where an entity's `uri` says its catalog node is.
+ *
+ * Read from `uri` because the server does not say which node an entity is bound to. Only entities
+ * whose `uri` is a Tiled metadata URL have one — `bindGraphEntity` writes it that way.
+ */
+export interface TiledGraphEntityNodePath {
+    /**
+     * The node's path from the server root, decoded: `'bl531/raw/3f2c9a1e'`. Absolute, so read it
+     * with `pathMode: 'absolute'`; the client's own `initialPath` is not applied to it.
+     */
+    path: string;
+    /**
+     * Whether the URL names the server this client is configured for. `false` after a server moves
+     * host, or for an entity written against another server; the path may still be right.
+     */
+    sameServer: boolean;
+}
+
 export interface TiledGraphCreateLinkInput {
     subjectId: string;
     predicate: string;

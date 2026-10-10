@@ -24,6 +24,7 @@ import {
     useTiledCreateGraphLinkMutation,
     useTiledGraphEntitiesQuery,
     useTiledGraphEntityQuery,
+    useTiledGraphNodeEntitiesQuery,
     useTiledGraphQLQuery,
     type TiledApiError,
 } from '../../api/tiled';
@@ -390,6 +391,99 @@ describe('graph transport', () => {
     });
 });
 
+/**
+ * Entities bound to catalog nodes.
+ *
+ * The server never says which node an entity is bound to, so `bindGraphEntity` records it in `uri`
+ * and `graphEntityNodePath` reads it back. The trap these pin is `initialPath`: `nodePathParts` is
+ * from the server root, a Finch path is relative to the client's prefix, and mixing the two binds
+ * the wrong node or none.
+ */
+describe('entities bound to catalog nodes', () => {
+    const prefixed = () =>
+        new TiledApiClient({
+            baseUrl: BASE,
+            initialPath: 'bl531',
+            tokenStorage: createMemoryTokenStorage(),
+        });
+
+    it('resolves a Finch path against initialPath for nodePathParts', () => {
+        const client = prefixed();
+        expect(client.getGraphNodePathParts('raw/3f2c')).toEqual(['bl531', 'raw', '3f2c']);
+        expect(client.getGraphNodePathParts('/raw/3f2c/', { pathMode: 'absolute' })).toEqual([
+            'raw',
+            '3f2c',
+        ]);
+        expect(client.getGraphNodePathParts('', { pathMode: 'absolute' })).toEqual([]);
+    });
+
+    it("builds the node's metadata URL, encoding each segment", () => {
+        expect(prefixed().getGraphNodeUri('raw/run a')).toBe(
+            'http://tiled.test:8000/api/v1/metadata/bl531/raw/run%20a',
+        );
+    });
+
+    it('sets nodePathParts, uri and a default name together when binding', async () => {
+        const { client, bodyOf } = makeClient({ body: { data: { createEntity: ENTITY } } });
+        client.setInitialPath('bl531');
+
+        await client.bindGraphEntity('raw/3f2c', { entityType: 'dataset' });
+
+        expect(bodyOf().variables.input).toEqual({
+            entityType: 'dataset',
+            name: '3f2c',
+            nodePathParts: ['bl531', 'raw', '3f2c'],
+            uri: 'http://tiled.test:8000/api/v1/metadata/bl531/raw/3f2c',
+        });
+    });
+
+    it('refuses to bind the root, without a request', async () => {
+        const { client, seen } = makeClient({ body: {} });
+        await expect(client.bindGraphEntity('', { entityType: 'dataset' })).rejects.toThrow(
+            'root container cannot be bound',
+        );
+        expect(seen).toEqual([]);
+    });
+
+    it('reads the node path back out of a uri it wrote', () => {
+        const client = prefixed();
+        const uri = client.getGraphNodeUri('raw/run a');
+
+        expect(client.graphEntityNodePath({ uri })).toEqual({
+            path: 'bl531/raw/run a',
+            sameServer: true,
+        });
+    });
+
+    it('still finds the path when the server has moved host, and says so', () => {
+        expect(
+            prefixed().graphEntityNodePath({
+                uri: 'https://old-host.lbl.gov/tiled/api/v1/metadata/bl531/raw/x?fields=metadata',
+            }),
+        ).toEqual({ path: 'bl531/raw/x', sameServer: false });
+    });
+
+    it('returns null for an entity without a Tiled metadata uri', () => {
+        const client = prefixed();
+        expect(client.graphEntityNodePath({ uri: null })).toBeNull();
+        expect(client.graphEntityNodePath({ uri: 'https://doi.org/10.1234/abc' })).toBeNull();
+        expect(client.graphEntityNodePath({ uri: 'http://h/api/v1/metadataextra/x' })).toBeNull();
+        expect(client.graphEntityNodePath({ uri: 'http://h/api/v1/metadata/%E0%A4%A' })).toBeNull();
+    });
+
+    it('lists the entities bound to a node by its resolved path', async () => {
+        const { client, bodyOf } = makeClient({ body: { data: { entities: [ENTITY] } } });
+        client.setInitialPath('bl531');
+
+        await client.getGraphNodeEntities('raw/3f2c', { entityType: 'dataset' });
+
+        expect(bodyOf().variables).toEqual({
+            entityType: 'dataset',
+            nodePathParts: ['bl531', 'raw', '3f2c'],
+        });
+    });
+});
+
 // #endregion
 
 // #region hooks
@@ -407,6 +501,7 @@ function makeStub() {
         graphql: record('graphql', { entity: ENTITY }),
         getGraphEntity: record('getGraphEntity', ENTITY),
         getGraphEntities: record('getGraphEntities', [ENTITY]),
+        getGraphNodeEntities: record('getGraphNodeEntities', [ENTITY]),
         createGraphLink: record('createGraphLink', { id: '9' }),
         getBaseUrl: () => BASE,
         getInitialPath: () => '',
@@ -428,6 +523,24 @@ function makeWrapper(client: TiledClientLike) {
 }
 
 describe('graph hooks', () => {
+    it("idles a node's entities while the path is empty, then keys them by path", async () => {
+        const { client, calls } = makeStub();
+        const { wrapper, queryClient } = makeWrapper(client);
+
+        const { result, rerender } = renderHook(
+            ({ path }: { path: string }) => useTiledGraphNodeEntitiesQuery(path),
+            { wrapper, initialProps: { path: '' } },
+        );
+        expect(result.current.fetchStatus).toBe('idle');
+
+        rerender({ path: 'raw/3f2c' });
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+        expect(calls.map((call) => call.method)).toEqual(['getGraphNodeEntities']);
+        const [entry] = queryClient.getQueryCache().findAll({ queryKey: ['tiled', 'graph'] });
+        expect(entry.queryKey[2]).toEqual({ op: 'nodeEntities', path: 'raw/3f2c', filters: {} });
+    });
+
     it('idles an id-addressed read while the id is empty', () => {
         const { client, calls } = makeStub();
         const { wrapper } = makeWrapper(client);

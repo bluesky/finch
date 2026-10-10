@@ -71,13 +71,13 @@ describe('query catalog coverage', () => {
     });
 
     it('covers the whole surface, counted', () => {
-        // 47 query entries: 46 query hooks plus the URL helper. 36 mutations. The graph of links
-        // added 6 queries and 9 mutations. A change here should be a deliberate edit, not a surprise.
-        expect(exportedQueryHooks).toHaveLength(46);
-        expect(TILED_QUERY_CATALOG).toHaveLength(47);
-        expect(exportedMutationHooks).toHaveLength(36);
-        expect(TILED_MUTATION_CATALOG).toHaveLength(36);
-        expect(TILED_PLAYGROUND_CATALOG).toHaveLength(83);
+        // 48 query entries: 47 query hooks plus the URL helper. 37 mutations. The graph of links
+        // added 7 queries and 10 mutations. A change here should be a deliberate edit, not a surprise.
+        expect(exportedQueryHooks).toHaveLength(47);
+        expect(TILED_QUERY_CATALOG).toHaveLength(48);
+        expect(exportedMutationHooks).toHaveLength(37);
+        expect(TILED_MUTATION_CATALOG).toHaveLength(37);
+        expect(TILED_PLAYGROUND_CATALOG).toHaveLength(85);
     });
 });
 
@@ -127,6 +127,7 @@ describe('mutation descriptors', () => {
             'auth.createApiKey',
             'auth.login',
             'auth.refreshSession',
+            'graph.bindEntity',
             'graph.createEntity',
             'graph.createLink',
             'management.register',

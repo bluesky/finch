@@ -460,27 +460,47 @@ against bluesky/tiled@849c984a, whose graph code matches v0.2.19rc2 — see
 
 ```ts
 import {
+    bindTiledGraphEntity,
     createTiledGraphEntity,
     createTiledGraphLink,
     upsertTiledGraphNamespace,
 } from '@/api/tiled';
 
 await upsertTiledGraphNamespace('schema', 'https://schema.org/');
-const project = await createTiledGraphEntity({
-    entityType: 'project',
-    name: 'battery-cathodes-2026',
-});
-const sample = await createTiledGraphEntity({
-    entityType: 'sample',
-    name: 'S001',
-    nodePathParts: ['raw', 'S001'], // bind to the catalog node at raw/S001
-});
-await createTiledGraphLink({
-    subjectId: sample.id,
-    predicate: 'schema:isPartOf',
-    objectId: project.id,
-});
+await upsertTiledGraphNamespace('prov', 'http://www.w3.org/ns/prov#');
+
+const project = await createTiledGraphEntity({ entityType: 'project', name: 'battery-cathodes-2026' });
+const sample = await createTiledGraphEntity({ entityType: 'sample', name: 'S001' });
+const run = await bindTiledGraphEntity('raw/3f2c9a1e', { entityType: 'dataset' }); // a Bluesky run
+
+await createTiledGraphLink({ subjectId: sample.id, predicate: 'schema:isPartOf', objectId: project.id });
+await createTiledGraphLink({ subjectId: run.id, predicate: 'prov:used', objectId: sample.id });
 ```
+
+### Entities bound to catalog nodes
+
+The server binds an entity to a node through `nodePathParts` but never says which node: entities
+expose only `isNodeBound`. Upstream's convention, which its Python client's `bind_entity` follows,
+is to also store the node's metadata URL in `uri`. Use `bindTiledGraphEntity` /
+`useTiledBindGraphEntityMutation` rather than passing `nodePathParts` yourself. They set both
+fields, and they resolve the path against the client's `initialPath`. That matters because
+`nodePathParts` counts from the server root while every Finch path is relative to the prefix, so
+with `initialPath: 'bl531'` the path `raw/x` is the node `bl531/raw/x`.
+
+```ts
+// entity → catalog node
+const located = tiledGraphEntityNodePath(run); // { path: 'bl531/raw/3f2c9a1e', sameServer: true }
+if (located) await getTiledMetadata(located.path, { pathMode: 'absolute' });
+
+// catalog node → entities
+const bound = useTiledGraphNodeEntitiesQuery('raw/3f2c9a1e');
+```
+
+`tiledGraphEntityNodePath` returns `null` for an entity with no Tiled metadata `uri`. Its path is
+from the server root, hence `pathMode: 'absolute'`. `sameServer: false` means the URL names another
+host, usually because the server moved; the path is still the one to try. To backfill an entity
+bound without a `uri`, find it with `getTiledGraphNodeEntities(path)` and call
+`updateTiledGraphEntity(id, { uri: getTiledGraphNodeUri(path) })`.
 
 The typed hooks select one level — an entity's fields, a link's fields with ids for its ends. For
 anything nested, `useTiledGraphQLQuery` sends your own document through the same transport, so a

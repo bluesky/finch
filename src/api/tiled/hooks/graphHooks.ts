@@ -2,6 +2,7 @@ import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import { requireArg } from '@/api/shared/errors';
 import type { TiledRequestOptions } from '../types/common';
 import type {
+    TiledGraphBindEntityInput,
     TiledGraphCreateEntityInput,
     TiledGraphCreateLinkInput,
     TiledGraphEntity,
@@ -9,6 +10,7 @@ import type {
     TiledGraphLink,
     TiledGraphLinkFilters,
     TiledGraphNamespace,
+    TiledGraphNodeEntityFilters,
     TiledGraphQLVariables,
     TiledGraphUpdateEntityInput,
     TiledGraphUpdateLinkInput,
@@ -245,6 +247,76 @@ export function useTiledDeleteGraphEntityMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { id }, request) => client.deleteGraphEntity(id, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledDeleteGraphEntityMutation,
+        requestOptions,
+        mutationOptions,
+    });
+}
+
+// #endregion
+
+// #region entities bound to catalog nodes
+
+/**
+ * The entities bound to one catalog node — "what does the graph say about this run?".
+ *
+ * `path` is a Finch path like every other hook's: relative to the client's `initialPath` unless
+ * `requestOptions.pathMode` is `'absolute'`. Idles while `path` is empty (the root cannot be bound).
+ *
+ * @param path The node's path.
+ * @param filters Type and paging. Omitted means the first 100.
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export function useTiledGraphNodeEntitiesQuery<TData = TiledGraphEntity[]>(
+    path: string,
+    filters?: TiledGraphNodeEntityFilters,
+    queryOptions?: FinchQueryOptions<TiledGraphEntity[], TData, GraphKey, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+    const resolved = filters ?? {};
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.graph(scope, { op: 'nodeEntities', path, filters: resolved }),
+        fetch: (client, request) =>
+            client.getGraphNodeEntities(
+                requireArg(path || undefined, 'useTiledGraphNodeEntitiesQuery', 'path'),
+                resolved,
+                request,
+            ),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: path.length > 0,
+    });
+}
+
+/** What `useTiledBindGraphEntityMutation().mutate` takes. */
+export interface TiledBindGraphEntityVariables {
+    /** The catalog node to bind, as a Finch path (relative to `initialPath`). */
+    path: string;
+    input: TiledGraphBindEntityInput;
+}
+
+/**
+ * Create an entity bound to a catalog node, recording the node in `uri` so it can be found again.
+ *
+ * The server never says which node an entity is bound to, so this sets `nodePathParts` (resolved
+ * against `initialPath`) and the node's metadata URL as `uri` together, as upstream's Python
+ * `bind_entity` does. Read the path back with `client.graphEntityNodePath(entity)` or
+ * `tiledGraphEntityNodePath(entity)`. `name` defaults to the node's key.
+ */
+export function useTiledBindGraphEntityMutation<TContext = unknown>(
+    mutationOptions?: FinchMutationOptions<
+        TiledGraphEntity,
+        TiledBindGraphEntityVariables,
+        TContext,
+        TiledHookError
+    >,
+    requestOptions?: TiledRequestOptions,
+): UseMutationResult<TiledGraphEntity, TiledHookError, TiledBindGraphEntityVariables, TContext> {
+    return useTiledMutation({
+        perform: (client, { path, input }, request) => client.bindGraphEntity(path, input, request),
+        invalidates: TILED_MUTATION_INVALIDATIONS.useTiledBindGraphEntityMutation,
         requestOptions,
         mutationOptions,
     });

@@ -14,7 +14,7 @@ import { searchQueryDescriptors } from './searchQueries';
 import { tableQueryDescriptors } from './tableQueries';
 
 /**
- * Every Tiled hook, as data — 47 queries and 36 mutations.
+ * Every Tiled hook, as data — 48 queries and 37 mutations.
  *
  * `TiledQueryCatalog.test.ts` diffs this against what `@/api/tiled` actually exports, so a new hook
  * fails CI until it has a descriptor — the same arrangement that keeps the endpoint registry from

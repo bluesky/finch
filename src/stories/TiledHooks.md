@@ -123,6 +123,7 @@ policy it is everything. Lists are one page (default 100) with no total count.
 | ------------------------------ | -------------------------------------------------- | -------------------------------------------- |
 | `useTiledGraphEntityQuery`     | `id`                                               | one entity, or `null`                        |
 | `useTiledGraphEntitiesQuery`   | `{ entityType?, nodePathParts?, limit?, offset? }?` | a page of entities                           |
+| `useTiledGraphNodeEntitiesQuery` | `path, { entityType?, limit?, offset? }?`        | the entities bound to one catalog node (e.g. a run) |
 | `useTiledGraphLinkQuery`       | `id`                                               | one link, or `null`                          |
 | `useTiledGraphLinksQuery`      | `{ subjectId?, predicate?, objectId?, limit?, offset? }?` | a page of links (ids for each end)    |
 | `useTiledGraphNamespacesQuery` | —                                                  | the registered CURIE prefixes                |
@@ -166,6 +167,7 @@ awaited before `mutateAsync` resolves, so the affected queries have already refe
 | `useTiledCreateApiKeyMutation`      | `{ expires_in?, scopes?, note? }`                                  | `auth`               |
 | `useTiledRevokeApiKeyMutation`      | `{ firstEight }`                                                   | `auth`               |
 | `useTiledCreateGraphEntityMutation` | `{ entityType, name, nodePathParts?, uri?, properties?, accessTags? }` | `graph`          |
+| `useTiledBindGraphEntityMutation` | `{ path, input: { entityType, name?, properties?, accessTags? } }` — sets `nodePathParts` **and** `uri` | `graph` |
 | `useTiledUpdateGraphEntityMutation` | `{ id, input }` — omitted fields untouched, `null` clears          | `graph`              |
 | `useTiledDeleteGraphEntityMutation` | `{ id }` — also deletes its links                                  | `graph`              |
 | `useTiledCreateGraphLinkMutation`   | `{ subjectId, predicate, objectId, properties?, accessTags? }`     | `graph`              |
@@ -465,6 +467,7 @@ falls through to the guard instead of clobbering it.
 | `useTiledDistinctQuery`                                                   | the config asks for a facet        |
 | `useTiledArrayBlockQuery`, the asset hooks, `useTiledWebhookHistoryQuery`  | its required argument is defined   |
 | `useTiledGraphEntityQuery`, `useTiledGraphLinkQuery`                       | `id` is non-empty                  |
+| `useTiledGraphNodeEntitiesQuery`                                           | `path` is non-empty                |
 | `useTiledGraphQLQuery`                                                     | `document` is non-blank            |
 
 Pass `enabled` in the options to override either way. Forcing one of the last group past its guard raises
