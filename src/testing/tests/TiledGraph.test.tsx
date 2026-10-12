@@ -25,10 +25,11 @@ import {
     useTiledGraphEntitiesQuery,
     useTiledGraphEntityQuery,
     useTiledGraphNodeEntitiesQuery,
+    useTiledGraphQLMutation,
     useTiledGraphQLQuery,
     type TiledApiError,
 } from '../../api/tiled';
-import { graphOperationName } from '../../api/tiled/graph/operations';
+import { graphOperationKinds, graphOperationName } from '../../api/tiled/graph/operations';
 import {
     TILED_MUTATION_INVALIDATIONS,
     resolveInvalidationRoots,
@@ -55,6 +56,34 @@ const schema: GraphQLSchema = buildSchema(SDL);
 
 const rootFields = (type: GraphQLObjectType | null | undefined): string[] =>
     type && isObjectType(type) ? Object.keys(type.getFields()).sort() : [];
+
+describe('operation kinds', () => {
+    it.each([
+        ['{ entities { id } }', ['query']],
+        ['query Q { entities { id } }', ['query']],
+        ['mutation ($i: CreateLinkInput!) { createLink(input: $i) { id } }', ['mutation']],
+        ['subscription { x }', ['subscription']],
+        ['fragment F on Entity { id } query { entity(id: "1") { ...F } }', ['query']],
+        ['query A { a } mutation B { b }', ['query', 'mutation']],
+        // keywords in places that are not definitions
+        ['query mutation { mutation: entities { mutation } }', ['query']],
+        ['# mutation\n{ a }', ['query']],
+        ['query ($p: String = "mutation {") { a(p: $p) }', ['query']],
+        ['query ($o: In = {a: {b: 1}}) { a }', ['query']],
+        ['query { a(s: """\nmutation { x }\n""") }', ['query']],
+        ['', []],
+    ] as const)('%s', (document, expected) => {
+        expect(graphOperationKinds(document)).toEqual(expected);
+    });
+
+    it('classifies every built-in document as its declared kind', () => {
+        for (const operation of TILED_GRAPH_OPERATIONS) {
+            expect(graphOperationKinds(operation.document), operation.name).toEqual([
+                operation.kind,
+            ]);
+        }
+    });
+});
 
 describe('documents against the committed schema', () => {
     it('implements every Query and Mutation field, and no other', () => {
@@ -620,6 +649,95 @@ describe('graph hooks', () => {
 
         expect(invalidate).toHaveBeenCalledWith(
             expect.objectContaining({ queryKey: ['tiled', 'graph'] }),
+        );
+    });
+
+    /**
+     * A raw query hook must never execute a write.
+     *
+     * GraphQL mutations are the same POST as queries, so without this check a mutation pasted into
+     * the query hook runs, then runs again on every remount, refocus, poll or invalidation.
+     */
+    it('refuses a mutation document without sending it', async () => {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper(client);
+        const MUTATION = `mutation ($input: CreateEntityInput!) { createEntity(input: $input) { id } }`;
+
+        const { result } = renderHook(
+            () =>
+                useTiledGraphQLQuery(
+                    MUTATION,
+                    { input: { entityType: 'x', name: 'y' } },
+                    { retry: false },
+                ),
+            { wrapper },
+        );
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(result.current.error?.message).toContain('only runs queries');
+        expect(result.current.error?.message).toContain('useTiledGraphQLMutation');
+        expect(calls).toEqual([]);
+    });
+
+    it('still runs a query that merely mentions mutation in a comment, string or field', async () => {
+        const { client, calls } = makeStub();
+        const { wrapper } = makeWrapper(client);
+        const QUERY = `# not a mutation
+            query Q($p: String = "mutation") { entities(entityType: $p) { mutation: name } }`;
+
+        const { result } = renderHook(() => useTiledGraphQLQuery(QUERY), { wrapper });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(calls.map((call) => call.method)).toEqual(['graphql']);
+    });
+
+    /**
+     * A failed write can still have changed the server: aliased mutation fields run in order with no
+     * rollback, so an error in a later field leaves earlier ones committed. The cache must refresh
+     * anyway, and the caller must still see the error.
+     */
+    it('refreshes graph reads when a mutation fails, and still rejects with its error', async () => {
+        const failure = new Error('TiledGraphLinkMany failed: Object entity not found');
+        const stub = {
+            ...(makeStub().client as unknown as Record<string, unknown>),
+            graphql: () => Promise.reject(failure),
+        } as unknown as TiledClientLike;
+        const { wrapper, queryClient } = makeWrapper(stub);
+        const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+        const { result } = renderHook(() => useTiledGraphQLMutation(), { wrapper });
+
+        await expect(
+            result.current.mutateAsync({
+                document: `mutation { a: deleteLink(id: "1") b: deleteLink(id: "2") }`,
+            }),
+        ).rejects.toBe(failure);
+        expect(invalidate).toHaveBeenCalledWith(
+            expect.objectContaining({ queryKey: ['tiled', 'graph'] }),
+        );
+    });
+
+    it("still calls the caller's onError after refreshing", async () => {
+        const failure = new Error('boom');
+        const stub = {
+            ...(makeStub().client as unknown as Record<string, unknown>),
+            createGraphLink: () => Promise.reject(failure),
+        } as unknown as TiledClientLike;
+        const { wrapper } = makeWrapper(stub);
+        const onError = vi.fn();
+
+        const { result } = renderHook(() => useTiledCreateGraphLinkMutation({ onError }), {
+            wrapper,
+        });
+        await result.current
+            .mutateAsync({ subjectId: '1', predicate: 'schema:isPartOf', objectId: '2' })
+            .catch(() => undefined);
+
+        expect(onError).toHaveBeenCalledWith(
+            failure,
+            expect.anything(),
+            undefined,
+            expect.anything(),
         );
     });
 

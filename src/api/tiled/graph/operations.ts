@@ -286,6 +286,85 @@ export function fieldMissingFromOlderGraphApi(
     return undefined;
 }
 
+/** The kind of each operation a GraphQL document defines. */
+export type TiledGraphOperationKind = 'query' | 'mutation' | 'subscription';
+
+/**
+ * The kind of every operation `document` defines, in order: `query` for a `query …` definition or
+ * the `{ … }` shorthand, `mutation`, `subscription`. Fragments are not operations and are skipped.
+ *
+ * A small scanner rather than the `graphql` package's parser, which is a devDependency only: it
+ * looks at top-level definitions and skips what could otherwise fool it — `#` comments, strings and
+ * block strings, and parentheses, whose variable defaults and directive arguments may hold `{ }`.
+ * It classifies; it does not validate. An unparseable document yields whatever it could see, and
+ * the server reports the rest.
+ *
+ * ```ts
+ * graphOperationKinds('{ entities { id } }');                       // ['query']
+ * graphOperationKinds('mutation ($i: CreateLinkInput!) { … }');     // ['mutation']
+ * graphOperationKinds('fragment F on Entity { id } query { … }');   // ['query']
+ * ```
+ */
+export function graphOperationKinds(document: string): TiledGraphOperationKind[] {
+    const kinds: TiledGraphOperationKind[] = [];
+    let braces = 0;
+    let parens = 0;
+    // A definition keyword was read at the top level; its own `{` opens its body, not a shorthand.
+    let awaitingBody = false;
+    let i = 0;
+    const n = document.length;
+
+    while (i < n) {
+        const c = document[i];
+        if (c === '#') {
+            while (i < n && document[i] !== '\n' && document[i] !== '\r') i++;
+        } else if (document.startsWith('"""', i)) {
+            i += 3;
+            while (i < n && !document.startsWith('"""', i)) {
+                i += document.startsWith('\\"""', i) ? 4 : 1;
+            }
+            i += 3;
+        } else if (c === '"') {
+            i++;
+            while (i < n && document[i] !== '"' && document[i] !== '\n') {
+                i += document[i] === '\\' ? 2 : 1;
+            }
+            i++;
+        } else if (c === '(') {
+            parens++;
+            i++;
+        } else if (c === ')') {
+            parens = Math.max(0, parens - 1);
+            i++;
+        } else if (c === '{' && parens === 0) {
+            if (braces === 0) {
+                if (!awaitingBody) kinds.push('query');
+                awaitingBody = false;
+            }
+            braces++;
+            i++;
+        } else if (c === '}' && parens === 0) {
+            braces = Math.max(0, braces - 1);
+            i++;
+        } else if (/[_A-Za-z]/.test(c)) {
+            const start = i;
+            while (i < n && /[_0-9A-Za-z]/.test(document[i])) i++;
+            if (braces === 0 && parens === 0 && !awaitingBody) {
+                const word = document.slice(start, i);
+                if (word === 'query' || word === 'mutation' || word === 'subscription') {
+                    kinds.push(word);
+                    awaitingBody = true;
+                } else if (word === 'fragment') {
+                    awaitingBody = true;
+                }
+            }
+        } else {
+            i++;
+        }
+    }
+    return kinds;
+}
+
 /** The operation name a document declares, for error messages. `undefined` for anonymous ones. */
 export function graphOperationName(document: string): string | undefined {
     return /\b(?:query|mutation|subscription)\s+([_A-Za-z][_0-9A-Za-z]*)/.exec(document)?.[1];

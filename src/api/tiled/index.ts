@@ -178,6 +178,7 @@ export type * from './types/graph';
 export {
     TILED_GRAPH_OPERATIONS,
     TILED_GRAPH_MIN_VERSION,
+    graphOperationKinds,
     graphOperationName,
 } from './graph/operations';
 export type { TiledGraphOperation } from './graph/operations';

@@ -1,6 +1,9 @@
 import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
 import { requireArg } from '@/api/shared/errors';
+import { graphOperationKinds } from '../graph/operations';
 import type { TiledRequestOptions } from '../types/common';
+import { TiledApiError } from '../types/errors';
+import { TILED_GRAPHQL_PATH } from '../types/paths';
 import type {
     TiledGraphBindEntityInput,
     TiledGraphCreateEntityInput,
@@ -59,6 +62,10 @@ type GraphKey = TiledQueryKeyFor<'graph'>;
  * **The result type is yours to declare; nothing checks it.** Pass parameters as `variables`, not by
  * interpolating them into the document. Idles while `document` is blank.
  *
+ * **Queries only.** A document defining a `mutation` or `subscription` is rejected before it is
+ * sent: a write run as a query would execute, then repeat on every refetch. Use
+ * `useTiledGraphQLMutation` for writes.
+ *
  * Define the document at module scope or memoise it: it is part of the cache key, so a string
  * rebuilt every render with different whitespace is a different entry.
  *
@@ -78,12 +85,29 @@ export function useTiledGraphQLQuery<TResult = Record<string, unknown>, TData = 
 
     return useTiledQuery({
         queryKey: tiledQueryKeys.graph(scope, { op: 'raw', document, variables: vars }),
-        fetch: (client, request) =>
-            client.graphql<TResult>(
-                requireArg(document.trim() || undefined, 'useTiledGraphQLQuery', 'document'),
-                vars,
-                request,
-            ),
+        fetch: (client, request) => {
+            const query = requireArg(
+                document.trim() || undefined,
+                'useTiledGraphQLQuery',
+                'document',
+            );
+            // Refused before anything is sent. GraphQL writes travel over the same POST as reads,
+            // so a mutation here would execute — and TanStack re-runs a query on remount, refocus,
+            // polling and invalidation, repeating the write each time.
+            const writes = graphOperationKinds(query).filter((kind) => kind !== 'query');
+            if (writes.length > 0) {
+                return Promise.reject(
+                    new TiledApiError({
+                        message:
+                            `useTiledGraphQLQuery only runs queries, but this document defines a ` +
+                            `${writes[0]}. Use useTiledGraphQLMutation for writes.`,
+                        method: 'POST',
+                        path: TILED_GRAPHQL_PATH,
+                    }),
+                );
+            }
+            return client.graphql<TResult>(query, vars, request);
+        },
         requestOptions,
         queryOptions,
         defaultEnabled: document.trim().length > 0,
@@ -101,11 +125,12 @@ export interface TiledGraphQLMutationVariables {
  * Any GraphQL mutation against the graph endpoint — e.g. several aliased `createLink`s in one
  * request.
  *
- * Refreshes every graph read on success.
+ * Refreshes every graph read on success **and on failure**, before `mutateAsync` settles.
  *
  * **A failure can follow a partial write.** `createEntity` and `createLink` are declared non-null,
  * so when one aliased field fails, GraphQL nulls the whole `data` — but the fields before it have
- * already been committed, and the server does not roll them back. Prefer one write per request
+ * already been committed, and the server does not roll them back. That is why a failure refreshes
+ * the cache too; the rejection still carries the server's error. Prefer one write per request
  * unless you are prepared to reconcile.
  */
 export function useTiledGraphQLMutation<TResult = Record<string, unknown>, TContext = unknown>(
@@ -121,6 +146,7 @@ export function useTiledGraphQLMutation<TResult = Record<string, unknown>, TCont
         perform: (client, { document, variables }, request) =>
             client.graphql<TResult>(document, variables, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledGraphQLMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -200,6 +226,7 @@ export function useTiledCreateGraphEntityMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, input, request) => client.createGraphEntity(input, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledCreateGraphEntityMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -234,6 +261,7 @@ export function useTiledUpdateGraphEntityMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { id, input }, request) => client.updateGraphEntity(id, input, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledUpdateGraphEntityMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -247,6 +275,7 @@ export function useTiledDeleteGraphEntityMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { id }, request) => client.deleteGraphEntity(id, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledDeleteGraphEntityMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -317,6 +346,7 @@ export function useTiledBindGraphEntityMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { path, input }, request) => client.bindGraphEntity(path, input, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledBindGraphEntityMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -394,6 +424,7 @@ export function useTiledCreateGraphLinkMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, input, request) => client.createGraphLink(input, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledCreateGraphLinkMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -424,6 +455,7 @@ export function useTiledUpdateGraphLinkMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { id, input }, request) => client.updateGraphLink(id, input, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledUpdateGraphLinkMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -437,6 +469,7 @@ export function useTiledDeleteGraphLinkMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { id }, request) => client.deleteGraphLink(id, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledDeleteGraphLinkMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -494,6 +527,7 @@ export function useTiledUpsertGraphNamespaceMutation<TContext = unknown>(
         perform: (client, { prefix, uri }, request) =>
             client.upsertGraphNamespace(prefix, uri, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledUpsertGraphNamespaceMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
@@ -507,6 +541,7 @@ export function useTiledDeleteGraphNamespaceMutation<TContext = unknown>(
     return useTiledMutation({
         perform: (client, { prefix }, request) => client.deleteGraphNamespace(prefix, request),
         invalidates: TILED_MUTATION_INVALIDATIONS.useTiledDeleteGraphNamespaceMutation,
+        invalidateOnError: true,
         requestOptions,
         mutationOptions,
     });
