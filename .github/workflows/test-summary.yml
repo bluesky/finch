@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   comment:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event.workflow_run.event == 'pull_request'
 
     steps:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Download test artifacts
         if: steps.pr.outputs.number != ''
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-results-node-20.x
           run-id: ${{ github.event.workflow_run.id }}
@@ -39,7 +39,7 @@ jobs:
 
       - name: Comment PR with test summary
         if: steps.pr.outputs.number != ''
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
