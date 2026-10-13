@@ -113,6 +113,22 @@ Two axes: **format** — `JSON` is column-oriented, `JSON_SEQ` row-oriented — 
 | `useTiledWebhookHistoryQuery` | `webhookId, { limit? }?`        | recent delivery attempts for one webhook  |
 | `useTiledWhoamiQuery`         | —                               | the current principal                     |
 
+### Graph of links
+
+Tiled's experimental entity/link graph, over GraphQL at `{origin}/api/graphql` — catalog-backed servers
+only, **Tiled 0.2.19 or later** (older servers have an incompatible graph API). **Reads never answer 401** — behind an access policy an unauthenticated read is empty lists; with no
+policy it is everything. Lists are one page (default 100) with no total count.
+
+| hook                           | arguments                                          | `data`                                       |
+| ------------------------------ | -------------------------------------------------- | -------------------------------------------- |
+| `useTiledGraphEntityQuery`     | `id`                                               | one entity, or `null`                        |
+| `useTiledGraphEntitiesQuery`   | `{ entityType?, nodePathParts?, limit?, offset? }?` | a page of entities                           |
+| `useTiledGraphNodeEntitiesQuery` | `path, { entityType?, limit?, offset? }?`        | the entities bound to one catalog node (e.g. a run) |
+| `useTiledGraphLinkQuery`       | `id`                                               | one link, or `null`                          |
+| `useTiledGraphLinksQuery`      | `{ subjectId?, predicate?, objectId?, limit?, offset? }?` | a page of links (ids for each end)    |
+| `useTiledGraphNamespacesQuery` | —                                                  | the registered CURIE prefixes                |
+| `useTiledGraphQLQuery`         | `document, variables?`                             | whatever the document selects — you type it  |
+
 ---
 
 ## Writes
@@ -150,6 +166,16 @@ awaited before `mutateAsync` resolves, so the affected queries have already refe
 | `useTiledRevokeSessionMutation`     | `{ sessionId }`                                                    | `all`                |
 | `useTiledCreateApiKeyMutation`      | `{ expires_in?, scopes?, note? }`                                  | `auth`               |
 | `useTiledRevokeApiKeyMutation`      | `{ firstEight }`                                                   | `auth`               |
+| `useTiledCreateGraphEntityMutation` | `{ entityType, name, nodePathParts?, uri?, properties?, accessTags? }` | `graph`          |
+| `useTiledBindGraphEntityMutation` | `{ path, input: { entityType, name?, properties?, accessTags? } }` — sets `nodePathParts` **and** `uri` | `graph` |
+| `useTiledUpdateGraphEntityMutation` | `{ id, input }` — omitted fields untouched, `null` clears          | `graph`              |
+| `useTiledDeleteGraphEntityMutation` | `{ id }` — also deletes its links                                  | `graph`              |
+| `useTiledCreateGraphLinkMutation`   | `{ subjectId, predicate, objectId, properties?, accessTags? }`     | `graph`              |
+| `useTiledUpdateGraphLinkMutation`   | `{ id, input }`                                                    | `graph`              |
+| `useTiledDeleteGraphLinkMutation`   | `{ id }`                                                           | `graph`              |
+| `useTiledUpsertGraphNamespaceMutation` | `{ prefix, uri }`                                               | `graph`              |
+| `useTiledDeleteGraphNamespaceMutation` | `{ prefix }`                                                    | `graph`              |
+| `useTiledGraphQLMutation`           | `{ document, variables? }`                                         | `graph`              |
 
 ---
 
@@ -434,16 +460,19 @@ Build keys with the exported factory rather than by hand — `tiledQueryKeys.sea
 | `search`    | search, distinct                                       |
 | `metadata`  | metadata, revisions                                    |
 | `data`      | array, table, container, node, awkward, ragged         |
-| `structure` | search, distinct, metadata, revisions, container, node |
+| `structure` | search, distinct, metadata, revisions, container, node, graph |
 | `webhooks`  | webhooks                                               |
 | `info`      | serverInfo                                             |
 | `auth`      | auth                                                   |
-| `all`       | all fourteen                                           |
+| `graph`     | graph — every entity, link, namespace and raw GraphQL read |
+| `all`       | all fifteen                                            |
 
 Three rules decide which bundle a write uses: a **metadata write** refreshes that node and the searches
 that could have matched on what changed; a **data write** refreshes the data _and_ the metadata, because
 a write can change a structure (`patchArrayFull` with `extend: true` grows the shape); a **create,
-delete or register** uses `structure`, which also covers the parent container's contents.
+delete or register** uses `structure`, which also covers the parent container's contents — and the graph,
+because deleting a catalog node deletes the entities bound to it. Every **graph write** refreshes every
+graph read: deleting an entity removes its links, and a namespace change re-renders every predicate.
 
 ```tsx
 const invalidate = useTiledInvalidate();
@@ -463,6 +492,9 @@ falls through to the guard instead of clobbering it.
 | `useTiledSearchByFullTextQuery`                                           | `filter.text` is non-empty         |
 | `useTiledDistinctQuery`                                                   | the config asks for a facet        |
 | `useTiledArrayBlockQuery`, the asset hooks, `useTiledWebhookHistoryQuery`  | its required argument is defined   |
+| `useTiledGraphEntityQuery`, `useTiledGraphLinkQuery`                       | `id` is non-empty                  |
+| `useTiledGraphNodeEntitiesQuery`                                           | `path` is non-empty                |
+| `useTiledGraphQLQuery`                                                     | `document` is non-blank            |
 
 Pass `enabled` in the options to override either way. Forcing one of the last group past its guard raises
 `FinchMissingArgumentError` — named, before any request goes out — rather than sending `undefined` where

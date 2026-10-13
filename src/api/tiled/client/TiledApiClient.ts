@@ -13,7 +13,47 @@ import type {
     TiledRequestInterceptor,
     TiledResponseInterceptor,
 } from '../types/common';
-import { TiledApiError, toTiledApiError, type TiledHttpMethod } from '../types/errors';
+import {
+    TiledApiError,
+    formatGraphQLErrors,
+    toTiledApiError,
+    type TiledHttpMethod,
+} from '../types/errors';
+import type {
+    TiledGraphBindEntityInput,
+    TiledGraphCreateEntityInput,
+    TiledGraphCreateLinkInput,
+    TiledGraphEntity,
+    TiledGraphEntityFilters,
+    TiledGraphEntityNodePath,
+    TiledGraphNodeEntityFilters,
+    TiledGraphLink,
+    TiledGraphLinkFilters,
+    TiledGraphNamespace,
+    TiledGraphQLErrorEntry,
+    TiledGraphQLResponse,
+    TiledGraphQLVariables,
+    TiledGraphUpdateEntityInput,
+    TiledGraphUpdateLinkInput,
+} from '../types/graph';
+import {
+    GRAPH_CREATE_ENTITY,
+    GRAPH_CREATE_LINK,
+    GRAPH_DELETE_ENTITY,
+    GRAPH_DELETE_LINK,
+    GRAPH_DELETE_NAMESPACE,
+    GRAPH_ENTITIES,
+    GRAPH_ENTITY,
+    GRAPH_LINK,
+    GRAPH_LINKS,
+    GRAPH_NAMESPACES,
+    GRAPH_UPDATE_ENTITY,
+    GRAPH_UPDATE_LINK,
+    GRAPH_UPSERT_NAMESPACE,
+    TILED_GRAPH_MIN_VERSION,
+    fieldMissingFromOlderGraphApi,
+    graphOperationName,
+} from '../graph/operations';
 import type {
     GetDistinctResponse,
     DeliveryResponse,
@@ -33,7 +73,7 @@ import {
     type TiledInfoResponse,
 } from '../types/info';
 import type { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
-import { TILED_PATHS, buildPath } from '../types/paths';
+import { TILED_API_PREFIX, TILED_GRAPHQL_PATH, TILED_PATHS, buildPath } from '../types/paths';
 import type {
     TiledApiKeyLocation,
     TiledApiKeyScheme,
@@ -79,6 +119,7 @@ import {
     normalizeTiledBaseUrl,
     normalizeTiledPath,
     resolveEncodedTiledPath,
+    resolveTiledPath,
     tiledOriginFromBaseUrl,
 } from './urlUtils';
 
@@ -117,6 +158,23 @@ export interface TiledApiClientConfig {
  * most of the interesting query surface.
  */
 const TILED_PARAMS_SERIALIZER = { indexes: null } as const;
+
+/**
+ * The message for a graph call rejected by a server whose graph API predates the one these
+ * documents target. Says what to do — upgrade the server — and keeps the server's own words, since
+ * the validation error alone reads like a bug in the client.
+ */
+function describeOlderGraphApi(
+    operation: string,
+    missingField: string,
+    errors: TiledGraphQLErrorEntry[],
+): string {
+    return (
+        `${operation} failed: this Tiled server's graph API is older than ${TILED_GRAPH_MIN_VERSION} ` +
+        `(it has no '${missingField}'). Finch's graph client needs Tiled ${TILED_GRAPH_MIN_VERSION} ` +
+        `or later; upgrade the server. Server said: ${formatGraphQLErrors(errors)}`
+    );
+}
 
 /**
  * Flags the auth interceptor and the 401 handler read off a request.
@@ -2073,6 +2131,392 @@ export class TiledApiClient {
         } finally {
             this.clearAuth();
         }
+    }
+
+    // #endregion
+
+    // #region graph of links
+    //
+    // Tiled's experimental entity/link graph, served over GraphQL at `{origin}/api/graphql` — outside
+    // `/api/v1`, and only on a catalog-backed server. Not in `openapi.json`; the operations are
+    // checked against `../graph/schema.graphql` instead. Everything funnels through `graphql`, which
+    // goes through `request` like any other call, so auth, the 401 refresh, interceptors and
+    // per-call overrides apply unchanged.
+
+    /**
+     * Send any GraphQL document to the graph endpoint and return its `data`.
+     *
+     * The escape hatch for selections the typed methods do not make — chiefly nested traversal,
+     * e.g. a project's samples in one request:
+     *
+     * ```ts
+     * const { entity } = await client.graphql<{ entity: { incomingLinks: { subject: { name: string } }[] } }>(
+     *     `query ($id: ID!) { entity(id: $id) { incomingLinks(predicate: "schema:isPartOf") { subject { name } } } }`,
+     *     { id: projectId },
+     * );
+     * ```
+     *
+     * The caller owns the result type; nothing checks it. Pass parameters as `variables` rather than
+     * interpolating them into the document. The server limits nesting to depth 10.
+     *
+     * **Rejects whenever the response carries `errors`**, even alongside partial `data` — GraphQL
+     * reports resolver failures with HTTP 200, so the status alone says nothing. The
+     * {@link TiledApiError} carries `graphqlErrors`, `graphqlCode`, and the whole envelope as
+     * `responseBody`. A server with no graph router answers 404, reported as such.
+     *
+     * An unauthenticated read does **not** fail. The server filters rather than refuses: behind an
+     * access policy the caller sees empty lists, and on a server with no policy (single-user
+     * `--api-key`) it sees everything, although REST would answer the same caller 401.
+     */
+    async graphql<T = Record<string, unknown>>(
+        document: string,
+        variables: TiledGraphQLVariables = {},
+        options: TiledRequestOptions = {},
+    ): Promise<T> {
+        const operation = graphOperationName(document) ?? 'GraphQL operation';
+        let body: TiledGraphQLResponse<T>;
+        try {
+            body = await this.request<TiledGraphQLResponse<T>>(
+                'POST',
+                TILED_GRAPHQL_PATH,
+                { query: document, variables },
+                options,
+                { origin: true },
+            );
+        } catch (error) {
+            if (error instanceof TiledApiError && error.status === 404) {
+                throw new TiledApiError({
+                    message:
+                        `${operation} failed with 404: this server has no graph API. Tiled mounts ` +
+                        '/api/graphql only when it serves a catalog-backed tree.',
+                    method: 'POST',
+                    path: TILED_GRAPHQL_PATH,
+                    status: 404,
+                    responseBody: error.responseBody,
+                    cause: error,
+                });
+            }
+            if (error instanceof TiledApiError && error.graphqlErrors) {
+                const missing = fieldMissingFromOlderGraphApi(error.graphqlErrors);
+                if (missing) {
+                    throw new TiledApiError({
+                        message: describeOlderGraphApi(operation, missing, error.graphqlErrors),
+                        method: 'POST',
+                        path: TILED_GRAPHQL_PATH,
+                        status: error.status,
+                        responseBody: error.responseBody,
+                        cause: error,
+                    });
+                }
+            }
+            throw error;
+        }
+
+        if (body?.errors?.length) {
+            const missing = fieldMissingFromOlderGraphApi(body.errors);
+            throw new TiledApiError({
+                message: missing
+                    ? describeOlderGraphApi(operation, missing, body.errors)
+                    : `${operation} failed: ${formatGraphQLErrors(body.errors)}`,
+                method: 'POST',
+                path: TILED_GRAPHQL_PATH,
+                status: 200,
+                responseBody: body,
+            });
+        }
+        if (!body || typeof body !== 'object' || body.data === undefined || body.data === null) {
+            throw new TiledApiError({
+                message: `${operation} failed: the response carried no data`,
+                method: 'POST',
+                path: TILED_GRAPHQL_PATH,
+                status: 200,
+                responseBody: body,
+            });
+        }
+        return body.data;
+    }
+
+    /** One entity by id, or `null` when it does not exist or the caller may not see it. */
+    async getGraphEntity(
+        id: string,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity | null> {
+        const data = await this.graphql<{ entity: TiledGraphEntity | null }>(
+            GRAPH_ENTITY,
+            { id },
+            options,
+        );
+        return data.entity;
+    }
+
+    /** One page of entities, filtered by type and/or bound node. The server pages at 100. */
+    async getGraphEntities(
+        filters: TiledGraphEntityFilters = {},
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity[]> {
+        const data = await this.graphql<{ entities: TiledGraphEntity[] }>(
+            GRAPH_ENTITIES,
+            { ...filters },
+            options,
+        );
+        return data.entities;
+    }
+
+    /** One link by id, or `null` when it does not exist or the caller may not see it. */
+    async getGraphLink(
+        id: string,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphLink | null> {
+        const data = await this.graphql<{ link: TiledGraphLink | null }>(
+            GRAPH_LINK,
+            { id },
+            options,
+        );
+        return data.link;
+    }
+
+    /**
+     * One page of links, filtered by subject, predicate and/or object.
+     *
+     * `{ objectId }` is an entity's incoming links (a project's members); `{ subjectId }` its
+     * outgoing ones.
+     */
+    async getGraphLinks(
+        filters: TiledGraphLinkFilters = {},
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphLink[]> {
+        const data = await this.graphql<{ links: TiledGraphLink[] }>(
+            GRAPH_LINKS,
+            { ...filters },
+            options,
+        );
+        return data.links;
+    }
+
+    /** The registered CURIE prefixes. */
+    async getGraphNamespaces(options: TiledRequestOptions = {}): Promise<TiledGraphNamespace[]> {
+        const data = await this.graphql<{ namespaces: TiledGraphNamespace[] }>(
+            GRAPH_NAMESPACES,
+            {},
+            options,
+        );
+        return data.namespaces;
+    }
+
+    /** Create an entity. Needs `write:metadata`. A `nodePathParts` naming no node is `NODE_NOT_FOUND`. */
+    async createGraphEntity(
+        input: TiledGraphCreateEntityInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity> {
+        const data = await this.graphql<{ createEntity: TiledGraphEntity }>(
+            GRAPH_CREATE_ENTITY,
+            { input },
+            options,
+        );
+        return data.createEntity;
+    }
+
+    /**
+     * Change an entity. Omitted fields are left alone, `null` clears — see
+     * {@link TiledGraphUpdateEntityInput}. Resolves `null` when there is no such entity.
+     */
+    async updateGraphEntity(
+        id: string,
+        input: TiledGraphUpdateEntityInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity | null> {
+        const data = await this.graphql<{ updateEntity: TiledGraphEntity | null }>(
+            GRAPH_UPDATE_ENTITY,
+            { id, input },
+            options,
+        );
+        return data.updateEntity;
+    }
+
+    /** Delete an entity **and every link attached to it**. Resolves whether it existed. */
+    async deleteGraphEntity(id: string, options: TiledRequestOptions = {}): Promise<boolean> {
+        const data = await this.graphql<{ deleteEntity: boolean }>(
+            GRAPH_DELETE_ENTITY,
+            { id },
+            options,
+        );
+        return data.deleteEntity;
+    }
+
+    /** Create a link `subject —predicate→ object`. Needs `write:metadata`. */
+    async createGraphLink(
+        input: TiledGraphCreateLinkInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphLink> {
+        const data = await this.graphql<{ createLink: TiledGraphLink }>(
+            GRAPH_CREATE_LINK,
+            { input },
+            options,
+        );
+        return data.createLink;
+    }
+
+    /** Change a link's predicate or access tags. Resolves `null` when there is no such link. */
+    async updateGraphLink(
+        id: string,
+        input: TiledGraphUpdateLinkInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphLink | null> {
+        const data = await this.graphql<{ updateLink: TiledGraphLink | null }>(
+            GRAPH_UPDATE_LINK,
+            { id, input },
+            options,
+        );
+        return data.updateLink;
+    }
+
+    /** Delete one link. Resolves whether it existed. */
+    async deleteGraphLink(id: string, options: TiledRequestOptions = {}): Promise<boolean> {
+        const data = await this.graphql<{ deleteLink: boolean }>(
+            GRAPH_DELETE_LINK,
+            { id },
+            options,
+        );
+        return data.deleteLink;
+    }
+
+    /** Register or replace a CURIE prefix. Changes how every predicate and property is rendered. */
+    async upsertGraphNamespace(
+        prefix: string,
+        uri: string,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphNamespace> {
+        const data = await this.graphql<{ upsertNamespace: TiledGraphNamespace }>(
+            GRAPH_UPSERT_NAMESPACE,
+            { prefix, uri },
+            options,
+        );
+        return data.upsertNamespace;
+    }
+
+    /** Remove a CURIE prefix. Resolves whether it existed. */
+    async deleteGraphNamespace(
+        prefix: string,
+        options: TiledRequestOptions = {},
+    ): Promise<boolean> {
+        const data = await this.graphql<{ deleteNamespace: boolean }>(
+            GRAPH_DELETE_NAMESPACE,
+            { prefix },
+            options,
+        );
+        return data.deleteNamespace;
+    }
+
+    // Entities bound to catalog nodes. The server binds by `nodePathParts` but never says which node
+    // an entity is bound to (only `isNodeBound`), so upstream's convention — and its Python client's
+    // `bind_entity` — is to store the node's metadata URL in `uri` alongside the binding. These
+    // helpers do that, and resolve paths against `initialPath` the way every other method does:
+    // `nodePathParts` is from the server root, a Finch path is relative to the client's prefix.
+
+    /** A node's path from the server root, as `nodePathParts` wants it: `['bl531', 'raw', 'x']`. */
+    getGraphNodePathParts(path: string, options: TiledRequestOptions = {}): string[] {
+        const absolute = resolveTiledPath(
+            path,
+            options.initialPath ?? this.initialPath,
+            options.pathMode ?? ('relative' as TiledPathMode),
+        );
+        return absolute ? absolute.split('/') : [];
+    }
+
+    /**
+     * The node's canonical `uri`: its metadata URL on this server,
+     * `http://host:8000/api/v1/metadata/bl531/raw/x`. What `bindGraphEntity` stores, and what to
+     * pass to `updateGraphEntity(id, { uri })` to backfill an entity bound without one.
+     */
+    getGraphNodeUri(path: string, options: TiledRequestOptions = {}): string {
+        return `${this.resolveBaseUrl(options)}/metadata/${this.encodePath(path, options)}`;
+    }
+
+    /**
+     * Create an entity bound to the catalog node at `path`, with `nodePathParts` and `uri` set
+     * together so the node can be found again later (see {@link graphEntityNodePath}). `name`
+     * defaults to the node's key. Fails with `NODE_NOT_FOUND` when no node is at `path`.
+     */
+    async bindGraphEntity(
+        path: string,
+        input: TiledGraphBindEntityInput,
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity> {
+        const nodePathParts = this.getGraphNodePathParts(path, options);
+        if (nodePathParts.length === 0) {
+            throw new TiledApiError({
+                message:
+                    'bindGraphEntity needs the path of a catalog node; the root container cannot ' +
+                    'be bound.',
+                method: 'POST',
+                path: TILED_GRAPHQL_PATH,
+            });
+        }
+        return this.createGraphEntity(
+            {
+                ...input,
+                name: input.name ?? nodePathParts[nodePathParts.length - 1],
+                nodePathParts,
+                uri: this.getGraphNodeUri(path, options),
+            },
+            options,
+        );
+    }
+
+    /** One page of the entities bound to the catalog node at `path`. */
+    getGraphNodeEntities(
+        path: string,
+        filters: TiledGraphNodeEntityFilters = {},
+        options: TiledRequestOptions = {},
+    ): Promise<TiledGraphEntity[]> {
+        return this.getGraphEntities(
+            { ...filters, nodePathParts: this.getGraphNodePathParts(path, options) },
+            options,
+        );
+    }
+
+    /**
+     * The catalog node an entity's `uri` points at, or `null` when it has no `uri` or it is not a
+     * Tiled metadata URL. The path is from the server root, so read it with `pathMode: 'absolute'`:
+     *
+     * ```ts
+     * const located = client.graphEntityNodePath(entity);
+     * if (located) await client.getMetadata(located.path, { pathMode: 'absolute' });
+     * ```
+     *
+     * `sameServer` compares the URL with this client's base URL. A mismatch usually means the
+     * server moved host since the entity was written; the path after `/api/v1/metadata/` is then
+     * still the right one to try.
+     */
+    graphEntityNodePath(
+        entity: Pick<TiledGraphEntity, 'uri'>,
+        options: TiledRequestOptions = {},
+    ): TiledGraphEntityNodePath | null {
+        const uri = entity.uri;
+        if (!uri) return null;
+        const marker = `${TILED_API_PREFIX}/metadata`;
+        // The last occurrence, as `tiledOriginFromBaseUrl` does, so a server mounted under a
+        // sub-path that itself contains `/api/v1` still parses.
+        const at = uri.lastIndexOf(marker);
+        if (at < 0) return null;
+        const rest = uri.slice(at + marker.length).split(/[?#]/)[0];
+        if (rest !== '' && !rest.startsWith('/')) return null;
+        let path: string;
+        try {
+            path = normalizeTiledPath(
+                rest
+                    .split('/')
+                    .map((segment) => decodeURIComponent(segment))
+                    .join('/'),
+            );
+        } catch {
+            return null; // malformed percent-encoding: not a URL this client wrote
+        }
+        const base = uri.slice(0, at + TILED_API_PREFIX.length);
+        return {
+            path,
+            sameServer: normalizeTiledBaseUrl(base) === this.resolveBaseUrl(options),
+        };
     }
 
     // #endregion

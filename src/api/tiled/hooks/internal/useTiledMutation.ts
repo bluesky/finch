@@ -19,6 +19,7 @@ export interface TiledMutationEngineArgs<TResponse, TVariables, TContext> {
     ) => Promise<TResponse>;
     /** Caches to refresh on success; see `TILED_MUTATION_INVALIDATIONS`. */
     invalidates: readonly TiledInvalidationBundleName[];
+    invalidateOnError?: boolean;
     /** The hook's request-options parameter, merged under the resolver's defaults. */
     requestOptions?: TiledRequestOptions;
     /** The hook's TanStack options parameter. */
@@ -34,6 +35,7 @@ export interface TiledMutationEngineArgs<TResponse, TVariables, TContext> {
 export function useTiledMutation<TResponse, TVariables, TContext = unknown>({
     perform,
     invalidates,
+    invalidateOnError = false,
     requestOptions,
     mutationOptions,
 }: TiledMutationEngineArgs<TResponse, TVariables, TContext>): UseMutationResult<
@@ -55,6 +57,18 @@ export function useTiledMutation<TResponse, TVariables, TContext = unknown>({
         onSuccess: async (...args) => {
             await invalidateTiledRoots(queryClient, resolveInvalidationRoots(invalidates));
             await mutationOptions?.onSuccess?.(...args);
+        },
+        // Awaited, like `onSuccess`, so the refresh has happened by the time `mutateAsync` rejects.
+        onError: async (...args) => {
+            if (invalidateOnError) {
+                try {
+                    await invalidateTiledRoots(queryClient, resolveInvalidationRoots(invalidates));
+                } catch {
+                    // A failed refresh must not replace the write's own error, which is the one
+                    // the caller needs to see.
+                }
+            }
+            await mutationOptions?.onError?.(...args);
         },
     });
 }

@@ -256,6 +256,9 @@ export {
     // server + auth
     useTiledServerInfoQuery,
     useTiledLoginMutation,
+    // graph
+    useTiledGraphNodeEntitiesQuery,
+    useTiledBindGraphEntityMutation,
     // streaming (websocket)
     useTiledSubscription,
     useTiledContainerSubscription,
@@ -297,6 +300,7 @@ export type {
     TiledInvalidationBundleName,
     FinchQueryOptions,
     FinchMutationOptions,
+    TiledGraphOperationKind,
     TiledStreamMessage,
     TiledConnectionStatus,
     TiledSubscriptionError,

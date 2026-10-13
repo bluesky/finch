@@ -1,8 +1,8 @@
 # Tiled API client (`tiled`)
 
 A complete client for [Tiled](https://github.com/bluesky/tiled): **all 48 API operations** from
-`openapi.json`, the seven auth routes the spec omits, zarr URL builders, and a TanStack Query hook
-for every one of them.
+`openapi.json`, the seven auth routes the spec omits, zarr URL builders, the experimental
+[graph of links](#graph-of-links) over GraphQL, and a TanStack Query hook for every one of them.
 
 Built on the client in
 [tiled-viewer-react](https://github.com/bluesky/tiled-viewer-react/tree/main/src/components/Tiled/api)
@@ -241,19 +241,21 @@ endpoint types.
 
 ### What is covered
 
-| Group              | Queries                                                                      | Mutations                                                    |
-| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| Search             | `useTiledSearchQuery` + 6 filter conveniences, `useTiledDistinctQuery`       | —                                                            |
-| Metadata           | `useTiledMetadataQuery`                                                      | create, update, patch, delete                                |
-| Arrays             | 4 formats, `useTiledArrayBlockQuery`, `useTiledArrayImagePath`               | put full, put block, patch full                              |
-| Ragged             | `useTiledRaggedFullQuery`                                                    | put full, put block, patch full                              |
-| Tables             | 5 JSON reads, `useTiledTableFullAsQuery` (CSV/parquet/arrow/…), 2 POST reads | put partition, patch partition, put full                     |
-| Containers / nodes | full reads + POST variants                                                   | put node full                                                |
-| Awkward            | full, buffers, POST buffers                                                  | put full                                                     |
-| Management         | revisions, assets                                                            | register, put data source, delete revision, close stream     |
-| Webhooks           | list, history                                                                | register, delete                                             |
-| Server info        | about, health, UI settings, metrics                                          | —                                                            |
-| Auth               | whoami                                                                       | login, logout, API key create/revoke, session refresh/revoke |
+| Group              | Queries                                                                      | Mutations                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Search             | `useTiledSearchQuery` + 6 filter conveniences, `useTiledDistinctQuery`       | —                                                                                             |
+| Metadata           | `useTiledMetadataQuery`                                                      | create, update, patch, delete                                                                 |
+| Arrays             | 4 formats, `useTiledArrayBlockQuery`, `useTiledArrayImagePath`               | put full, put block, patch full                                                               |
+| Ragged             | `useTiledRaggedFullQuery`                                                    | put full, put block, patch full                                                               |
+| Tables             | 5 JSON reads, `useTiledTableFullAsQuery` (CSV/parquet/arrow/…), 2 POST reads | put partition, patch partition, put full                                                      |
+| Containers / nodes | full reads + POST variants                                                   | put node full                                                                                 |
+| Awkward            | full, buffers, POST buffers                                                  | put full                                                                                      |
+| Management         | revisions, assets                                                            | register, put data source, delete revision, close stream                                      |
+| Webhooks           | list, history                                                                | register, delete                                                                              |
+| Server info        | about, health, UI settings, metrics                                          | —                                                                                             |
+| Auth               | whoami                                                                       | login, logout, API key create/revoke, session refresh/revoke                                  |
+| Graph of links     | entity, entities, link, links, namespaces, raw `useTiledGraphQLQuery`        | entity / link create, update, delete; namespace upsert, delete; raw `useTiledGraphQLMutation` |
+| Streaming          | — (websocket subscriptions, not queries; see Streaming below)                | —                                                                                             |
 
 ### `useTiledDistinctQuery` is the one to know about
 
@@ -336,7 +338,7 @@ header.
 
 ## Keys and invalidation
 
-Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with fourteen resources.
+Keys are `['tiled', <resource>, <args | null>, { baseUrl, initialPath }]`, with fifteen resources.
 The scope is last so prefixes like `['tiled','search']` still match.
 
 **The scope carries `initialPath`, not just `baseUrl`.** Tiled prepends the client's initial path to
@@ -458,6 +460,125 @@ serve the server's own web UI, and the eight per-file zarr routes (`.zattrs`, `.
 `getZarrV3Url` return. Shipping typed fetchers for those would invite a consumer that should have
 used a zarr library.
 
+## Graph of links
+
+Tiled's **experimental** entity/link graph (upstream #1387): _entities_ — a project, a sample, a
+dataset — optionally bound to a catalog node, and _links_ `subject —predicate→ object` between them,
+with CURIE namespaces for predicates. It is **GraphQL, not REST**, served at `{origin}/api/graphql`
+(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server.
+
+**Requires Tiled 0.2.19 or later** (0.2.19rc1+ on PyPI). The graph has been in Tiled since 0.2.15,
+but 0.2.15–0.2.18 serve an older shape (`nodeId`, `catalogNodeId`, `accessBlob`) that this client
+does not support; against one, entity and link calls reject with an "upgrade the server" error. Built
+against bluesky/tiled@849c984a, whose graph code matches v0.2.19rc2 — see
+[`graph/README.md`](./graph/README.md).
+
+```ts
+import {
+    bindTiledGraphEntity,
+    createTiledGraphEntity,
+    createTiledGraphLink,
+    upsertTiledGraphNamespace,
+} from '@/api/tiled';
+
+await upsertTiledGraphNamespace('schema', 'https://schema.org/');
+await upsertTiledGraphNamespace('prov', 'http://www.w3.org/ns/prov#');
+
+const project = await createTiledGraphEntity({
+    entityType: 'project',
+    name: 'battery-cathodes-2026',
+});
+const sample = await createTiledGraphEntity({ entityType: 'sample', name: 'S001' });
+const run = await bindTiledGraphEntity('raw/3f2c9a1e', { entityType: 'dataset' }); // a Bluesky run
+
+await createTiledGraphLink({
+    subjectId: sample.id,
+    predicate: 'schema:isPartOf',
+    objectId: project.id,
+});
+await createTiledGraphLink({ subjectId: run.id, predicate: 'prov:used', objectId: sample.id });
+```
+
+### Entities bound to catalog nodes
+
+The server binds an entity to a node through `nodePathParts` but never says which node: entities
+expose only `isNodeBound`. Upstream's convention, which its Python client's `bind_entity` follows,
+is to also store the node's metadata URL in `uri`. Use `bindTiledGraphEntity` /
+`useTiledBindGraphEntityMutation` rather than passing `nodePathParts` yourself. They set both
+fields, and they resolve the path against the client's `initialPath`. That matters because
+`nodePathParts` counts from the server root while every Finch path is relative to the prefix, so
+with `initialPath: 'bl531'` the path `raw/x` is the node `bl531/raw/x`.
+
+```ts
+// entity → catalog node
+const located = tiledGraphEntityNodePath(run); // { path: 'bl531/raw/3f2c9a1e', sameServer: true }
+if (located) await getTiledMetadata(located.path, { pathMode: 'absolute' });
+
+// catalog node → entities
+const bound = useTiledGraphNodeEntitiesQuery('raw/3f2c9a1e');
+```
+
+`tiledGraphEntityNodePath` returns `null` for an entity with no Tiled metadata `uri`. Its path is
+from the server root, hence `pathMode: 'absolute'`. `sameServer: false` means the URL names another
+host, usually because the server moved; the path is still the one to try. To backfill an entity
+bound without a `uri`, find it with `getTiledGraphNodeEntities(path)` and call
+`updateTiledGraphEntity(id, { uri: getTiledGraphNodeUri(path) })`.
+
+The typed hooks select one level — an entity's fields, a link's fields with ids for its ends. For
+anything nested, `useTiledGraphQLQuery` sends your own document through the same transport, so a
+project's samples come back in one request:
+
+```tsx
+const PROJECT_SAMPLES = `query ($id: ID!) {
+    entity(id: $id) {
+        name
+        incomingLinks(predicate: "schema:isPartOf") { subject { id name isNodeBound } }
+    }
+}`;
+const project = useTiledGraphQLQuery<{
+    entity: { name: string; incomingLinks: { subject: { id: string; name: string } }[] } | null;
+}>(PROJECT_SAMPLES, { id: projectId });
+```
+
+Define the document at module scope — it is part of the cache key. The server caps nesting at depth
+10: four `incomingLinks { subject { … } }` hops fit, five are rejected (checked against a live server).
+
+Five things the server does that a client has to know:
+
+- **Failures arrive as HTTP 200.** A resolver error comes back as `{ data, errors }`. Every graph call
+  rejects whenever `errors` is non-empty, with `error.graphqlErrors` and `error.graphqlCode` (e.g.
+  `NODE_NOT_FOUND` for a `nodePathParts` that names no node). A server without the graph answers 404,
+  and the error says so.
+- **Reads never answer 401.** The graph filters what a caller may see rather than refusing. With an
+  access policy configured, an unauthenticated read comes back as empty lists; on a server with
+  **no** access policy (single-user `--api-key` mode, for one) it returns everything — even though
+  the same anonymous caller gets a 401 from REST `search`. So an empty graph usually means "check the
+  key", and a non-empty one proves nothing about authentication. Writes need `write:metadata`.
+- **Updates are three-state.** In `updateGraphEntity` / `updateGraphLink`, an omitted field is
+  untouched and `null` clears it — `{ nodePathParts: null }` detaches an entity from its node. The
+  client sends exactly what you pass. `properties` cannot be updated at all.
+- **Lists are pages without a count.** Every list defaults to `limit: 100`; a page shorter than
+  `limit` is the only end-of-list signal. Page with `offset`.
+- **Nothing is unique yet.** On `main`, two entities can share a type and name, and a failing field in
+  an aliased multi-mutation nulls the whole `data` after earlier fields have committed. Upstream #1499
+  adds a uniqueness constraint.
+
+**Keys and invalidation.** Every graph read — typed or raw — keys under one `graph` root, and every
+graph write refreshes all of it, because writes ripple: deleting an entity deletes its links, and a
+namespace change re-renders every predicate. Deleting a catalog node refreshes it too (the
+`structure` bundle includes `graph`), because bound entities are deleted with their node.
+
+**Coverage** is checked against [`graph/schema.graphql`](./graph/schema.graphql), not `openapi.json`:
+`TiledGraph.test.tsx` validates every document in [`graph/operations.ts`](./graph/operations.ts)
+against the snapshot and fails when the schema has a root field the client does not. Upstream is still
+renaming things (#1499: `entityType` → `kind`); `operations.ts` is the only file that spells a field
+name, so such a rename is a small edit the test points at. The operations are described in
+`TILED_GRAPH_ENDPOINTS`, separate from the spec-checked `TILED_ENDPOINTS`.
+
+Deliberately not here yet: traversal helpers, auto-pagination and batch writes. Each mostly works
+around something upstream is likely to change (no counts, no bulk mutation, no uniqueness), so they
+wait for the API to settle and for a Finch screen that needs them.
+
 ## Streaming (websockets)
 
 Tiled pushes live updates over `ws(s)://…/api/v1/stream/single/{path}`. The route is not in
@@ -543,8 +664,6 @@ subscription. Those belong above this layer.
 ```sh
 TILED_LIVE_URL=http://localhost:8000/api/v1 TILED_LIVE_API_KEY=… npx vitest run TiledWebSocket.live
 ```
-
-GraphQL is still not here.
 
 ## Known duplication
 

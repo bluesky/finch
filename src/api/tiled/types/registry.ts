@@ -31,7 +31,8 @@ export type TiledEndpointGroup =
     | 'asset'
     | 'webhooks'
     | 'auth'
-    | 'zarr';
+    | 'zarr'
+    | 'graph';
 
 export interface TiledEndpointParam {
     name: string;
@@ -122,4 +123,30 @@ export interface TiledEndpointDescriptor {
     sampleBody?: Record<string, unknown> | unknown[];
     /** Invoke this endpoint on a client. */
     call: (client: TiledApiClient, input: TiledEndpointInvocation) => Promise<unknown>;
+}
+
+/**
+ * Machine-readable description of one graph-of-links operation.
+ *
+ * A separate shape from {@link TiledEndpointDescriptor}, which is tied to `openapi.json` through its
+ * spec `path` and `operationId`: every graph operation is the same `POST /api/graphql`, and is
+ * identified by the root GraphQL field it selects instead. `TiledGraph.test.tsx` diffs these against
+ * `../graph/schema.graphql` the way `TiledRegistry.test.ts` diffs the REST registry against the spec.
+ */
+export interface TiledGraphOperationDescriptor {
+    /** Stable id, `graph.<field>`, e.g. `'graph.createLink'`. */
+    id: string;
+    group: 'graph';
+    kind: 'query' | 'mutation';
+    /** The root `Query` / `Mutation` field, as `schema.graphql` names it. */
+    field: string;
+    /** Name of the corresponding `TiledApiClient` method. */
+    fn: keyof TiledApiClient;
+    summary: string;
+    /** Changes or removes something that already exists — the harness should confirm first. */
+    destructive?: boolean;
+    /** Prefilled variables for a manual harness. */
+    sampleVariables?: Record<string, unknown>;
+    /** Invoke this operation on a client, with the operation's own variables. */
+    call: (client: TiledApiClient, variables: Record<string, unknown>) => Promise<unknown>;
 }

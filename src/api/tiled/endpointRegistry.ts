@@ -24,7 +24,12 @@ import {
     webhookWriteEndpointDescriptors,
     zarrEndpointDescriptors,
 } from './endpoints/writeEndpoints';
-import type { TiledEndpointDescriptor, TiledEndpointGroup } from './types/registry';
+import { graphEndpointDescriptors } from './endpoints/graphEndpoints';
+import type {
+    TiledEndpointDescriptor,
+    TiledEndpointGroup,
+    TiledGraphOperationDescriptor,
+} from './types/registry';
 
 /**
  * Every operation the client implements, described as data.
@@ -75,6 +80,7 @@ export const TILED_ENDPOINT_GROUPS: readonly TiledEndpointGroup[] = [
     'webhooks',
     'auth',
     'zarr',
+    'graph',
 ];
 
 /** Human-readable group labels. */
@@ -93,7 +99,23 @@ export const TILED_GROUP_LABELS: Record<TiledEndpointGroup, string> = {
     webhooks: 'Webhooks',
     auth: 'Authentication',
     zarr: 'Zarr',
+    graph: 'Graph of links',
 };
+
+/**
+ * Every graph-of-links operation, described as data.
+ *
+ * Kept apart from {@link TILED_ENDPOINTS}, which is diffed against `openapi.json`: the graph is a
+ * GraphQL endpoint that spec does not contain. `TiledGraph.test.tsx` diffs this against
+ * `graph/schema.graphql` instead. Its group, `'graph'`, is listed in {@link TILED_ENDPOINT_GROUPS}
+ * so harnesses that group by it show the graph hooks too.
+ */
+export const TILED_GRAPH_ENDPOINTS: readonly TiledGraphOperationDescriptor[] =
+    graphEndpointDescriptors;
+
+export function getGraphEndpointById(id: string): TiledGraphOperationDescriptor | undefined {
+    return TILED_GRAPH_ENDPOINTS.find((endpoint) => endpoint.id === id);
+}
 
 export function getEndpointById(id: string): TiledEndpointDescriptor | undefined {
     return TILED_ENDPOINTS.find((endpoint) => endpoint.id === id);
