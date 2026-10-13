@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     strategy:
       matrix:
@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -28,22 +28,26 @@ jobs:
         run: npm ci
 
       - name: Run linting
+        id: lint
         run: |
           npm run lint 2>&1 | tee lint-output.txt
           exit ${PIPESTATUS[0]}
         continue-on-error: true
 
       - name: Run formatting check
+        id: format
         run: |
           npm run format 2>&1 | tee format-output.txt
           exit ${PIPESTATUS[0]}
         continue-on-error: true
 
       - name: Run type checking and build
+        id: build
         run: npm run build
         continue-on-error: false
 
       - name: Run specific test suites
+        id: tests
         run: |
           echo "Running individual test suites for better visibility..."
           npm run test:run -- src/testing/tests/BeamEnergy.test.tsx
@@ -127,8 +131,21 @@ jobs:
         env:
           CI: true
 
+      # Record step outcomes ourselves; the jobs API sometimes returns no step data.
+      - name: Record step outcomes
+        if: always()
+        run: |
+          cat > step-outcomes.json <<EOF
+          [
+            { "name": "Run linting", "conclusion": "${{ steps.lint.outcome }}" },
+            { "name": "Run formatting check", "conclusion": "${{ steps.format.outcome }}" },
+            { "name": "Run type checking and build", "conclusion": "${{ steps.build.outcome }}" },
+            { "name": "Run specific test suites", "conclusion": "${{ steps.tests.outcome }}" }
+          ]
+          EOF
+
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results-node-${{ matrix.node-version }}
@@ -137,4 +154,5 @@ jobs:
             test-results/
             lint-output.txt
             format-output.txt
+            step-outcomes.json
           retention-days: 30
