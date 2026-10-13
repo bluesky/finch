@@ -181,7 +181,7 @@ export {
     graphOperationKinds,
     graphOperationName,
 } from './graph/operations';
-export type { TiledGraphOperation } from './graph/operations';
+export type { TiledGraphOperation, TiledGraphOperationKind } from './graph/operations';
 
 /** Structure-family narrowing for a `TiledSearchItem`. */
 export {

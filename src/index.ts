@@ -256,6 +256,9 @@ export {
     // server + auth
     useTiledServerInfoQuery,
     useTiledLoginMutation,
+    // graph
+    useTiledGraphNodeEntitiesQuery,
+    useTiledBindGraphEntityMutation,
     // client resolution, keys and invalidation
     useTiledClient,
     useTiledQueryScope,
@@ -288,6 +291,7 @@ export type {
     TiledInvalidationBundleName,
     FinchQueryOptions,
     FinchMutationOptions,
+    TiledGraphOperationKind,
 } from './api/tiled';
 // The cross-backend transport contract. Exported so that code implementing a Finch-shaped API layer
 // has something to conform to — see `src/api/shared/requestOptions.ts`.
