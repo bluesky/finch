@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { HTTPValidationError, ValidationError } from './generatedAliases';
+import type { TiledGraphQLErrorEntry } from './graph';
 
 /** HTTP verbs this client issues. */
 export type TiledHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -25,6 +26,14 @@ export class TiledApiError extends Error {
     /** True for FastAPI's 422; `validationErrors` is then populated. */
     readonly isValidationError: boolean;
     readonly validationErrors?: ValidationError[];
+    /**
+     * The `errors` array of a GraphQL response, for failures from the graph endpoint.
+     *
+     * Present whether the server answered 200 with errors (the usual case — a resolver failed) or
+     * 400 (the document did not parse or validate). `responseBody` keeps the whole envelope,
+     * including any partial `data`.
+     */
+    readonly graphqlErrors?: TiledGraphQLErrorEntry[];
     /** The original axios error, for callers that need `config`/`request`. */
     readonly cause?: unknown;
 
@@ -44,13 +53,49 @@ export class TiledApiError extends Error {
         this.cause = init.cause;
         this.validationErrors = extractValidationErrors(init.responseBody);
         this.isValidationError = init.status === 422 || this.validationErrors !== undefined;
+        this.graphqlErrors = extractGraphQLErrors(init.responseBody);
         // Restore the prototype chain — required for `instanceof` after TS downlevelling.
         Object.setPrototypeOf(this, TiledApiError.prototype);
+    }
+
+    /** The first machine-readable code in `graphqlErrors`, e.g. `'NODE_NOT_FOUND'`. */
+    get graphqlCode(): string | undefined {
+        return this.graphqlErrors?.find((entry) => typeof entry.extensions?.code === 'string')
+            ?.extensions?.code;
     }
 }
 
 export function isTiledApiError(error: unknown): error is TiledApiError {
     return error instanceof TiledApiError;
+}
+
+/** Whether `error` is a failure reported by the graph endpoint's GraphQL `errors` array. */
+export function isTiledGraphQLError(
+    error: unknown,
+): error is TiledApiError & { graphqlErrors: TiledGraphQLErrorEntry[] } {
+    return error instanceof TiledApiError && error.graphqlErrors !== undefined;
+}
+
+/** The `errors` array of a GraphQL envelope, or `undefined` when `body` is not one. */
+export function extractGraphQLErrors(body: unknown): TiledGraphQLErrorEntry[] | undefined {
+    if (!body || typeof body !== 'object') return undefined;
+    const errors = (body as { errors?: unknown }).errors;
+    if (!Array.isArray(errors) || errors.length === 0) return undefined;
+    return errors.every(
+        (entry) => entry && typeof entry === 'object' && typeof entry.message === 'string',
+    )
+        ? (errors as TiledGraphQLErrorEntry[])
+        : undefined;
+}
+
+/** `message [CODE]; message …` — every GraphQL error, each with its code when it has one. */
+export function formatGraphQLErrors(errors: TiledGraphQLErrorEntry[]): string {
+    return errors
+        .map((entry) => {
+            const code = entry.extensions?.code;
+            return typeof code === 'string' ? `${entry.message} [${code}]` : entry.message;
+        })
+        .join('; ');
 }
 
 function extractValidationErrors(body: unknown): ValidationError[] | undefined {
@@ -71,9 +116,10 @@ export function formatValidationErrors(errors: ValidationError[] | undefined): s
 /**
  * Normalize an unknown rejection into a {@link TiledApiError}.
  *
- * Tiled reports failures in two shapes — FastAPI's `{ detail }` for validation and framework
- * errors, and its own `{ error: { code, message } }` envelope for some application errors — so the
- * message is assembled from whichever is present before falling back to axios's own.
+ * Tiled reports failures in three shapes — FastAPI's `{ detail }` for validation and framework
+ * errors, its own `{ error: { code, message } }` envelope for some application errors, and the
+ * graph endpoint's GraphQL `{ errors: [...] }` — so the message is assembled from whichever is
+ * present before falling back to axios's own.
  *
  * An `AbortError` passes through untouched: a cancelled request is not an API failure, and TanStack
  * relies on being able to recognise it.
@@ -131,6 +177,9 @@ function readServerMessage(body: unknown): string | undefined {
 
     const validation = extractValidationErrors(body);
     if (validation) return formatValidationErrors(validation);
+
+    const graphql = extractGraphQLErrors(body);
+    if (graphql) return formatGraphQLErrors(graphql);
 
     const { detail, error } = body as { detail?: unknown; error?: unknown };
     if (typeof detail === 'string') return detail;

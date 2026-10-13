@@ -5,6 +5,12 @@ import type {
     TiledTableEndpoint,
     TiledTableReturnType,
 } from '../types/dataOptions';
+import type {
+    TiledGraphEntityFilters,
+    TiledGraphLinkFilters,
+    TiledGraphNodeEntityFilters,
+    TiledGraphQLVariables,
+} from '../types/graph';
 import type { TiledArrayKeyParts, TiledTableKeyParts } from './internal/keyParts';
 
 /**
@@ -46,8 +52,8 @@ export interface TiledQueryScope extends FinchQueryScope {
 /**
  * The resource prefix of every query hook.
  *
- * Fourteen now, where there were five: the client covers the whole API rather than the read subset
- * the package exposed. The grouping is by **resource**, not by endpoint — all seven search hooks
+ * Fifteen now, where there were five: the client covers the whole API rather than the read subset
+ * the package exposed, plus the graph-of-links GraphQL endpoint (`graph`). The grouping is by **resource**, not by endpoint — all seven search hooks
  * still share the `search` root, because they call one endpoint and the `TiledSearchConfig` in the
  * args fully determines the response, so two hooks that build the same filters correctly share one
  * entry and `['tiled','search']` invalidates every search however it was expressed.
@@ -70,6 +76,7 @@ export const tiledQueryRoots = {
     webhooks: [TILED_QUERY_ROOT, 'webhooks'],
     serverInfo: [TILED_QUERY_ROOT, 'serverInfo'],
     auth: [TILED_QUERY_ROOT, 'auth'],
+    graph: [TILED_QUERY_ROOT, 'graph'],
 } as const satisfies Record<string, readonly [typeof TILED_QUERY_ROOT, string]>;
 
 export type TiledQueryRootName = keyof typeof tiledQueryRoots;
@@ -148,6 +155,35 @@ export type TiledWebhookKeyArgs =
     | { readonly kind: 'history'; readonly webhookId: number; readonly limit: number | null };
 
 /**
+ * What identifies one graph read.
+ *
+ * Every graph read shares the one `graph` root, distinguished by `op`, because graph writes ripple
+ * across all of them: deleting an entity deletes its links, and registering a namespace changes how
+ * every predicate and property is rendered. One root means every graph mutation can refresh
+ * everything graph-shaped, including raw documents whose contents the client cannot inspect.
+ *
+ * Filters are the caller's plain object — no signal or client rides along — and keys hash through
+ * JSON, so `{}` and `{ entityType: undefined }` are one entry.
+ */
+export type TiledGraphKeyArgs =
+    | { readonly op: 'entity'; readonly id: string }
+    | { readonly op: 'entities'; readonly filters: TiledGraphEntityFilters }
+    | {
+          readonly op: 'nodeEntities';
+          /** As the caller wrote it; the scope's `initialPath` completes it. */
+          readonly path: string;
+          readonly filters: TiledGraphNodeEntityFilters;
+      }
+    | { readonly op: 'link'; readonly id: string }
+    | { readonly op: 'links'; readonly filters: TiledGraphLinkFilters }
+    | { readonly op: 'namespaces' }
+    | {
+          readonly op: 'raw';
+          readonly document: string;
+          readonly variables: TiledGraphQLVariables;
+      };
+
+/**
  * Key builders, one per resource.
  *
  * Each takes the scope first and the request's identity second. Build keys with these rather than by
@@ -197,6 +233,8 @@ export const tiledQueryKeys = {
      * inspector. That is exactly why a credential change invalidates rather than re-keys.
      */
     auth: (scope: TiledQueryScope) => [...tiledQueryRoots.auth, null, scope] as const,
+    graph: (scope: TiledQueryScope, args: TiledGraphKeyArgs) =>
+        [...tiledQueryRoots.graph, args, scope] as const,
 } as const;
 
 /** The key type a given resource produces, for parameterizing `FinchQueryOptions`. */
