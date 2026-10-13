@@ -150,11 +150,38 @@ export {
 } from './client/urlUtils';
 
 /** Spec paths, for the registry and for callers building a URL themselves. */
-export { TILED_PATHS, TILED_API_PREFIX, buildPath, toClientPath, isApiPath } from './types/paths';
+export {
+    TILED_PATHS,
+    TILED_API_PREFIX,
+    TILED_GRAPHQL_PATH,
+    buildPath,
+    toClientPath,
+    isApiPath,
+} from './types/paths';
 export type { TiledPathAlias, TiledRegisteredPath, TiledPathScope } from './types/paths';
 
 /** Errors. Every client rejection is one of these, or an `AbortError`. */
-export { TiledApiError, isTiledApiError, formatValidationErrors } from './types/errors';
+export {
+    TiledApiError,
+    isTiledApiError,
+    isTiledGraphQLError,
+    formatValidationErrors,
+    formatGraphQLErrors,
+} from './types/errors';
+
+/**
+ * The graph of links — Tiled's entity/link store, over GraphQL at
+ * `{origin}/api/graphql`. The client methods, free functions and hooks are exported with the rest;
+ * these are the types and the operation documents, for callers writing their own selections.
+ */
+export type * from './types/graph';
+export {
+    TILED_GRAPH_OPERATIONS,
+    TILED_GRAPH_MIN_VERSION,
+    graphOperationKinds,
+    graphOperationName,
+} from './graph/operations';
+export type { TiledGraphOperation, TiledGraphOperationKind } from './graph/operations';
 
 /** Structure-family narrowing for a `TiledSearchItem`. */
 export {
@@ -193,9 +220,12 @@ export {
     getEndpointsByGroup,
     getReadOnlyEndpoints,
     getWriteEndpoints,
+    TILED_GRAPH_ENDPOINTS,
+    getGraphEndpointById,
 } from './endpointRegistry';
 export type {
     TiledEndpointDescriptor,
+    TiledGraphOperationDescriptor,
     TiledEndpointGroup,
     TiledEndpointInvocation,
     TiledEndpointParam,

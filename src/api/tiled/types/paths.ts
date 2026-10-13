@@ -95,6 +95,15 @@ export const TILED_PATHS = {
     // #endregion
 } as const satisfies Record<string, TiledSpecPath>;
 
+/**
+ * The graph-of-links GraphQL endpoint. Origin-scoped, like `/healthz`.
+ *
+ * Not in {@link TILED_PATHS}, because that table is the spec's path list and is checked against it:
+ * the graph router is not in `openapi.json` at all. Its coverage is checked against
+ * `../graph/schema.graphql` instead — see `TiledGraph.test.tsx`.
+ */
+export const TILED_GRAPHQL_PATH = '/api/graphql';
+
 /** Alias keys of {@link TILED_PATHS}, e.g. `'arrayFull'`. */
 export type TiledPathAlias = keyof typeof TILED_PATHS;
 

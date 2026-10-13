@@ -70,6 +70,16 @@ function Control({ field, value, onChange }: QueryFieldEditorProps) {
                     className={inputClass}
                 />
             );
+        case 'multilineText':
+            return (
+                <textarea
+                    value={String(value ?? '')}
+                    onChange={(event) => onChange(event.target.value || undefined)}
+                    rows={8}
+                    spellCheck={false}
+                    className={`${inputClass} font-mono`}
+                />
+            );
         case 'enum':
             return (
                 <select

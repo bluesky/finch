@@ -99,6 +99,26 @@ export type TiledClientLike = Pick<
     | 'refreshSession'
     | 'revokeSession'
     | 'logout'
+    // graph of links
+    | 'graphql'
+    | 'getGraphEntity'
+    | 'getGraphEntities'
+    | 'getGraphLink'
+    | 'getGraphLinks'
+    | 'getGraphNamespaces'
+    | 'createGraphEntity'
+    | 'updateGraphEntity'
+    | 'deleteGraphEntity'
+    | 'createGraphLink'
+    | 'updateGraphLink'
+    | 'deleteGraphLink'
+    | 'upsertGraphNamespace'
+    | 'deleteGraphNamespace'
+    | 'bindGraphEntity'
+    | 'getGraphNodeEntities'
+    | 'getGraphNodePathParts'
+    | 'getGraphNodeUri'
+    | 'graphEntityNodePath'
     // zarr
     | 'getZarrV2Url'
     | 'getZarrV3Url'
@@ -180,6 +200,25 @@ export const TILED_CLIENT_LIKE_METHODS = [
     'refreshSession',
     'revokeSession',
     'logout',
+    'graphql',
+    'getGraphEntity',
+    'getGraphEntities',
+    'getGraphLink',
+    'getGraphLinks',
+    'getGraphNamespaces',
+    'createGraphEntity',
+    'updateGraphEntity',
+    'deleteGraphEntity',
+    'createGraphLink',
+    'updateGraphLink',
+    'deleteGraphLink',
+    'upsertGraphNamespace',
+    'deleteGraphNamespace',
+    'bindGraphEntity',
+    'getGraphNodeEntities',
+    'getGraphNodePathParts',
+    'getGraphNodeUri',
+    'graphEntityNodePath',
     'getZarrV2Url',
     'getZarrV3Url',
     'getBaseUrl',
