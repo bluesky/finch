@@ -24,7 +24,9 @@ import { getTiledSearch, setDefaultTiledUrl, setGlobalTiledApiKey } from '@/api/
 setDefaultTiledUrl('http://localhost:8000/api/v1'); // include the version segment
 setGlobalTiledApiKey('…');
 
-const runs = await getTiledSearch('', { searchFilters: { specs: { include: ['BlueskyRun'], exclude: [] } } });
+const runs = await getTiledSearch('', {
+    searchFilters: { specs: { include: ['BlueskyRun'], exclude: [] } },
+});
 console.log(runs.meta.count);
 ```
 
@@ -38,7 +40,13 @@ function RunBrowser() {
 
     if (runs.isPending) return <p>loading…</p>;
     if (runs.isError) return <p>{runs.error.message}</p>;
-    return <ul>{runs.data.data.map((run) => <li key={run.id}>{run.id}</li>)}</ul>;
+    return (
+        <ul>
+            {runs.data.data.map((run) => (
+                <li key={run.id}>{run.id}</li>
+            ))}
+        </ul>
+    );
 }
 ```
 
@@ -83,14 +91,14 @@ call it in `beforeEach` so tests do not leak configuration into one another.
 
 ### Authentication
 
-| What | How |
-| --- | --- |
-| API key in a header | default; `Authorization: ApiKey <key>` (the casing the package sends) |
-| Spec casing | `setGlobalTiledApiKeyScheme('Apikey')` |
-| API key in the query | `setGlobalTiledApiKeyLocation('query')` → `?api_key=<key>` |
-| Bearer token | `setDefaultBearerToken(jwt)`; takes precedence over the API key |
-| No credentials, one call | `options.apiKey: null` — distinct from omitting it, which inherits |
-| Refresh on 401 | automatic, single-flight, then one retry — but only when the call did not choose its own credentials and went to the configured server (see below). `/auth/session/refresh`, falling back to `/auth/refresh` on a 404 |
+| What                     | How                                                                                                                                                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API key in a header      | default; `Authorization: ApiKey <key>` (the casing the package sends)                                                                                                                                                 |
+| Spec casing              | `setGlobalTiledApiKeyScheme('Apikey')`                                                                                                                                                                                |
+| API key in the query     | `setGlobalTiledApiKeyLocation('query')` → `?api_key=<key>`                                                                                                                                                            |
+| Bearer token             | `setDefaultBearerToken(jwt)`; takes precedence over the API key                                                                                                                                                       |
+| No credentials, one call | `options.apiKey: null` — distinct from omitting it, which inherits                                                                                                                                                    |
+| Refresh on 401           | automatic, single-flight, then one retry — but only when the call did not choose its own credentials and went to the configured server (see below). `/auth/session/refresh`, falling back to `/auth/refresh` on a 404 |
 
 The key is read **at request time** by a built-in interceptor, which is why `setApiKey` takes effect
 immediately.
@@ -152,33 +160,33 @@ clearInterceptors(); // removes only YOUR interceptors
 
 The built-in auth and refresh handlers are tracked separately and survive `clearInterceptors()`.
 `setAxiosClient(next)` re-installs everything — built-ins first, then yours in registration order.
-Axios runs request interceptors last-registered-first, so yours sees the config *before*
+Axios runs request interceptors last-registered-first, so yours sees the config _before_
 `Authorization` is attached.
 
 ## Four wire-format corrections
 
 These were found by probing a live Tiled 0.2.15b1, not by reading the spec — the spec says a
-parameter's *type*, not how a list is serialised, and Tiled uses two different conventions. Each one
+parameter's _type_, not how a list is serialised, and Tiled uses two different conventions. Each one
 failed quietly under `@blueskyproject/tiled`.
 
 **1. Three filter names were wrong.** FastAPI drops an unknown query parameter rather than rejecting
 it, so these filters simply never applied and the search came back unfiltered — which reads as "the
 filter matched everything", not as a bug.
 
-| Filter | Package sent | Server expects |
-| --- | --- | --- |
-| `keysFilter` | `filter[keys][condition][keys][]` | `filter[keys_filter][condition][keys]` |
-| `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]` |
+| Filter       | Package sent                        | Server expects                             |
+| ------------ | ----------------------------------- | ------------------------------------------ |
+| `keysFilter` | `filter[keys][condition][keys][]`   | `filter[keys_filter][condition][keys]`     |
+| `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]`         |
 | `accessBlob` | `filter[access_blob][condition][…]` | `filter[access_blob_filter][condition][…]` |
 
 **2. Axios brackets array parameters by default.** `column[]=a&column[]=b` where FastAPI reads
-`column=a&column=b`. So `column` and `field` selections silently returned *everything*, and `fields`
+`column=a&column=b`. So `column` and `field` selections silently returned _everything_, and `fields`
 never narrowed a response. Fixed with `paramsSerializer: { indexes: null }` on every request.
 
 **3. Four filters want one JSON array, not repeated keys.** `keys_filter.keys`, `in.value`,
 `notin.value` and `specs.include`/`exclude` travel as
 `filter[in][condition][value]=["count"]`. Sent as repeated keys, `in` matches nothing and
-`keys_filter` answers **500**. `specs` additionally needs *both* `include` and `exclude` present —
+`keys_filter` answers **500**. `specs` additionally needs _both_ `include` and `exclude` present —
 sending one alone is a 500, which is why `TiledSpecsFilter` requires both.
 
 **4. Filter values are JSON-encoded for you.** Six filters — `eq`, `noteq`, `comparison`,
@@ -186,7 +194,9 @@ sending one alone is a 500, which is why `TiledSpecsFilter` requires both.
 `xas_scan` requires sending `"xas_scan"`, quotes included. Pass the value itself:
 
 ```ts
-useTiledSearchQuery('', { searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } } });
+useTiledSearchQuery('', {
+    searchFilters: { contains: { key: 'start.plan_name', value: 'xas_scan' } },
+});
 // on the wire: filter[contains][condition][value]="xas_scan"
 ```
 
@@ -203,11 +213,11 @@ useTiledSomethingQuery(...endpointArgs, queryOptions?, requestOptions?);
 useTiledSomethingMutation(mutationOptions?, requestOptions?);
 ```
 
-| position | what it is |
-| --- | --- |
-| the endpoint's own arguments | a path, a filter, a format — named and typed, so hover tells you what is required |
-| TanStack options | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations |
-| `requestOptions` | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`, `headers`, `query`, `axiosConfig` |
+| position                     | what it is                                                                                            |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| the endpoint's own arguments | a path, a filter, a format — named and typed, so hover tells you what is required                     |
+| TanStack options             | `FinchQueryOptions` for queries, `FinchMutationOptions` for mutations                                 |
+| `requestOptions`             | `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`, `client`, `headers`, `query`, `axiosConfig` |
 
 **`requestOptions` is always last**, and means exactly the same thing on every Finch backend — where
 this one call goes and who it is. The queue-server hooks use the identical order; the convention is
@@ -231,19 +241,19 @@ endpoint types.
 
 ### What is covered
 
-| Group | Queries | Mutations |
-| --- | --- | --- |
-| Search | `useTiledSearchQuery` + 6 filter conveniences, `useTiledDistinctQuery` | — |
-| Metadata | `useTiledMetadataQuery` | create, update, patch, delete |
-| Arrays | 4 formats, `useTiledArrayBlockQuery`, `useTiledArrayImagePath` | put full, put block, patch full |
-| Ragged | `useTiledRaggedFullQuery` | put full, put block, patch full |
-| Tables | 5 JSON reads, `useTiledTableFullAsQuery` (CSV/parquet/arrow/…), 2 POST reads | put partition, patch partition, put full |
-| Containers / nodes | full reads + POST variants | put node full |
-| Awkward | full, buffers, POST buffers | put full |
-| Management | revisions, assets | register, put data source, delete revision, close stream |
-| Webhooks | list, history | register, delete |
-| Server info | about, health, UI settings, metrics | — |
-| Auth | whoami | login, logout, API key create/revoke, session refresh/revoke |
+| Group              | Queries                                                                      | Mutations                                                    |
+| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| Search             | `useTiledSearchQuery` + 6 filter conveniences, `useTiledDistinctQuery`       | —                                                            |
+| Metadata           | `useTiledMetadataQuery`                                                      | create, update, patch, delete                                |
+| Arrays             | 4 formats, `useTiledArrayBlockQuery`, `useTiledArrayImagePath`               | put full, put block, patch full                              |
+| Ragged             | `useTiledRaggedFullQuery`                                                    | put full, put block, patch full                              |
+| Tables             | 5 JSON reads, `useTiledTableFullAsQuery` (CSV/parquet/arrow/…), 2 POST reads | put partition, patch partition, put full                     |
+| Containers / nodes | full reads + POST variants                                                   | put node full                                                |
+| Awkward            | full, buffers, POST buffers                                                  | put full                                                     |
+| Management         | revisions, assets                                                            | register, put data source, delete revision, close stream     |
+| Webhooks           | list, history                                                                | register, delete                                             |
+| Server info        | about, health, UI settings, metrics                                          | —                                                            |
+| Auth               | whoami                                                                       | login, logout, API key create/revoke, session refresh/revoke |
 
 ### `useTiledDistinctQuery` is the one to know about
 
@@ -286,14 +296,18 @@ const create = useTiledCreateNodeMutation();
 const write = useTiledPutArrayFullMutation();
 
 await create.mutateAsync({
-    parentPath: '',            // the CONTAINER to create in, not the new node's path
+    parentPath: '', // the CONTAINER to create in, not the new node's path
     body: {
-        id: 'processed',       // the new node's key; omit for a server-assigned uuid
+        id: 'processed', // the new node's key; omit for a server-assigned uuid
         structure_family: 'array',
         metadata: {},
         specs: [],
         access_blob: {},
-        data_sources: [{ /* … structure describing what you are about to write … */ }],
+        data_sources: [
+            {
+                /* … structure describing what you are about to write … */
+            },
+        ],
     },
 });
 
@@ -345,7 +359,7 @@ Mutations invalidate named bundles automatically, awaited before `mutateAsync` r
 decide the map:
 
 - a **metadata write** refreshes that node and the searches that could have matched on what changed;
-- a **data write** refreshes the data *and* the metadata, because a write can change a structure —
+- a **data write** refreshes the data _and_ the metadata, because a write can change a structure —
   `patchArrayFull` with `extend: true` grows the shape, and a cached structure saying otherwise is
   what the downsampling maths reads;
 - a **create, delete or register** uses the `structure` bundle, which also covers the parent
@@ -357,8 +371,8 @@ auth mutation invalidates `all`.
 
 ```ts
 const invalidate = useTiledInvalidate();
-await invalidate.roots('search');   // one resource
-await invalidate.bundles('data');   // every structure family's payloads
+await invalidate.roots('search'); // one resource
+await invalidate.bundles('data'); // every structure family's payloads
 await invalidate.all();
 ```
 
@@ -390,7 +404,7 @@ injected through `TiledApiProvider`.
 2. otherwise the module-level default client.
 
 Setting `tiledApiUrl` / `tiledApiKey` on `FinchConfigProvider` is enough: those values are applied to
-the default client *and* carried on every request, so even the first fetch of the first render uses
+the default client _and_ carried on every request, so even the first fetch of the first render uses
 the configured server. Absent Finch config the client's own configuration stands. An **injected
 client is never redirected** — it is the caller's explicit choice, so Finch config is ignored for
 that subtree.
@@ -429,7 +443,7 @@ For the `<Tiled>` **viewer component** and its CSS only — `src/components/Tile
 
 That component keeps its own internal client and its own singleton, so `setGlobalTiledApiKey` here
 does **not** configure it. `Tiled.tsx` passes the URL and key as props from Finch config, which is the
-arrangement to keep. Login tokens *are* shared, through the `localStorage` keys above.
+arrangement to keep. Login tokens _are_ shared, through the `localStorage` keys above.
 
 ## Completeness is checked, not claimed
 
@@ -444,18 +458,93 @@ serve the server's own web UI, and the eight per-file zarr routes (`.zattrs`, `.
 `getZarrV3Url` return. Shipping typed fetchers for those would invite a consumer that should have
 used a zarr library.
 
-## Not here yet
+## Streaming (websockets)
 
-**Websockets and GraphQL.** Three seams are reserved so they land additively:
+Tiled pushes live updates over `ws(s)://…/api/v1/stream/single/{path}`. The route is not in
+`openapi.json`, so this layer is hand-written and lives in `client/websocket/`, with React hooks on
+top. It is a **stream, not a query**: nothing here goes into the TanStack cache. The intended
+pattern is that HTTP stays the source of truth, and a socket event tells you a cached query is stale:
 
-- `apiKeyLocation: 'query'` is implemented already, because a browser websocket handshake cannot set
-  headers and query-string auth is the only mode that will work. The queue server learned this the
-  hard way; [its README](../qServer/README.md) documents the whole matrix.
-- `closeStream` and the spec's `EventType` enum (`container-child-created`,
-  `container-child-metadata-updated`, `stream-closed`) are the streaming vocabulary. Webhooks already
-  model delivery; a socket transport will reuse those types rather than inventing parallel ones.
-- Query roots are keyed by resource, not transport, so a socket that pushes an update invalidates
-  through the same `useTiledInvalidate()` surface.
+```tsx
+const invalidate = useTiledInvalidate();
+
+useTiledContainerSubscription('', {
+    onChildCreated: (m) => {
+        if (m.specs.some((s) => s.name === 'BlueskyRun')) invalidate.roots('search');
+    },
+    onChildMetadataUpdated: (m) => m.metadata.stop && invalidate.roots('search', 'metadata'),
+});
+
+useTiledTableSubscription(`${uid}/primary/internal`, {
+    onData: (update) => chart.append(update.payload), // { column: values[] }
+});
+
+useTiledArraySubscription(`${uid}/primary/det_image`, {
+    onData: (update) => draw(update.payload, update.shape, update.offset),
+});
+```
+
+Outside React, `new TiledWebSocketClient({ baseUrl, apiKey }).subscribe(path)` returns a
+`TiledSubscription` with `connect()`, `disconnect()`, `reconnect()` and `onMessage` / `onStatus` /
+`onError` (each returns an unsubscribe function). The hooks use the same URL, `initialPath` and
+credentials as the HTTP hooks, so `FinchConfigProvider` is all the configuration needed.
+
+| hook                            | callbacks                                              | state it keeps (re-renders)                                                        |
+| ------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `useTiledSubscription`          | `onMessage`, `onStatus`, `onError`                     | `lastMessage`/`sequence` per message unless `trackLastMessage: false`              |
+| `useTiledContainerSubscription` | `onSchema`, `onChildCreated`, `onChildMetadataUpdated` | status only                                                                        |
+| `useTiledTableSubscription`     | `onSchema`, `onData`                                   | `schema`; `latest` with `trackLatest`; `rows` only with `accumulate` (+ `maxRows`) |
+| `useTiledArraySubscription`     | `onSchema`, `onData`, `onRef`                          | `schema`; `latest`/`shape` only with `trackLatest`, never history                  |
+
+Callbacks are the preferred path for high-frequency data. Nothing accumulates unless you ask.
+
+What was verified against a live Tiled 0.2.15 server, and why the code looks the way it does:
+
+- **Subscriptions are per node and do not nest.** A container reports only its **direct** children
+  being created or having their metadata changed. Rows appended to `run/primary/internal` reach a
+  subscriber of that table, never a subscriber of `run` or of the root.
+- **Auth is a first frame, not the URL.** Tiled reads a websocket API key only from the
+  `Authorization` header, which a browser cannot set, so `apiKeyLocation: 'query'` does **not** work
+  here, despite what this README used to say. When a key or token is configured the socket sends
+  `{"type": "auth", "api_key": …}` (or `access_token`) on open. A server that requires auth waits for
+  it. A server with anonymous reads never reads it, so it is harmless there. Close 4001/4003 means a
+  bad credential and is not retried.
+- **The root container needs a trailing slash**: `/stream/single/`. The slashless form is a 403.
+- **`start` is inclusive.** Reconnects ask for `lastSequence + 1`, so the gap replays exactly, as far
+  back as the server's streaming cache retains it. Duplicates are dropped by sequence. If the
+  server's counter goes backwards between connections (a restart with an in-memory cache), the
+  subscription starts a new epoch instead of silently swallowing every later event.
+- **Every connection starts with a `*-schema` message** carrying no sequence and no data. In
+  particular, `table-schema` describes the columns, not the rows already there. Load existing data
+  over HTTP, or pass `start: 0` to replay what is retained.
+- **A server close with code 1000 ends the subscription** ("Producer ended stream"); it is not
+  retried.
+- **Tables stream before they persist.** If persisting fails and the writer retries, each retry is a
+  fresh `table-data` message with a new sequence. De-duplication cannot catch that; it shows up as
+  repeated rows.
+- **Array payloads cannot be suppressed.** Every `array-data` message carries the written data in
+  full, so there is deliberately no `includePayload` option. The lightweight alternative,
+  `array-ref` (a shape plus a `uri` to fetch the slice over HTTP), is only emitted for data
+  registered through `put_data_source`, not for ordinary PUT/PATCH writes. For a large detector,
+  that means either registering external files, or accepting the bandwidth.
+- **The server must be configured for it.** Without a `streaming_cache` in Tiled's config, every
+  stream connection is rejected with a 500. `streaming_cache: {uri: memory}` is enough for a single
+  process; use Redis when Tiled is scaled out or replay should survive a restart.
+- **Origin is not checked**, so CORS settings do not affect websockets.
+
+Not implemented yet: MsgPack envelopes (binary frames are dropped and counted, reported as `parse`
+errors), Arrow decoding of `table-schema.arrow_schema`, automatic fetching of `array-ref` data,
+multiplexing several subscriptions over one socket, and Bluesky-specific helpers such as a run
+subscription. Those belong above this layer.
+
+`TiledWebSocket.live.test.ts` exercises all of this against a real server. It is skipped unless
+`TILED_LIVE_URL` is set:
+
+```sh
+TILED_LIVE_URL=http://localhost:8000/api/v1 TILED_LIVE_API_KEY=… npx vitest run TiledWebSocket.live
+```
+
+GraphQL is still not here.
 
 ## Known duplication
 

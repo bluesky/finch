@@ -192,3 +192,31 @@ export {
 export type { TiledLoginVariables, TiledCreateApiKeyVariables } from './authHooks';
 
 // #endregion
+
+// #region Streaming
+// Websocket subscriptions. These are streams, not queries; they invalidate the cache through
+// callbacks rather than living in it.
+
+export { useTiledSubscription } from './useTiledSubscription';
+export type {
+    UseTiledSubscriptionOptions,
+    UseTiledSubscriptionResult,
+} from './useTiledSubscription';
+export { useTiledContainerSubscription } from './useTiledContainerSubscription';
+export type {
+    UseTiledContainerSubscriptionOptions,
+    UseTiledContainerSubscriptionResult,
+} from './useTiledContainerSubscription';
+export { useTiledTableSubscription, appendColumnarRows } from './useTiledTableSubscription';
+export type {
+    TiledColumnarRows,
+    UseTiledTableSubscriptionOptions,
+    UseTiledTableSubscriptionResult,
+} from './useTiledTableSubscription';
+export { useTiledArraySubscription } from './useTiledArraySubscription';
+export type {
+    UseTiledArraySubscriptionOptions,
+    UseTiledArraySubscriptionResult,
+} from './useTiledArraySubscription';
+
+// #endregion

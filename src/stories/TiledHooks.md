@@ -153,6 +153,32 @@ awaited before `mutateAsync` resolves, so the affected queries have already refe
 
 ---
 
+## Streams
+
+Websocket subscriptions to `/stream/single/{path}`. These are **not queries**: they hold a socket open
+while mounted, take no part in the cache, and push messages to callbacks. To keep HTTP data fresh,
+invalidate from a callback (`useTiledInvalidate().roots('search')`). Each one subscribes to **one
+node**: a container reports only its direct children, so subscribe to a table or array directly to see
+its data. Nothing is accumulated unless you opt in.
+
+| hook                            | arguments                                                         | delivers                                          |
+| ------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------- |
+| `useTiledSubscription`          | `path, { onMessage?, trackLastMessage?, start?, enabled?, … }?`   | every message; `status`, `lastMessage`, `sequence` |
+| `useTiledContainerSubscription` | `path, { onChildCreated?, onChildMetadataUpdated?, onSchema? }?`  | direct children created / metadata updated        |
+| `useTiledTableSubscription`     | `path, { onData?, accumulate?, maxRows?, trackLatest? }?`         | appended rows, columnar `{ column: values[] }`    |
+| `useTiledArraySubscription`     | `path, { onData?, onRef?, trackLatest? }?`                        | written array data (full payload) or `array-ref`  |
+
+```tsx
+const invalidate = useTiledInvalidate();
+useTiledContainerSubscription('', { onChildCreated: () => invalidate.roots('search') });
+useTiledTableSubscription(`${uid}/primary/internal`, { onData: (m) => chart.append(m.payload) });
+```
+
+See the Streaming section of `src/api/tiled/README.md` for auth, replay (`start`) and what the server
+can and cannot leave out of a message.
+
+---
+
 ## Minimal examples
 
 ```tsx

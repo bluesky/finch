@@ -24,6 +24,12 @@ client/
   searchParams.ts          filter + option encoding (the four wire-format corrections live here)
   arraySlicing.ts          downsampling maths, ported from upstream TiledArrayApi
   tokenStorage.ts          injectable login-token store; localStorage keys shared with <Tiled>
+  websocket/
+    types.ts               stream message union, connection status/error, WebSocketLike
+    buildWebSocketUrl.ts   http(s) API URL -> ws(s)://…/stream/single/{path}?envelope_format=…
+    parseMessage.ts        JSON envelope -> typed message or null (unknown types dropped)
+    TiledSubscription.ts   one node's socket: first-frame auth, backoff, sequence/replay, listeners
+    TiledWebSocketClient.ts shared credentials -> subscribe(path)
 
 endpoints/
   readEndpoints.ts         registry descriptors: info, search, metadata GET, data reads, assets
@@ -67,6 +73,9 @@ hooks/
   managementHooks.ts       revisions, assets, webhooks, register, data source, stream — 5q + 6m
   infoHooks.ts             5 queries
   authHooks.ts             1 query + 6 mutations
+  useTiledSubscription.ts  generic stream hook (NOT a query; no cache involvement)
+  useTiled{Container,Table,Array}Subscription.ts   typed wrappers over it
+  internal/useTiledSocketConfig.ts   URL / initialPath / credentials, resolved like the HTTP hooks
   typeTests.ts             compile-time assertions (tsconfig excludes src/testing, so they live here)
   index.ts                 barrel
 ```
@@ -90,7 +99,7 @@ The spec is the source of truth and the coverage test enforces it. Five steps, i
 2. **`client/TiledApiClient.ts`** — add the method. Use the `get`/`post`/`put`/`patch`/`del` funnels,
    or `sendBinary` for a binary body. Node paths go through `this.dataPath(...)`, never `buildPath`.
 3. **`client/facade.ts`** — add the free function.
-4. **`runtime/clientLike.ts`** — add the method name to *both* the `Pick` and
+4. **`runtime/clientLike.ts`** — add the method name to _both_ the `Pick` and
    `TILED_CLIENT_LIKE_METHODS` (the `satisfies` makes one without the other a compile error).
 5. **`endpoints/*.ts`** — add the descriptor, with the spec's `operationId`.
 
@@ -147,6 +156,11 @@ without one fails CI. The two zarr URL builders are the only entries mapped to `
 - `getServerInfo` resolving `null` is `data === null`, not `isError`.
 - the three corrected filter parameter names, and the JSON-array encodings.
 
+`TiledWebSocket.test.ts` / `TiledSubscriptionHooks.test.tsx`: URL building, one parser fixture per
+message type (copied from a live server), lifecycle and close codes, backoff, sequence de-duplication
+and epoch reset, hook mount/unmount/path change, and the no-accumulation defaults.
+`TiledWebSocket.live.test.ts` runs end to end when `TILED_LIVE_URL` is set.
+
 `TiledClient.test.ts`: path encoding, origin derivation, downsampling maths (including the
 non-array-structure guard), format resolution, JSON-seq parsing, search option mapping, error
 normalisation.
@@ -158,7 +172,7 @@ normalisation.
   wrong is a silent no-op or a 500. Both forms are in `client/searchParams.ts` with the evidence.
 - **`paramsSerializer: { indexes: null }` is load-bearing.** Axios otherwise writes `column[]=`,
   which FastAPI drops — so a column selection silently returns every column. Set on the instance
-  *and* per request, so an adopted axios client behaves too.
+  _and_ per request, so an adopted axios client behaves too.
 - **Six filter values are JSON, not text.** `eq`, `noteq`, `comparison`, `contains`, `in`, `notin`.
   Callers pass real values; `searchParams.ts` encodes. Do not encode `fulltext`/`regex`/`like`/
   `lookup`/`structureFamily` — those are plain strings.
@@ -206,6 +220,17 @@ normalisation.
 - **`@blueskyproject/tiled` is still installed, for the `<Tiled>` viewer only.** Nothing in this
   folder may import it. The viewer has its own client and singleton; only `localStorage` tokens are
   shared.
+- **Websocket auth is a first frame.** The server reads `api_key` from the `Authorization` header
+  only, so `apiKeyLocation: 'query'` does nothing for sockets. Do not "fix" this by putting the key in
+  the URL.
+- **`/stream/single/` needs its trailing slash for the root**; `buildTiledWebSocketUrl` keeps it.
+- **`start` is inclusive**; reconnect with `lastSequence + 1`. The first sequenced frame of a new
+  connection may legitimately go _backwards_ (server counter reset), which is why it is not dropped.
+- **Stream hooks must not re-render per message by default.** The typed wrappers pass
+  `trackLastMessage: false`; anything that keeps state (`accumulate`, `trackLatest`) is opt-in.
+- **jsdom's `WebSocket` is broken under vitest** (it trips over its own `Event` class). Unit tests use
+  `FakeSocket` from `src/testing/tests/tiledStreamFixtures.ts`; the live test injects the `ws`
+  package through `socketFactory`.
 - **`src/components/Tiled/types/tempTypes.ts` is a stale duplicate** of the node/structure types, kept
   for the viewer's prop types. It still types `data_sources` as `string | null`, which is wrong. Do
   not add call sites; import from `@/api/tiled`.
