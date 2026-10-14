@@ -36,9 +36,9 @@ const STORAGE_PREFIX = 'finch.devtools.tiledConnection.';
  *
  * `playground` is `TiledQueryPlayground`. `endpoint-harness` is reserved for `TestTiled`, which
  * shares the bar but does not persist yet — the name is here so that wiring it up later cannot
- * accidentally land on the playground's entry.
+ * accidentally land on the playground's entry. `websocket` is `TiledWebsocket`.
  */
-export type TiledConnectionStorageKey = 'playground' | 'endpoint-harness';
+export type TiledConnectionStorageKey = 'playground' | 'endpoint-harness' | 'websocket';
 
 function storageKey(harness: TiledConnectionStorageKey): string {
     return `${STORAGE_PREFIX}${harness}`;

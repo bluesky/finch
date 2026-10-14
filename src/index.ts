@@ -259,6 +259,15 @@ export {
     // graph
     useTiledGraphNodeEntitiesQuery,
     useTiledBindGraphEntityMutation,
+    // streaming (websocket)
+    useTiledSubscription,
+    useTiledContainerSubscription,
+    useTiledTableSubscription,
+    useTiledArraySubscription,
+    TiledWebSocketClient,
+    TiledSubscription,
+    buildTiledWebSocketUrl,
+    parseTiledStreamMessage,
     // client resolution, keys and invalidation
     useTiledClient,
     useTiledQueryScope,
@@ -292,6 +301,18 @@ export type {
     FinchQueryOptions,
     FinchMutationOptions,
     TiledGraphOperationKind,
+    TiledStreamMessage,
+    TiledConnectionStatus,
+    TiledSubscriptionError,
+    TiledSubscriptionOptions,
+    TiledWebSocketClientOptions,
+    UseTiledSubscriptionOptions,
+    UseTiledSubscriptionResult,
+    UseTiledContainerSubscriptionOptions,
+    UseTiledTableSubscriptionOptions,
+    UseTiledTableSubscriptionResult,
+    UseTiledArraySubscriptionOptions,
+    UseTiledArraySubscriptionResult,
 } from './api/tiled';
 // The cross-backend transport contract. Exported so that code implementing a Finch-shaped API layer
 // has something to conform to — see `src/api/shared/requestOptions.ts`.
