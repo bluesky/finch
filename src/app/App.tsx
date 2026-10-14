@@ -8,6 +8,7 @@ import Documentation from './pages/Documentation';
 
 import Experiment from '@/components/Experiment/Experiment';
 import TestTiled from '@/components/TiledTest/TestTiled';
+import TiledWebsocket from '@/components/TiledWebsocket/TiledWebsocket';
 import TiledQueryPlayground from '@/components/TiledQueryPlayground/TiledQueryPlayground';
 
 import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
@@ -37,7 +38,7 @@ function App() {
             classNameContainer: 'bg-slate-50',
         },
         {
-            // Three manual testbeds, as real nested routes rather than local state — so each has
+            // Four manual testbeds, as real nested routes rather than local state — so each has
             // its own url, back and forward work, and a reload keeps you where you were.
             path: '/test',
             label: 'Test',
@@ -77,6 +78,16 @@ function App() {
                     // the background stops where the viewport does, and a page this tall then shows
                     // the dark chrome behind its lower half. Harmless while a page is transparent,
                     // very visible once it is not.
+                    isBackgroundTransparent: false,
+                    classNameContainer: 'h-auto min-h-full bg-slate-50 p-4 text-slate-800',
+                },
+                {
+                    // Tiled's streaming websocket: the subscription hooks, the raw
+                    // TiledSubscription, replay and reconnects, with buttons that make the
+                    // server emit events. Same light surface as the other Tiled harnesses.
+                    path: 'tiled-websocket',
+                    label: 'Tiled WebSocket',
+                    element: <TiledWebsocket />,
                     isBackgroundTransparent: false,
                     classNameContainer: 'h-auto min-h-full bg-slate-50 p-4 text-slate-800',
                 },

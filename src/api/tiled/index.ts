@@ -122,6 +122,12 @@ export type { TiledTokenStorage, TiledStoredTokens } from './client/tokenStorage
  */
 export * from './client/facade';
 
+/**
+ * The streaming websocket (`/stream/single/{path}`), without React. The `useTiled*Subscription`
+ * hooks above are built on it.
+ */
+export * from './client/websocket';
+
 /** Content negotiation: format names, their media types, and the JSON-sequence parser. */
 export { TILED_FORMATS, resolveFormat, parseJsonSequence } from './client/formats';
 export type { TiledFormatName, TiledFormatSpec, TiledFormatReturnMap } from './client/formats';
