@@ -1,4 +1,4 @@
-import { TiledArrayAnyEndpointOptions, TiledTableAnyEndpointOptions } from '../../types/packageAliases';
+import { TiledArrayAnyEndpointOptions, TiledTableAnyEndpointOptions } from '../../types/dataOptions';
 /**
  * Projections of the array/table endpoint options for use in a cache key.
  *
@@ -7,11 +7,18 @@ import { TiledArrayAnyEndpointOptions, TiledTableAnyEndpointOptions } from '../.
  * every render, which used to be the hazard this guarded against, is now impossible by construction.
  * What remains is a real distinction: not every *endpoint* option identifies the request.
  *
- * Each hook keys on an explicit allow-list of the fields that change what the server returns. Any new
- * option the package adds is absent from the key until it is added here — deliberately the safe
- * direction: a missing field means an over-shared cache entry a caller can work around with
- * `queryKey`-independent `refetch`, whereas a wrongly-included per-render identity would mean an
- * infinite refetch loop.
+ * Each hook keys on an explicit allow-list of the fields that change what the server returns, so a
+ * newly added option is absent from the key until it is added here.
+ *
+ * **That default is not automatically safe.** It used to be described as the safe direction, on the
+ * grounds that an over-shared entry is recoverable while a per-render identity in a key is an
+ * infinite refetch loop. The second half holds; the first does not. If the omitted option changes
+ * the response — as `column` does — the two requests collide and each can be served the other's
+ * data, which is silent and wrong rather than merely stale.
+ *
+ * So the rule when adding an option is: **include it unless it provably cannot change the bytes the
+ * server sends.** `structure` and `arrayItem` meet that bar (they only skip a metadata round-trip on
+ * the way to identical data); nothing else so far does.
  */
 /** The array options that change the response. */
 export interface TiledArrayKeyParts {
@@ -34,6 +41,7 @@ export declare function arrayKeyParts(options?: TiledArrayAnyEndpointOptions): T
 export interface TiledTableKeyParts {
     readonly partition?: number;
     readonly format?: string;
+    readonly column?: string[];
 }
 /**
  * Project the cache-relevant fields out of a set of table options.
@@ -41,6 +49,18 @@ export interface TiledTableKeyParts {
  * `structure` and `tableItem` are excluded for the same reason as their array counterparts.
  * `partition` is ignored by the `full` endpoint, but including it is harmless — the endpoint itself is
  * part of the key.
+ *
+ * **`column` is included, and must be.** It narrows the response to the named columns, so a read of
+ * `['energy']` and a read of `['intensity']` are different data from the same path — leaving it out
+ * gave them one cache entry and let each display the other's columns. The allow-list in this file is
+ * safe in the *missing a field* direction only when the omitted field does not change the response;
+ * `column` does, which is what made this a bug rather than an over-shared entry.
+ *
+ * It is keyed by value, not identity: TanStack hashes keys with `JSON.stringify`, so a freshly
+ * built array of the same column names each render is still the same key. Order matters, though —
+ * `['a','b']` and `['b','a']` are two entries for one response. Sorting here would be wrong: the
+ * server echoes the order, and a caller who reordered deliberately would get the previous order's
+ * data back.
  */
 export declare function tableKeyParts(options?: TiledTableAnyEndpointOptions): TiledTableKeyParts;
 //# sourceMappingURL=keyParts.d.ts.map

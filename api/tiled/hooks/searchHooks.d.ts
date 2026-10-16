@@ -29,7 +29,7 @@ import { FinchQueryOptions, TiledHookError } from './types';
  * });
  * ```
  *
- * See `internal/encodeSearchConfig.ts` for which filters are encoded and which are left alone.
+ * See `client/searchParams.ts` for which filters are encoded and which are left alone.
  */
 /** Shared shape of every search hook's TanStack options parameter. */
 type SearchQueryOptions<TData> = FinchQueryOptions<TiledSearchResult, TData, TiledQueryKeyFor<'search'>, TiledHookError>;

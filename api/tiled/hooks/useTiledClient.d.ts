@@ -1,5 +1,5 @@
 import { TiledClientLike } from '../runtime/clientLike';
-import { TiledRequestOptions } from '../types/common';
+import { TiledRequestOptions } from '../types/requestOptions';
 import { TiledQueryScope } from './queryKeys';
 export interface TiledClientResolution {
     /**
@@ -28,17 +28,17 @@ export interface TiledClientResolution {
  *
  * 1. a client injected through `TiledApiProvider` — the seam that lets a stub or fake drive
  *    hook-based components in tests and Storybook;
- * 2. otherwise the package's module-level singleton (`getDefaultTiledApiClient()`), configured from
+ * 2. otherwise Finch's own module-level singleton (`getDefaultTiledApiClient()`), configured from
  *    `FinchConfigProvider`.
  *
  * Config correctness does not depend on the singleton's stored state: the configured base URL and key
  * are returned as `requestDefaults` and travel with every request, so the very first fetch of the
  * first render already goes to the right server — there is nothing that can be stale. The singleton is
- * *also* synced in an effect, so the package's own free functions (`getTiledSearch`, …) and anything
- * else reaching for the default client agree with the hooks.
+ * *also* synced in an effect, so the free functions in `client/facade.ts` (`getTiledSearch`, …) and
+ * anything else reaching for the default client agree with the hooks.
  *
  * Note that `tiledApiUrl` must include the API version segment — `http://host:8000/api/v1` — because
- * that is what the package expects. Nothing here appends it: guessing would silently point a
+ * that is what the client expects. Nothing here appends it: guessing would silently point a
  * misconfigured app at a URL it never asked for.
  */
 export declare function useTiledClient(): TiledClientResolution;

@@ -1,0 +1,1 @@
+{"version":3,"file":"modes.d.ts","sourceRoot":"","sources":["../../../src/components/TiledWebsocket/modes.ts"],"names":[],"mappings":"AAAA,MAAM,MAAM,gBAAgB,GAAG,WAAW,GAAG,OAAO,GAAG,OAAO,GAAG,SAAS,GAAG,KAAK,CAAC;AAEnF,eAAO,MAAM,WAAW,EAAE,MAAM,CAAC,gBAAgB,EAAE,MAAM,CAMxD,CAAC;AAEF,iEAAiE;AACjE,wBAAgB,aAAa,CAAC,MAAM,EAAE,MAAM,GAAG,IAAI,GAAG,SAAS,GAAG,gBAAgB,CAKjF"}

@@ -8,6 +8,7 @@ export interface TiledMutationEngineArgs<TResponse, TVariables, TContext> {
     perform: (client: TiledClientLike, variables: TVariables, request: TiledRequestOptions) => Promise<TResponse>;
     /** Caches to refresh on success; see `TILED_MUTATION_INVALIDATIONS`. */
     invalidates: readonly TiledInvalidationBundleName[];
+    invalidateOnError?: boolean;
     /** The hook's request-options parameter, merged under the resolver's defaults. */
     requestOptions?: TiledRequestOptions;
     /** The hook's TanStack options parameter. */
@@ -19,5 +20,5 @@ export interface TiledMutationEngineArgs<TResponse, TVariables, TContext> {
  * Invalidation is awaited before the caller's `onSuccess`, so `mutateAsync` resolves only once the
  * affected queries have refetched — a caller can read fresh data on the next line.
  */
-export declare function useTiledMutation<TResponse, TVariables, TContext = unknown>({ perform, invalidates, requestOptions, mutationOptions, }: TiledMutationEngineArgs<TResponse, TVariables, TContext>): UseMutationResult<TResponse, TiledHookError, TVariables, TContext>;
+export declare function useTiledMutation<TResponse, TVariables, TContext = unknown>({ perform, invalidates, invalidateOnError, requestOptions, mutationOptions, }: TiledMutationEngineArgs<TResponse, TVariables, TContext>): UseMutationResult<TResponse, TiledHookError, TVariables, TContext>;
 //# sourceMappingURL=useTiledMutation.d.ts.map

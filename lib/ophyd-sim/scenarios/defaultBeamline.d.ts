@@ -1,5 +1,5 @@
 /**
- * A default beamline scenario used by Storybook and TestPage when no
+ * A default beamline scenario used by Storybook and the Test route when no
  * specific scenario is provided. Mirrors the PV names finch components
  * already reference (IOC:m1 / IOC:m1.RBV) so existing stories work without
  * code changes.

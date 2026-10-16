@@ -1,14 +1,14 @@
-import { UseQueryResult } from '@tanstack/react-query';
-import { TiledRequestOptions } from '../types/common';
-import { TiledArrayBufferEndpointOptions, TiledArrayEndpointOptionsMap, TiledArrayImagePathEndpointOptions, TiledArrayJSONEndpointOptions, TiledArrayPngEndpointOptions, TiledArrayReturnMap, TiledArrayReturnType } from '../types/packageAliases';
+import { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import { TiledBinaryBody, TiledRequestOptions } from '../types/common';
+import { TiledArrayBufferEndpointOptions, TiledArrayEndpointOptionsMap, TiledArrayImagePathEndpointOptions, TiledArrayJSONEndpointOptions, TiledArrayPngEndpointOptions, TiledArrayReturnMap, TiledArrayReturnType } from '../types/dataOptions';
 import { TiledQueryKeyFor } from './queryKeys';
-import { FinchQueryOptions, TiledHookError } from './types';
+import { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 /**
- * Array-read hooks: `GET /api/v1/array/block/{path}` and friends.
+ * Array hooks — four format reads, a chunk read, a URL builder and three writes.
  *
  * These take an extra slot the search hooks do not — `arrayOptions`, for the parameters that change
- * what the server returns: `stack`, `downSampleRatio`, `maxBytesAllowed`, `format`. The package
- * bundles those into one object with the transport fields (its `TiledArrayRequestOptions` extends
+ * what the server returns: `stack`, `downSampleRatio`, `maxBytesAllowed`, `format`. The client's own
+ * option types bundle those together with the transport fields (`TiledArrayRequestOptions` extends
  * `TiledRequestOptions`); the hooks keep them apart and recombine before calling through, so
  * `requestOptions` means transport here exactly as it does on every other Finch hook.
  *
@@ -22,7 +22,7 @@ import { FinchQueryOptions, TiledHookError } from './types';
  * Read an array in whichever format `type` names.
  *
  * The generic dispatcher — prefer the typed hooks below, which infer `data` without a type argument.
- * `'IMAGE_PATH'` is accepted for completeness but resolves synchronously in the package; prefer
+ * `'IMAGE_PATH'` is accepted for completeness but resolves synchronously; prefer
  * `useTiledArrayImagePath`.
  *
  * @param arrayPath **Required.** Tiled path to the array. Idle while empty.
@@ -92,4 +92,75 @@ export declare function useTiledArrayAsBufferQuery<TData = ArrayBuffer>(arrayPat
  * @returns The image URL, or `''` when `arrayPath` is empty.
  */
 export declare function useTiledArrayImagePath(arrayPath: string, arrayOptions?: TiledArrayImagePathEndpointOptions, requestOptions?: TiledRequestOptions): string;
+/** What `useTiledArrayBlockQuery` reads: one chunk, addressed by its block index. */
+export interface TiledArrayBlockParams {
+    /** The chunk's index along each axis, e.g. `[0, 2]`. */
+    block: number[];
+    slice?: string;
+    expected_shape?: string;
+    format?: string;
+}
+/**
+ * Read one chunk of an array — `GET /api/v1/array/block/{path}`.
+ *
+ * Chunk-addressed rather than slice-addressed: this is the endpoint a chunked reader uses, where
+ * `useTiledArrayAsJSONQuery` is the one a plot uses. Resolves raw bytes; decode them according to
+ * the array's dtype.
+ *
+ * @param arrayPath **Required.** Idle while empty.
+ * @param params **Required.** `block` locates the chunk.
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export declare function useTiledArrayBlockQuery<TData = ArrayBuffer>(arrayPath: string, params: TiledArrayBlockParams | undefined, queryOptions?: FinchQueryOptions<ArrayBuffer, TData, TiledQueryKeyFor<'array'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/**
+ * Array writes.
+ *
+ * All three accept bytes (`ArrayBuffer`, a typed array, a `Blob`) or a nested `number[][]`. Bytes go
+ * as `application/octet-stream` and must already be in the array's own dtype and C order — the
+ * server trusts the declared structure and does not convert. `number[][]` goes as JSON, which is
+ * slower but needs no dtype knowledge. Nothing converts one to the other; see the client's
+ * `putArrayFull` for why.
+ *
+ * Each invalidates `data` **and** `metadata`, because a write can change a structure —
+ * `patchArrayFull` with `extend: true` grows the shape, and a cached structure that still says
+ * otherwise is what the downsampling maths reads.
+ */
+/** What `useTiledPutArrayFullMutation().mutate` takes. */
+export interface TiledPutArrayFullVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    /** Flush to storage rather than leaving the write in the server's cache. */
+    persist?: boolean;
+}
+/** Write a whole array — `PUT /api/v1/array/full/{path}`. */
+export declare function useTiledPutArrayFullMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPutArrayFullVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPutArrayFullVariables, TContext>;
+/** What `useTiledPutArrayBlockMutation().mutate` takes. */
+export interface TiledPutArrayBlockVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    block: number[];
+    persist?: boolean;
+}
+/** Write one chunk — `PUT /api/v1/array/block/{path}`. */
+export declare function useTiledPutArrayBlockMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPutArrayBlockVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPutArrayBlockVariables, TContext>;
+/** What `useTiledPatchArrayFullMutation().mutate` takes. */
+export interface TiledPatchArrayFullVariables {
+    path: string;
+    data: TiledBinaryBody | number[][];
+    /** Where the region starts, per axis. */
+    offset: number[];
+    /** The region's size, per axis. */
+    shape: number[];
+    /** Allow the write to grow a resizable array past its current bounds — how a scan appends. */
+    extend?: boolean;
+    persist?: boolean;
+}
+/**
+ * Write a sub-region of an array — `PATCH /api/v1/array/full/{path}`.
+ *
+ * With `extend: true` this is how an in-progress acquisition appends frames: write at
+ * `offset: [n, 0, 0]` with `shape: [1, h, w]` and the array grows by one frame.
+ */
+export declare function useTiledPatchArrayFullMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPatchArrayFullVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPatchArrayFullVariables, TContext>;
 //# sourceMappingURL=arrayHooks.d.ts.map

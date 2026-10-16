@@ -1,0 +1,1 @@
+{"version":3,"file":"TiledWebsocket.d.ts","sourceRoot":"","sources":["../../../src/components/TiledWebsocket/TiledWebsocket.tsx"],"names":[],"mappings":"AASA,OAAO,KAAK,EAAE,kBAAkB,EAAE,MAAM,aAAa,CAAC;AAmBtD,MAAM,WAAW,mBAAmB;IAChC,0EAA0E;IAC1E,aAAa,CAAC,EAAE,kBAAkB,CAAC;CACtC;AAQD;;;;;;;;GAQG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CAAC,EAAE,aAAa,EAAE,EAAE,mBAAmB,2CA2C5E"}

@@ -1,4 +1,4 @@
-import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
+import { TiledSearchItem, TiledStructures } from '../../api/tiled';
 type ExperimentHistoryProps = {
     /** Filters results to only Bluesky runs whose plan-name metadata matches this value. */
     planName?: string;

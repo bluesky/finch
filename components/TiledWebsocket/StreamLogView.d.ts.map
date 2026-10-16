@@ -1,0 +1,1 @@
+{"version":3,"file":"StreamLogView.d.ts","sourceRoot":"","sources":["../../../src/components/TiledWebsocket/StreamLogView.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,SAAS,EAAkB,MAAM,gBAAgB,CAAC;AAOhE;;;;;GAKG;AACH,MAAM,CAAC,OAAO,UAAU,aAAa,CAAC,EAAE,GAAG,EAAE,EAAE;IAAE,GAAG,EAAE,SAAS,CAAA;CAAE,2CAyFhE"}

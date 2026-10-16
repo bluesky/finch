@@ -1,0 +1,1 @@
+{"version":3,"file":"ResultRenderer.d.ts","sourceRoot":"","sources":["../../../src/components/TiledQueryPlayground/ResultRenderer.tsx"],"names":[],"mappings":"AAEA,OAAO,KAAK,EAAE,eAAe,EAAE,MAAM,SAAS,CAAC;AAE/C,MAAM,WAAW,mBAAmB;IAChC,IAAI,EAAE,eAAe,CAAC;IACtB,KAAK,EAAE,OAAO,CAAC;CAClB;AAED;;;;;;;GAOG;AACH,MAAM,CAAC,OAAO,UAAU,cAAc,CAAC,EAAE,IAAI,EAAE,KAAK,EAAE,EAAE,mBAAmB,kDAe1E"}

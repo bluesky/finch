@@ -1,8 +1,9 @@
-import { UseQueryResult } from '@tanstack/react-query';
-import { TiledRequestOptions } from '../types/common';
-import { TiledTableEndpoint, TiledTableEndpointOptionsMap, TiledTableJSONData, TiledTableJSONEndpointOptions, TiledTableJSONSequenceData, TiledTableJSONSequenceEndpointOptions, TiledTableReturnMap, TiledTableReturnType } from '../types/packageAliases';
+import { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import { TiledBinaryBody, TiledRequestOptions } from '../types/common';
+import { TiledFormatName } from '../client/formats';
+import { TiledTableAnyEndpointOptions, TiledTableEndpoint, TiledTableEndpointOptionsMap, TiledTableJSONData, TiledTableJSONEndpointOptions, TiledTableJSONSequenceData, TiledTableJSONSequenceEndpointOptions, TiledTableReturnMap, TiledTableReturnType } from '../types/dataOptions';
 import { TiledQueryKeyFor } from './queryKeys';
-import { FinchQueryOptions, TiledHookError } from './types';
+import { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
 /**
  * Table-read hooks: `GET /api/v1/table/partition/{path}` and `/table/full/{path}`.
  *
@@ -76,4 +77,73 @@ export declare function useTiledTableFullAsJSONQuery<TData = TiledTableJSONData>
  * `pathMode`, `signal`, `client`.
  */
 export declare function useTiledTableFullAsJSONSequenceQuery<TData = TiledTableJSONSequenceData>(tablePath: string, tableOptions?: TiledTableJSONSequenceEndpointOptions, queryOptions?: FinchQueryOptions<TiledTableJSONSequenceData, TData, TiledQueryKeyFor<'table'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/**
+ * Read a whole table in any representation — CSV, parquet, arrow, Excel, HDF5.
+ *
+ * The format decides the return type: `'CSV'` resolves a string, `'PARQUET'` and `'ARROW'` an
+ * `ArrayBuffer`. See `client/formats.ts` for the table, and the server's own `About.formats.table`
+ * for what a given deployment supports.
+ *
+ * This is what a download button reads. Note it caches the payload like any other query, so a large
+ * export stays in the query cache — pass `gcTime: 0` if that matters.
+ *
+ * @param tablePath **Required.** Idle while empty.
+ * @param format **Required.** A `TiledFormatName` or a raw media type.
+ * @param tableOptions Table parameters: `column`, …
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export declare function useTiledTableFullAsQuery<TData = unknown>(tablePath: string, format: TiledFormatName | string, tableOptions?: TiledTableAnyEndpointOptions, queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/**
+ * Table writes.
+ *
+ * The payload is **encoded table bytes** and `mimetype` says which encoding — `'application/x-parquet'`,
+ * `'text/csv'` or `'application/vnd.apache.arrow.file'`. It is required rather than defaulted: the
+ * server dispatches its reader on exactly this header, so a wrong guess either fails outright or
+ * silently writes nonsense.
+ */
+/** What `useTiledPutTablePartitionMutation().mutate` takes. */
+export interface TiledPutTablePartitionVariables {
+    path: string;
+    data: TiledBinaryBody;
+    partition: number;
+    /** The encoding of `data`, e.g. `'application/x-parquet'`. */
+    mimetype: string;
+}
+/** Write one partition — `PUT /api/v1/table/partition/{path}`. */
+export declare function useTiledPutTablePartitionMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPutTablePartitionVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPutTablePartitionVariables, TContext>;
+/** Append to one partition — `PATCH /api/v1/table/partition/{path}`. */
+export declare function useTiledPatchTablePartitionMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPutTablePartitionVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPutTablePartitionVariables, TContext>;
+/** What `useTiledPutTableFullMutation().mutate` takes. */
+export interface TiledPutTableFullVariables {
+    path: string;
+    data: TiledBinaryBody;
+    mimetype: string;
+}
+/**
+ * Write a whole table — `PUT /api/v1/table/full/{path}`.
+ *
+ * The same server operation as `useTiledPutNodeFullMutation`; the spec simply mounts it at two
+ * paths.
+ */
+export declare function useTiledPutTableFullMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<unknown, TiledPutTableFullVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<unknown, TiledHookError, TiledPutTableFullVariables, TContext>;
+/**
+ * The POST variants of the table reads — `POST /api/v1/table/full/{path}` and
+ * `.../partition/{path}`.
+ *
+ * **Reads, despite the verb.** The body carries a column list rather than changing anything; the
+ * endpoint exists for selections too long for a query string. They are queries for the same reason
+ * `useQueueGetRunsQuery` is.
+ */
+/** Read a whole table with the column list in the request body. */
+export declare function useTiledPostTableFullQuery<TData = unknown>(tablePath: string, columns: string[] | null, params?: {
+    format?: string;
+    filename?: string;
+}, queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/** Read one partition with the column list in the request body. */
+export declare function useTiledPostTablePartitionQuery<TData = unknown>(tablePath: string, columns: string[] | null, params: {
+    partition: number;
+    format?: string;
+    filename?: string;
+} | undefined, queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'table'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
 //# sourceMappingURL=tableHooks.d.ts.map
