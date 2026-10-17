@@ -182,6 +182,48 @@ export { default as HistogramDeviceController } from './components/Histogram/His
 export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
+// HISTOGRAM RANGE
+export { default as HistogramRange } from './components/HistogramRange';
+export type { HistogramRangeProps } from './components/HistogramRange';
+
+// MASK OVERLAY
+export { default as MaskOverlayCanvas } from './components/MaskOverlayCanvas/MaskOverlayCanvas';
+export type {
+    MaskOverlayCanvasProps,
+    MaskOverlayLayer,
+} from './components/MaskOverlayCanvas/MaskOverlayCanvas';
+export { default as MaskOverlayCanvasLegend } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
+export type { MaskOverlayCanvasLegendProps } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
+export type {
+    MaskClass,
+    MaskLayer,
+    MaskPickInfo,
+    ResolvedMaskClass,
+} from './components/MaskOverlayCanvas/types';
+
+// VISUALIZATION UTILITIES
+export {
+    computeHistogram,
+    cumulativeCounts,
+    valueToPercentile,
+    percentileToValue,
+    percentileBelowEdge,
+    edgeAtPercentile,
+    edgesFromCenters,
+} from './utils/histogramUtils';
+export type { HistogramBins, ComputeHistogramOptions } from './utils/histogramUtils';
+export {
+    hexToRgb,
+    withAlpha,
+    colormapLut,
+    sampleColormap,
+    pickNextColor,
+    CLASS_PALETTE,
+    CLASS_PALETTE_COLORBLIND,
+} from './utils/colorUtils';
+export { labelsToRgba, binaryMasksToRgba, arrayToRgba } from './utils/maskRaster';
+export type { RgbaBuffer, ArrayToRgbaOptions } from './utils/maskRaster';
+
 // EXPERIMENT
 export { default as Experiment } from './components/Experiment/Experiment';
 export { default as ExperimentFormGeneric } from './components/Experiment/ExperimentFormGeneric';
