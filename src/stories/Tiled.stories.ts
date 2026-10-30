@@ -1,16 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import TiledWrapper from '../components/Tiled/Tiled';
+import TiledFinder from '../components/Tiled/Tiled';
 import '@blueskyproject/tiled/style.css'; // Import the Tiled styles
 
 const meta = {
-    title: 'Bluesky Components/Tiled',
-    component: TiledWrapper,
+    title: 'Bluesky Components/TiledFinder',
+    component: TiledFinder,
     parameters: {
         layout: 'fullscreen',
     },
     tags: ['autodocs'],
     argTypes: {},
-} satisfies Meta<typeof TiledWrapper>;
+} satisfies Meta<typeof TiledFinder>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
