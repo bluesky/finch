@@ -1,4 +1,4 @@
-import{j as e}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as o}from"./index-DI2gBlDf.js";import"./blocks-COxikvcU.js";import{ap as r,aq as s}from"./index-BMaPURah.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-CYha0cB6.js";import"../sb-preview/runtime.js";import"./index-DHavueZW.js";import"./index-fNjTmf9T.js";import"./index-CXQShRbs.js";import"./index-DrFu-skq.js";const i=`# Hierarchy of Components
+import{j as e}from"./jsx-runtime-Cf8x2fCZ.js";import{useMDXComponents as o}from"./index-DI2gBlDf.js";import"./blocks-eP8-j_48.js";import{ap as r,aq as s}from"./index-p7Oa4q71.js";import"./index-yBjzXJbu.js";import"./index-BlmOqGMO.js";import"./iframe-DOKV_T6f.js";import"../sb-preview/runtime.js";import"./index-DHavueZW.js";import"./index-fNjTmf9T.js";import"./index-CXQShRbs.js";import"./index-DrFu-skq.js";const i=`# Hierarchy of Components
 
 ## Component Structure
 - ReactEDM
