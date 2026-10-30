@@ -1,6 +1,6 @@
 import { TiledProps } from '@blueskyproject/tiled';
 import { default as React } from '../../../node_modules/react';
-declare const TiledWrapper: React.FC<TiledProps>;
+declare const TiledFinder: React.FC<TiledProps>;
 export type { TiledProps } from '@blueskyproject/tiled';
-export default TiledWrapper;
+export default TiledFinder;
 //# sourceMappingURL=Tiled.d.ts.map

@@ -10,8 +10,10 @@ export { default as ColormapPicker } from './components/ColormapPicker/ColormapP
 export type { ColormapPickerProps } from './components/ColormapPicker/ColormapPicker';
 export { COLORMAPS, COLORMAPSPLOTLY } from './components/ColormapPicker/colormaps';
 export type { ColormapDef } from './components/ColormapPicker/colormaps';
-export { default as TiledLookup } from './components/Tiled/Tiled';
-export type { TiledProps } from './components/Tiled/Tiled';
+export { default as TiledFinder } from './components/Tiled/Tiled';
+export type { TiledProps as TiledFinderProps } from './components/Tiled/Tiled';
+export { default as Tiled } from './components/Tiled/Tiled';
+export type { TiledProps as TiledProps } from './components/Tiled/Tiled';
 export { default as TiledHeatmapSelector } from './features/TiledHeatmapSelector';
 export type { TiledHeatmapSelectorProps } from './features/TiledHeatmapSelector';
 export { default as Beamstop } from './features/Beamstop';
@@ -178,7 +180,7 @@ export type { RouteItem, RouteTab } from './types/navigationRouterTypes';
 export type { Device, Devices } from './types/deviceControllerTypes';
 export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigProvider';
 import * as TiledApi from './api/tiled';
-export declare const Tiled: {
+export declare const TiledRequests: {
     setInitialPath: typeof TiledApi.setDefaultInitialPath;
     getInitialPath: typeof TiledApi.getDefaultTiledInitialPath;
     setAuthErrorCallback: typeof TiledApi.setDefaultAuthErrorCallback;
