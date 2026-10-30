@@ -7,7 +7,7 @@ import '@blueskyproject/tiled/style.css'; // Import the Tiled styles
 import React from 'react';
 import { useTiledApiUrls } from '@/utils/apiUtils';
 
-const TiledWrapper: React.FC<TiledProps> = (props) => {
+const TiledFinder: React.FC<TiledProps> = (props) => {
     //allow finch config to be used in args if not provided directly as props
     //finch config url will always be used, but the apiKey will only be sent if provided as a prop, or if assigned in finch config
     const defaultTiledUrl = useTiledApiUrls().httpBaseUrl;
@@ -21,4 +21,6 @@ const TiledWrapper: React.FC<TiledProps> = (props) => {
 
 export type { TiledProps } from '@blueskyproject/tiled';
 
-export default TiledWrapper;
+TiledFinder.displayName = 'TiledFinder';
+
+export default TiledFinder;

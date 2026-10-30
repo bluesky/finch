@@ -19,8 +19,11 @@ export { COLORMAPS, COLORMAPSPLOTLY } from './components/ColormapPicker/colormap
 export type { ColormapDef } from './components/ColormapPicker/colormaps';
 
 // re-export the NPM Tiled component and its props type so its available natively in finch
-export { default as TiledLookup } from './components/Tiled/Tiled';
-export type { TiledProps } from './components/Tiled/Tiled';
+export { default as TiledFinder } from './components/Tiled/Tiled';
+export type { TiledProps as TiledFinderProps } from './components/Tiled/Tiled';
+//legacy export for the old name, to be removed in future version
+export { default as Tiled } from './components/Tiled/Tiled';
+export type { TiledProps as TiledProps } from './components/Tiled/Tiled';
 
 export { default as TiledHeatmapSelector } from './features/TiledHeatmapSelector';
 export type { TiledHeatmapSelectorProps } from './features/TiledHeatmapSelector';
@@ -412,7 +415,7 @@ export { FinchConfigProvider, useOptionalFinchConfig } from './app/FinchConfigPr
 // client and the remaining ~40 operations live.
 import * as TiledApi from './api/tiled';
 
-export const Tiled = {
+export const TiledRequests = {
     // Path management
     setInitialPath: TiledApi.setDefaultInitialPath,
     getInitialPath: TiledApi.getDefaultTiledInitialPath,

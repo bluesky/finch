@@ -82,11 +82,11 @@ Example usage:
 
 ```js
 //App.tsx
-import { Tiled } from '@blueskyproject/finch';
+import { TiledFinder } from '@blueskyproject/finch';
 
 function App() {
   return (
-    <Tiled tiledBaseUrl='http://customUrl:port/api/v1' />
+    <TiledFinder tiledBaseUrl='http://customUrl:port/api/v1' />
   )
 }
 ```
