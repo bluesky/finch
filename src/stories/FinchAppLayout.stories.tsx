@@ -168,7 +168,7 @@ A route declares either \`element\` or \`tabs\`, never both.
 Route paths must be static. The sidebar links to each \`path\` directly, so a dynamic
 segment such as \`/runs/:uid\` would render a link to that literal text.
 
-### Page Tabs
+### Routes Page Tabs
 
 A route can declare \`tabs\` instead of an \`element\`. Finch then draws a tab strip
 above the page and gives each tab its own URL beneath the route path, so tabs are
@@ -199,7 +199,7 @@ const routes: RouteItem[] = [
 ];
 \`\`\`
 
-### Basic Example:
+### Routes Basic Example:
 \`\`\`typescript
 const routes: RouteItem[] = [
   {
@@ -217,56 +217,51 @@ const routes: RouteItem[] = [
 ];
 \`\`\`
 
-### Full App Example (from App.tsx):
+## Full App Example (App.tsx):
 \`\`\`typescript
-import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
-import { RouteItem } from '@/types/navigationRouterTypes';
-import { House, Table, TestTube, Question } from '@phosphor-icons/react';
+//App.tsx
+import { FinchAppLayout } from '@blueskyproject/finch';
+import type { RouteItem } from '@blueskyproject/finch';
+import { HouseIcon, GearIcon, BowlSteamIcon} from '@phosphor-icons/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
 const queryClient = new QueryClient();
 
-function App() {
+function AboutPage() {
+  return (
+    <h2>About page content.</h2>
+  )
+}
+
+function ControlPage() {
+  return (
+    <h2>Control page content.</h2>
+  )
+}
+
+export default function App() {
   const routes: RouteItem[] = [
     {
-      element: <AboutFinchPage />,
+      element: <AboutPage />,
       path: '/',
       label: 'About',
-      icon: <House size={32} />,
-      isBackgroundTransparent: true,   // no background fill — page blends into layout
+      icon: <HouseIcon size={32} />,
+      isBackgroundTransparent: true,   // no background fill — page blends into layout, text colors are white
     },
     {
-      element: <AllComponentsPage />,
-      path: '/components',
-      label: 'Review',
-      icon: <Table size={32} />,
-      classNameContainer: 'bg-slate-50',  // custom background color for this page
-    },
-    {
-      element: <TestPage />,
-      path: '/test',
-      label: 'Test',
-      icon: <TestTube size={32} />,
-      isBackgroundTransparent: true,
-    },
-    {
-      element: <Documentation />,
-      path: '/documentation',
-      label: 'Help',
-      icon: <Question size={32} />,
-    },
+      element: <ControlPage />,
+      path: '/control',
+      label: 'Control',
+      icon: <GearIcon size={32} />,
+      isBackgroundTransparent: false,   // automatic white fill, text colors are black
+    }
   ];
 
   return (
     <QueryClientProvider client={queryClient}>
       <FinchAppLayout
         routes={routes}
-        headerTitle="Finch Dev Mode"
-        headerLogoIcon={
-          <div className="h-12 aspect-square text-sky-950">
-            {finchIcons.finchPortraitFrameless}
-          </div>
-        }
+        headerTitle="Beamline #.#.#"
+        headerLogoIcon={<BowlSteamIcon size={32} />}
       />
     </QueryClientProvider>
   );
