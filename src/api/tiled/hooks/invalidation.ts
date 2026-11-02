@@ -30,6 +30,8 @@ export const TILED_INVALIDATION_BUNDLES = {
      * *search* returns and what a parent *container* read contains, not just that node's own entry.
      */
     structure: ['search', 'distinct', 'metadata', 'revisions', 'container', 'node', 'graph'],
+    /** Raw asset reads — bytes and manifests. */
+    assets: ['asset'],
     webhooks: ['webhooks'],
     info: ['serverInfo'],
     /** Identity changed. */
@@ -105,6 +107,8 @@ export const TILED_MUTATION_INVALIDATIONS = {
     useTiledPutDataSourceMutation: ['structure', 'data'],
     // revisions
     useTiledDeleteRevisionMutation: ['metadata'],
+    // assets — the node's data_sources change, and the data may be gone
+    useTiledDeleteAssetMutation: ['metadata', 'data', 'assets'],
     // streams
     useTiledCloseStreamMutation: ['data', 'metadata'],
     // webhooks

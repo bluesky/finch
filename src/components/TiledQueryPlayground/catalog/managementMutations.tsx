@@ -4,6 +4,7 @@
 import {
     useTiledCloseStreamMutation,
     useTiledCreateApiKeyMutation,
+    useTiledDeleteAssetMutation,
     useTiledDeleteRevisionMutation,
     useTiledDeleteWebhookMutation,
     useTiledLoginMutation,
@@ -21,7 +22,7 @@ import type {
     WebhookRegistrationRequest,
 } from '@/api/tiled';
 import MutationResultPanel from '../MutationResultPanel';
-import { json, num, str, type MutationDescriptor, type MutationRunnerProps } from '../types';
+import { bool, json, num, str, type MutationDescriptor, type MutationRunnerProps } from '../types';
 
 /**
  * Registration, revisions, streams, webhooks and auth.
@@ -129,6 +130,30 @@ function RegisterWebhookRunner({ values, confirm, requestOptions }: MutationRunn
                 body &&
                 confirm(`Register a webhook on "${str(values, 'path')}"`) &&
                 mutation.mutate({ path: str(values, 'path'), body })
+            }
+        />
+    );
+}
+
+function DeleteAssetRunner({ values, confirm, requestOptions }: MutationRunnerProps) {
+    const mutation = useTiledDeleteAssetMutation(undefined, requestOptions);
+    const externalOnly = bool(values, 'external_only');
+    return (
+        <MutationResultPanel
+            result={mutation}
+            resultKind="json"
+            hookName="useTiledDeleteAssetMutation"
+            canRun={hasPath(values) && values.id !== undefined}
+            onRun={() =>
+                confirm(
+                    `Delete asset ${num(values, 'id')} of ${str(values, 'path')}` +
+                        (externalOnly ? '' : ', including internally managed data'),
+                ) &&
+                mutation.mutate({
+                    path: str(values, 'path'),
+                    id: num(values, 'id'),
+                    external_only: externalOnly,
+                })
             }
         />
     );
@@ -329,6 +354,27 @@ export const managementMutationDescriptors: readonly MutationDescriptor[] = [
         fields: [NODE_PATH],
         resultKind: 'json',
         Runner: CloseStreamRunner,
+    },
+    {
+        id: 'asset.delete',
+        kind: 'mutation',
+        group: 'asset',
+        hookName: 'useTiledDeleteAssetMutation',
+        summary: 'Detach an asset, deleting it if unreferenced. Tiled 0.2.19+.',
+        destructive: true,
+        fields: [
+            NODE_PATH,
+            { name: 'id', kind: 'number', label: 'id', required: true },
+            {
+                name: 'external_only',
+                kind: 'boolean',
+                label: 'external_only',
+                description: 'uncheck to delete internally managed data too',
+                defaultValue: true,
+            },
+        ],
+        resultKind: 'json',
+        Runner: DeleteAssetRunner,
     },
     {
         id: 'webhooks.register',

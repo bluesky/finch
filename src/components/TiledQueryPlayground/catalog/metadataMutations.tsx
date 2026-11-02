@@ -155,7 +155,7 @@ export const metadataMutationDescriptors: readonly MutationDescriptor[] = [
                     metadata: { created_by: 'playground' },
                     data_sources: [],
                     specs: [],
-                    access_blob: {},
+                    access_tags: [],
                 },
             },
         ],

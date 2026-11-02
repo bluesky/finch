@@ -418,6 +418,51 @@ describe('graph transport', () => {
         expect(seen).toHaveLength(2);
         expect(seen[1].headers.Authorization).toBe('Bearer refreshed');
     });
+
+    /** Strawberry reads a GET's document and variables from the query string. */
+    it('sends graphqlGet as a GET with the document in the URL and no body', async () => {
+        const { client, seen } = makeClient({ body: { data: { entity: null } } });
+
+        await expect(
+            client.graphqlGet('query ($id: ID!) { entity(id: $id) { id } }', { id: '7' }),
+        ).resolves.toEqual({ entity: null });
+
+        expect(seen[0].method).toBe('get');
+        expect(seen[0].baseURL).toBe('http://tiled.test:8000');
+        expect(seen[0].url).toBe('/api/graphql');
+        expect(seen[0].data).toBeUndefined();
+        expect(seen[0].params).toEqual({
+            query: 'query ($id: ID!) { entity(id: $id) { id } }',
+            variables: '{"id":"7"}',
+        });
+        // Without it, a GET can be answered with the GraphiQL page instead of JSON.
+        expect(String(seen[0].headers.Accept)).toBe('application/json');
+    });
+
+    it('leaves variables off a graphqlGet that has none', async () => {
+        const { client, seen } = makeClient({ body: { data: { namespaces: [] } } });
+
+        await client.graphqlGet('{ namespaces { prefix } }');
+
+        expect(seen[0].params).toEqual({ query: '{ namespaces { prefix } }' });
+    });
+
+    it('rejects a graphqlGet whose response carries errors, naming the GET', async () => {
+        const { client } = makeClient({
+            body: {
+                data: null,
+                errors: [{ message: "Cannot query field 'nope' on type 'Query'." }],
+            },
+        });
+
+        const error = (await client
+            .graphqlGet('{ nope }')
+            .catch((e: unknown) => e)) as TiledApiError;
+
+        expect(error.method).toBe('GET');
+        expect(error.status).toBe(200);
+        expect(error.graphqlErrors?.[0].message).toContain('nope');
+    });
 });
 
 /**

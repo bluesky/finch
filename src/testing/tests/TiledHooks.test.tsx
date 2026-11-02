@@ -165,6 +165,7 @@ describe('hook coverage', () => {
             getMetrics: 'useTiledMetricsQuery',
             // search
             getSearch: 'useTiledSearchQuery',
+            getSearchDeep: 'useTiledSearchDeepQuery',
             getDistinct: 'useTiledDistinctQuery',
             // metadata
             getMetadata: 'useTiledMetadataQuery',
@@ -220,6 +221,7 @@ describe('hook coverage', () => {
             // assets
             getAssetBytes: 'useTiledAssetBytesQuery',
             getAssetManifest: 'useTiledAssetManifestQuery',
+            deleteAsset: 'useTiledDeleteAssetMutation',
             // webhooks
             listWebhooks: 'useTiledWebhooksQuery',
             registerWebhook: 'useTiledRegisterWebhookMutation',
@@ -235,6 +237,7 @@ describe('hook coverage', () => {
             logout: 'useTiledLogoutMutation',
             // graph of links
             graphql: 'useTiledGraphQLQuery',
+            graphqlGet: 'useTiledGraphQLGetQuery',
             getGraphEntity: 'useTiledGraphEntityQuery',
             getGraphEntities: 'useTiledGraphEntitiesQuery',
             getGraphLink: 'useTiledGraphLinkQuery',
@@ -497,10 +500,11 @@ describe('filter value encoding', () => {
             'filter[keypresent][condition][exists]': true,
         });
 
-        expect(buildFilterParams({ accessBlob: { userId: 'alice', tags: ['x'] } })).toEqual({
-            'filter[access_blob_filter][condition][user_id]': 'alice',
-            'filter[access_blob_filter][condition][tags]': '["x"]',
+        // Tiled 0.2.19 replaced `access_blob_filter` with this; verified against a live 0.2.19.
+        expect(buildFilterParams({ accessTags: { tags: ['x', 'y'] } })).toEqual({
+            'filter[access_tags_filter][condition][tags]': '["x","y"]',
         });
+        expect(buildFilterParams({ accessTags: { tags: [] } })).toEqual({});
     });
 
     it('hands the hook config straight to the client, unencoded', async () => {

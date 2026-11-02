@@ -17,6 +17,8 @@ export interface TiledItemLinks {
     buffers?: string;
     partition?: string;
     search?: string;
+    /** Containers only, since Tiled 0.2.19. */
+    search_deep?: string;
     default?: string;
 }
 
@@ -74,7 +76,11 @@ export interface TiledSearchItem<StructureType = TiledStructures> {
         specs: Spec[];
         metadata: TiledMetadata;
         structure: StructureType;
-        access_blob?: Record<string, unknown>;
+        /**
+         * Tag names that grant access to this node. Replaced Tiled's `access_blob` dict in 0.2.19;
+         * an empty list on a server with no access policy.
+         */
+        access_tags?: string[] | null;
         sorting: TiledSorting[] | null;
         data_sources: unknown[] | null;
     };
@@ -104,6 +110,16 @@ export interface TiledMetadataResult {
     error: string | null;
     links: null;
     meta: null;
+}
+
+/**
+ * What `DELETE /asset/{path}` answers. The spec declares the body untyped; this is the shape Tiled
+ * 0.2.19 returns. `data_deleted` is false when the asset was only detached — it was externally
+ * managed, or another node still references it.
+ */
+export interface TiledDeleteAssetResponse {
+    asset_deleted: boolean;
+    data_deleted: boolean;
 }
 
 /** One row of a table, keyed by column name. */

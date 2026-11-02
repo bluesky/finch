@@ -106,6 +106,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    '/api/v1/search-deep/{path}': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Route With Sig */
+        get: operations['route_with_sig_api_v1_search_deep__path__get'];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     '/api/v1/distinct/{path}': {
         parameters: {
             query?: never;
@@ -488,6 +505,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    '/api/v1/asset/{path}': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Dissociate an asset from a node and, if unreferenced, delete it */
+        delete: operations['delete_asset_api_v1_asset__path__delete'];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     '/api/v1/webhooks/target/{path}': {
         parameters: {
             query?: never;
@@ -710,6 +744,24 @@ export interface paths {
         get: operations['Contents_of_a_zarr_group_zarr_v3__path__get'];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    '/api/graphql': {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Handle Http Get */
+        get: operations['handle_http_get_api_graphql_get'];
+        put?: never;
+        /** Handle Http Post */
+        post: operations['handle_http_post_api_graphql_post'];
         delete?: never;
         options?: never;
         head?: never;
@@ -994,7 +1046,7 @@ export interface components {
             | 'specs'
             | 'data_sources'
             | ''
-            | 'access_blob';
+            | 'access_tags';
         /** Error */
         Error: {
             /** Code */
@@ -1033,7 +1085,7 @@ export interface components {
          *
          *     Status codes from the following RFCs are all observed:
          *
-         *         * RFC 7231: Hypertext Transfer Protocol (HTTP/1.1), obsoletes 2616
+         *         * RFC 9110: HTTP Semantics, obsoletes 7231, which obsoleted 2616
          *         * RFC 6585: Additional HTTP Status Codes
          *         * RFC 3229: Delta encoding in HTTP
          *         * RFC 4918: HTTP Extensions for WebDAV, obsoletes 2518
@@ -1085,12 +1137,16 @@ export interface components {
             | 411
             | 412
             | 413
+            | 413
+            | 414
             | 414
             | 415
+            | 416
             | 416
             | 417
             | 418
             | 421
+            | 422
             | 422
             | 423
             | 424
@@ -1147,7 +1203,7 @@ export interface components {
             ancestors: string[];
             structure_family?: components['schemas']['StructureFamily'] | null;
             /** Specs */
-            specs?: components['schemas']['Spec'][] | null;
+            specs?: components['schemas']['Spec-Output'][] | null;
             /** Metadata */
             metadata?: {
                 [key: string]: unknown;
@@ -1162,10 +1218,8 @@ export interface components {
                 | components['schemas']['NodeStructure']
                 | components['schemas']['TableStructure']
                 | null;
-            /** Access Blob */
-            access_blob?: {
-                [key: string]: unknown;
-            } | null;
+            /** Access Tags */
+            access_tags?: string[] | null;
             /** Sorting */
             sorting?: components['schemas']['SortingItem'][] | null;
             /** Data Sources */
@@ -1211,10 +1265,18 @@ export interface components {
                 | null;
             /** Specs */
             specs:
-                | components['schemas']['Spec'][]
+                | components['schemas']['Spec-Input'][]
                 | components['schemas']['tiled__server__schemas__JSONPatchType__2'][]
                 | null;
-            /** Access Blob */
+            /** Access Tags */
+            access_tags?:
+                | components['schemas']['tiled__server__schemas__JSONPatchType__1'][]
+                | string[]
+                | null;
+            /**
+             * Access Blob
+             * @deprecated
+             */
             access_blob?:
                 | components['schemas']['tiled__server__schemas__JSONPatchType__1'][]
                 | {
@@ -1237,10 +1299,8 @@ export interface components {
             } | null;
             /** Data Sources */
             data_sources: components['schemas']['DataSource'][] | null;
-            /** Access Blob */
-            access_blob: {
-                [key: string]: unknown;
-            } | null;
+            /** Access Tags */
+            access_tags: string[] | null;
         };
         /** PostMetadataRequest */
         PostMetadataRequest: {
@@ -1263,12 +1323,14 @@ export interface components {
              * Specs
              * @default []
              */
-            specs: components['schemas']['Spec'][];
+            specs: components['schemas']['Spec-Input'][];
+            /** Access Tags */
+            access_tags?: string[] | null;
             /**
              * Access Blob
-             * @default {}
+             * @deprecated
              */
-            access_blob: {
+            access_blob?: {
                 [key: string]: unknown;
             } | null;
         };
@@ -1287,10 +1349,8 @@ export interface components {
             };
             /** Data Sources */
             data_sources: components['schemas']['DataSource'][];
-            /** Access Blob */
-            access_blob: {
-                [key: string]: unknown;
-            };
+            /** Access Tags */
+            access_tags: string[];
         };
         /** PutDataSourceRequest */
         PutDataSourceRequest: {
@@ -1303,8 +1363,13 @@ export interface components {
                 [key: string]: unknown;
             } | null;
             /** Specs */
-            specs?: components['schemas']['Spec'][] | null;
-            /** Access Blob */
+            specs?: components['schemas']['Spec-Input'][] | null;
+            /** Access Tags */
+            access_tags?: string[] | null;
+            /**
+             * Access Blob
+             * @deprecated
+             */
             access_blob?: {
                 [key: string]: unknown;
             } | null;
@@ -1324,10 +1389,8 @@ export interface components {
             } | null;
             /** Data Sources */
             data_sources?: components['schemas']['DataSource'][] | null;
-            /** Access Blob */
-            access_blob?: {
-                [key: string]: unknown;
-            } | null;
+            /** Access Tags */
+            access_tags?: string[] | null;
         };
         /**
          * RaggedStructure
@@ -1447,7 +1510,14 @@ export interface components {
             block: string;
         };
         /** Spec */
-        Spec: {
+        'Spec-Input': {
+            /** Name */
+            name: string;
+            /** Version */
+            version?: string | null;
+        };
+        /** Spec */
+        'Spec-Output': {
             /** Name */
             name: string;
             /** Version */
@@ -1549,7 +1619,7 @@ export interface components {
             path?: string;
             /** From */
             from?: string;
-            value?: components['schemas']['Spec'];
+            value?: components['schemas']['Spec-Input'];
         };
     };
     responses: never;
@@ -1706,8 +1776,80 @@ export interface operations {
                 'filter[like][condition][pattern]'?: string[] | null;
                 'filter[specs][condition][include]'?: string[] | null;
                 'filter[specs][condition][exclude]'?: string[] | null;
-                'filter[access_blob_filter][condition][user_id]'?: (string | null)[] | null;
-                'filter[access_blob_filter][condition][tags]'?: string[] | null;
+                'filter[access_tags_filter][condition][tags]'?: string[] | null;
+                'filter[structure_family][condition][value]'?:
+                    | components['schemas']['StructureFamily'][]
+                    | null;
+                'page[offset]'?: number | null;
+                'page[cursor]'?: number | null;
+                'page[limit]'?: number;
+                sort?: string[] | null;
+            };
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Response_List_Resource_NodeAttributes__dict__dict___PaginationLinks_dict_'];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    route_with_sig_api_v1_search_deep__path__get: {
+        parameters: {
+            query?: {
+                fields?: components['schemas']['EntryFields'][] | null;
+                select_metadata?: string | null;
+                /** @description Maximum number of levels below `path` to search. */
+                max_depth?: number | null;
+                omit_links?: boolean;
+                include_data_sources?: boolean;
+                'filter[fulltext][condition][text]'?: string[] | null;
+                'filter[lookup][condition][key]'?: string[] | null;
+                'filter[keys_filter][condition][keys]'?: string[] | null;
+                'filter[regex][condition][key]'?: string[] | null;
+                'filter[regex][condition][pattern]'?: string[] | null;
+                'filter[regex][condition][case_sensitive]'?: boolean[] | null;
+                'filter[eq][condition][key]'?: string[] | null;
+                'filter[eq][condition][value]'?: unknown[] | null;
+                'filter[noteq][condition][key]'?: string[] | null;
+                'filter[noteq][condition][value]'?: unknown[] | null;
+                'filter[comparison][condition][operator]'?:
+                    | components['schemas']['Operator'][]
+                    | null;
+                'filter[comparison][condition][key]'?: string[] | null;
+                'filter[comparison][condition][value]'?: unknown[] | null;
+                'filter[contains][condition][key]'?: string[] | null;
+                'filter[contains][condition][value]'?: unknown[] | null;
+                'filter[in][condition][key]'?: string[] | null;
+                'filter[in][condition][value]'?: string[] | null;
+                'filter[notin][condition][key]'?: string[] | null;
+                'filter[notin][condition][value]'?: string[] | null;
+                'filter[keypresent][condition][key]'?: string[] | null;
+                'filter[keypresent][condition][exists]'?: boolean[] | null;
+                'filter[like][condition][key]'?: string[] | null;
+                'filter[like][condition][pattern]'?: string[] | null;
+                'filter[specs][condition][include]'?: string[] | null;
+                'filter[specs][condition][exclude]'?: string[] | null;
+                'filter[access_tags_filter][condition][tags]'?: string[] | null;
                 'filter[structure_family][condition][value]'?:
                     | components['schemas']['StructureFamily'][]
                     | null;
@@ -1778,8 +1920,7 @@ export interface operations {
                 'filter[like][condition][pattern]'?: string[] | null;
                 'filter[specs][condition][include]'?: string[] | null;
                 'filter[specs][condition][exclude]'?: string[] | null;
-                'filter[access_blob_filter][condition][user_id]'?: (string | null)[] | null;
-                'filter[access_blob_filter][condition][tags]'?: string[] | null;
+                'filter[access_tags_filter][condition][tags]'?: string[] | null;
                 'filter[structure_family][condition][value]'?:
                     | components['schemas']['StructureFamily'][]
                     | null;
@@ -3079,6 +3220,41 @@ export interface operations {
             };
         };
     };
+    delete_asset_api_v1_asset__path__delete: {
+        parameters: {
+            query: {
+                id: number;
+                /** @description Dissociate the asset, but refuse to delete the underlying data if it is internally managed. Externally-managed assets are never deleted. */
+                external_only?: boolean;
+            };
+            header?: never;
+            path: {
+                path: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
     list_webhooks_api_v1_webhooks_target__path__get: {
         parameters: {
             query?: never;
@@ -3516,6 +3692,53 @@ export interface operations {
                 };
                 content: {
                     'application/json': components['schemas']['HTTPValidationError'];
+                };
+            };
+        };
+    };
+    handle_http_get_api_graphql_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The GraphiQL integrated development environment. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': unknown;
+                };
+            };
+            /** @description Not found if GraphiQL or query via GET are not enabled. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    handle_http_post_api_graphql_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': unknown;
                 };
             };
         };

@@ -74,6 +74,19 @@ export const searchEndpointDescriptors: readonly TiledEndpointDescriptor[] = [
         call: (client, input) => client.getSearch(input.path ?? '', payloadAs(input)),
     },
     {
+        id: 'search.deep',
+        group: 'search',
+        method: 'GET',
+        path: '/api/v1/search-deep/{path}',
+        operationId: 'route_with_sig_api_v1_search_deep__path__get',
+        fn: 'getSearchDeep',
+        summary: "Search a container's descendants at any depth. No sorting.",
+        pathParam: true,
+        params: [PATH_PARAM],
+        sampleBody: { searchOptions: { pageLimit: 10, maxDepth: 2 } },
+        call: (client, input) => client.getSearchDeep(input.path ?? '', payloadAs(input)),
+    },
+    {
         id: 'search.distinct',
         group: 'search',
         method: 'GET',
@@ -398,5 +411,5 @@ export const SAMPLE_CONTAINER_BODY: PostMetadataRequest = {
     metadata: { created_by: 'finch' },
     data_sources: [],
     specs: [],
-    access_blob: {},
+    access_tags: [],
 };

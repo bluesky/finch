@@ -29,9 +29,13 @@ import type {
  * | `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]` |
  * | `accessBlob` | `filter[access_blob][condition][…]` | `filter[access_blob_filter][condition][…]` |
  *
+ * (`accessBlob` is gone since: Tiled 0.2.19 replaced the filter with `access_tags_filter`, which
+ * `accessTags` encodes.)
+ *
  * Confirmed twice over: the spec's query parameter list, and the live server's own `About.queries`
  * (`['fulltext', 'lookup', 'keys_filter', 'regex', …, 'keypresent', 'like', 'specs',
- * 'access_blob_filter', 'structure_family']`).
+ * 'access_blob_filter', 'structure_family']`) — on 0.2.15b1. 0.2.19 reports `access_tags_filter`
+ * in its place.
  *
  * ## Lists travel two different ways, and getting it wrong is a 500
  *
@@ -117,7 +121,7 @@ export function buildFilterParams(filters?: TiledSearchFilters): TiledQueryParam
         keyPresent,
         like,
         specs,
-        accessBlob,
+        accessTags,
         structureFamily,
     } = filters;
 
@@ -187,17 +191,10 @@ export function buildFilterParams(filters?: TiledSearchFilters): TiledQueryParam
         params[condition('specs', 'exclude')] = JSON.stringify(specs.exclude);
     }
 
-    // `access_blob_filter`, not `access_blob` — see the header table.
-    if (accessBlob) {
-        if (accessBlob.userId) {
-            params[condition('access_blob_filter', 'user_id')] = accessBlob.userId;
-        }
-        // Encoded like its sibling list filters. Unverified against a live server: this one 500s
-        // on a deployment with access control disabled, whatever the encoding, so there was nothing
-        // to probe against.
-        if (accessBlob.tags?.length) {
-            params[condition('access_blob_filter', 'tags')] = JSON.stringify(accessBlob.tags);
-        }
+    // One JSON array, like its sibling list filters — `AccessTagsFilter.encode` in Tiled's
+    // `queries.py` does `json.dumps(tags)`. Verified against Tiled 0.2.19.
+    if (accessTags?.tags.length) {
+        params[condition('access_tags_filter', 'tags')] = JSON.stringify(accessTags.tags);
     }
 
     if (structureFamily) {

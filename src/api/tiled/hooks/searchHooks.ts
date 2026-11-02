@@ -12,7 +12,7 @@ import type {
     TiledStructureFamilyFilter,
 } from '../types/common';
 import { useTiledQuery } from './internal/useTiledQuery';
-import { tiledQueryKeys, type TiledQueryKeyFor } from './queryKeys';
+import { tiledQueryKeys, type TiledQueryKeyFor, type TiledSearchDeepKey } from './queryKeys';
 import type { FinchQueryOptions, TiledHookError } from './types';
 import { useTiledQueryScope } from './useTiledClient';
 
@@ -31,7 +31,7 @@ import { useTiledQueryScope } from './useTiledClient';
  * `…ByFullText`, `…ByMetadataEquals`, `…ByStructureFamily`); regex and comparison do not exist in the
  * package but did exist in the legacy Finch hooks, and `TiledSearchFilters` supports them, so they are
  * kept for parity. For the remaining nine filters (`lookup`, `keysFilter`, `noteq`, `contains`, `in`,
- * `notin`, `keyPresent`, `like`, `accessBlob`) use `useTiledSearchQuery` directly.
+ * `notin`, `keyPresent`, `like`, `accessTags`) use `useTiledSearchQuery` directly.
  *
  * **Filter values are passed as themselves, never as hand-written JSON.** Six filters — `eq`,
  * `noteq`, `comparison`, `contains`, `in`, `notin` — have a `value` the server parses as JSON, so the
@@ -69,6 +69,36 @@ export function useTiledSearchQuery<TData = TiledSearchResult>(
     requestOptions?: TiledRequestOptions,
 ): UseQueryResult<TData, TiledHookError> {
     return useSearch(searchPath, config, queryOptions, requestOptions);
+}
+
+/**
+ * Search every descendant of a container, at any depth — `GET /api/v1/search-deep/{path}`.
+ *
+ * Takes the same config as {@link useTiledSearchQuery}. A hit's `id` is only its own key; its path
+ * below the root is `[...attributes.ancestors, id]`. Cap the depth with `searchOptions.maxDepth`
+ * (1–64). **No sorting**: `searchOptions.sort` makes the server answer 400. Needs Tiled 0.2.19.
+ *
+ * Keyed under the `search` root, so every write that refreshes searches refreshes this too.
+ *
+ * @param searchPath Container to search below. `''` is the root container.
+ * @param config `{ searchFilters, searchOptions }`. Part of the query key.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
+ */
+export function useTiledSearchDeepQuery<TData = TiledSearchResult>(
+    searchPath: string,
+    config?: TiledSearchConfig,
+    queryOptions?: FinchQueryOptions<TiledSearchResult, TData, TiledSearchDeepKey, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.searchDeep(scope, { searchPath, config: config ?? null }),
+        fetch: (client, request) => client.getSearchDeep(searchPath, config, request),
+        queryOptions,
+        requestOptions,
+    });
 }
 
 /**
