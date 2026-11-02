@@ -465,21 +465,6 @@ serve the server's own web UI, and the eight per-file zarr routes (`.zattrs`, `.
 `getZarrV3Url` return. Shipping typed fetchers for those would invite a consumer that should have
 used a zarr library.
 
-### What Tiled 0.2.19 added
-
-Regenerating against 0.2.19 added four operations, all implemented and verified against a live
-0.2.19 server (`TiledApi.live.test.ts`, gated on `TILED_LIVE_URL`):
-
-| Route                        | Client            | Hook                          | Notes                                                                  |
-| ---------------------------- | ----------------- | ----------------------------- | ---------------------------------------------------------------------- |
-| `GET /search-deep/{path}`    | `getSearchDeep`   | `useTiledSearchDeepQuery`     | every descendant, not just children; `maxDepth` caps it; no `sort` (400) |
-| `DELETE /asset/{path}`       | `deleteAsset`     | `useTiledDeleteAssetMutation` | 409 on internally managed data unless `external_only: false`            |
-| `POST /api/graphql`          | `graphql`         | `useTiledGraphQL{Query,Mutation}` | already implemented; now in the spec, so in the registry too       |
-| `GET /api/graphql`           | `graphqlGet`      | `useTiledGraphQLGetQuery`     | queries only — the server refuses a mutation over GET (400)            |
-
-The webhook routes only appear in 0.2.19's `openapi.json` when webhooks are configured; see
-`generated/README.md` before regenerating.
-
 ## Graph of links
 
 Tiled's **experimental** entity/link graph (upstream #1387): _entities_ — a project, a sample, a
