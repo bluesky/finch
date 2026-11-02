@@ -72,7 +72,12 @@ import {
     type TiledAuthProvider,
     type TiledInfoResponse,
 } from '../types/info';
-import type { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
+import type {
+    TiledDeleteAssetResponse,
+    TiledSearchItem,
+    TiledSearchResult,
+    TiledTableRow,
+} from '../types/nodes';
 import { TILED_API_PREFIX, TILED_GRAPHQL_PATH, TILED_PATHS, buildPath } from '../types/paths';
 import type {
     TiledApiKeyLocation,
@@ -154,7 +159,7 @@ export interface TiledApiClientConfig {
  * form makes the server answer **500**.
  *
  * Verified against Tiled 0.2.15b1. This affects `column`, `field`, `form_key`, `fields`, `sort`,
- * `metadata`, and the `keys_filter`, `in`, `notin` and `access_blob_filter` conditions — which is
+ * `metadata`, and the `keys_filter`, `in`, `notin` and `access_tags_filter` conditions — which is
  * most of the interesting query surface.
  */
 const TILED_PARAMS_SERIALIZER = { indexes: null } as const;
@@ -836,6 +841,11 @@ export class TiledApiClient {
         return encoded ? `/search/${encoded}` : '/search/';
     }
 
+    private searchDeepPath(path: string, options?: TiledRequestOptions): string {
+        const encoded = this.encodePath(path, options);
+        return encoded ? `/search-deep/${encoded}` : '/search-deep/';
+    }
+
     private distinctPath(path: string, options?: TiledRequestOptions): string {
         const encoded = this.encodePath(path, options);
         return encoded ? `/distinct/${encoded}` : '/distinct/';
@@ -861,6 +871,7 @@ export class TiledApiClient {
             | 'data_source'
             | 'revisions'
             | 'stream/close'
+            | 'asset'
             | 'asset/bytes'
             | 'asset/manifest'
             | 'webhooks/target',
@@ -936,6 +947,29 @@ export class TiledApiClient {
     }
 
     /**
+     * `GET /search-deep/{path}` — search every descendant of a container, at any depth, rather than
+     * only its direct children.
+     *
+     * Takes the same filters and pagination as {@link getSearch}, and returns the same envelope. A
+     * hit's `id` is its own key only; its full path is `[...attributes.ancestors, id]`, relative to
+     * `searchPath`'s root. `searchOptions.maxDepth` caps how many levels below `searchPath` are
+     * searched (1–64; 1 is the direct children).
+     *
+     * Rejects with 400 when `searchOptions.sort` is set — the server does not sort a deep search —
+     * and with 404 when `searchPath` is not a container. Added in Tiled 0.2.19.
+     */
+    getSearchDeep(
+        searchPath: string,
+        config: TiledSearchConfig = {},
+        options: TiledRequestOptions = {},
+    ): Promise<TiledSearchResult> {
+        return this.get<TiledSearchResult>(this.searchDeepPath(searchPath, options), options, {
+            params: buildSearchParams(config),
+            headers: { Accept: 'application/json' },
+        });
+    }
+
+    /**
      * `GET /distinct/{path}` — the distinct values of metadata keys, specs and structure families
      * across a container, optionally with counts.
      *
@@ -1000,7 +1034,7 @@ export class TiledApiClient {
         );
     }
 
-    /** `PUT /metadata/{path}` — replace a node's metadata, specs and access blob wholesale. */
+    /** `PUT /metadata/{path}` — replace a node's metadata, specs and access tags wholesale. */
     updateMetadata(
         path: string,
         body: PutMetadataRequest,
@@ -1040,7 +1074,8 @@ export class TiledApiClient {
         body: {
             metadata?: Record<string, unknown>;
             specs?: PatchMetadataRequest['specs'];
-            access_blob?: Record<string, unknown>;
+            /** Replaces the node's access tags outright. */
+            access_tags?: string[];
         },
         params: { drop_revision?: boolean } = {},
         options: TiledRequestOptions = {},
@@ -1051,7 +1086,7 @@ export class TiledApiClient {
                 'content-type': 'application/merge-patch+json',
                 specs: body.specs ?? null,
                 ...(body.metadata !== undefined ? { metadata: body.metadata } : {}),
-                ...(body.access_blob !== undefined ? { access_blob: body.access_blob } : {}),
+                ...(body.access_tags !== undefined ? { access_tags: body.access_tags } : {}),
             },
             params,
             options,
@@ -1064,7 +1099,7 @@ export class TiledApiClient {
         body: {
             metadata?: PatchMetadataRequest['metadata'];
             specs?: PatchMetadataRequest['specs'];
-            access_blob?: PatchMetadataRequest['access_blob'];
+            access_tags?: PatchMetadataRequest['access_tags'];
         },
         params: { drop_revision?: boolean } = {},
         options: TiledRequestOptions = {},
@@ -1075,7 +1110,7 @@ export class TiledApiClient {
                 'content-type': 'application/json-patch+json',
                 specs: body.specs ?? null,
                 ...(body.metadata !== undefined ? { metadata: body.metadata } : {}),
-                ...(body.access_blob !== undefined ? { access_blob: body.access_blob } : {}),
+                ...(body.access_tags !== undefined ? { access_tags: body.access_tags } : {}),
             },
             params,
             options,
@@ -1874,6 +1909,29 @@ export class TiledApiClient {
         });
     }
 
+    /**
+     * `DELETE /asset/{path}` — detach one asset from a node, and delete it if nothing else uses it.
+     *
+     * `external_only` defaults to **true** server-side: an internally managed asset — one Tiled
+     * wrote, such as an uploaded array's zarr directory — is then refused with a 409, because
+     * deleting the record would delete the data. Pass `external_only: false` to mean it. An
+     * externally managed (registered) file is never deleted from disk, only detached.
+     *
+     * 404 when the node has no asset with that id; 403 when the server sets
+     * `expose_raw_assets: false`. Verified against Tiled 0.2.19, where it was added.
+     *
+     * Destructive and not undoable; flagged as such in the endpoint registry.
+     */
+    deleteAsset(
+        path: string,
+        params: { id: number; external_only?: boolean },
+        options: TiledRequestOptions = {},
+    ): Promise<TiledDeleteAssetResponse> {
+        return this.del<TiledDeleteAssetResponse>(this.dataPath('asset', path, options), options, {
+            params: { id: params.id, external_only: params.external_only },
+        });
+    }
+
     // #endregion
 
     // #region webhooks
@@ -2138,10 +2196,10 @@ export class TiledApiClient {
     // #region graph of links
     //
     // Tiled's experimental entity/link graph, served over GraphQL at `{origin}/api/graphql` — outside
-    // `/api/v1`, and only on a catalog-backed server. Not in `openapi.json`; the operations are
-    // checked against `../graph/schema.graphql` instead. Everything funnels through `graphql`, which
-    // goes through `request` like any other call, so auth, the 401 refresh, interceptors and
-    // per-call overrides apply unchanged.
+    // `/api/v1`, and only on a catalog-backed server. `openapi.json` declares the route (since
+    // 0.2.19) but not its operations, which are checked against `../graph/schema.graphql` instead.
+    // Everything funnels through `sendGraphQL`, which goes through `request` like any other call, so
+    // auth, the 401 refresh, interceptors and per-call overrides apply unchanged.
 
     /**
      * Send any GraphQL document to the graph endpoint and return its `data`.
@@ -2173,23 +2231,73 @@ export class TiledApiClient {
         variables: TiledGraphQLVariables = {},
         options: TiledRequestOptions = {},
     ): Promise<T> {
+        return this.sendGraphQL<T>('POST', document, variables, options);
+    }
+
+    /**
+     * {@link graphql}, sent as `GET /api/graphql?query=…&variables=…` — **queries only**.
+     *
+     * Same result, same errors, but a URL rather than a body, so an HTTP cache or a proxy in front of
+     * Tiled can serve it. The server refuses a mutation sent this way with a 400 ("mutations are not
+     * allowed when using GET"), so a write cannot run by accident; use {@link graphql} for writes.
+     * Keep documents short: the whole query travels in the URL. Verified against Tiled 0.2.19.
+     */
+    async graphqlGet<T = Record<string, unknown>>(
+        document: string,
+        variables: TiledGraphQLVariables = {},
+        options: TiledRequestOptions = {},
+    ): Promise<T> {
+        return this.sendGraphQL<T>('GET', document, variables, options);
+    }
+
+    /**
+     * The one GraphQL funnel `graphql` and `graphqlGet` share: the request, then the envelope checks.
+     *
+     * GET carries the document and JSON-encoded variables as query parameters, which is how
+     * Strawberry, Tiled's GraphQL server, reads them. `Accept: application/json` matters there: a GET
+     * that a browser-ish `Accept` makes look like a page load is answered with the GraphiQL IDE.
+     */
+    private async sendGraphQL<T>(
+        method: 'GET' | 'POST',
+        document: string,
+        variables: TiledGraphQLVariables,
+        options: TiledRequestOptions,
+    ): Promise<T> {
         const operation = graphOperationName(document) ?? 'GraphQL operation';
         let body: TiledGraphQLResponse<T>;
         try {
-            body = await this.request<TiledGraphQLResponse<T>>(
-                'POST',
-                TILED_GRAPHQL_PATH,
-                { query: document, variables },
-                options,
-                { origin: true },
-            );
+            body =
+                method === 'POST'
+                    ? await this.request<TiledGraphQLResponse<T>>(
+                          'POST',
+                          TILED_GRAPHQL_PATH,
+                          { query: document, variables },
+                          options,
+                          { origin: true },
+                      )
+                    : await this.request<TiledGraphQLResponse<T>>(
+                          'GET',
+                          TILED_GRAPHQL_PATH,
+                          undefined,
+                          options,
+                          {
+                              origin: true,
+                              headers: { Accept: 'application/json' },
+                              params: {
+                                  query: document,
+                                  ...(Object.keys(variables).length > 0
+                                      ? { variables: JSON.stringify(variables) }
+                                      : {}),
+                              },
+                          },
+                      );
         } catch (error) {
             if (error instanceof TiledApiError && error.status === 404) {
                 throw new TiledApiError({
                     message:
                         `${operation} failed with 404: this server has no graph API. Tiled mounts ` +
                         '/api/graphql only when it serves a catalog-backed tree.',
-                    method: 'POST',
+                    method,
                     path: TILED_GRAPHQL_PATH,
                     status: 404,
                     responseBody: error.responseBody,
@@ -2201,7 +2309,7 @@ export class TiledApiClient {
                 if (missing) {
                     throw new TiledApiError({
                         message: describeOlderGraphApi(operation, missing, error.graphqlErrors),
-                        method: 'POST',
+                        method,
                         path: TILED_GRAPHQL_PATH,
                         status: error.status,
                         responseBody: error.responseBody,
@@ -2218,7 +2326,7 @@ export class TiledApiClient {
                 message: missing
                     ? describeOlderGraphApi(operation, missing, body.errors)
                     : `${operation} failed: ${formatGraphQLErrors(body.errors)}`,
-                method: 'POST',
+                method,
                 path: TILED_GRAPHQL_PATH,
                 status: 200,
                 responseBody: body,
@@ -2227,7 +2335,7 @@ export class TiledApiClient {
         if (!body || typeof body !== 'object' || body.data === undefined || body.data === null) {
             throw new TiledApiError({
                 message: `${operation} failed: the response carried no data`,
-                method: 'POST',
+                method,
                 path: TILED_GRAPHQL_PATH,
                 status: 200,
                 responseBody: body,

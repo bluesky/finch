@@ -14,6 +14,7 @@ import {
     useTiledSearchByRegexQuery,
     useTiledSearchBySpecsQuery,
     useTiledSearchByStructureFamilyQuery,
+    useTiledSearchDeepQuery,
     useTiledSearchQuery,
 } from '@/api/tiled';
 import type {
@@ -59,6 +60,16 @@ function readSearchOptions(values: Record<string, unknown>) {
 
 function SearchRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
     const result = useTiledSearchQuery(
+        str(values, 'searchPath'),
+        json<TiledSearchConfig>(values, 'config'),
+        queryOptions,
+        requestOptions,
+    );
+    return <QueryResultPanel result={result} resultKind="json" />;
+}
+
+function SearchDeepRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
+    const result = useTiledSearchDeepQuery(
         str(values, 'searchPath'),
         json<TiledSearchConfig>(values, 'config'),
         queryOptions,
@@ -209,6 +220,25 @@ export const searchQueryDescriptors: readonly QueryDescriptor[] = [
         ],
         resultKind: 'json',
         Runner: SearchRunner,
+    },
+    {
+        id: 'search.deep',
+        kind: 'query',
+        group: 'search',
+        hookName: 'useTiledSearchDeepQuery',
+        summary: 'Every descendant at any depth, not just children. Tiled 0.2.19+; no sorting.',
+        fields: [
+            SEARCH_PATH,
+            {
+                name: 'config',
+                kind: 'json',
+                label: 'config',
+                description: '{ searchFilters, searchOptions } — maxDepth caps the levels searched',
+                defaultValue: { searchOptions: { pageLimit: 10, maxDepth: 2 } },
+            },
+        ],
+        resultKind: 'json',
+        Runner: SearchDeepRunner,
     },
     {
         id: 'search.bySpecs',

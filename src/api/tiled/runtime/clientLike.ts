@@ -31,6 +31,7 @@ export type TiledClientLike = Pick<
     | 'getMetrics'
     // search
     | 'getSearch'
+    | 'getSearchDeep'
     | 'getDistinct'
     // metadata
     | 'getMetadata'
@@ -86,6 +87,7 @@ export type TiledClientLike = Pick<
     // assets
     | 'getAssetBytes'
     | 'getAssetManifest'
+    | 'deleteAsset'
     // webhooks
     | 'listWebhooks'
     | 'registerWebhook'
@@ -101,6 +103,7 @@ export type TiledClientLike = Pick<
     | 'logout'
     // graph of links
     | 'graphql'
+    | 'graphqlGet'
     | 'getGraphEntity'
     | 'getGraphEntities'
     | 'getGraphLink'
@@ -142,6 +145,7 @@ export const TILED_CLIENT_LIKE_METHODS = [
     'getUiSettings',
     'getMetrics',
     'getSearch',
+    'getSearchDeep',
     'getDistinct',
     'getMetadata',
     'createNode',
@@ -189,6 +193,7 @@ export const TILED_CLIENT_LIKE_METHODS = [
     'closeStream',
     'getAssetBytes',
     'getAssetManifest',
+    'deleteAsset',
     'listWebhooks',
     'registerWebhook',
     'deleteWebhook',
@@ -201,6 +206,7 @@ export const TILED_CLIENT_LIKE_METHODS = [
     'revokeSession',
     'logout',
     'graphql',
+    'graphqlGet',
     'getGraphEntity',
     'getGraphEntities',
     'getGraphLink',

@@ -31,7 +31,12 @@ import type {
     TiledGraphUpdateLinkInput,
 } from '../types/graph';
 import type { TiledAuthProvider, TiledInfoResponse } from '../types/info';
-import type { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
+import type {
+    TiledDeleteAssetResponse,
+    TiledSearchItem,
+    TiledSearchResult,
+    TiledTableRow,
+} from '../types/nodes';
 import type { TiledLoginTokens, TiledRequestOptions } from '../types/requestOptions';
 import type { TiledDistinctConfig, TiledSearchConfig } from '../types/searchFilters';
 import type {
@@ -101,6 +106,15 @@ export function getTiledSearch(
     options?: TiledRequestOptions,
 ): Promise<TiledSearchResult> {
     return getDefaultTiledApiClient().getSearch(searchPath, config, options);
+}
+
+/** Search every descendant of a container, at any depth; see `TiledApiClient.getSearchDeep`. */
+export function getTiledSearchDeep(
+    searchPath: string,
+    config?: TiledSearchConfig,
+    options?: TiledRequestOptions,
+): Promise<TiledSearchResult> {
+    return getDefaultTiledApiClient().getSearchDeep(searchPath, config, options);
 }
 
 export function getTiledDistinct(
@@ -555,6 +569,15 @@ export function getTiledAssetManifest(
     return getDefaultTiledApiClient().getAssetManifest(path, params, options);
 }
 
+/** Detach an asset, deleting it if unreferenced; see `TiledApiClient.deleteAsset`. */
+export function deleteTiledAsset(
+    path: string,
+    params: { id: number; external_only?: boolean },
+    options?: TiledRequestOptions,
+): Promise<TiledDeleteAssetResponse> {
+    return getDefaultTiledApiClient().deleteAsset(path, params, options);
+}
+
 // #endregion
 
 // #region webhooks
@@ -654,6 +677,15 @@ export function tiledGraphQL<T = Record<string, unknown>>(
     options?: TiledRequestOptions,
 ): Promise<T> {
     return getDefaultTiledApiClient().graphql<T>(document, variables, options);
+}
+
+/** A GraphQL query sent as a GET; see `TiledApiClient.graphqlGet`. */
+export function tiledGraphQLGet<T = Record<string, unknown>>(
+    document: string,
+    variables?: TiledGraphQLVariables,
+    options?: TiledRequestOptions,
+): Promise<T> {
+    return getDefaultTiledApiClient().graphqlGet<T>(document, variables, options);
 }
 
 export function getTiledGraphEntity(

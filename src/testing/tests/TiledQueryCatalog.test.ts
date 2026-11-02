@@ -71,13 +71,14 @@ describe('query catalog coverage', () => {
     });
 
     it('covers the whole surface, counted', () => {
-        // 48 query entries: 47 query hooks plus the URL helper. 37 mutations. The graph of links
-        // added 7 queries and 10 mutations. A change here should be a deliberate edit, not a surprise.
-        expect(exportedQueryHooks).toHaveLength(47);
-        expect(TILED_QUERY_CATALOG).toHaveLength(48);
-        expect(exportedMutationHooks).toHaveLength(37);
-        expect(TILED_MUTATION_CATALOG).toHaveLength(37);
-        expect(TILED_PLAYGROUND_CATALOG).toHaveLength(85);
+        // 50 query entries: 49 query hooks plus the URL helper. 38 mutations. The graph of links
+        // added 7 queries and 10 mutations; Tiled 0.2.19 added deep search, GraphQL over GET and
+        // asset deletion. A change here should be a deliberate edit, not a surprise.
+        expect(exportedQueryHooks).toHaveLength(49);
+        expect(TILED_QUERY_CATALOG).toHaveLength(50);
+        expect(exportedMutationHooks).toHaveLength(38);
+        expect(TILED_MUTATION_CATALOG).toHaveLength(38);
+        expect(TILED_PLAYGROUND_CATALOG).toHaveLength(88);
     });
 });
 

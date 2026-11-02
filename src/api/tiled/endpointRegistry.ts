@@ -21,10 +21,14 @@ import {
     nodeWriteEndpointDescriptors,
     raggedWriteEndpointDescriptors,
     tableWriteEndpointDescriptors,
+    assetWriteEndpointDescriptors,
     webhookWriteEndpointDescriptors,
     zarrEndpointDescriptors,
 } from './endpoints/writeEndpoints';
-import { graphEndpointDescriptors } from './endpoints/graphEndpoints';
+import {
+    graphEndpointDescriptors,
+    graphTransportEndpointDescriptors,
+} from './endpoints/graphEndpoints';
 import type {
     TiledEndpointDescriptor,
     TiledEndpointGroup,
@@ -58,10 +62,12 @@ export const TILED_ENDPOINTS: readonly TiledEndpointDescriptor[] = [
     ...revisionReadEndpointDescriptors,
     ...managementWriteEndpointDescriptors,
     ...assetEndpointDescriptors,
+    ...assetWriteEndpointDescriptors,
     ...webhookReadEndpointDescriptors,
     ...webhookWriteEndpointDescriptors,
     ...authEndpointDescriptors,
     ...zarrEndpointDescriptors,
+    ...graphTransportEndpointDescriptors,
 ];
 
 /** Domain order used for display. */
@@ -105,8 +111,9 @@ export const TILED_GROUP_LABELS: Record<TiledEndpointGroup, string> = {
 /**
  * Every graph-of-links operation, described as data.
  *
- * Kept apart from {@link TILED_ENDPOINTS}, which is diffed against `openapi.json`: the graph is a
- * GraphQL endpoint that spec does not contain. `TiledGraph.test.tsx` diffs this against
+ * Kept apart from {@link TILED_ENDPOINTS}, which is diffed against `openapi.json`: the spec has the
+ * GraphQL route (which `TILED_ENDPOINTS` covers, as `graph.execute` and `graph.executeViaGet`) but
+ * not the operations inside it. `TiledGraph.test.tsx` diffs this against
  * `graph/schema.graphql` instead. Its group, `'graph'`, is listed in {@link TILED_ENDPOINT_GROUPS}
  * so harnesses that group by it show the graph hooks too.
  */
