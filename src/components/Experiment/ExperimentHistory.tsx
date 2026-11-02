@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTiledSearchQuery, type TiledSearchConfig } from '@/api/tiled';
 import dayjs from 'dayjs';
-import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
+import type { TiledSearchItem, TiledStructures } from '@/api/tiled';
 import { SpinnerGap } from '@phosphor-icons/react';
 type ExperimentHistoryProps = {
     /** Filters results to only Bluesky runs whose plan-name metadata matches this value. */

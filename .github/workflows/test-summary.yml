@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   comment:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event.workflow_run.event == 'pull_request'
 
     steps:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Download test artifacts
         if: steps.pr.outputs.number != ''
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-results-node-20.x
           run-id: ${{ github.event.workflow_run.id }}
@@ -39,7 +39,7 @@ jobs:
 
       - name: Comment PR with test summary
         if: steps.pr.outputs.number != ''
-        uses: actions/github-script@v6
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -62,15 +62,20 @@ jobs:
             const emoji = testStatus === 'success' ? '✅' : '❌';
             const message = testStatus === 'success' ? 'All tests passed!' : 'Some tests failed.';
 
-            // Get the job outputs to determine individual step results
-            const jobs = await github.rest.actions.listJobsForWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: ${{ github.event.workflow_run.id }},
-            });
-
-            const testJob = jobs.data.jobs.find(job => job.name.includes('test'));
-            const steps = testJob ? testJob.steps : [];
+            // Prefer step outcomes recorded by the test workflow; the jobs API
+            // sometimes returns an empty steps array.
+            let steps = [];
+            try {
+              steps = JSON.parse(fs.readFileSync('step-outcomes.json', 'utf8'));
+            } catch (e) {
+              const jobs = await github.rest.actions.listJobsForWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: ${{ github.event.workflow_run.id }},
+              });
+              const testJob = jobs.data.jobs.find(job => job.name.includes('test'));
+              steps = testJob ? testJob.steps : [];
+            }
 
             const lintStep = steps.find(step => step.name === 'Run linting');
             const formatStep = steps.find(step => step.name === 'Run formatting check');

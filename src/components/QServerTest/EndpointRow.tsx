@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { QServerEndpointDescriptor, QServerEndpointInvocation } from '@/api/qServer';
-import JsonResultViewer from './JsonResultViewer';
+import JsonResultViewer from '../devtools/JsonResultViewer';
 import type { EndpointRunState } from './useEndpointRunner';
 import { defaultPayloadFor, describeBadges, parsePayload } from './testQserverUtils';
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import type { AxiosInstance } from 'axios';
 import type { AssertTrue, ConformsToFinchHttpRequestOptions } from '../../shared/requestOptions';
 import type {
     ArrayStructure,
@@ -10,11 +11,10 @@ import type {
     TiledArrayJSONEndpointOptions,
     TiledArrayJSONOptions,
     TiledArrayReturnType,
-    TiledPackageClient,
     TiledTableEndpoint,
     TiledTableJSONEndpointOptions,
     TiledTableReturnType,
-} from '../types/packageAliases';
+} from '../types/dataOptions';
 import { useTiledArrayAsJSONQuery, useTiledArrayAsPngQuery } from './arrayHooks';
 import { useTiledMetadataQuery } from './metadataHooks';
 import {
@@ -24,6 +24,13 @@ import {
     useTiledSearchQuery,
 } from './searchHooks';
 import { useTiledTablePartitionAsJSONQuery } from './tableHooks';
+import type { TiledGraphEntity } from '../types/graph';
+import {
+    useTiledGraphEntitiesQuery,
+    useTiledGraphEntityQuery,
+    useTiledGraphQLQuery,
+    useTiledUpdateGraphEntityMutation,
+} from './graphHooks';
 
 /**
  * Compile-time assertions for the Tiled hook call shapes.
@@ -41,27 +48,27 @@ declare function expectType<T>(value: T): void;
 /**
  * `TiledRequestOptions` honours the cross-backend contract in `@/api/shared/requestOptions`.
  *
- * This one matters more than its queue-server counterpart, because the type is not ours — it comes
- * from `@blueskyproject/tiled`. The day the package renames `apiKey`, drops `signal`, or narrows
- * either, this assertion fails and names the drift. Without it, "`requestOptions` means the same thing
- * on both backends" would quietly stop being true on a dependency bump.
+ * It used to be that this assertion guarded against a *dependency* — the type came from
+ * `@blueskyproject/tiled`, and a package bump that renamed `apiKey` or dropped `signal` would have
+ * quietly stopped "`requestOptions` means the same thing on both backends" from being true. The type
+ * is ours now, so the assertion guards against us instead, which is a weaker but still useful job:
+ * it is what fails if someone narrows `apiKey` to `string` and loses the "send no credentials"
+ * meaning of `null`.
  *
- * `TClient` is `TiledPackageClient`, which is itself derived from this very field — so the `client`
- * leg is a tautology and only its *presence* is checked. That is deliberate: the package does not
- * export the type, and pinning `client` to a hand-written shape would assert our guess about the
- * package rather than the contract. `baseUrl`, `apiKey` (including its `| null`) and `signal` are
- * checked for real, and they are what the contract is about.
+ * `TClient` is now `AxiosInstance` — a real type, checked for real, and the same one the queue
+ * server's assertion uses. Under the package it had to be a type derived from this very field, which
+ * made the `client` leg a tautology.
  */
 type _TiledOptionsConform = AssertTrue<
-    ConformsToFinchHttpRequestOptions<TiledRequestOptions, TiledPackageClient>
+    ConformsToFinchHttpRequestOptions<TiledRequestOptions, AxiosInstance>
 >;
 
 /**
  * The endpoint-options slot carries **no** transport fields.
  *
- * This is what keeps the array/table slot split honest over time. If the package moves `stack` into
- * `TiledRequestOptions`, or someone re-merges the two slots, `keyof TiledArrayJSONEndpointOptions`
- * becomes a subset of `keyof TiledRequestOptions` and this fails.
+ * This is what keeps the array/table slot split honest over time. If someone moves `stack` into
+ * `TiledRequestOptions`, or re-merges the two slots, `keyof TiledArrayJSONEndpointOptions` becomes a
+ * subset of `keyof TiledRequestOptions` and this fails.
  */
 type _NoTransportInArrayOptions = AssertTrue<
     keyof TiledArrayJSONEndpointOptions extends keyof TiledRequestOptions ? false : true
@@ -200,4 +207,25 @@ function useInferenceChecks(): void {
     // Server info can legitimately be null; that is not an error state.
     const info = useTiledSearchQuery('');
     expectType<boolean>(info.isError);
+}
+
+function useGraphChecks(): void {
+    // Typed graph reads resolve the entity shape; an id read can be `null`.
+    const entity = useTiledGraphEntityQuery('7');
+    expectType<TiledGraphEntity | null | undefined>(entity.data);
+    const entities = useTiledGraphEntitiesQuery({ entityType: 'project' });
+    expectType<string | undefined>(entities.data?.[0]?.entityType);
+    // @ts-expect-error `kind` is upstream's future name (#1499); `main` still says `entityType`
+    useTiledGraphEntitiesQuery({ kind: 'project' });
+
+    // The raw hook's result type is the caller's to declare.
+    const raw = useTiledGraphQLQuery<{ entity: { name: string } | null }>('query { … }');
+    expectType<string | undefined>(raw.data?.entity?.name);
+
+    // Updates accept `null` to clear and omission to leave alone.
+    const update = useTiledUpdateGraphEntityMutation();
+    update.mutate({ id: '7', input: { nodePathParts: null } });
+    update.mutate({ id: '7', input: { name: 'renamed' } });
+    // @ts-expect-error `properties` cannot be updated after creation
+    update.mutate({ id: '7', input: { properties: {} } });
 }

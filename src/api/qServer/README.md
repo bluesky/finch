@@ -395,7 +395,8 @@ RE Manager v0.0.19.
 
 `src/components/QServerTest/TestQserver.tsx` renders every registry entry with an editable
 payload, runs the three sockets in both auth modes, and exercises the interceptor utilities.
-It is wired into `src/app/pages/TestPage.tsx`.
+It is **not currently mounted** anywhere: the Test route's tabs (`src/app/App.tsx`) are
+Experiment, Tiled API and Tiled Queries. Adding it back is one more entry in that `tabs` array.
 
 ## Differences from `src/api/qServer`
 

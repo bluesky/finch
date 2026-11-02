@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import Plot, { PlotParams } from 'react-plotly.js';
+import Plot, { type PlotParams } from '@/lib/plot';
 import { Layout, LayoutAxis } from 'plotly.js';
 import { cn } from '@/lib/utils';
 

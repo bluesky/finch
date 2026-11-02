@@ -12,7 +12,7 @@ import { useTiledSearchQuery } from '@/api/tiled';
 import { ClockCounterClockwise, PersonSimpleRun, ChartLine } from '@phosphor-icons/react';
 import { PostItemAddResponse } from '@/api/qServer';
 import { cn } from '@/lib/utils';
-import { TiledSearchItem, TiledStructures } from '../Tiled/types/tempTypes';
+import type { TiledSearchItem, TiledStructures } from '@/api/tiled';
 
 type ExperimentXASAlignmentProps = {
     /** Additional CSS class names to apply to the root container. */

@@ -119,8 +119,7 @@ export const SlowRuns: Story = {
 ```
 
 The decorator takes a **scenario function**, not a simulator, and builds one per story — so no two
-stories share queue state. See
-[QServerSimDemo](?path=/docs/bluesky-components-qserversimdemo--docs) for a worked set.
+stories share queue state.
 
 ---
 

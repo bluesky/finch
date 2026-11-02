@@ -10,7 +10,7 @@
 
 // Once you have that done, the next step is to save each message into a React
 // state variable, which is returned from this hook.
-//After that's done, you can wire this hook up in TestPage.tsx to replace useOphydPVSocket
+//After that's done, you can wire this hook up on the Test route in App.tsx to replace useOphydPVSocket
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Devices } from 'src/types/deviceControllerTypes';
