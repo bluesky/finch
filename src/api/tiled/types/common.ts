@@ -82,7 +82,7 @@ export type {
     TiledKeyPresentFilter,
     TiledLikeFilter,
     TiledSpecsFilter,
-    TiledAccessBlobFilter,
+    TiledAccessTagsFilter,
     TiledStructureFamilyFilter,
 } from './searchFilters';
 export { JSON_VALUED_FILTERS } from './searchFilters';
@@ -116,6 +116,7 @@ export type {
     TiledSearchItem,
     TiledSearchResult,
     TiledMetadataResult,
+    TiledDeleteAssetResponse,
     TiledItemLinks,
     TiledSorting,
     TiledMetadata,

@@ -51,6 +51,7 @@ export type {
     TiledSearchKeyArgs,
     TiledServerInfoVariant,
     TiledServerInfoVariantKey,
+    TiledSearchDeepKey,
     TiledTableKeyArgs,
     TiledWebhookKeyArgs,
 } from './queryKeys';
@@ -72,6 +73,7 @@ export type { TiledInvalidationBundleName, TiledMutationHookName } from './inval
 
 export {
     useTiledSearchQuery,
+    useTiledSearchDeepQuery,
     useTiledSearchBySpecsQuery,
     useTiledSearchByFullTextQuery,
     useTiledSearchByMetadataEqualsQuery,
@@ -158,6 +160,7 @@ export {
     useTiledDeleteRevisionMutation,
     useTiledAssetBytesQuery,
     useTiledAssetManifestQuery,
+    useTiledDeleteAssetMutation,
     useTiledWebhooksQuery,
     useTiledWebhookHistoryQuery,
     useTiledRegisterWebhookMutation,
@@ -170,6 +173,7 @@ export type {
     TiledRevisionsParams,
     TiledDeleteRevisionVariables,
     TiledAssetParams,
+    TiledDeleteAssetVariables,
     TiledRegisterWebhookVariables,
 } from './managementHooks';
 
@@ -194,6 +198,7 @@ export type { TiledLoginVariables, TiledCreateApiKeyVariables } from './authHook
 
 export {
     useTiledGraphQLQuery,
+    useTiledGraphQLGetQuery,
     useTiledGraphQLMutation,
     useTiledGraphEntityQuery,
     useTiledGraphEntitiesQuery,

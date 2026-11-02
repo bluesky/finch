@@ -96,7 +96,7 @@ export interface TiledCreateNodeVariables {
  *         metadata: {},
  *         data_sources: [],
  *         specs: [],
- *         access_blob: {},
+ *         access_tags: [],
  *     },
  * });
  * ```
@@ -131,7 +131,7 @@ export interface TiledUpdateMetadataVariables {
 }
 
 /**
- * Replace a node's metadata, specs and access blob — `PUT /api/v1/metadata/{path}`.
+ * Replace a node's metadata, specs and access tags — `PUT /api/v1/metadata/{path}`.
  *
  * A **whole-document replace**: fields absent from `body` are cleared, not left alone. Use
  * `useTiledPatchMetadataMutation` to change part of a document.
@@ -168,7 +168,7 @@ export interface TiledPatchMetadataVariables {
     mode?: 'merge' | 'json-patch';
     metadata?: PatchMetadataRequest['metadata'];
     specs?: PatchMetadataRequest['specs'];
-    access_blob?: PatchMetadataRequest['access_blob'];
+    access_tags?: PatchMetadataRequest['access_tags'];
     drop_revision?: boolean;
 }
 
@@ -200,12 +200,12 @@ export function useTiledPatchMetadataMutation<TContext = unknown>(
 ): UseMutationResult<PatchMetadataResponse, TiledHookError, TiledPatchMetadataVariables, TContext> {
     return useTiledMutation({
         perform: (client, variables, request) => {
-            const { path, mode = 'merge', metadata, specs, access_blob, drop_revision } = variables;
+            const { path, mode = 'merge', metadata, specs, access_tags, drop_revision } = variables;
             const params = { drop_revision };
             if (mode === 'json-patch') {
                 return client.patchMetadataJsonPatch(
                     path,
-                    { metadata, specs, access_blob },
+                    { metadata, specs, access_tags },
                     params,
                     request,
                 );
@@ -217,7 +217,7 @@ export function useTiledPatchMetadataMutation<TContext = unknown>(
                     // other branch, and the cast records that the caller chose which they meant.
                     metadata: metadata as Record<string, unknown> | undefined,
                     specs,
-                    access_blob: access_blob as Record<string, unknown> | undefined,
+                    access_tags: access_tags as string[] | undefined,
                 },
                 params,
                 request,

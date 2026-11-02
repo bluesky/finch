@@ -114,6 +114,42 @@ export function useTiledGraphQLQuery<TResult = Record<string, unknown>, TData = 
     });
 }
 
+/**
+ * {@link useTiledGraphQLQuery}, sent as `GET /api/graphql?query=…` rather than a POST.
+ *
+ * The same result and the same errors; use it when an HTTP cache or proxy in front of Tiled should
+ * be able to serve the read, which a POST rules out. The server refuses a mutation sent this way
+ * (400), so unlike the POST hook nothing needs refusing client-side. The document rides in the URL —
+ * keep it short. Idles while `document` is blank. Needs Tiled 0.2.19.
+ *
+ * @param document A GraphQL query.
+ * @param variables Its variables, JSON-encoded into the URL.
+ * @param queryOptions TanStack options.
+ * @param requestOptions Transport overrides.
+ */
+export function useTiledGraphQLGetQuery<TResult = Record<string, unknown>, TData = TResult>(
+    document: string,
+    variables?: TiledGraphQLVariables,
+    queryOptions?: FinchQueryOptions<TResult, TData, GraphKey, TiledHookError>,
+    requestOptions?: TiledRequestOptions,
+): UseQueryResult<TData, TiledHookError> {
+    const scope = useTiledQueryScope(requestOptions);
+    const vars = variables ?? {};
+
+    return useTiledQuery({
+        queryKey: tiledQueryKeys.graph(scope, { op: 'rawGet', document, variables: vars }),
+        fetch: (client, request) =>
+            client.graphqlGet<TResult>(
+                requireArg(document.trim() || undefined, 'useTiledGraphQLGetQuery', 'document'),
+                vars,
+                request,
+            ),
+        requestOptions,
+        queryOptions,
+        defaultEnabled: document.trim().length > 0,
+    });
+}
+
 /** What `useTiledGraphQLMutation().mutate` takes. */
 export interface TiledGraphQLMutationVariables {
     /** A GraphQL mutation document. */

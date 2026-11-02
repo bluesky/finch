@@ -73,11 +73,12 @@ const INTENTIONALLY_UNIMPLEMENTED = new Set<string>([
 describe('the spec itself', () => {
     it('is the version this client was built against', () => {
         const info = (openapi as unknown as { info: { version: string } }).info;
-        expect(info.version).toBe('0.2.15b1');
+        expect(info.version).toBe('0.2.19');
     });
 
     it('declares the operations the registry was sized for', () => {
-        expect(specOperations.length).toBe(58);
+        // 0.2.19 added four: search-deep, asset delete, and GET/POST on /api/graphql.
+        expect(specOperations.length).toBe(62);
     });
 });
 

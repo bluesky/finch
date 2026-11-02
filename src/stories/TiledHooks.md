@@ -35,12 +35,15 @@ selected yet".
 
 ### Search
 
-All eight hit `GET /api/v1/search/{path}` and share one cache root. `searchPath: ''` is the root
-container and is legal, so these have no path guard.
+All eight hit `GET /api/v1/search/{path}` and share one cache root. `useTiledSearchDeepQuery` hits
+`GET /api/v1/search-deep/{path}` (Tiled 0.2.19+) under the same root, so every write that refreshes
+searches refreshes it too. `searchPath: ''` is the root container and is legal, so these have no path
+guard.
 
 | hook                                      | arguments                                                                     | `data`                |
 | ----------------------------------------- | ----------------------------------------------------------------------------- | --------------------- |
 | `useTiledSearchQuery`                     | `searchPath, config?: TiledSearchConfig`                                      | `TiledSearchResult`   |
+| `useTiledSearchDeepQuery`                 | `searchPath, config?: TiledSearchConfig` — every descendant; no `sort`        | `TiledSearchResult`   |
 | `useTiledSearchBySpecsQuery`              | `searchPath, { include, exclude }, searchOptions?`                            | `TiledSearchResult`   |
 | `useTiledSearchByFullTextQuery`           | `searchPath, { text }, searchOptions?`                                        | `TiledSearchResult`   |
 | `useTiledSearchByMetadataEqualsQuery`     | `searchPath, { key, value }, searchOptions?`                                  | `TiledSearchResult`   |
@@ -128,6 +131,7 @@ policy it is everything. Lists are one page (default 100) with no total count.
 | `useTiledGraphLinksQuery`      | `{ subjectId?, predicate?, objectId?, limit?, offset? }?` | a page of links (ids for each end)    |
 | `useTiledGraphNamespacesQuery` | —                                                  | the registered CURIE prefixes                |
 | `useTiledGraphQLQuery`         | `document, variables?`                             | whatever the document selects — you type it  |
+| `useTiledGraphQLGetQuery`      | `document, variables?` — sent as a GET, queries only | the same, cacheable by an HTTP cache       |
 
 ---
 
@@ -141,7 +145,7 @@ awaited before `mutateAsync` resolves, so the affected queries have already refe
 | ----------------------------------- | ------------------------------------------------------------------ | -------------------- |
 | `useTiledCreateNodeMutation`        | `{ parentPath, body }`                                             | `structure`          |
 | `useTiledUpdateMetadataMutation`    | `{ path, body, drop_revision? }`                                   | `metadata`, `search` |
-| `useTiledPatchMetadataMutation`     | `{ path, mode?, metadata?, specs?, access_blob?, drop_revision? }` | `metadata`, `search` |
+| `useTiledPatchMetadataMutation`     | `{ path, mode?, metadata?, specs?, access_tags?, drop_revision? }` | `metadata`, `search` |
 | `useTiledDeleteNodeMutation`        | `{ path, recursive?, external_only? }`                             | `structure`, `data`  |
 | `useTiledPutArrayFullMutation`      | `{ path, data, persist? }`                                         | `data`, `metadata`   |
 | `useTiledPutArrayBlockMutation`     | `{ path, data, block, persist? }`                                  | `data`, `metadata`   |
@@ -157,6 +161,7 @@ awaited before `mutateAsync` resolves, so the affected queries have already refe
 | `useTiledRegisterMutation`          | `{ parentPath, body }`                                             | `structure`          |
 | `useTiledPutDataSourceMutation`     | `{ path, body, patch_shape?, patch_offset? }`                      | `structure`, `data`  |
 | `useTiledDeleteRevisionMutation`    | `{ path, number }`                                                 | `metadata`           |
+| `useTiledDeleteAssetMutation`       | `{ path, id, external_only? }` — 409 on internal data unless `false` | `metadata`, `data`, `assets` |
 | `useTiledCloseStreamMutation`       | `{ path }`                                                         | `data`, `metadata`   |
 | `useTiledRegisterWebhookMutation`   | `{ path, body }`                                                   | `webhooks`           |
 | `useTiledDeleteWebhookMutation`     | `{ webhookId }`                                                    | `webhooks`           |
@@ -268,7 +273,7 @@ await create.mutateAsync({
         structure_family: 'array',
         metadata: {},
         specs: [],
-        access_blob: {},
+        access_tags: [],
         data_sources: [{ /* … structure describing what you are about to write … */ }],
     },
 });
@@ -353,9 +358,11 @@ under parameter names the server does not have. FastAPI drops an unknown query p
 rejecting it, so those filters never applied and the search came back **unfiltered** — which reads as
 "the filter matched everything" rather than as a bug. All three now use the names in Tiled's OpenAPI
 schema, verified against a live server. If you have code working around one of them, it can go.
+Tiled 0.2.19 then replaced the access filter outright: `accessBlob: { userId, tags }` is now
+`accessTags: { tags }`, sent as `filter[access_tags_filter]`.
 
 The six conveniences cover the common filters. For the other nine — `lookup`, `keysFilter`, `noteq`,
-`contains`, `in`, `notin`, `keyPresent`, `like`, `accessBlob` — build the config yourself:
+`contains`, `in`, `notin`, `keyPresent`, `like`, `accessTags` — build the config yourself:
 
 ```tsx
 useTiledSearchQuery('experiments', {
@@ -428,13 +435,14 @@ prefix matching still works:
 queryClient.invalidateQueries({ queryKey: ['tiled', 'search'] }); // every search
 ```
 
-Fourteen resources: `search`, `distinct`, `metadata`, `array`, `table`, `container`, `node`, `awkward`,
-`ragged`, `revisions`, `asset`, `webhooks`, `serverInfo`, `auth`. They are named after **resources, not
+Fifteen resources: `search`, `distinct`, `metadata`, `array`, `table`, `container`, `node`, `awkward`,
+`ragged`, `revisions`, `asset`, `webhooks`, `serverInfo`, `auth`, `graph`. They are named after **resources, not
 transports**: when a websocket eventually pushes an update for a node, it will invalidate `metadata`
 through this same surface.
 
 **All eight search hooks share the `search` root**, because they are the same endpoint with different
-filters — two hooks that build identical filters correctly share one entry.
+filters — two hooks that build identical filters correctly share one entry. The deep search shares it
+too, with `deep: true` in its args so it never collides with a shallow search of the same config.
 
 **The scope carries `initialPath` as well as `baseUrl`.** Tiled prepends the client's initial path to
 relative request paths, so the same relative path under two prefixes is two different pieces of data. A
@@ -461,6 +469,7 @@ Build keys with the exported factory rather than by hand — `tiledQueryKeys.sea
 | `metadata`  | metadata, revisions                                    |
 | `data`      | array, table, container, node, awkward, ragged         |
 | `structure` | search, distinct, metadata, revisions, container, node, graph |
+| `assets`    | asset                                                  |
 | `webhooks`  | webhooks                                               |
 | `info`      | serverInfo                                             |
 | `auth`      | auth                                                   |
@@ -494,7 +503,7 @@ falls through to the guard instead of clobbering it.
 | `useTiledArrayBlockQuery`, the asset hooks, `useTiledWebhookHistoryQuery`  | its required argument is defined   |
 | `useTiledGraphEntityQuery`, `useTiledGraphLinkQuery`                       | `id` is non-empty                  |
 | `useTiledGraphNodeEntitiesQuery`                                           | `path` is non-empty                |
-| `useTiledGraphQLQuery`                                                     | `document` is non-blank            |
+| `useTiledGraphQLQuery`, `useTiledGraphQLGetQuery`                          | `document` is non-blank            |
 
 Pass `enabled` in the options to override either way. Forcing one of the last group past its guard raises
 `FinchMissingArgumentError` — named, before any request goes out — rather than sending `undefined` where

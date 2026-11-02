@@ -6,7 +6,11 @@ import type {
     TiledGraphUpdateEntityInput,
     TiledGraphUpdateLinkInput,
 } from '../types/graph';
-import type { TiledGraphOperationDescriptor } from '../types/registry';
+import {
+    payloadAs,
+    type TiledEndpointDescriptor,
+    type TiledGraphOperationDescriptor,
+} from '../types/registry';
 
 /**
  * The graph-of-links operations, one per root field of `../graph/schema.graphql`.
@@ -161,5 +165,61 @@ export const graphEndpointDescriptors: readonly TiledGraphOperationDescriptor[] 
         destructive: true,
         sampleVariables: { prefix: '' },
         call: (client, vars) => client.deleteGraphNamespace(String(vars.prefix ?? '')),
+    },
+];
+
+/**
+ * The GraphQL route itself, as `openapi.json` declares it — two operations, `POST` and `GET`.
+ *
+ * These are REST descriptors, in `TILED_ENDPOINTS` with the rest of the spec, because since Tiled
+ * 0.2.19 the spec lists the route and `TiledRegistry.test.ts` holds every spec operation to a
+ * descriptor. They carry a whole GraphQL document; the per-field operations above are the typed view.
+ *
+ * `POST` runs anything, mutations included, so it is flagged destructive. `GET` runs queries only —
+ * the server refuses a mutation sent that way — and needs a `query`, so a read-only sweep skips it.
+ */
+export const graphTransportEndpointDescriptors: readonly TiledEndpointDescriptor[] = [
+    {
+        id: 'graph.execute',
+        group: 'graph',
+        method: 'POST',
+        path: '/api/graphql',
+        operationId: 'handle_http_post_api_graphql_post',
+        fn: 'graphql',
+        summary: 'Run any GraphQL document. Can write.',
+        destructive: true,
+        sampleBody: { query: '{ namespaces { prefix uri } }', variables: {} },
+        call: (client, input) => {
+            const { query, variables } = payloadAs<{
+                query?: string;
+                variables?: Record<string, unknown>;
+            }>(input);
+            return client.graphql(query ?? '', variables ?? {});
+        },
+    },
+    {
+        id: 'graph.executeViaGet',
+        group: 'graph',
+        method: 'GET',
+        path: '/api/graphql',
+        operationId: 'handle_http_get_api_graphql_get',
+        fn: 'graphqlGet',
+        summary: 'Run a GraphQL query from the URL. Queries only.',
+        params: [
+            { name: 'query', in: 'query', required: true, description: 'A GraphQL query' },
+            {
+                name: 'variables',
+                in: 'query',
+                required: false,
+                description: 'Its variables, as a JSON object',
+            },
+        ],
+        call: (client, input) =>
+            client.graphqlGet(
+                input.params?.query ?? '',
+                input.params?.variables
+                    ? (JSON.parse(input.params.variables) as Record<string, unknown>)
+                    : {},
+            ),
     },
 ];
