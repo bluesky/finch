@@ -24,6 +24,8 @@ export declare const TILED_INVALIDATION_BUNDLES: {
      * *search* returns and what a parent *container* read contains, not just that node's own entry.
      */
     readonly structure: readonly ["search", "distinct", "metadata", "revisions", "container", "node", "graph"];
+    /** Raw asset reads — bytes and manifests. */
+    readonly assets: readonly ["asset"];
     readonly webhooks: readonly ["webhooks"];
     readonly info: readonly ["serverInfo"];
     /** Identity changed. */
@@ -74,6 +76,7 @@ export declare const TILED_MUTATION_INVALIDATIONS: {
     readonly useTiledRegisterMutation: readonly ["structure"];
     readonly useTiledPutDataSourceMutation: readonly ["structure", "data"];
     readonly useTiledDeleteRevisionMutation: readonly ["metadata"];
+    readonly useTiledDeleteAssetMutation: readonly ["metadata", "data", "assets"];
     readonly useTiledCloseStreamMutation: readonly ["data", "metadata"];
     readonly useTiledRegisterWebhookMutation: readonly ["webhooks"];
     readonly useTiledDeleteWebhookMutation: readonly ["webhooks"];

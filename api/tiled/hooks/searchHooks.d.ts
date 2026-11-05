@@ -1,6 +1,6 @@
 import { UseQueryResult } from '@tanstack/react-query';
 import { TiledComparisonFilter, TiledEqualityFilter, TiledFulltextFilter, TiledRegexFilter, TiledRequestOptions, TiledSearchConfig, TiledSearchOptions, TiledSearchResult, TiledSpecsFilter, TiledStructureFamilyFilter } from '../types/common';
-import { TiledQueryKeyFor } from './queryKeys';
+import { TiledQueryKeyFor, TiledSearchDeepKey } from './queryKeys';
 import { FinchQueryOptions, TiledHookError } from './types';
 /**
  * Search hooks — every one of them a `GET /api/v1/search/{path}` with different filters.
@@ -17,7 +17,7 @@ import { FinchQueryOptions, TiledHookError } from './types';
  * `…ByFullText`, `…ByMetadataEquals`, `…ByStructureFamily`); regex and comparison do not exist in the
  * package but did exist in the legacy Finch hooks, and `TiledSearchFilters` supports them, so they are
  * kept for parity. For the remaining nine filters (`lookup`, `keysFilter`, `noteq`, `contains`, `in`,
- * `notin`, `keyPresent`, `like`, `accessBlob`) use `useTiledSearchQuery` directly.
+ * `notin`, `keyPresent`, `like`, `accessTags`) use `useTiledSearchQuery` directly.
  *
  * **Filter values are passed as themselves, never as hand-written JSON.** Six filters — `eq`,
  * `noteq`, `comparison`, `contains`, `in`, `notin` — have a `value` the server parses as JSON, so the
@@ -42,6 +42,21 @@ type SearchQueryOptions<TData> = FinchQueryOptions<TiledSearchResult, TData, Til
  * @param requestOptions Transport overrides: `baseUrl`, `apiKey`, `initialPath`, `pathMode`, `signal`.
  */
 export declare function useTiledSearchQuery<TData = TiledSearchResult>(searchPath: string, config?: TiledSearchConfig, queryOptions?: SearchQueryOptions<TData>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/**
+ * Search every descendant of a container, at any depth — `GET /api/v1/search-deep/{path}`.
+ *
+ * Takes the same config as {@link useTiledSearchQuery}. A hit's `id` is only its own key; its path
+ * below the root is `[...attributes.ancestors, id]`. Cap the depth with `searchOptions.maxDepth`
+ * (1–64). **No sorting**: `searchOptions.sort` makes the server answer 400. Needs Tiled 0.2.19.
+ *
+ * Keyed under the `search` root, so every write that refreshes searches refreshes this too.
+ *
+ * @param searchPath Container to search below. `''` is the root container.
+ * @param config `{ searchFilters, searchOptions }`. Part of the query key.
+ * @param queryOptions TanStack options: `enabled`, `refetchInterval`, `staleTime`, `select`, …
+ * @param requestOptions Transport overrides; see `TiledRequestOptions`.
+ */
+export declare function useTiledSearchDeepQuery<TData = TiledSearchResult>(searchPath: string, config?: TiledSearchConfig, queryOptions?: FinchQueryOptions<TiledSearchResult, TData, TiledSearchDeepKey, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
 /**
  * Search by item specs (Tiled's tags) — e.g. every `BlueskyRun` in a container.
  *

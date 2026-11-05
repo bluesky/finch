@@ -6,6 +6,7 @@ export declare const tableWriteEndpointDescriptors: readonly TiledEndpointDescri
 export declare const nodeWriteEndpointDescriptors: readonly TiledEndpointDescriptor[];
 export declare const awkwardWriteEndpointDescriptors: readonly TiledEndpointDescriptor[];
 export declare const managementWriteEndpointDescriptors: readonly TiledEndpointDescriptor[];
+export declare const assetWriteEndpointDescriptors: readonly TiledEndpointDescriptor[];
 export declare const webhookWriteEndpointDescriptors: readonly TiledEndpointDescriptor[];
 /**
  * Auth endpoints.

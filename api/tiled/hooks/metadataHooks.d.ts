@@ -56,7 +56,7 @@ export interface TiledCreateNodeVariables {
  *         metadata: {},
  *         data_sources: [],
  *         specs: [],
- *         access_blob: {},
+ *         access_tags: [],
  *     },
  * });
  * ```
@@ -73,7 +73,7 @@ export interface TiledUpdateMetadataVariables {
     drop_revision?: boolean;
 }
 /**
- * Replace a node's metadata, specs and access blob — `PUT /api/v1/metadata/{path}`.
+ * Replace a node's metadata, specs and access tags — `PUT /api/v1/metadata/{path}`.
  *
  * A **whole-document replace**: fields absent from `body` are cleared, not left alone. Use
  * `useTiledPatchMetadataMutation` to change part of a document.
@@ -93,7 +93,7 @@ export interface TiledPatchMetadataVariables {
     mode?: 'merge' | 'json-patch';
     metadata?: PatchMetadataRequest['metadata'];
     specs?: PatchMetadataRequest['specs'];
-    access_blob?: PatchMetadataRequest['access_blob'];
+    access_tags?: PatchMetadataRequest['access_tags'];
     drop_revision?: boolean;
 }
 /**

@@ -4,7 +4,7 @@ import { TiledHttpMethod } from '../types/errors';
 import { TiledGraphBindEntityInput, TiledGraphCreateEntityInput, TiledGraphCreateLinkInput, TiledGraphEntity, TiledGraphEntityFilters, TiledGraphEntityNodePath, TiledGraphNodeEntityFilters, TiledGraphLink, TiledGraphLinkFilters, TiledGraphNamespace, TiledGraphQLVariables, TiledGraphUpdateEntityInput, TiledGraphUpdateLinkInput } from '../types/graph';
 import { GetDistinctResponse, DeliveryResponse, PatchMetadataRequest, PatchMetadataResponse, PostMetadataRequest, PostMetadataResponse, PutDataSourceRequest, PutMetadataRequest, PutMetadataResponse, WebhookRegistrationRequest, WebhookResponse } from '../types/generatedAliases';
 import { TiledAuthProvider, TiledInfoResponse } from '../types/info';
-import { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
+import { TiledDeleteAssetResponse, TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
 import { TiledApiKeyLocation, TiledApiKeyScheme, TiledAuthErrorCallback, TiledLoginTokens, TiledRequestOptions } from '../types/requestOptions';
 import { TiledArrayBufferOptions, TiledArrayImagePathOptions, TiledArrayJSONOptions, TiledArrayOptionsMap, TiledArrayPngOptions, TiledArrayReturnMap, TiledArrayReturnType, TiledAwkwardRequestOptions, TiledNodeRequestOptions, TiledRaggedRequestOptions, TiledTableJSONOptions, TiledTableJSONSequenceOptions, TiledTableOptionsMap, TiledTableRequestOptions, TiledTableReturnMap, TiledTableReturnType, TiledTableEndpoint } from '../types/dataOptions';
 import { TiledStructures } from '../types/structures';
@@ -236,6 +236,7 @@ export declare class TiledApiClient {
     /** Apply the client's array byte budget unless the call set its own. */
     private resolveArrayOptions;
     private searchPath;
+    private searchDeepPath;
     private distinctPath;
     private metadataPath;
     private dataPath;
@@ -262,6 +263,19 @@ export declare class TiledApiClient {
      * `searchPath: ''` is the root container, and legal.
      */
     getSearch(searchPath: string, config?: TiledSearchConfig, options?: TiledRequestOptions): Promise<TiledSearchResult>;
+    /**
+     * `GET /search-deep/{path}` — search every descendant of a container, at any depth, rather than
+     * only its direct children.
+     *
+     * Takes the same filters and pagination as {@link getSearch}, and returns the same envelope. A
+     * hit's `id` is its own key only; its full path is `[...attributes.ancestors, id]`, relative to
+     * `searchPath`'s root. `searchOptions.maxDepth` caps how many levels below `searchPath` are
+     * searched (1–64; 1 is the direct children).
+     *
+     * Rejects with 400 when `searchOptions.sort` is set — the server does not sort a deep search —
+     * and with 404 when `searchPath` is not a container. Added in Tiled 0.2.19.
+     */
+    getSearchDeep(searchPath: string, config?: TiledSearchConfig, options?: TiledRequestOptions): Promise<TiledSearchResult>;
     /**
      * `GET /distinct/{path}` — the distinct values of metadata keys, specs and structure families
      * across a container, optionally with counts.
@@ -291,7 +305,7 @@ export declare class TiledApiClient {
      * to write — the server allocates from it and does not infer it later.
      */
     createNode(parentPath: string, body: PostMetadataRequest, options?: TiledRequestOptions): Promise<PostMetadataResponse>;
-    /** `PUT /metadata/{path}` — replace a node's metadata, specs and access blob wholesale. */
+    /** `PUT /metadata/{path}` — replace a node's metadata, specs and access tags wholesale. */
     updateMetadata(path: string, body: PutMetadataRequest, params?: {
         drop_revision?: boolean;
     }, options?: TiledRequestOptions): Promise<PutMetadataResponse>;
@@ -313,7 +327,8 @@ export declare class TiledApiClient {
     patchMetadataMerge(path: string, body: {
         metadata?: Record<string, unknown>;
         specs?: PatchMetadataRequest['specs'];
-        access_blob?: Record<string, unknown>;
+        /** Replaces the node's access tags outright. */
+        access_tags?: string[];
     }, params?: {
         drop_revision?: boolean;
     }, options?: TiledRequestOptions): Promise<PatchMetadataResponse>;
@@ -321,7 +336,7 @@ export declare class TiledApiClient {
     patchMetadataJsonPatch(path: string, body: {
         metadata?: PatchMetadataRequest['metadata'];
         specs?: PatchMetadataRequest['specs'];
-        access_blob?: PatchMetadataRequest['access_blob'];
+        access_tags?: PatchMetadataRequest['access_tags'];
     }, params?: {
         drop_revision?: boolean;
     }, options?: TiledRequestOptions): Promise<PatchMetadataResponse>;
@@ -542,6 +557,23 @@ export declare class TiledApiClient {
     getAssetManifest(path: string, params: {
         id: number;
     }, options?: TiledRequestOptions): Promise<unknown>;
+    /**
+     * `DELETE /asset/{path}` — detach one asset from a node, and delete it if nothing else uses it.
+     *
+     * `external_only` defaults to **true** server-side: an internally managed asset — one Tiled
+     * wrote, such as an uploaded array's zarr directory — is then refused with a 409, because
+     * deleting the record would delete the data. Pass `external_only: false` to mean it. An
+     * externally managed (registered) file is never deleted from disk, only detached.
+     *
+     * 404 when the node has no asset with that id; 403 when the server sets
+     * `expose_raw_assets: false`. Verified against Tiled 0.2.19, where it was added.
+     *
+     * Destructive and not undoable; flagged as such in the endpoint registry.
+     */
+    deleteAsset(path: string, params: {
+        id: number;
+        external_only?: boolean;
+    }, options?: TiledRequestOptions): Promise<TiledDeleteAssetResponse>;
     /** `GET /webhooks/target/{path}` — the webhooks registered on a node. */
     listWebhooks(path: string, options?: TiledRequestOptions): Promise<WebhookResponse[]>;
     /** `POST /webhooks/target/{path}` — register a webhook for a node's events. */
@@ -630,6 +662,23 @@ export declare class TiledApiClient {
      * `--api-key`) it sees everything, although REST would answer the same caller 401.
      */
     graphql<T = Record<string, unknown>>(document: string, variables?: TiledGraphQLVariables, options?: TiledRequestOptions): Promise<T>;
+    /**
+     * {@link graphql}, sent as `GET /api/graphql?query=…&variables=…` — **queries only**.
+     *
+     * Same result, same errors, but a URL rather than a body, so an HTTP cache or a proxy in front of
+     * Tiled can serve it. The server refuses a mutation sent this way with a 400 ("mutations are not
+     * allowed when using GET"), so a write cannot run by accident; use {@link graphql} for writes.
+     * Keep documents short: the whole query travels in the URL. Verified against Tiled 0.2.19.
+     */
+    graphqlGet<T = Record<string, unknown>>(document: string, variables?: TiledGraphQLVariables, options?: TiledRequestOptions): Promise<T>;
+    /**
+     * The one GraphQL funnel `graphql` and `graphqlGet` share: the request, then the envelope checks.
+     *
+     * GET carries the document and JSON-encoded variables as query parameters, which is how
+     * Strawberry, Tiled's GraphQL server, reads them. `Accept: application/json` matters there: a GET
+     * that a browser-ish `Accept` makes look like a page load is answered with the GraphiQL IDE.
+     */
+    private sendGraphQL;
     /** One entity by id, or `null` when it does not exist or the caller may not see it. */
     getGraphEntity(id: string, options?: TiledRequestOptions): Promise<TiledGraphEntity | null>;
     /** One page of entities, filtered by type and/or bound node. The server pages at 100. */

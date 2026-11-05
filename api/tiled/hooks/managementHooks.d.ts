@@ -1,5 +1,5 @@
 import { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
-import { TiledRequestOptions } from '../types/common';
+import { TiledDeleteAssetResponse, TiledRequestOptions } from '../types/common';
 import { DeliveryResponse, PostMetadataRequest, PostMetadataResponse, PutDataSourceRequest, WebhookRegistrationRequest, WebhookResponse } from '../types/generatedAliases';
 import { TiledQueryKeyFor } from './queryKeys';
 import { FinchMutationOptions, FinchQueryOptions, TiledHookError } from './types';
@@ -82,6 +82,26 @@ export declare function useTiledAssetBytesQuery<TData = ArrayBuffer>(path: strin
 export declare function useTiledAssetManifestQuery<TData = unknown>(path: string, params: {
     id: number;
 } | undefined, queryOptions?: FinchQueryOptions<unknown, TData, TiledQueryKeyFor<'asset'>, TiledHookError>, requestOptions?: TiledRequestOptions): UseQueryResult<TData, TiledHookError>;
+/** What `useTiledDeleteAssetMutation().mutate` takes. */
+export interface TiledDeleteAssetVariables {
+    /** The node the asset belongs to. */
+    path: string;
+    /** The asset's numeric id, from the node's `data_sources[].assets[].id`. */
+    id: number;
+    /**
+     * Server default **true**: refuse (409) when the asset is internally managed, because deleting
+     * it deletes the data. `false` means it.
+     */
+    external_only?: boolean;
+}
+/**
+ * Detach one asset from a node, and delete it if nothing else references it —
+ * `DELETE /api/v1/asset/{path}`. Destructive and not undoable. Needs Tiled 0.2.19.
+ *
+ * Resolves to `{ asset_deleted, data_deleted }`; `data_deleted` is false when the file was only
+ * detached. Refreshes the node's metadata (its `data_sources`), its data reads, and asset reads.
+ */
+export declare function useTiledDeleteAssetMutation<TContext = unknown>(mutationOptions?: FinchMutationOptions<TiledDeleteAssetResponse, TiledDeleteAssetVariables, TContext, TiledHookError>, requestOptions?: TiledRequestOptions): UseMutationResult<TiledDeleteAssetResponse, TiledHookError, TiledDeleteAssetVariables, TContext>;
 /**
  * The webhooks registered on a node — `GET /api/v1/webhooks/target/{path}`.
  *

@@ -23,6 +23,7 @@ export declare const TILED_PATHS: {
     readonly about: "/api/v1/";
     readonly metrics: "/api/v1/metrics";
     readonly search: "/api/v1/search/{path}";
+    readonly searchDeep: "/api/v1/search-deep/{path}";
     readonly distinct: "/api/v1/distinct/{path}";
     readonly metadata: "/api/v1/metadata/{path}";
     readonly arrayFull: "/api/v1/array/full/{path}";
@@ -39,11 +40,13 @@ export declare const TILED_PATHS: {
     readonly dataSource: "/api/v1/data_source/{path}";
     readonly revisions: "/api/v1/revisions/{path}";
     readonly streamClose: "/api/v1/stream/close/{path}";
+    readonly asset: "/api/v1/asset/{path}";
     readonly assetBytes: "/api/v1/asset/bytes/{path}";
     readonly assetManifest: "/api/v1/asset/manifest/{path}";
     readonly webhookTarget: "/api/v1/webhooks/target/{path}";
     readonly webhookById: "/api/v1/webhooks/{webhook_id}";
     readonly webhookHistory: "/api/v1/webhooks/history/{webhook_id}";
+    readonly graphql: "/api/graphql";
     readonly zarrV2Zattrs: "/zarr/v2/{path}/.zattrs";
     readonly zarrV2ZattrsRoot: "/zarr/v2{path}.zattrs";
     readonly zarrV2Zgroup: "/zarr/v2/{path}/.zgroup";
@@ -58,11 +61,11 @@ export declare const TILED_PATHS: {
 /**
  * The graph-of-links GraphQL endpoint. Origin-scoped, like `/healthz`.
  *
- * Not in {@link TILED_PATHS}, because that table is the spec's path list and is checked against it:
- * the graph router is not in `openapi.json` at all. Its coverage is checked against
- * `../graph/schema.graphql` instead — see `TiledGraph.test.tsx`.
+ * Tiled 0.2.19 is the first release whose `openapi.json` declares it, so it is in
+ * {@link TILED_PATHS} too; this name is kept because it reads better at the call sites. The GraphQL
+ * operations themselves are checked against `../graph/schema.graphql` — see `TiledGraph.test.tsx`.
  */
-export declare const TILED_GRAPHQL_PATH = "/api/graphql";
+export declare const TILED_GRAPHQL_PATH: "/api/graphql";
 /** Alias keys of {@link TILED_PATHS}, e.g. `'arrayFull'`. */
 export type TiledPathAlias = keyof typeof TILED_PATHS;
 /** The registered path literals — a subset of {@link TiledSpecPath} by construction. */

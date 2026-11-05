@@ -26,7 +26,7 @@ export interface ContainerChildCreatedMessage {
     specs: Spec[];
     metadata: Record<string, unknown>;
     data_sources: unknown[];
-    access_blob: Record<string, unknown>;
+    access_tags: string[];
 }
 /** A direct child's metadata or specs were replaced or patched. */
 export interface ContainerChildMetadataUpdatedMessage {

@@ -8,8 +8,9 @@ import { EntryFields, Operator, StructureFamily } from './generatedAliases';
  * the six JSON-valued ones overridden. Defining all fifteen here means the set is checked against
  * `openapi.json` rather than against a package that was, in three places, wrong about the parameter
  * names — see `client/searchParams.ts`, which is where the encoding lives and where the fixes are
- * documented. The TypeScript key names are unchanged (`keysFilter`, `keyPresent`, `accessBlob`), so
- * no call site moves; only the strings that go on the wire were wrong.
+ * documented. The TypeScript key names are unchanged (`keysFilter`, `keyPresent`), so no call site
+ * moves; only the strings that go on the wire were wrong. The one exception is `accessTags`, which
+ * replaced `accessBlob` when Tiled 0.2.19 replaced the filter itself.
  *
  * **2. Six filter values are widened, deliberately.** `eq`, `noteq`, `comparison`, `contains`, `in`
  * and `notin` have a `value` the *server* parses with `json.loads`. The package typed that field
@@ -89,10 +90,14 @@ export interface TiledSpecsFilter {
     include: string[];
     exclude: string[];
 }
-/** Filter by the access-control blob: owner and tags. */
-export interface TiledAccessBlobFilter {
-    userId?: string | null;
-    tags?: string[];
+/**
+ * Match nodes carrying at least one of the given access tags.
+ *
+ * Replaced the `accessBlob` filter (`{ userId, tags }`) in Tiled 0.2.19, which dropped the owner
+ * half: ownership is now itself a tag. An empty list sends nothing.
+ */
+export interface TiledAccessTagsFilter {
+    tags: string[];
 }
 /** Filter by structure family. */
 export interface TiledStructureFamilyFilter {
@@ -113,7 +118,7 @@ export interface TiledSearchFilters {
     keyPresent?: TiledKeyPresentFilter;
     like?: TiledLikeFilter;
     specs?: TiledSpecsFilter;
-    accessBlob?: TiledAccessBlobFilter;
+    accessTags?: TiledAccessTagsFilter;
     structureFamily?: TiledStructureFamilyFilter;
 }
 /**

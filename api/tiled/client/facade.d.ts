@@ -4,7 +4,7 @@ import { TiledBinaryBody } from '../types/common';
 import { DeliveryResponse, GetDistinctResponse, PatchMetadataRequest, PatchMetadataResponse, PostMetadataRequest, PostMetadataResponse, PutDataSourceRequest, PutMetadataRequest, PutMetadataResponse, StructureFamily, WebhookRegistrationRequest, WebhookResponse } from '../types/generatedAliases';
 import { TiledGraphBindEntityInput, TiledGraphCreateEntityInput, TiledGraphCreateLinkInput, TiledGraphEntity, TiledGraphEntityFilters, TiledGraphEntityNodePath, TiledGraphNodeEntityFilters, TiledGraphLink, TiledGraphLinkFilters, TiledGraphNamespace, TiledGraphQLVariables, TiledGraphUpdateEntityInput, TiledGraphUpdateLinkInput } from '../types/graph';
 import { TiledAuthProvider, TiledInfoResponse } from '../types/info';
-import { TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
+import { TiledDeleteAssetResponse, TiledSearchItem, TiledSearchResult, TiledTableRow } from '../types/nodes';
 import { TiledLoginTokens, TiledRequestOptions } from '../types/requestOptions';
 import { TiledDistinctConfig, TiledSearchConfig } from '../types/searchFilters';
 import { TiledArrayBufferOptions, TiledArrayImagePathOptions, TiledArrayJSONOptions, TiledArrayOptionsMap, TiledArrayPngOptions, TiledArrayReturnMap, TiledArrayReturnType, TiledAwkwardRequestOptions, TiledNodeRequestOptions, TiledRaggedRequestOptions, TiledTableEndpoint, TiledTableJSONOptions, TiledTableJSONSequenceOptions, TiledTableOptionsMap, TiledTableRequestOptions, TiledTableReturnMap, TiledTableReturnType } from '../types/dataOptions';
@@ -26,6 +26,8 @@ export declare function getTiledHealth(options?: TiledRequestOptions): Promise<u
 export declare function getTiledUiSettings(options?: TiledRequestOptions): Promise<unknown>;
 export declare function getTiledMetrics(options?: TiledRequestOptions): Promise<unknown>;
 export declare function getTiledSearch(searchPath: string, config?: TiledSearchConfig, options?: TiledRequestOptions): Promise<TiledSearchResult>;
+/** Search every descendant of a container, at any depth; see `TiledApiClient.getSearchDeep`. */
+export declare function getTiledSearchDeep(searchPath: string, config?: TiledSearchConfig, options?: TiledRequestOptions): Promise<TiledSearchResult>;
 export declare function getTiledDistinct(searchPath: string, config?: TiledDistinctConfig, options?: TiledRequestOptions): Promise<GetDistinctResponse>;
 /**
  * The four filter conveniences the package shipped, rebuilt on {@link getTiledSearch}.
@@ -170,6 +172,11 @@ export declare function getTiledAssetBytes(path: string, params: {
 export declare function getTiledAssetManifest(path: string, params: {
     id: number;
 }, options?: TiledRequestOptions): Promise<unknown>;
+/** Detach an asset, deleting it if unreferenced; see `TiledApiClient.deleteAsset`. */
+export declare function deleteTiledAsset(path: string, params: {
+    id: number;
+    external_only?: boolean;
+}, options?: TiledRequestOptions): Promise<TiledDeleteAssetResponse>;
 export declare function listTiledWebhooks(path: string, options?: TiledRequestOptions): Promise<WebhookResponse[]>;
 export declare function registerTiledWebhook(path: string, body: WebhookRegistrationRequest, options?: TiledRequestOptions): Promise<WebhookResponse>;
 export declare function deleteTiledWebhook(webhookId: number, options?: TiledRequestOptions): Promise<unknown>;
@@ -190,6 +197,8 @@ export declare function revokeTiledSession(sessionId: string, options?: TiledReq
 export declare function tiledLogout(options?: TiledRequestOptions): Promise<unknown>;
 /** Any GraphQL document against the graph endpoint; see `TiledApiClient.graphql`. */
 export declare function tiledGraphQL<T = Record<string, unknown>>(document: string, variables?: TiledGraphQLVariables, options?: TiledRequestOptions): Promise<T>;
+/** A GraphQL query sent as a GET; see `TiledApiClient.graphqlGet`. */
+export declare function tiledGraphQLGet<T = Record<string, unknown>>(document: string, variables?: TiledGraphQLVariables, options?: TiledRequestOptions): Promise<T>;
 export declare function getTiledGraphEntity(id: string, options?: TiledRequestOptions): Promise<TiledGraphEntity | null>;
 export declare function getTiledGraphEntities(filters?: TiledGraphEntityFilters, options?: TiledRequestOptions): Promise<TiledGraphEntity[]>;
 export declare function getTiledGraphLink(id: string, options?: TiledRequestOptions): Promise<TiledGraphLink | null>;

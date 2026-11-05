@@ -22,9 +22,13 @@ import { TiledDistinctConfig, TiledSearchConfig, TiledSearchFilters, TiledSearch
  * | `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]` |
  * | `accessBlob` | `filter[access_blob][condition][…]` | `filter[access_blob_filter][condition][…]` |
  *
+ * (`accessBlob` is gone since: Tiled 0.2.19 replaced the filter with `access_tags_filter`, which
+ * `accessTags` encodes.)
+ *
  * Confirmed twice over: the spec's query parameter list, and the live server's own `About.queries`
  * (`['fulltext', 'lookup', 'keys_filter', 'regex', …, 'keypresent', 'like', 'specs',
- * 'access_blob_filter', 'structure_family']`).
+ * 'access_blob_filter', 'structure_family']`) — on 0.2.15b1. 0.2.19 reports `access_tags_filter`
+ * in its place.
  *
  * ## Lists travel two different ways, and getting it wrong is a 500
  *
