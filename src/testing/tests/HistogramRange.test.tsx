@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import HistogramRange from '../../components/HistogramRange';
+import HistogramRange from '../../components/HistogramRange/HistogramRange';
+import type { HistogramRangeProps } from '../../components/HistogramRange/HistogramRange';
 
-/** Ten bins, so the default edges are 0..10 and edge indices equal data values. */
+/** Ten bins with edges 0..10, so edge indices equal data values. */
 const COUNTS = [1, 2, 3, 4, 5, 5, 4, 3, 2, 1];
+const EDGES = Array.from({ length: 11 }, (_, i) => i);
 
-/** Track geometry the pointer maths is driven against; jsdom reports zeros otherwise. */
+/** Plot geometry the pointer maths is driven against; jsdom reports zeros otherwise. */
 const RECT = { width: 200, height: 100, left: 0, top: 0 } as DOMRect;
 
 beforeEach(() => {
@@ -20,479 +23,575 @@ afterEach(() => {
     vi.restoreAllMocks();
 });
 
-/** Horizontal: an x offset that lands on the given edge index of a ten-bin plot. */
-const xFor = (idx: number, bins = 10) => (idx / bins) * RECT.width;
-/** Vertical: a y offset that lands on the given edge index (low values at the bottom). */
+function setup(props: Partial<HistogramRangeProps> = {}) {
+    const onChange = vi.fn();
+    const onChangeCommitted = vi.fn();
+    const all: HistogramRangeProps = {
+        counts: COUNTS,
+        binEdges: EDGES,
+        value: [2, 5],
+        onChange,
+        onChangeCommitted,
+        ...props,
+    };
+    const utils = render(<HistogramRange {...all} />);
+    return { ...utils, onChange, onChangeCommitted, props: all };
+}
+
+const sliders = () => screen.getAllByRole('slider');
+const valueNow = (el: HTMLElement) => Number(el.getAttribute('aria-valuenow'));
+const plot = () => screen.getByRole('group', { name: 'Histogram range' });
+const band = (c: HTMLElement) => c.querySelector('[data-role="band"]') as HTMLElement;
+const handleEl = (c: HTMLElement, which: 'lo' | 'hi') =>
+    c.querySelector(`[data-role="handle-${which}"]`) as HTMLElement;
+/** A horizontal pointer x that lands on edge `idx` of a ten-bin, 0..10 plot. */
+const xFor = (idx: number) => (idx / 10) * RECT.width;
+/** A vertical pointer y that lands on edge `idx` (low values at the bottom). */
 const yFor = (idx: number) => RECT.height - (idx / 10) * RECT.height;
 
-/** Bin indices drawn in a given bar path, read back from its `M{i},...` subpaths. */
-const binsIn = (d: string | null) =>
-    [...(d ?? '').matchAll(/M(\d+),/g)].map((m) => Number(m[1])).sort((a, b) => a - b);
+/** Bar runs read back from the SVG: faded flag and their extent in view-box units (0..1000). */
+function runs(c: HTMLElement) {
+    return [...c.querySelectorAll('svg path')].map((p) => {
+        const d = p.getAttribute('d') ?? '';
+        const xs = [...d.matchAll(/[MH](-?[\d.]+)/g)].map((m) => Number(m[1]));
+        return { faded: p.hasAttribute('data-faded'), from: xs[0], to: xs[xs.length - 1], d };
+    });
+}
 
-const getTrack = () => screen.getByRole('group', { name: 'Histogram range' });
+const press = (el: Element, x: number, y = 50) =>
+    fireEvent.pointerDown(el, { clientX: x, clientY: y, pointerId: 1 });
+const move = (x: number, y = 50) =>
+    fireEvent.pointerMove(plot(), { clientX: x, clientY: y, pointerId: 1 });
+const release = (x: number, y = 50) =>
+    fireEvent.pointerUp(plot(), { clientX: x, clientY: y, pointerId: 1 });
 
 describe('HistogramRange', () => {
-    it('renders without crashing', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} />);
-        expect(container.firstChild).toBeInTheDocument();
-    });
-
-    it('renders two sliders spanning the full domain by default', () => {
-        render(<HistogramRange counts={COUNTS} />);
-        const sliders = screen.getAllByRole('slider');
-        expect(sliders).toHaveLength(2);
-        expect(sliders[0]).toHaveAttribute('aria-valuenow', '0');
-        expect(sliders[1]).toHaveAttribute('aria-valuenow', '10');
-        expect(sliders[0]).toHaveAttribute('aria-valuemin', '0');
-        expect(sliders[0]).toHaveAttribute('aria-valuemax', '10');
-    });
-
-    it('renders a title when given one', () => {
-        render(<HistogramRange counts={COUNTS} title="Intensity" />);
-        expect(screen.getByText('Intensity')).toBeInTheDocument();
-    });
-
-    it('derives edges half a bin outside the first and last binCenters', () => {
-        const binCenters = COUNTS.map((_, i) => i * 100);
-        render(<HistogramRange counts={COUNTS} binCenters={binCenters} />);
-        const sliders = screen.getAllByRole('slider');
-        expect(sliders[0]).toHaveAttribute('aria-valuenow', '-50');
-        expect(sliders[1]).toHaveAttribute('aria-valuenow', '950');
-    });
-
-    it('bins raw values and spans the full domain, not just the bin centers', () => {
-        render(
-            <HistogramRange values={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]} bins={5} domain={[0, 10]} />,
-        );
-        const sliders = screen.getAllByRole('slider');
-        // Five bins over 0..10 have edges 0, 2, 4, 6, 8, 10.
-        expect(sliders[0]).toHaveAttribute('aria-valuemin', '0');
-        expect(sliders[0]).toHaveAttribute('aria-valuemax', '10');
-    });
-
-    it('uses binEdges for the domain and reported values', () => {
-        render(<HistogramRange counts={[1, 1, 1]} binEdges={[-5, 0, 2.5, 100]} />);
-        const sliders = screen.getAllByRole('slider');
-        expect(sliders[0]).toHaveAttribute('aria-valuemin', '-5');
-        expect(sliders[0]).toHaveAttribute('aria-valuemax', '100');
-        expect(sliders[0]).toHaveAttribute('aria-valuenow', '-5');
-        expect(sliders[1]).toHaveAttribute('aria-valuenow', '100');
-    });
-
-    it('ignores binEdges of the wrong length', () => {
-        render(<HistogramRange counts={[1, 1, 1]} binEdges={[0, 1]} />);
-        expect(screen.getAllByRole('slider')[1]).toHaveAttribute('aria-valuenow', '3');
-    });
-
     describe('threshold semantics', () => {
-        const EDGES = [0, 1, 2, 3, 4];
-        const FLAT = [1, 1, 1, 1];
-
-        it('reports the left edge of the first and the right edge of the last included bin', () => {
-            const { container } = render(
-                <HistogramRange counts={FLAT} binEdges={EDGES} value={[1, 3]} />,
-            );
-            const sliders = screen.getAllByRole('slider');
-            expect(sliders[0]).toHaveAttribute('aria-valuenow', '1');
-            expect(sliders[1]).toHaveAttribute('aria-valuenow', '3');
-            // Selection [1, 3] covers bins 1 and 2 only.
-            const unfaded = container.querySelector('path[data-faded="false"]');
-            const faded = container.querySelectorAll('path[data-faded="true"]');
-            expect(binsIn(unfaded?.getAttribute('d') ?? null)).toEqual([1, 2]);
-            expect(binsIn([...faded].map((p) => p.getAttribute('d')).join(''))).toEqual([0, 3]);
+        it('selects from the left edge of the first included bin to the right edge of the last', () => {
+            const { container } = setup({ value: [1, 3] });
+            const [lo, hi] = sliders();
+            expect(valueNow(lo)).toBe(1);
+            expect(valueNow(hi)).toBe(3);
+            // Bins 1 and 2 are drawn as included; bin 0 and bins 3..9 are faded.
+            expect(runs(container).map(({ faded, from, to }) => [faded, from, to])).toEqual([
+                [true, 0, 100],
+                [false, 100, 300],
+                [true, 300, 1000],
+            ]);
+            // The selection area, a styling hook like data-faded, spans the same edges.
+            const selection = container.querySelector('[data-selection]');
+            expect(Number(selection?.getAttribute('x'))).toBeCloseTo(100, 6);
+            expect(Number(selection?.getAttribute('width'))).toBeCloseTo(200, 6);
         });
 
-        it('reports [1, 3] when bins 1 and 2 are selected by dragging', () => {
-            const onChangeCommitted = vi.fn();
-            render(
+        it('reports the supplied edges exactly, on a linear or a log axis', () => {
+            const binEdges = [3, 7.3, 21.9, 123.456, 987.65];
+            for (const valueScale of ['linear', 'log'] as const) {
+                const { onChange, unmount } = setup({
+                    counts: [1, 1, 1, 1],
+                    binEdges,
+                    value: null,
+                    valueScale,
+                });
+                fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+                fireEvent.keyDown(sliders()[1], { key: 'ArrowLeft' });
+                expect(onChange.mock.calls[0][0]).toEqual([7.3, 987.65]);
+                expect(onChange.mock.calls[1][0]).toEqual([3, 123.456]);
+                for (const [range] of onChange.mock.calls) {
+                    for (const v of range) expect(binEdges).toContain(v);
+                }
+                unmount();
+            }
+        });
+
+        it('reports the percentage of the population below each edge', () => {
+            const { onChange } = setup({
+                counts: [1, 1, 1, 1],
+                binEdges: [0, 1, 2, 3, 4],
+                value: null,
+            });
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenCalledWith([1, 4], [25, 100]);
+            fireEvent.keyDown(sliders()[1], { key: 'Home' });
+            expect(onChange).toHaveBeenLastCalledWith([0, 1], [0, 25]);
+        });
+
+        it('reports the share of bins when every count is zero, so a full span is still [0, 100]', () => {
+            const { onChange } = setup({
+                counts: [0, 0, 0, 0],
+                binEdges: [0, 1, 2, 3, 4],
+                value: null,
+            });
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenCalledWith([1, 4], [25, 100]);
+        });
+
+        it('leaves negative and NaN counts out of the percentiles and draws them as zero', () => {
+            const { onChange, container } = setup({
+                counts: [-5, NaN, 4],
+                binEdges: [0, 1, 2, 3],
+                value: [1, 3],
+            });
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenCalledWith([2, 3], [0, 100]);
+            expect(runs(container)[0].d).toContain('V1000 H333');
+        });
+    });
+
+    describe('controlled value', () => {
+        it('snaps a value between edges to the nearest edge, rounding exactly halfway up', () => {
+            setup({ value: [1.5, 3.4] });
+            expect(sliders().map(valueNow)).toEqual([2, 3]);
+        });
+
+        it('snaps on the display scale: arithmetic on linear edges, geometric under log', () => {
+            const props = { counts: [1, 1], binEdges: [10, 100, 1000] };
+            setup({ ...props, value: [31, 33] });
+            expect(sliders().map(valueNow)).toEqual([10, 10]);
+            document.body.innerHTML = '';
+            // The geometric midpoint of 10 and 100 is 31.6.
+            setup({ ...props, value: [31, 33], valueScale: 'log' });
+            expect(sliders().map(valueNow)).toEqual([10, 100]);
+        });
+
+        it('snaps on irregular edges', () => {
+            setup({ counts: [1, 1, 1, 1], binEdges: [0, 1, 4, 9, 16], value: [2.4, 2.6] });
+            expect(sliders().map(valueNow)).toEqual([1, 4]);
+        });
+
+        it('sorts a reversed value and clamps it to the domain', () => {
+            const { rerender, props } = setup({ value: [8, 2] });
+            expect(sliders().map(valueNow)).toEqual([2, 8]);
+            rerender(<HistogramRange {...props} value={[-5, 50]} />);
+            expect(sliders().map(valueNow)).toEqual([0, 10]);
+        });
+
+        it('selects the whole domain for null', () => {
+            setup({ value: null });
+            expect(sliders().map(valueNow)).toEqual([0, 10]);
+        });
+
+        it('re-snaps the value when the histogram changes after mount', () => {
+            const { rerender, props } = setup({ value: [2, 6] });
+            rerender(<HistogramRange {...props} counts={[1, 1]} binEdges={[0, 5, 10]} />);
+            expect(sliders().map(valueNow)).toEqual([0, 5]);
+        });
+    });
+
+    describe('data validation', () => {
+        it('renders "No data" without warning while counts and edges are both empty', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            setup({ counts: [], binEdges: [], value: null });
+            expect(screen.getByText('No data')).toBeInTheDocument();
+            expect(screen.queryAllByRole('slider')).toHaveLength(0);
+            expect(warn).not.toHaveBeenCalled();
+        });
+
+        it('warns once and draws nothing when binEdges does not have counts.length + 1 entries', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const { rerender, props } = setup({ counts: [1, 2], binEdges: [0, 1] });
+            rerender(<HistogramRange {...props} />);
+            expect(screen.getByText('No data')).toBeInTheDocument();
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn.mock.calls[0][0]).toContain('expected counts.length + 1 = 3');
+        });
+
+        it('starts a log axis at the first positive edge and does not draw the bins before it', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const { container, onChange } = setup({
+                counts: [5, 1, 1, 1],
+                binEdges: [0, 1, 10, 100, 1000],
+                value: null,
+                valueScale: 'log',
+            });
+            // Bin 0 ([0, 1), five dead pixels) is not drawn; bins 1..3 fill the axis in thirds.
+            const [run] = runs(container);
+            expect(runs(container)).toHaveLength(1);
+            expect(run.d.startsWith('M0,1000')).toBe(true);
+            const xs = [...run.d.matchAll(/H([\d.]+)/g)].map((m) => Number(m[1]));
+            expect(xs).toHaveLength(3);
+            expect(xs[0]).toBeCloseTo(333.33, 1);
+            // It still counts in the percentiles, and its edge is still a threshold.
+            fireEvent.keyDown(sliders()[1], { key: 'ArrowLeft' });
+            expect(onChange).toHaveBeenLastCalledWith([0, 100], [0, 87.5]);
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenLastCalledWith([1, 1000], [62.5, 100]);
+            expect(warn).not.toHaveBeenCalled();
+        });
+
+        it('never picks an undrawn edge with the pointer', () => {
+            const { onChange, container } = setup({
+                counts: [5, 1, 1, 1],
+                binEdges: [0, 1, 10, 100, 1000],
+                value: [10, 1000],
+                valueScale: 'log',
+            });
+            press(plot(), 0);
+            expect(onChange).toHaveBeenLastCalledWith([1, 1000], expect.any(Array));
+            release(0);
+            press(band(container), 100);
+            move(0);
+            expect(onChange).not.toHaveBeenLastCalledWith(
+                [0, expect.any(Number)],
+                expect.any(Array),
+            );
+        });
+
+        it('warns once and draws a linear axis when fewer than two edges are positive', () => {
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const { container, onChange } = setup({
+                counts: [1, 1, 1],
+                binEdges: [-2, -1, 0, 1],
+                value: null,
+                valueScale: 'log',
+            });
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn.mock.calls[0][0]).toContain('at least two strictly positive binEdges');
+            expect(runs(container)[0].d).toMatch(/H333\.\d+ .*H666\.\d+ .*H1000/);
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenCalledWith([-1, 1], [expect.closeTo(100 / 3, 9), 100]);
+        });
+    });
+
+    describe('geometry', () => {
+        it('draws irregular bins at their true widths', () => {
+            const { container } = setup({
+                counts: [1, 1, 1],
+                binEdges: [0, 1, 3, 10],
+                value: null,
+            });
+            const [run] = runs(container);
+            expect(run.d).toMatch(/H100 .*H300 .*H1000/);
+        });
+
+        it('draws log-spaced bins equally wide under valueScale="log"', () => {
+            const { container } = setup({
+                counts: [1, 1, 1],
+                binEdges: [1, 10, 100, 1000],
+                value: null,
+                valueScale: 'log',
+            });
+            const xs = [...runs(container)[0].d.matchAll(/H([\d.]+)/g)].map((m) => Number(m[1]));
+            expect(xs[0]).toBeCloseTo(333.33, 1);
+            expect(xs[1]).toBeCloseTo(666.67, 1);
+            expect(xs[2]).toBeCloseTo(1000, 6);
+        });
+
+        it('compresses linear bins toward the top of a log axis', () => {
+            const { container } = setup({
+                counts: [1, 1],
+                binEdges: [1, 500.5, 1000],
+                value: null,
+                valueScale: 'log',
+            });
+            const [first] = [...runs(container)[0].d.matchAll(/H([\d.]+)/g)].map((m) =>
+                Number(m[1]),
+            );
+            expect(first).toBeCloseTo((Math.log10(500.5) / 3) * 1000, 1);
+        });
+
+        it('draws the reference range at its exact data positions, compared by value', () => {
+            const { container, rerender, props } = setup({
+                value: null,
+                referenceRange: [2.5, 7.25],
+            });
+            const rect = container.querySelector('[data-testid="histogram-range-reference"]');
+            expect(rect).toHaveAttribute('x', '250');
+            expect(rect).toHaveAttribute('width', '475');
+            rerender(<HistogramRange {...props} referenceRange={[2.5, 7.25]} />);
+            expect(container.querySelector('[data-testid="histogram-range-reference"]')).toBe(rect);
+            rerender(<HistogramRange {...props} referenceRange={[-5, 20]} />);
+            expect(rect).toHaveAttribute('x', '0');
+            expect(rect).toHaveAttribute('width', '1000');
+            // Amber (#fbbf24) by default; referenceColor tints it instead.
+            expect((rect as SVGRectElement).style.fill).toMatch(/#fbbf24|rgb\(251, 191, 36\)/);
+            expect((rect as SVGRectElement).style.fillOpacity).toBe('0.25');
+            rerender(
                 <HistogramRange
-                    counts={FLAT}
-                    binEdges={EDGES}
-                    onChangeCommitted={onChangeCommitted}
+                    {...props}
+                    referenceRange={[2.5, 7.25]}
+                    referenceColor="rgb(124, 58, 237)"
                 />,
             );
-            const track = getTrack();
-            // Lower handle onto edge 1, then upper handle onto edge 3.
-            fireEvent.pointerDown(track, { clientX: xFor(1, 4), clientY: 0, pointerId: 1 });
-            fireEvent.pointerUp(track, { clientX: xFor(1, 4), clientY: 0, pointerId: 1 });
-            fireEvent.pointerDown(track, { clientX: xFor(3, 4), clientY: 0, pointerId: 1 });
-            fireEvent.pointerUp(track, { clientX: xFor(3, 4), clientY: 0, pointerId: 1 });
-
-            const [range, percentiles] = onChangeCommitted.mock.calls[1];
-            expect(range).toEqual([1, 3]);
-            // One of four bins lies below edge 1, three of four below edge 3.
-            expect(percentiles).toEqual([25, 75]);
-        });
-
-        it('rounds a value exactly halfway between edges up, deterministically', () => {
-            render(<HistogramRange counts={FLAT} binEdges={EDGES} value={[0.5, 2.5]} />);
-            const sliders = screen.getAllByRole('slider');
-            expect(sliders[0]).toHaveAttribute('aria-valuenow', '1');
-            expect(sliders[1]).toHaveAttribute('aria-valuenow', '3');
-        });
-
-        it('snaps values to the nearest edge for irregular binCenters', () => {
-            // Centers 1, 2, 4, 8 give edges 0.5, 1.5, 3, 6, 10.
-            render(<HistogramRange counts={FLAT} binCenters={[1, 2, 4, 8]} value={[2.9, 6.1]} />);
-            const sliders = screen.getAllByRole('slider');
-            expect(sliders[0]).toHaveAttribute('aria-valuemin', '0.5');
-            expect(sliders[0]).toHaveAttribute('aria-valuemax', '10');
-            expect(sliders[0]).toHaveAttribute('aria-valuenow', '3');
-            expect(sliders[1]).toHaveAttribute('aria-valuenow', '6');
+            expect((rect as SVGRectElement).style.fill).toBe('rgb(124, 58, 237)');
+            expect((rect as SVGRectElement).style.fillOpacity).toBe('0.25');
         });
     });
 
-    it('prefers counts over values when both are supplied', () => {
-        render(<HistogramRange counts={COUNTS} values={[0, 0, 0]} bins={2} />);
-        expect(screen.getAllByRole('slider')[1]).toHaveAttribute('aria-valuenow', '10');
-    });
+    describe('axes', () => {
+        const labels = (testId: string) =>
+            [...screen.getByTestId(testId).querySelectorAll('span.absolute')].map(
+                (s) => s.textContent,
+            );
 
-    it('honours defaultValue', () => {
-        render(<HistogramRange counts={COUNTS} defaultValue={[2, 8]} />);
-        const sliders = screen.getAllByRole('slider');
-        expect(sliders[0]).toHaveAttribute('aria-valuenow', '2');
-        expect(sliders[1]).toHaveAttribute('aria-valuenow', '8');
-    });
+        it('draws both axes linear by default', () => {
+            setup({ counts: [0, 10, 4], binEdges: [0, 1, 2, 3], value: null });
+            expect(labels('histogram-range-side-axis')).toEqual(['0', '2', '4', '6', '8', '10']);
+        });
 
-    it('is controlled when value is supplied', () => {
-        const { rerender } = render(<HistogramRange counts={COUNTS} value={[3, 7]} />);
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-valuenow', '3');
-
-        // An interaction must not move a controlled handle on its own.
-        fireEvent.pointerDown(getTrack(), { clientX: xFor(5), clientY: 0, pointerId: 1 });
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-valuenow', '3');
-
-        rerender(<HistogramRange counts={COUNTS} value={[1, 9]} />);
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-valuenow', '1');
-    });
-
-    it('calls onChange and onChangeCommitted with data units when a handle is dragged', () => {
-        const onChange = vi.fn();
-        const onChangeCommitted = vi.fn();
-        render(
-            <HistogramRange
-                counts={COUNTS}
-                onChange={onChange}
-                onChangeCommitted={onChangeCommitted}
-            />,
-        );
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(3), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(3), clientY: 0, pointerId: 1 });
-
-        expect(onChange).toHaveBeenCalled();
-        expect(onChange.mock.calls[onChange.mock.calls.length - 1][0]).toEqual([3, 10]);
-        expect(onChangeCommitted).toHaveBeenCalledOnce();
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([3, 10]);
-    });
-
-    it('reports percentiles of the distribution as the second callback argument', () => {
-        const onChangeCommitted = vi.fn();
-        // A flat distribution makes the expected percentile easy to state.
-        const flat = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-        render(<HistogramRange counts={flat} onChangeCommitted={onChangeCommitted} />);
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(4), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(4), clientY: 0, pointerId: 1 });
-
-        const [, percentiles] = onChangeCommitted.mock.calls[0];
-        // Four of ten bins lie below edge 4.
-        expect(percentiles[0]).toBeCloseTo(40, 10);
-        expect(percentiles[1]).toBe(100);
-    });
-
-    it('drags the upper handle when the pointer is nearer to it', () => {
-        const onChangeCommitted = vi.fn();
-        render(<HistogramRange counts={COUNTS} onChangeCommitted={onChangeCommitted} />);
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(8), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(8), clientY: 0, pointerId: 1 });
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([0, 8]);
-    });
-
-    it('pans the whole band when the pointer starts well inside the selection', () => {
-        const onChangeCommitted = vi.fn();
-        render(
-            <HistogramRange
-                counts={COUNTS}
-                defaultValue={[2, 8]}
-                onChangeCommitted={onChangeCommitted}
-            />,
-        );
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
-        fireEvent.pointerMove(track, { clientX: xFor(6), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(6), clientY: 0, pointerId: 1 });
-        // The window keeps its width of six bins and shifts by one.
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([3, 9]);
-    });
-
-    it('clamps a band drag so the window stays inside the domain', () => {
-        const onChangeCommitted = vi.fn();
-        render(
-            <HistogramRange
-                counts={COUNTS}
-                defaultValue={[2, 8]}
-                onChangeCommitted={onChangeCommitted}
-            />,
-        );
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
-        fireEvent.pointerMove(track, { clientX: xFor(10), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(10), clientY: 0, pointerId: 1 });
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([4, 10]);
-    });
-
-    it('enforces minBinSeparation between the handles', () => {
-        const onChangeCommitted = vi.fn();
-        render(
-            <HistogramRange
-                counts={COUNTS}
-                defaultValue={[0, 4]}
-                minBinSeparation={3}
-                onChangeCommitted={onChangeCommitted}
-            />,
-        );
-        const track = getTrack();
-        // Aiming the lower handle at bin 2 must stop three bins short of the upper one.
-        fireEvent.pointerDown(track, { clientX: xFor(2), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(2), clientY: 0, pointerId: 1 });
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([1, 4]);
-    });
-
-    it('grabs whichever handle the pointer is nearest, not always the lower one', () => {
-        const onChangeCommitted = vi.fn();
-        render(<HistogramRange counts={COUNTS} onChangeCommitted={onChangeCommitted} />);
-        const track = getTrack();
-        fireEvent.pointerDown(track, { clientX: xFor(9), clientY: 0, pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: xFor(9), clientY: 0, pointerId: 1 });
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([0, 9]);
-    });
-
-    it('moves the focused handle with arrow keys and Shift for a larger step', () => {
-        const onChangeCommitted = vi.fn();
-        render(<HistogramRange counts={COUNTS} onChangeCommitted={onChangeCommitted} />);
-        const [lo] = screen.getAllByRole('slider');
-
-        fireEvent.keyDown(lo, { key: 'ArrowRight' });
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-valuenow', '1');
-
-        fireEvent.keyDown(screen.getAllByRole('slider')[0], { key: 'ArrowRight', shiftKey: true });
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-valuenow', '9');
-        expect(onChangeCommitted).toHaveBeenCalledTimes(2);
-    });
-
-    it('moves the upper handle with Home and End', () => {
-        render(<HistogramRange counts={COUNTS} defaultValue={[0, 5]} />);
-        const hi = screen.getAllByRole('slider')[1];
-        fireEvent.keyDown(hi, { key: 'End' });
-        expect(screen.getAllByRole('slider')[1]).toHaveAttribute('aria-valuenow', '10');
-        fireEvent.keyDown(screen.getAllByRole('slider')[1], { key: 'Home' });
-        // Cannot cross the lower handle, so it stops one bin above it.
-        expect(screen.getAllByRole('slider')[1]).toHaveAttribute('aria-valuenow', '1');
-    });
-
-    it('ignores unrelated keys', () => {
-        const onChangeCommitted = vi.fn();
-        render(<HistogramRange counts={COUNTS} onChangeCommitted={onChangeCommitted} />);
-        fireEvent.keyDown(screen.getAllByRole('slider')[0], { key: 'a' });
-        expect(onChangeCommitted).not.toHaveBeenCalled();
-    });
-
-    it('inverts the pointer mapping when vertical', () => {
-        const onChangeCommitted = vi.fn();
-        render(
-            <HistogramRange
-                counts={COUNTS}
-                orientation="vertical"
-                onChangeCommitted={onChangeCommitted}
-            />,
-        );
-        const track = getTrack();
-        // Near the bottom of a vertical plot is a low value.
-        fireEvent.pointerDown(track, { clientX: 0, clientY: yFor(2), pointerId: 1 });
-        fireEvent.pointerUp(track, { clientX: 0, clientY: yFor(2), pointerId: 1 });
-        expect(onChangeCommitted.mock.calls[0][0]).toEqual([2, 10]);
-        expect(screen.getAllByRole('slider')[0]).toHaveAttribute('aria-orientation', 'vertical');
-    });
-
-    it('hides the handles and ignores pointer input when readOnly', () => {
-        const onChange = vi.fn();
-        render(<HistogramRange counts={COUNTS} readOnly onChange={onChange} />);
-        expect(screen.queryAllByRole('slider')).toHaveLength(0);
-        fireEvent.pointerDown(getTrack(), { clientX: xFor(5), clientY: 0, pointerId: 1 });
-        expect(onChange).not.toHaveBeenCalled();
-    });
-
-    it('renders faded and unfaded bar runs when the selection is partial', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} defaultValue={[3, 7]} />);
-        const paths = container.querySelectorAll('path');
-        expect(paths.length).toBeGreaterThan(1);
-        expect(container.querySelector('path.fill-slate-300')).toBeInTheDocument();
-        expect(container.querySelector('path.fill-slate-500')).toBeInTheDocument();
-    });
-
-    it('draws bars as filled one-bin rectangles rather than hairline strokes', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} />);
-        const path = container.querySelector('path') as SVGPathElement;
-        expect(path.getAttribute('class')).not.toMatch(/stroke-/);
-        expect(path).not.toHaveAttribute('vector-effect');
-        // Each bar is a closed one-unit-wide rectangle starting at its bin index.
-        expect(path.getAttribute('d')).toMatch(/^M0,44h1v-[\d.]+h-1z/);
-        expect(binsIn(path.getAttribute('d'))).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-    });
-
-    it('draws a single unfaded run when fadeOutsideSelection is false', () => {
-        const { container } = render(
-            <HistogramRange counts={COUNTS} defaultValue={[3, 7]} fadeOutsideSelection={false} />,
-        );
-        expect(container.querySelectorAll('path')).toHaveLength(1);
-        expect(container.querySelector('path.fill-slate-300')).not.toBeInTheDocument();
-    });
-
-    it('renders bars for a linear count axis without crashing', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} logCounts={false} />);
-        expect(container.querySelector('path')).toBeInTheDocument();
-    });
-
-    it('renders an empty plot for empty counts without crashing', () => {
-        const { container } = render(<HistogramRange counts={[]} />);
-        expect(container.firstChild).toBeInTheDocument();
-        expect(screen.queryAllByRole('slider')).toHaveLength(0);
-    });
-
-    it('applies a custom aria-label to the group and both handles', () => {
-        render(<HistogramRange counts={COUNTS} ariaLabel="Display levels" />);
-        expect(screen.getByRole('group', { name: 'Display levels' })).toBeInTheDocument();
-        expect(screen.getByRole('slider', { name: 'Display levels minimum' })).toBeInTheDocument();
-        expect(screen.getByRole('slider', { name: 'Display levels maximum' })).toBeInTheDocument();
-    });
-
-    it('applies the size prop to the root element', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} size="small" />);
-        expect(container.firstChild).toHaveClass('w-48', 'h-24');
-    });
-
-    it('defaults to the medium size so it renders sensibly standalone', () => {
-        const { container } = render(<HistogramRange counts={COUNTS} />);
-        expect(container.firstChild).toHaveClass('w-80', 'h-32');
-    });
-
-    it('applies classNameSelection to the selection highlight', () => {
-        const { container } = render(
-            <HistogramRange counts={COUNTS} classNameSelection="selection-class" />,
-        );
-        expect(container.querySelector('rect')).toHaveClass('selection-class');
-    });
-
-    it('applies className, classNamePlot, classNameHandle and classNameTitle', () => {
-        const { container } = render(
-            <HistogramRange
-                counts={COUNTS}
-                title="Levels"
-                className="root-class"
-                classNamePlot="plot-class"
-                classNameHandle="handle-class"
-                classNameTitle="title-class"
-            />,
-        );
-        expect(container.firstChild).toHaveClass('root-class');
-        expect(getTrack()).toHaveClass('plot-class');
-        expect(screen.getAllByRole('slider')[0]).toHaveClass('handle-class');
-        expect(screen.getByText('Levels')).toHaveClass('title-class');
-    });
-
-    it('passes arbitrary props through to the root element', () => {
-        render(<HistogramRange counts={COUNTS} data-testid="histogram-range" />);
-        expect(screen.getByTestId('histogram-range')).toBeInTheDocument();
-    });
-
-    describe('animation-frame throttling', () => {
-        let frames: Map<number, FrameRequestCallback>;
-        let nextId: number;
-
-        beforeEach(() => {
-            frames = new Map();
-            nextId = 1;
-            vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
-                const id = nextId++;
-                frames.set(id, cb);
-                return id;
+        it('labels a linear value axis in data units and a log1p count axis at decades', () => {
+            setup({
+                counts: [0, 5000, 20, 1],
+                binEdges: [0, 250, 500, 750, 1000],
+                value: null,
+                countScale: 'log',
+                valueAxisTitle: 'Intensity',
             });
-            vi.spyOn(window, 'cancelAnimationFrame').mockImplementation((id) => {
-                frames.delete(id);
-            });
+            expect(labels('histogram-range-bottom-axis')).toEqual([
+                '0',
+                '200',
+                '400',
+                '600',
+                '800',
+                '1000',
+            ]);
+            // Labelled like a log value axis, with unlabelled minor ticks at 2–9 x each decade.
+            const countTicks = labels('histogram-range-side-axis');
+            expect(countTicks.filter(Boolean)).toEqual(['0', '1', '10', '100', '1e+3']);
+            expect(countTicks.filter((l) => l === '')).toHaveLength(8 * 3 + 4);
+            expect(screen.getByText('Intensity')).toBeInTheDocument();
+            expect(screen.getByText('Counts')).toBeInTheDocument();
         });
 
-        const flushFrames = () => {
-            const pending = [...frames.values()];
-            frames.clear();
-            pending.forEach((cb) => cb(performance.now()));
-        };
+        it('labels a log value axis at decades, independent of a linear count axis', () => {
+            setup({
+                counts: [1, 10, 4],
+                binEdges: [1, 10, 100, 1000],
+                value: null,
+                valueScale: 'log',
+                countScale: 'linear',
+                countAxisTitle: 'Pixels',
+            });
+            expect(labels('histogram-range-bottom-axis').filter(Boolean)).toEqual([
+                '1',
+                '10',
+                '100',
+                '1e+3',
+            ]);
+            expect(labels('histogram-range-side-axis')).toEqual(['0', '2', '4', '6', '8', '10']);
+            expect(screen.getByText('Pixels')).toBeInTheDocument();
+        });
 
-        it('coalesces a burst of pointer moves into one onChange per frame', () => {
-            const onChange = vi.fn();
-            render(<HistogramRange counts={COUNTS} onChange={onChange} />);
-            const track = getTrack();
-            fireEvent.pointerDown(track, { clientX: xFor(1), clientY: 0, pointerId: 1 });
-            fireEvent.pointerMove(track, { clientX: xFor(2), clientY: 0, pointerId: 1 });
-            fireEvent.pointerMove(track, { clientX: xFor(3), clientY: 0, pointerId: 1 });
-            fireEvent.pointerMove(track, { clientX: xFor(4), clientY: 0, pointerId: 1 });
+        it('puts the value axis at the side when vertical', () => {
+            setup({ orientation: 'vertical', value: null });
+            expect(labels('histogram-range-side-axis')).toEqual(['0', '2', '4', '6', '8', '10']);
+        });
 
+        it('prints plain numbers on linear axes below a million, and 3 digits from there', () => {
+            setup({ counts: [25000, 1], binEdges: [0, 6000, 12000], value: null });
+            expect(labels('histogram-range-bottom-axis')).toEqual([
+                '0',
+                '2000',
+                '4000',
+                '6000',
+                '8000',
+                '10000',
+                '12000',
+            ]);
+            expect(labels('histogram-range-side-axis')).toEqual([
+                '0',
+                '5000',
+                '10000',
+                '15000',
+                '20000',
+                '25000',
+            ]);
+            document.body.innerHTML = '';
+            setup({ counts: [1, 1], binEdges: [0, 2e6, 4e6], value: null });
+            expect(labels('histogram-range-bottom-axis')).toContain('2e+6');
+        });
+    });
+
+    describe('pointer', () => {
+        it('drags a handle by the pointer offset, so grabbing it off-centre does not jump', () => {
+            const { container, onChange } = setup();
+            press(handleEl(container, 'lo'), xFor(2) + 6);
             expect(onChange).not.toHaveBeenCalled();
-            flushFrames();
-            expect(onChange).toHaveBeenCalledTimes(1);
-            // The frame reports the latest position, not the first.
-            expect(onChange.mock.calls[0][0]).toEqual([4, 10]);
+            move(xFor(2) + 6 + xFor(2));
+            expect(onChange).toHaveBeenLastCalledWith([4, 5], expect.any(Array));
         });
 
-        it('flushes the pending frame on pointer-up before committing', () => {
-            const onChange = vi.fn();
-            const onChangeCommitted = vi.fn();
-            render(
-                <HistogramRange
-                    counts={COUNTS}
-                    onChange={onChange}
-                    onChangeCommitted={onChangeCommitted}
-                />,
-            );
-            const track = getTrack();
-            fireEvent.pointerDown(track, { clientX: xFor(1), clientY: 0, pointerId: 1 });
-            fireEvent.pointerMove(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
-            fireEvent.pointerUp(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
+        it('keeps a dragged handle at least one bin from the other', () => {
+            const { container, onChange } = setup();
+            press(handleEl(container, 'lo'), xFor(2));
+            move(xFor(9));
+            expect(onChange).toHaveBeenLastCalledWith([4, 5], expect.any(Array));
+        });
 
+        it('pans the band at fixed width and clamps it at both ends', () => {
+            const { container, onChange } = setup();
+            press(band(container), xFor(3));
+            move(xFor(5));
+            expect(onChange).toHaveBeenLastCalledWith([4, 7], expect.any(Array));
+            move(xFor(10));
+            expect(onChange).toHaveBeenLastCalledWith([7, 10], expect.any(Array));
+            move(0);
+            expect(onChange).toHaveBeenLastCalledWith([0, 3], expect.any(Array));
+        });
+
+        it('jumps the nearest handle to a press on the bare track', () => {
+            const { onChange } = setup();
+            press(plot(), xFor(9));
+            expect(onChange).toHaveBeenLastCalledWith([2, 9], expect.any(Array));
+        });
+
+        it('has no band to pan when the whole domain is selected', () => {
+            const { container, onChange } = setup({ value: null });
+            expect(band(container)).toBeNull();
+            press(plot(), xFor(3));
+            expect(onChange).toHaveBeenLastCalledWith([3, 10], expect.any(Array));
+        });
+
+        it('inverts the pointer mapping when vertical', () => {
+            const { onChange } = setup({ orientation: 'vertical' });
+            press(plot(), 50, yFor(8));
+            expect(onChange).toHaveBeenLastCalledWith([2, 8], expect.any(Array));
+        });
+
+        it('does not repeat onChange for the same edges and commits once, after it', () => {
+            const { container, onChange, onChangeCommitted } = setup();
+            press(handleEl(container, 'hi'), xFor(5));
+            move(xFor(5) + 3);
+            move(xFor(7));
+            move(xFor(7) + 3);
+            release(xFor(7) + 3);
             expect(onChange).toHaveBeenCalledTimes(1);
-            expect(onChange.mock.calls[0][0]).toEqual([5, 10]);
-            expect(onChangeCommitted).toHaveBeenCalledWith([5, 10], expect.any(Array));
+            expect(onChange).toHaveBeenCalledWith([2, 7], expect.any(Array));
+            expect(onChangeCommitted).toHaveBeenCalledTimes(1);
+            expect(onChangeCommitted).toHaveBeenCalledWith([2, 7], expect.any(Array));
             expect(onChange.mock.invocationCallOrder[0]).toBeLessThan(
                 onChangeCommitted.mock.invocationCallOrder[0],
             );
-            // The queued frame was cancelled, so flushing adds no extra call.
-            flushFrames();
-            expect(onChange).toHaveBeenCalledTimes(1);
         });
 
-        it('does not repeat onChange on pointer-up when the frame already ran', () => {
-            const onChange = vi.fn();
-            const onChangeCommitted = vi.fn();
-            render(
-                <HistogramRange
-                    counts={COUNTS}
-                    onChange={onChange}
-                    onChangeCommitted={onChangeCommitted}
-                />,
+        it('ends a drag when pointer capture is lost', () => {
+            const { container, onChangeCommitted } = setup();
+            press(band(container), xFor(3));
+            expect(plot()).toHaveClass('cursor-grabbing');
+            fireEvent.lostPointerCapture(plot(), { pointerId: 1 });
+            expect(onChangeCommitted).toHaveBeenCalledTimes(1);
+            expect(plot()).not.toHaveClass('cursor-grabbing');
+        });
+
+        it('shows resize cursors on the handles and the hand only on the band', () => {
+            const { container, rerender, props } = setup();
+            expect(handleEl(container, 'lo')).toHaveClass('cursor-col-resize');
+            expect(handleEl(container, 'hi')).toHaveClass('cursor-col-resize');
+            expect(band(container)).toHaveClass('cursor-grab');
+            expect(plot().className).not.toMatch(/cursor-/);
+            rerender(<HistogramRange {...props} orientation="vertical" />);
+            expect(handleEl(container, 'lo')).toHaveClass('cursor-row-resize');
+        });
+    });
+
+    describe('keyboard', () => {
+        it('moves a handle one bin, ten with Shift, to the ends with Home/End, never past the other', () => {
+            const { onChange, onChangeCommitted } = setup();
+            const [lo, hi] = sliders();
+            fireEvent.keyDown(lo, { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenLastCalledWith([3, 5], expect.any(Array));
+            fireEvent.keyDown(lo, { key: 'ArrowRight', shiftKey: true });
+            expect(onChange).toHaveBeenLastCalledWith([4, 5], expect.any(Array));
+            fireEvent.keyDown(lo, { key: 'Home' });
+            expect(onChange).toHaveBeenLastCalledWith([0, 5], expect.any(Array));
+            fireEvent.keyDown(hi, { key: 'End' });
+            expect(onChange).toHaveBeenLastCalledWith([2, 10], expect.any(Array));
+            fireEvent.keyDown(hi, { key: 'ArrowDown' });
+            expect(onChange).toHaveBeenLastCalledWith([2, 4], expect.any(Array));
+            expect(onChangeCommitted).toHaveBeenCalledTimes(5);
+            expect(onChange.mock.invocationCallOrder[4]).toBeLessThan(
+                onChangeCommitted.mock.invocationCallOrder[4],
             );
-            const track = getTrack();
-            fireEvent.pointerDown(track, { clientX: xFor(1), clientY: 0, pointerId: 1 });
-            fireEvent.pointerMove(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
-            flushFrames();
-            expect(onChange).toHaveBeenCalledTimes(1);
+        });
 
-            fireEvent.pointerUp(track, { clientX: xFor(5), clientY: 0, pointerId: 1 });
+        it('ignores other keys and moves that change nothing', () => {
+            const { onChange } = setup({ value: [0, 10] });
+            fireEvent.keyDown(sliders()[0], { key: 'a' });
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowLeft' });
+            fireEvent.keyDown(sliders()[1], { key: 'End' });
+            expect(onChange).not.toHaveBeenCalled();
+        });
+    });
 
-            expect(onChange).toHaveBeenCalledTimes(1);
-            expect(onChangeCommitted).toHaveBeenCalledOnce();
-            expect(onChangeCommitted.mock.calls[0][0]).toEqual([5, 10]);
+    describe('consumer mappings', () => {
+        /**
+         * An application that stores 8-bit levels as an inclusive [lo, hi] over 0..255.
+         * Bins are 0..255 with edges 0..256, so a level window maps to edges [lo, hi + 1].
+         */
+        function InclusiveLevels({ initial }: { initial: [number, number] }) {
+            const [levels, setLevels] = useState(initial);
+            return (
+                <>
+                    <HistogramRange
+                        counts={Array.from({ length: 256 }, () => 1)}
+                        binEdges={Array.from({ length: 257 }, (_, i) => i)}
+                        value={[levels[0], levels[1] + 1]}
+                        onChange={([a, b]) => setLevels([a, b - 1])}
+                    />
+                    <output data-testid="levels">{levels.join(',')}</output>
+                </>
+            );
+        }
+
+        it('round-trips inclusive 8-bit levels at both ends of the range', () => {
+            render(<InclusiveLevels initial={[10, 200]} />);
+            expect(sliders().map(valueNow)).toEqual([10, 201]);
+            fireEvent.keyDown(sliders()[0], { key: 'Home' });
+            fireEvent.keyDown(sliders()[1], { key: 'End' });
+            expect(screen.getByTestId('levels').textContent).toBe('0,255');
+            expect(sliders().map(valueNow)).toEqual([0, 256]);
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            fireEvent.keyDown(sliders()[1], { key: 'ArrowLeft' });
+            expect(screen.getByTestId('levels').textContent).toBe('1,254');
+        });
+    });
+
+    describe('rendering', () => {
+        it('names the group and both sliders', () => {
+            const { container } = setup({ 'aria-label': 'Levels' });
+            expect(screen.getByRole('group', { name: 'Histogram range' })).toBeInTheDocument();
+            expect(
+                screen.getByRole('slider', { name: 'Histogram range minimum' }),
+            ).toBeInTheDocument();
+            expect(
+                screen.getByRole('slider', { name: 'Histogram range maximum' }),
+            ).toBeInTheDocument();
+            // An application's own name goes on the root element.
+            expect(container.firstElementChild).toHaveAttribute('aria-label', 'Levels');
+        });
+
+        it('colours the bars, the selection and the handles with one color', () => {
+            const green = 'rgb(22, 163, 74)';
+            const { container, rerender, props } = setup({ value: [1, 3], color: green });
+            const [faded, inside] = [...container.querySelectorAll<SVGPathElement>('svg path')];
+            expect(faded).toHaveAttribute('data-faded');
+            expect(faded.style.fill).toBe(green);
+            expect(faded.style.fillOpacity).toBe('0.3');
+            expect(inside.style.fill).toBe(green);
+            expect(inside.style.fillOpacity).toBe('1');
+            const selection = container.querySelector<SVGRectElement>('[data-selection]');
+            expect(selection?.style.fill).toBe(green);
+            expect(selection?.style.fillOpacity).toBe('0.15');
+            for (const part of handleEl(container, 'lo').querySelectorAll('span')) {
+                expect(part.style.backgroundColor).toBe(green);
+            }
+            // Without it, the default classes are left to style everything.
+            rerender(<HistogramRange {...props} color={undefined} />);
+            expect(container.querySelectorAll('[style*="fill"]')).toHaveLength(0);
+            expect(handleEl(container, 'lo').querySelector('span')?.style.backgroundColor).toBe('');
+        });
+
+        it('renders the title, size, className and other div props', () => {
+            const { container } = setup({
+                title: 'Mask threshold',
+                size: 'small',
+                className: 'extra',
+                id: 'h',
+            });
+            expect(screen.getByRole('heading', { name: 'Mask threshold' })).toBeInTheDocument();
+            const root = container.firstElementChild as HTMLElement;
+            expect(root).toHaveClass('w-60', 'h-32', 'extra');
+            expect(root).toHaveAttribute('id', 'h');
         });
     });
 });

@@ -81,10 +81,9 @@ jobs:
           npm run test:run -- src/testing/tests/InputNumber.test.tsx
           npm run test:run -- src/testing/tests/InputStringBoxRounded.test.tsx
           npm run test:run -- src/testing/tests/Main.test.tsx
-          npm run test:run -- src/testing/tests/MaskOverlayCanvas.test.tsx
-          npm run test:run -- src/testing/tests/MaskOverlayCanvasLegend.test.tsx
           npm run test:run -- src/testing/tests/Paper.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyMaskOverlay.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
           npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
           npm run test:run -- src/testing/tests/QSConsoleFormatting.test.tsx
@@ -98,6 +97,9 @@ jobs:
           npm run test:run -- src/testing/tests/TiledComponents.test.tsx
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
+          npm run test:run -- src/testing/tests/annotationGeometry.test.ts
+          npm run test:run -- src/testing/tests/pickPixel.test.ts
+          npm run test:run -- src/testing/tests/plotlyShapes.test.ts
           npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
           npm run test:run -- src/testing/tests/visualizationUtils.test.ts
           echo "Running queue server client test suites..."

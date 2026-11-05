@@ -1,6 +1,7 @@
 /**
- * Rasterization helpers: turning label arrays, binary masks and raw intensity
- * data into RGBA pixel buffers.
+ * Rasterization helpers: turning label arrays and binary masks into RGBA pixel
+ * buffers. Detector intensities are never colour-mapped here; that is the
+ * application backend's job (or Plotly's, for a small raw-array heatmap).
  *
  * These deliberately return a plain `RgbaBuffer` rather than an `ImageData`.
  * `ImageData` is a DOM class and is unavailable under jsdom, so returning one
@@ -8,9 +9,8 @@
  * buffer at draw time, where a real DOM is present anyway.
  */
 
-import { colormapLut, hexToRgb } from '@/utils/colorUtils';
-import { valueRange } from '@/utils/histogramUtils';
-import type { MaskLayer, ResolvedMaskClass } from '@/components/MaskOverlayCanvas/types';
+import { hexToRgb } from '@/utils/colorUtils';
+import type { MaskLayer, ResolvedMaskClass } from '@/components/PlotlyMaskOverlay/types';
 
 /** Largest class id handled by the dense lookup table in {@link labelsToRgba}. */
 const MAX_DENSE_LABEL = 65535;
@@ -23,31 +23,6 @@ export type RgbaBuffer = {
     width: number;
     /** Height in pixels. */
     height: number;
-};
-
-/** Options accepted by {@link arrayToRgba}. */
-export type ArrayToRgbaOptions = {
-    /** Colormap id from `COLORMAPS`. Defaults to `'gray'`. */
-    colormap?: string;
-    /**
-     * Display range as `[min, max]` in data units. Defaults to the extent of the
-     * finite data. Under `log` a lower bound at or below zero does not set the
-     * bottom of the colormap: it becomes the smallest positive sample within the
-     * domain. A positive lower bound is used exactly.
-     */
-    domain?: [number, number];
-    /**
-     * Apply `log10` before normalizing. Values at or below zero are outside the
-     * log domain and are painted with `underRangeColor` instead of a colormap
-     * color, so `0` never shares a color with the smallest positive value.
-     * Defaults to `false`.
-     */
-    log?: boolean;
-    /**
-     * RGBA (0–255 each) for non-positive pixels under `log`. Defaults to fully
-     * transparent `[0, 0, 0, 0]`. Unused without `log`.
-     */
-    underRangeColor?: [number, number, number, number];
 };
 
 /**
@@ -168,48 +143,28 @@ export function binaryMasksToRgba(
 }
 
 /**
- * Color-maps a raw intensity array to RGBA.
- *
- * Clip-normalizes into `domain` (after `log10` when `log` is set), then reads a
- * lookup table. Values outside the domain clamp to the ends of the colormap.
- * Under `log`, non-positive values are under-range rather than clamped, and take
- * `underRangeColor`. Non-finite samples are treated as the domain minimum so a
- * stray `NaN` renders as the low end of the colormap rather than a hole. Every
- * pixel is opaque except under-range pixels with a translucent `underRangeColor`.
+ * Encodes an RGBA buffer as a PNG and returns an object URL for it, for renderers
+ * that take images by URL (such as Plotly `layout.images`). Browser-only. The
+ * caller owns the URL and must `URL.revokeObjectURL` it when done.
  */
-export function arrayToRgba(
-    values: ArrayLike<number>,
-    width: number,
-    height: number,
-    options: ArrayToRgbaOptions = {},
-): RgbaBuffer {
-    const { colormap = 'gray', domain, log = false, underRangeColor = [0, 0, 0, 0] } = options;
-    const data = new Uint8ClampedArray(width * height * 4);
-    const lut = colormapLut(colormap);
-    const pixels = Math.min(values.length, width * height);
-
-    const [lo, hi] = valueRange(values, pixels, domain, log);
-    const span = hi - lo;
-    for (let i = 0; i < pixels; i += 1) {
-        const raw = values[i];
-        const o = i * 4;
-        if (log && raw <= 0) {
-            data[o] = underRangeColor[0];
-            data[o + 1] = underRangeColor[1];
-            data[o + 2] = underRangeColor[2];
-            data[o + 3] = underRangeColor[3];
-            continue;
+export function rgbaToObjectUrl(buffer: RgbaBuffer): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (typeof document === 'undefined') {
+            reject(new Error('rgbaToObjectUrl needs a DOM'));
+            return;
         }
-        const v = log ? Math.log10(raw) : raw;
-        // A flat domain maps everything to the bottom of the colormap, matching
-        // how a zero-range image renders server-side.
-        const t = !Number.isFinite(v) || span <= 0 ? 0 : Math.max(0, Math.min(1, (v - lo) / span));
-        const idx = Math.round(t * 255) * 3;
-        data[o] = lut[idx];
-        data[o + 1] = lut[idx + 1];
-        data[o + 2] = lut[idx + 2];
-        data[o + 3] = 255;
-    }
-
-    return { data, width, height };
+        const canvas = document.createElement('canvas');
+        canvas.width = buffer.width;
+        canvas.height = buffer.height;
+        const context = canvas.getContext('2d');
+        if (!context) {
+            reject(new Error('No 2D canvas context available'));
+            return;
+        }
+        context.putImageData(new ImageData(buffer.data, buffer.width, buffer.height), 0, 0);
+        canvas.toBlob((blob) => {
+            if (blob) resolve(URL.createObjectURL(blob));
+            else reject(new Error('PNG encoding failed'));
+        }, 'image/png');
+    });
 }

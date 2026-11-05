@@ -186,30 +186,84 @@ export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
 // HISTOGRAM RANGE
-export { default as HistogramRange } from './components/HistogramRange';
-export type { HistogramRangeProps } from './components/HistogramRange';
+export { default as HistogramRange } from './components/HistogramRange/HistogramRange';
+export type { HistogramRangeProps } from './components/HistogramRange/HistogramRange';
 
 // MASK OVERLAY
-export { default as MaskOverlayCanvas } from './components/MaskOverlayCanvas/MaskOverlayCanvas';
+export { default as PlotlyMaskOverlay } from './components/PlotlyMaskOverlay/PlotlyMaskOverlay';
+export type { PlotlyMaskOverlayProps } from './components/PlotlyMaskOverlay/PlotlyMaskOverlay';
+export type { OverlayLayout } from './components/PlotlyMaskOverlay/hooks/usePlotlyOverlayFigure';
 export type {
-    MaskOverlayCanvasProps,
-    MaskOverlayLayer,
-} from './components/MaskOverlayCanvas/MaskOverlayCanvas';
-export { default as MaskOverlayCanvasLegend } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
-export type { MaskOverlayCanvasLegendProps } from './components/MaskOverlayCanvas/MaskOverlayCanvasLegend';
-export type {
+    OverlayLayerId,
+    OverlayLoadState,
+    OverlayViewport,
+    OverlayPickInfo,
+    PixelPickInfo,
     MaskClass,
     MaskLayer,
-    MaskPickInfo,
     ResolvedMaskClass,
-} from './components/MaskOverlayCanvas/types';
+    ImageLayer,
+    Annotation,
+    AnnotationStyle,
+    LineGeometry,
+    DragMode,
+    DrawTool,
+    DrawEvent,
+    GridInput,
+    ImageInput,
+    ImageArrayInput,
+    ImageUrlInput,
+    MaskInput,
+    LabelMaskInput,
+    LayerMaskInput,
+    ImageOverlayBaseProps,
+    PointLayer,
+    PointPickInfo,
+    ResolvedPointLayer,
+} from './components/PlotlyMaskOverlay/types';
+export {
+    useImageSources,
+    useResolvedPointLayers,
+    pickPixel,
+    nearestPoint,
+    normalizeGrid,
+    resolveInputs,
+} from './components/PlotlyMaskOverlay/hooks/useImageSources';
+export type {
+    ImageSources,
+    NormalizedGrid,
+    PickSources,
+    ResolvedInputs,
+    ScreenScale,
+    UseImageSourcesOptions,
+} from './components/PlotlyMaskOverlay/hooks/useImageSources';
+export { useRgbaObjectUrl } from './components/PlotlyMaskOverlay/hooks/useMaskRaster';
+export {
+    geometryToPlotlyShape,
+    plotlyShapeToGeometry,
+    parsePlotlyPath,
+    markersToScatterTrace,
+    PLOTLY_MARKER_SYMBOL,
+} from './utils/plotlyShapes';
+export type { PlotlyShapeDict } from './utils/plotlyShapes';
+export {
+    normalizeBox,
+    pointsToPath,
+    flattenPoints,
+    hitTestGeometry,
+} from './utils/annotationGeometry';
+export type {
+    Point,
+    RectGeometry,
+    EllipseGeometry,
+    PolygonGeometry,
+    MarkerSymbol,
+} from './utils/annotationGeometry';
 
 // VISUALIZATION UTILITIES
 export {
     computeHistogram,
     cumulativeCounts,
-    valueToPercentile,
-    percentileToValue,
     percentileBelowEdge,
     edgeAtPercentile,
     edgesFromCenters,
@@ -224,8 +278,8 @@ export {
     CLASS_PALETTE,
     CLASS_PALETTE_COLORBLIND,
 } from './utils/colorUtils';
-export { labelsToRgba, binaryMasksToRgba, arrayToRgba } from './utils/maskRaster';
-export type { RgbaBuffer, ArrayToRgbaOptions } from './utils/maskRaster';
+export { labelsToRgba, binaryMasksToRgba, rgbaToObjectUrl } from './utils/maskRaster';
+export type { RgbaBuffer } from './utils/maskRaster';
 
 // EXPERIMENT
 export { default as Experiment } from './components/Experiment/Experiment';

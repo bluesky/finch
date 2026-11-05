@@ -1,10 +1,132 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
 
 import DocsPageWithoutPrimaryCopy from './DocsPageWithoutPrimaryCopy';
 
-import HistogramRange from '../components/HistogramRange';
-import type { HistogramRangeProps } from '../components/HistogramRange';
+import HistogramRange from '../components/HistogramRange/HistogramRange';
+import type { HistogramRangeProps } from '../components/HistogramRange/HistogramRange';
+import { computeHistogram, cumulativeCounts, percentileBelowEdge } from '../utils/histogramUtils';
+
+// ---------------------------------------------------------------------------
+// Deterministic sample data
+// ---------------------------------------------------------------------------
+
+/** 128 even bins over 0–1000: two populations plus a sparse bright tail. */
+const BINS = 128;
+const EDGES = Array.from({ length: BINS + 1 }, (_, i) => (i * 1000) / BINS);
+const COUNTS = Array.from({ length: BINS }, (_, i) => {
+    const c = (EDGES[i] + EDGES[i + 1]) / 2;
+    return Math.round(
+        6000 * Math.exp(-0.5 * ((c - 280) / 55) ** 2) +
+            1800 * Math.exp(-0.5 * ((c - 640) / 80) ** 2) +
+            40 * Math.exp(-c / 400) +
+            (c > 880 ? 3 : 0),
+    );
+});
+
+/** Seeded PRNG, so the log-scale story looks the same on every load. */
+function mulberry32(seed: number) {
+    let s = seed;
+    return () => {
+        s = (s + 0x6d2b79f5) | 0;
+        let t = Math.imul(s ^ (s >>> 15), 1 | s);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+const rand = mulberry32(7);
+const gauss = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
+
+/**
+ * A detector-like frame, all values positive: a background around 120 counts and 2% bright
+ * pixels with a long tail up to about 1.3e4. Binned linearly; the data is not log-transformed.
+ */
+const FRAME = Float64Array.from({ length: 60000 }, (_, i) =>
+    i % 50 === 0 ? 300 - 1500 * Math.log(1 - rand()) : Math.max(1, 120 + 25 * gauss()),
+);
+const FRAME_HIST = computeHistogram(FRAME, { bins: 512 });
+/** The first edge at or above 500 counts, so the bright pixels start selected at any bin count. */
+const BRIGHT_FROM = FRAME_HIST.binEdges.find((e) => e >= 500) ?? FRAME_HIST.binEdges[0];
+
+function percentilesAt(counts: number[], edges: number[], range: [number, number] | null) {
+    if (!range) return null;
+    const { cumulative, total } = cumulativeCounts(counts);
+    const idx = range.map((v) => edges.indexOf(v));
+    if (idx.some((i) => i < 0)) return null;
+    return idx.map((i) => percentileBelowEdge(i, cumulative, total)) as [number, number];
+}
+
+const fmt = (v: number) =>
+    Math.abs(v) >= 1e4 ? v.toExponential(2) : String(Number(v.toPrecision(4)));
+
+// ---------------------------------------------------------------------------
+// Controlled wrapper with a readout
+// ---------------------------------------------------------------------------
+
+type DemoProps = Omit<HistogramRangeProps, 'value'> & {
+    initial: [number, number] | null;
+    frame: string;
+};
+
+/**
+ * The selected edges and the population below each. Fixed width, one line: the stories are
+ * centred, so a readout that grew and shrank with its numbers would slide the histogram sideways.
+ */
+function Readout({
+    value,
+    percentiles,
+}: {
+    value: [number, number] | null;
+    percentiles: [number, number] | null;
+}) {
+    return (
+        <p className="w-[30rem] whitespace-nowrap text-xs tabular-nums text-slate-600">
+            {value ? (
+                <>
+                    Range <span className="font-medium text-slate-800">{fmt(value[0])}</span> –{' '}
+                    <span className="font-medium text-slate-800">{fmt(value[1])}</span>
+                </>
+            ) : (
+                'Whole domain'
+            )}
+            {percentiles && (
+                <>
+                    {' '}
+                    · {percentiles[0].toFixed(1)}% below the lower edge, {percentiles[1].toFixed(1)}
+                    % below the upper
+                </>
+            )}
+        </p>
+    );
+}
+
+function Demo({ initial, frame, onChange, ...props }: DemoProps) {
+    const [value, setValue] = useState(initial);
+    const [percentiles, setPercentiles] = useState(() =>
+        percentilesAt(props.counts, props.binEdges, initial),
+    );
+    return (
+        <div className="flex flex-col gap-2">
+            <div className={frame}>
+                <HistogramRange
+                    {...props}
+                    value={value}
+                    onChange={(range, pct) => {
+                        setValue(range);
+                        setPercentiles(pct);
+                        onChange(range, pct);
+                    }}
+                />
+            </div>
+            <Readout value={value} percentiles={percentiles} />
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Meta
+// ---------------------------------------------------------------------------
 
 const meta = {
     title: 'General Components/HistogramRange',
@@ -13,296 +135,177 @@ const meta = {
     parameters: {
         layout: 'centered',
         docs: {
-            // Controls drive the story at the top; see the helper for why the
-            // Stories list does not repeat it.
             page: DocsPageWithoutPrimaryCopy,
             description: {
                 component: `
-An interactive histogram with a draggable range selection.
+A histogram with an interactive range for selecting thresholds or display limits on scientific data.
 
-Either handle can be dragged, or the band between them can be dragged to pan the
-window while keeping its width. Handles are keyboard accessible: arrow keys nudge
-by one bin, Shift+arrow by ten, and Home/End jump to the limits.
+Provide binned \`counts\` and \`binEdges\`, or use \`computeHistogram\` to bin raw data. Thresholds snap 
+to bin edges and are reported in the original data units, along with cumulative percentages.
 
-Accepts pre-binned \`counts\` with \`binEdges\` (or \`binCenters\`, from which edges
-are derived), or raw \`values\`, binned internally. It is agnostic to the data type and
-to where the histogram was computed.
+Drag a handle to adjust one limit, or drag the selected range to move both. Use arrow keys to move a 
+focused handle by one bin, or hold Shift for ten-bin steps. Home/End move to the bounds.
+Display scales affect visualization only, not the underlying data.
 
-**Thresholds sit on bin edges.** Bin \`i\` spans \`binEdges[i]\` to \`binEdges[i + 1]\`.
-The lower handle is the left edge of the first included bin and the upper handle is
-the right edge of the last included bin, so the full selection spans the whole data
-domain. With edges \`[0, 1, 2, 3, 4]\`, selecting bins 1 and 2 reports \`[1, 3]\`.
-
-The selection is reported in data units. The second \`onChange\` argument gives the
-percentage of the population lying below each edge, so a companion percentile control
-can stay in sync without a round-trip.
-
-> The default \`size\` is \`"medium"\`. The stories below pass \`size="full"\` to fill a
-> sized container; \`"full"\` needs a parent with a real height.
-                `,
+`,
             },
         },
     },
-    // Every story below draws into a sized container, so they fill it.
-    args: { size: 'full' },
+    argTypes: {
+        // Data and callbacks are documented in the table but come from each story, not Controls.
+        counts: { control: false },
+        binEdges: { control: false },
+        value: { control: false },
+        onChange: { control: false },
+        onChangeCommitted: { control: false },
+        referenceRange: { control: false },
+        valueScale: { control: 'inline-radio', options: ['linear', 'log'] },
+        countScale: { control: 'inline-radio', options: ['linear', 'log'] },
+        orientation: { control: 'inline-radio', options: ['horizontal', 'vertical'] },
+        size: { control: 'select', options: ['small', 'medium', 'large', 'full'] },
+        color: { control: 'color' },
+        referenceColor: { control: 'color' },
+    },
+    args: {
+        counts: [],
+        binEdges: [],
+        value: null,
+        onChange: fn(),
+        onChangeCommitted: fn(),
+        size: 'medium',
+        orientation: 'horizontal',
+        // Both axes start linear; switch either to log in Controls.
+        valueScale: 'linear',
+        countScale: 'linear',
+    },
 } satisfies Meta<typeof HistogramRange>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** A bimodal intensity distribution used as sample data. */
-function sampleCounts(bins = 128): number[] {
-    const gaussian = (x: number, mu: number, sigma: number) =>
-        Math.exp(-((x - mu) ** 2) / (2 * sigma ** 2));
-    return Array.from({ length: bins }, (_, i) => {
-        const x = i / (bins - 1);
-        return Math.round(4000 * gaussian(x, 0.22, 0.06) + 1200 * gaussian(x, 0.62, 0.11) + 12);
-    });
-}
+const HORIZONTAL_FRAME = 'h-52 w-[36rem]';
 
-/** Raw samples drawn from the same two peaks, for the values-in story. */
-function sampleValues(count = 20000): number[] {
-    const out: number[] = [];
-    for (let i = 0; i < count; i += 1) {
-        // Box-Muller, mapped onto a 0-1000 intensity range.
-        const u = Math.max(Number.EPSILON, Math.random());
-        const z = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
-        const peak = i % 3 === 0 ? 620 : 220;
-        const spread = i % 3 === 0 ? 110 : 60;
-        out.push(Math.max(0, Math.min(1000, peak + z * spread)));
-    }
-    return out;
-}
+/** Select a range of bins; the readout shows the reported edges and the population below each. */
+export const Threshold: Story = {
+    args: { title: 'Intensity histogram', valueAxisTitle: 'Intensity' },
+    render: (args) => (
+        <Demo
+            {...args}
+            counts={COUNTS}
+            binEdges={EDGES}
+            initial={[EDGES[30], EDGES[90]]}
+            frame={args.size === 'full' ? HORIZONTAL_FRAME : ''}
+        />
+    ),
+};
 
-const COUNTS = sampleCounts();
-/** Evenly spaced edges over 0–1000: one more entry than there are bins. */
-const BIN_EDGES = Array.from({ length: COUNTS.length + 1 }, (_, i) => (i / COUNTS.length) * 1000);
-const VALUES = sampleValues();
+export const ReferenceRange: Story = {
+    args: {
+        title: 'Reference range (1st–99th percentile)',
+        valueAxisTitle: 'Intensity',
+        referenceRange: [148.4, 789.1],
+    },
+    render: (args) => (
+        <Demo
+            {...args}
+            counts={COUNTS}
+            binEdges={EDGES}
+            initial={[EDGES[110], EDGES[128]]}
+            frame={args.size === 'full' ? HORIZONTAL_FRAME : ''}
+        />
+    ),
+};
 
-function RenderWithState(args: HistogramRangeProps) {
-    const [value, setValue] = useState<[number, number] | null>(
-        args.value ?? args.defaultValue ?? null,
+export const Vertical: Story = {
+    args: { title: 'Vertical histogram', valueAxisTitle: 'Intensity', orientation: 'vertical' },
+    render: (args) => (
+        <Demo
+            {...args}
+            counts={COUNTS}
+            binEdges={EDGES}
+            initial={[EDGES[16], EDGES[104]]}
+            frame={args.size === 'full' ? 'h-[26rem] w-56' : ''}
+        />
+    ),
+};
+
+export const CustomColor: Story = {
+    args: {
+        title: 'Green histogram with magenta reference',
+        valueAxisTitle: 'Intensity',
+        color: '#16a34a',
+        referenceRange: [148.4, 789.1],
+        referenceColor: '#dc267f',
+    },
+    render: (args) => (
+        <Demo
+            {...args}
+            counts={COUNTS}
+            binEdges={EDGES}
+            initial={[EDGES[30], EDGES[90]]}
+            frame={args.size === 'full' ? HORIZONTAL_FRAME : ''}
+        />
+    ),
+};
+
+/** The three scale combinations compared side by side. */
+const LOG_SCALE_PANELS = [
+    { title: 'Linear value, linear count', valueScale: 'linear', countScale: 'linear' },
+    { title: 'Log value, linear count', valueScale: 'log', countScale: 'linear' },
+    { title: 'Linear value, log count', valueScale: 'linear', countScale: 'log' },
+    { title: 'Log value, log count', valueScale: 'log', countScale: 'log' },
+] as const;
+
+/** The same histogram on each scale combination, sharing one selection and one readout. */
+function LogScaleDemo({ initial, frame, onChange, ...props }: DemoProps) {
+    const [value, setValue] = useState(initial);
+    const [percentiles, setPercentiles] = useState(() =>
+        percentilesAt(props.counts, props.binEdges, initial),
     );
     return (
-        <Frame size={args.size} vertical={args.orientation === 'vertical'}>
-            <HistogramRange {...args} value={value} onChange={(range) => setValue(range)} />
-        </Frame>
-    );
-}
-
-function RenderWithPercentileReadout(args: HistogramRangeProps) {
-    const [range, setRange] = useState<[number, number]>([200, 700]);
-    const [percentiles, setPercentiles] = useState<[number, number]>([0, 100]);
-    return (
-        <div className="flex w-fit flex-col gap-2">
-            <Frame size={args.size}>
-                <HistogramRange
-                    {...args}
-                    value={range}
-                    onChange={(next, nextPercentiles) => {
-                        setRange(next);
-                        setPercentiles(nextPercentiles);
-                    }}
-                />
-            </Frame>
-            <p className="text-xs font-light text-slate-600">
-                {`Range ${range[0].toFixed(1)} – ${range[1].toFixed(1)}`}
-                {`  ·  Percentile ${percentiles[0].toFixed(1)}% – ${percentiles[1].toFixed(1)}%`}
-            </p>
+        <div className="flex flex-col gap-2">
+            <div className="grid grid-cols-1 gap-4 justify-items-center md:grid-cols-2">
+                {LOG_SCALE_PANELS.map((panel) => (
+                    <div key={panel.title} className={frame}>
+                        <HistogramRange
+                            {...props}
+                            {...panel}
+                            value={value}
+                            onChange={(range, pct) => {
+                                setValue(range);
+                                setPercentiles(pct);
+                                onChange(range, pct);
+                            }}
+                        />
+                    </div>
+                ))}
+            </div>
+            <Readout value={value} percentiles={percentiles} />
         </div>
     );
 }
 
 /**
- * A fixed box for `size="full"`, which fills its parent and needs a real height.
- * Fixed sizes set their own dimensions, so they render unwrapped; wrapping them
- * would clip the larger sizes and make the Docs preview scroll.
+ * Compares the same histogram across four combinations of linear and logarithmic
+ * scales. `valueScale` controls the value axis and `countScale` controls bar heights.
+ * All four panels share the same selection and thresholds, since only the display changes.
  */
-function Frame({
-    size,
-    vertical = false,
-    children,
-}: {
-    size: HistogramRangeProps['size'];
-    vertical?: boolean;
-    children: React.ReactNode;
-}) {
-    if (size !== 'full') return <>{children}</>;
-    return <div className={vertical ? 'h-80 w-24' : 'h-32 w-[32rem]'}>{children}</div>;
-}
-
-export const Default: Story = {
-    render: RenderWithState,
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        title: 'Intensity',
-        defaultValue: [200, 700],
+export const LogScale: Story = {
+    // Three panels side by side, each filling a compact frame.
+    args: { valueAxisTitle: 'Intensity (counts)', size: 'full' },
+    // Each panel fixes its own scales, so they are left out of the Controls panel.
+    argTypes: {
+        valueScale: { table: { disable: true } },
+        countScale: { table: { disable: true } },
+        title: { table: { disable: true } },
     },
-};
-
-export const FromRawValues: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: `
-Pass raw samples and let the component bin them. Useful when the data is already in
-the browser and no server-side histogram endpoint exists.
-
-\`\`\`tsx
-<HistogramRange values={pixelValues} bins={128} domain={[0, 1000]} onChange={setRange} />
-\`\`\`
-                `,
-            },
-        },
-    },
-    args: {
-        values: VALUES,
-        bins: 128,
-        domain: [0, 1000],
-        title: 'Binned from raw values',
-    },
-};
-
-export const Vertical: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: 'Low values sit at the bottom. This is the orientation used for display-level (clim) controls placed beside an image.',
-            },
-        },
-    },
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        orientation: 'vertical',
-        defaultValue: [150, 800],
-    },
-};
-
-export const ReadOnly: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: 'With `readOnly` the handles are hidden and the component is a distribution plot. The selection highlight and fading still apply, so it can display a range chosen elsewhere.',
-            },
-        },
-    },
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        readOnly: true,
-        defaultValue: [250, 650],
-        title: 'Distribution',
-    },
-};
-
-export const LinearCounts: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: 'The count axis is log-scaled by default, because intensity histograms are strongly peaked and a linear axis hides the tails. Set `logCounts={false}` for a linear axis.',
-            },
-        },
-    },
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        logCounts: false,
-        title: 'Linear count axis',
-    },
-};
-
-export const NoFading: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: 'With `fadeOutsideSelection={false}` every bin is drawn in the same color and only the highlight marks the selection.',
-            },
-        },
-    },
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        fadeOutsideSelection: false,
-        defaultValue: [300, 600],
-    },
-};
-
-export const WithPercentileReadout: Story = {
-    parameters: {
-        docs: {
-            description: {
-                story: `
-\`onChange\` supplies, alongside the data-unit range, the percentage of the population
-lying below each threshold, computed from the cumulative counts. Use it to keep a
-percentile control in sync without a server round-trip.
-Use \`edgeAtPercentile\` for the reverse direction when the percentile is the stored
-state.
-
-\`\`\`tsx
-<HistogramRange
-  counts={counts}
-  binEdges={binEdges}
-  onChange={([min, max], [pBelowMin, pBelowMax]) => {
-    setRange([min, max]);
-    setPercentiles([pBelowMin, pBelowMax]);
-  }}
-/>
-\`\`\`
-                `,
-            },
-        },
-    },
-    render: RenderWithPercentileReadout,
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        title: 'Intensity',
-    },
-};
-
-export const MinimumSeparation: Story = {
-    render: RenderWithState,
-    parameters: {
-        docs: {
-            description: {
-                story: 'Raise `minBinSeparation` to stop the handles from collapsing onto each other, so the selection always covers a usable number of bins.',
-            },
-        },
-    },
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        minBinSeparation: 20,
-        defaultValue: [300, 600],
-        title: 'At least 20 bins',
-    },
-};
-
-export const Sizes: Story = {
-    parameters: {
-        docs: {
-            description: {
-                story: 'Fixed sizes for laying out next to other controls. The default is `medium`; `full` fills its parent. Bars stay solid at any bin count and width.',
-            },
-        },
-    },
-    render: (args: HistogramRangeProps) => (
-        <div className="flex flex-col gap-4">
-            {(['small', 'medium', 'large'] as const).map((size) => (
-                <HistogramRange key={size} {...args} size={size} title={size} />
-            ))}
-        </div>
+    render: (args) => (
+        <LogScaleDemo
+            {...args}
+            counts={FRAME_HIST.counts}
+            binEdges={FRAME_HIST.binEdges}
+            initial={[BRIGHT_FROM, FRAME_HIST.binEdges[FRAME_HIST.binEdges.length - 1]]}
+            frame={args.size === 'full' ? 'h-52 w-72' : ''}
+        />
     ),
-    args: {
-        counts: COUNTS,
-        binEdges: BIN_EDGES,
-        defaultValue: [200, 700],
-    },
 };

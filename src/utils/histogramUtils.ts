@@ -8,14 +8,13 @@
 /** A binned distribution. `counts` has one entry per bin; `binEdges` has one more entry than `counts`. */
 export type HistogramBins = {
     /**
-     * Number of samples falling in each bin. Skipped samples (non-finite, outside
-     * `domain`, or non-positive under `log`) are not counted, so the total can be
-     * less than the number of input values.
+     * Number of samples falling in each bin. Skipped samples (non-finite, or outside
+     * `domain`) are not counted, so the total can be less than the number of input values.
      */
     counts: number[];
-    /** Midpoint of each bin, in binning units (`log10` of data units under `log`). Same length as `counts`. */
+    /** Midpoint of each bin in data units, same length as `counts`. Informational only: thresholds are always bin edges. */
     binCenters: number[];
-    /** Bin boundaries, in binning units (`log10` of data units under `log`). Length is `counts.length + 1`. */
+    /** Bin boundaries in data units, evenly spaced. Length is `counts.length + 1`. */
     binEdges: number[];
 };
 
@@ -23,19 +22,8 @@ export type HistogramBins = {
 export type ComputeHistogramOptions = {
     /** Number of bins. Defaults to `256`. Values below 1 are clamped to 1. */
     bins?: number;
-    /**
-     * Range to bin over, as `[min, max]` in data units. Defaults to the extent of
-     * `values`. Under `log` only positive values can be binned, so a lower bound
-     * at or below zero does not set the lower edge: the edge becomes the smallest
-     * positive sample within the domain. A positive lower bound is used exactly.
-     */
+    /** Range to bin over, as `[min, max]` in data units. Defaults to the extent of `values`. */
     domain?: [number, number];
-    /**
-     * Bin `log10` of each value. Values at or below zero are outside the log
-     * domain and are excluded from the counts, rather than being merged with the
-     * smallest positive values.
-     */
-    log?: boolean;
 };
 
 /**
@@ -75,20 +63,21 @@ export function valueRange(
 }
 
 /**
- * Bins raw values into a histogram.
+ * Bins raw values into a histogram with evenly spaced bins, in the values' own units.
  *
- * Non-finite values (`NaN`, `±Infinity`) are skipped, as are non-positive values
- * under `log`. Values outside `domain` are skipped rather than clamped, so an
- * explicit domain acts as a filter. When the domain is degenerate (min === max)
- * every counted sample lands in bin 0.
+ * Non-finite values (`NaN`, `±Infinity`) are skipped. Values outside `domain` are skipped
+ * rather than clamped, so an explicit domain acts as a filter. When the domain is degenerate
+ * (min === max) every counted sample lands in bin 0. To show a log axis, pass the result to a
+ * component with a log display scale (`HistogramRange`'s `valueScale="log"`); the data itself
+ * is never transformed here.
  */
 export function computeHistogram(
     values: ArrayLike<number>,
     options: ComputeHistogramOptions = {},
 ): HistogramBins {
-    const { domain, log = false } = options;
+    const { domain } = options;
     const bins = Math.max(1, Math.floor(options.bins ?? 256));
-    const [min, max] = valueRange(values, values.length, domain, log);
+    const [min, max] = valueRange(values, values.length, domain, false);
 
     const degenerate = !(max > min);
     const width = degenerate ? 0 : (max - min) / bins;
@@ -98,6 +87,9 @@ export function computeHistogram(
     for (let i = 0; i <= bins; i += 1) {
         binEdges[i] = degenerate ? min : min + i * width;
     }
+    // The last edge is the maximum itself, as in numpy, not `min + bins * width`, which can
+    // land a rounding error above or below it.
+    binEdges[bins] = max;
     for (let i = 0; i < bins; i += 1) {
         binCenters[i] = degenerate ? min : min + (i + 0.5) * width;
     }
@@ -105,19 +97,17 @@ export function computeHistogram(
     const counts = new Array<number>(bins).fill(0);
     for (let i = 0; i < values.length; i += 1) {
         const v = values[i];
-        if (!Number.isFinite(v) || (log && v <= 0)) continue;
+        if (!Number.isFinite(v)) continue;
         if (domain && (v < domain[0] || v > domain[1])) continue;
-        const t = log ? Math.log10(v) : v;
         // The final bin is closed on the right so the maximum sample is counted;
         // the lower clamp absorbs rounding at the bottom edge.
-        const idx = degenerate ? 0 : Math.max(0, Math.min(bins - 1, Math.floor((t - min) / width)));
+        const idx = degenerate ? 0 : Math.max(0, Math.min(bins - 1, Math.floor((v - min) / width)));
         counts[idx] += 1;
     }
-
     return { counts, binCenters, binEdges };
 }
 
-/** Running totals of `counts`, plus the grand total. Used to convert between values and percentiles. */
+/** Running totals of `counts`, plus the grand total. Used to convert between bin edges and percentiles. */
 export function cumulativeCounts(counts: number[]): { cumulative: number[]; total: number } {
     const cumulative: number[] = [];
     let running = 0;
@@ -126,24 +116,6 @@ export function cumulativeCounts(counts: number[]): { cumulative: number[]; tota
         cumulative.push(running);
     }
     return { cumulative, total: running };
-}
-
-/**
- * The percentile (0–100) of the distribution at or below `value`.
- *
- * Adapted from the calibration app, where it keeps a percentile slider and a
- * histogram selection in sync without a server round-trip.
- */
-export function valueToPercentile(
-    value: number,
-    binCenters: number[],
-    cumulative: number[],
-    total: number,
-): number {
-    if (binCenters.length === 0 || total <= 0) return 0;
-    let idx = binCenters.findIndex((center) => center >= value);
-    if (idx === -1) idx = binCenters.length - 1;
-    return Math.max(0, Math.min(100, (cumulative[idx] / total) * 100));
 }
 
 /**
@@ -215,18 +187,4 @@ export function edgesFromCenters(binCenters: number[]): number[] {
     edges[0] = binCenters[0] - (edges[1] - binCenters[0]);
     edges[n] = binCenters[n - 1] + (binCenters[n - 1] - edges[n - 1]);
     return edges;
-}
-
-/** The data value at a given percentile (0–100) of the distribution. Inverse of {@link valueToPercentile}. */
-export function percentileToValue(
-    percentile: number,
-    binCenters: number[],
-    cumulative: number[],
-    total: number,
-): number {
-    if (binCenters.length === 0 || total <= 0) return 0;
-    const target = (percentile / 100) * total;
-    let idx = cumulative.findIndex((c) => c >= target);
-    if (idx === -1) idx = binCenters.length - 1;
-    return binCenters[idx] ?? 0;
 }

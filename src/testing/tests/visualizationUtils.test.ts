@@ -1,9 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
     computeHistogram,
     cumulativeCounts,
-    valueToPercentile,
-    percentileToValue,
     percentileBelowEdge,
     edgeAtPercentile,
     edgesFromCenters,
@@ -18,8 +16,8 @@ import {
     CLASS_PALETTE,
     CLASS_PALETTE_COLORBLIND,
 } from '../../utils/colorUtils';
-import { labelsToRgba, binaryMasksToRgba, arrayToRgba } from '../../utils/maskRaster';
-import type { ResolvedMaskClass } from '../../components/MaskOverlayCanvas/types';
+import { labelsToRgba, binaryMasksToRgba, rgbaToObjectUrl } from '../../utils/maskRaster';
+import type { ResolvedMaskClass } from '../../components/PlotlyMaskOverlay/types';
 
 const cls = (over: Partial<ResolvedMaskClass> & { id: number }): ResolvedMaskClass => ({
     label: `Class ${over.id}`,
@@ -47,6 +45,15 @@ describe('computeHistogram', () => {
     it('counts the maximum sample in the final bin rather than overflowing', () => {
         const { counts } = computeHistogram([0, 10], { bins: 2, domain: [0, 10] });
         expect(counts).toEqual([1, 1]);
+    });
+
+    it('ends exactly at the maximum, as numpy does, even when bin widths do not add up', () => {
+        // With these inputs min + bins * width is a rounding error short of the maximum
+        // (0.8999999999999999 and 999.9999999999999); the last edge must be the maximum itself.
+        const { binEdges, counts } = computeHistogram([0.2, 0.5, 0.9], { bins: 3 });
+        expect(binEdges[3]).toBe(0.9);
+        expect(counts[2]).toBe(1); // the maximum sample sits in the closed last bin
+        expect(computeHistogram([], { bins: 13, domain: [1, 1000] }).binEdges[13]).toBe(1000);
     });
 
     it('places each value in the expected bin', () => {
@@ -85,65 +92,12 @@ describe('computeHistogram', () => {
         expect(counts).toEqual([3]);
     });
 
-    it('applies log10 to positive values when log is set', () => {
-        // With log, 1 -> 0 and 100 -> 2, so the domain spans 0..2 and the two
-        // samples land in opposite bins.
-        const { counts } = computeHistogram([1, 100], { bins: 2, log: true });
-        expect(counts).toEqual([1, 1]);
-    });
-
-    describe('log mode with non-positive values', () => {
-        const binOf = (edges: number[], v: number) => {
-            const t = Math.log10(v);
-            const i = edges.findIndex((e, k) => k > 0 && t <= e);
-            return Math.max(0, i - 1);
-        };
-
-        it('excludes zero but counts every positive sample under a zero-based domain', () => {
-            const { counts } = computeHistogram([0, 0.5, 1, 10], {
-                bins: 16,
-                domain: [0, 1000],
-                log: true,
-            });
-            expect(counts.reduce((a, b) => a + b, 0)).toBe(3);
-        });
-
-        it('excludes negative values', () => {
-            const { counts } = computeHistogram([-3, -0.1, 0, 2], { bins: 4, log: true });
-            expect(counts.reduce((a, b) => a + b, 0)).toBe(1);
-        });
-
-        it('starts the bins at the smallest positive sample when the lower bound is non-positive', () => {
-            const { binEdges } = computeHistogram([0, 0.5, 1, 10], {
-                bins: 16,
-                domain: [0, 1000],
-                log: true,
-            });
-            expect(binEdges[0]).toBeCloseTo(Math.log10(0.5));
-            expect(binEdges[binEdges.length - 1]).toBeCloseTo(3);
-            for (let i = 1; i < binEdges.length; i += 1) {
-                expect(binEdges[i]).toBeGreaterThan(binEdges[i - 1]);
-            }
-        });
-
-        it('uses a positive lower bound exactly', () => {
-            const { binEdges, counts } = computeHistogram([0.5, 1, 10], {
-                bins: 4,
-                domain: [1, 1000],
-                log: true,
-            });
-            expect(binEdges[0]).toBeCloseTo(0);
-            // 0.5 is below the explicit domain, so it is filtered out.
-            expect(counts.reduce((a, b) => a + b, 0)).toBe(2);
-        });
-
-        it('keeps sub-unit, unit and larger positive samples in distinct bins', () => {
-            const values = [0.5, 1, 10];
-            const { binEdges, counts } = computeHistogram(values, { bins: 8, log: true });
-            const indices = values.map((v) => binOf(binEdges, v));
-            expect(new Set(indices).size).toBe(3);
-            for (const i of indices) expect(counts[i]).toBe(1);
-        });
+    it('bins zero and negative values like any others, in their own units', () => {
+        const { counts, binEdges } = computeHistogram([-3, 0, 0, 2], { bins: 5 });
+        expect(counts.reduce((a, b) => a + b, 0)).toBe(4);
+        expect(binEdges[0]).toBe(-3);
+        expect(binEdges[5]).toBe(2);
+        expect(counts).toEqual([1, 0, 0, 2, 1]);
     });
 
     it('accepts a typed array', () => {
@@ -155,7 +109,7 @@ describe('computeHistogram', () => {
     });
 });
 
-describe('cumulativeCounts and percentile conversion', () => {
+describe('cumulativeCounts', () => {
     it('accumulates counts and reports the total', () => {
         const { cumulative, total } = cumulativeCounts([1, 2, 3]);
         expect(cumulative).toEqual([1, 3, 6]);
@@ -166,33 +120,6 @@ describe('cumulativeCounts and percentile conversion', () => {
         const { cumulative, total } = cumulativeCounts([]);
         expect(cumulative).toEqual([]);
         expect(total).toBe(0);
-        expect(valueToPercentile(5, [], cumulative, total)).toBe(0);
-        expect(percentileToValue(50, [], cumulative, total)).toBe(0);
-    });
-
-    it('maps a value to its percentile of the distribution', () => {
-        const counts = [1, 1, 1, 1];
-        const binCenters = [0, 1, 2, 3];
-        const { cumulative, total } = cumulativeCounts(counts);
-        expect(valueToPercentile(0, binCenters, cumulative, total)).toBe(25);
-        expect(valueToPercentile(1, binCenters, cumulative, total)).toBe(50);
-        expect(valueToPercentile(3, binCenters, cumulative, total)).toBe(100);
-    });
-
-    it('round-trips value to percentile and back', () => {
-        const counts = [5, 10, 20, 5];
-        const binCenters = [10, 20, 30, 40];
-        const { cumulative, total } = cumulativeCounts(counts);
-        for (const v of binCenters) {
-            const p = valueToPercentile(v, binCenters, cumulative, total);
-            expect(percentileToValue(p, binCenters, cumulative, total)).toBe(v);
-        }
-    });
-
-    it('clamps percentiles into the 0-100 range', () => {
-        const { cumulative, total } = cumulativeCounts([1, 1]);
-        expect(valueToPercentile(-999, [0, 1], cumulative, total)).toBeGreaterThanOrEqual(0);
-        expect(valueToPercentile(999, [0, 1], cumulative, total)).toBeLessThanOrEqual(100);
     });
 });
 
@@ -488,104 +415,48 @@ describe('binaryMasksToRgba', () => {
     });
 });
 
-describe('arrayToRgba', () => {
-    it('maps the data extent across the full colormap', () => {
-        const { data } = arrayToRgba([0, 255], 2, 1, { colormap: 'gray' });
-        expect([...data.slice(0, 4)]).toEqual([0, 0, 0, 255]);
-        expect([...data.slice(4, 8)]).toEqual([255, 255, 255, 255]);
-    });
-
-    it('honours an explicit domain', () => {
-        // With the domain capped at 50, a sample of 100 clips to the top of the ramp.
-        const { data } = arrayToRgba([0, 100], 2, 1, { colormap: 'gray', domain: [0, 50] });
-        expect(data[4]).toBe(255);
-    });
-
-    it('is always fully opaque', () => {
-        const { data } = arrayToRgba([0, 10, 20, 30], 2, 2, { colormap: 'viridis' });
-        expect(data[3]).toBe(255);
-        expect(data[7]).toBe(255);
-        expect(data[11]).toBe(255);
-        expect(data[15]).toBe(255);
-    });
-
-    it('maps a flat domain to the bottom of the colormap', () => {
-        const { data } = arrayToRgba([5, 5], 2, 1, { colormap: 'gray' });
-        expect([...data.slice(0, 3)]).toEqual([0, 0, 0]);
-        expect([...data.slice(4, 7)]).toEqual([0, 0, 0]);
-    });
-
-    it('treats non-finite samples as the domain minimum', () => {
-        const { data } = arrayToRgba([NaN, 100], 2, 1, { colormap: 'gray', domain: [0, 100] });
-        expect([...data.slice(0, 3)]).toEqual([0, 0, 0]);
-        expect([...data.slice(4, 7)]).toEqual([255, 255, 255]);
-    });
-
-    it('log-scales positive values', () => {
-        // log10 of 1, 10, 100 is 0, 1, 2 — so the middle sample lands mid-ramp.
-        const { data } = arrayToRgba([1, 10, 100], 3, 1, { colormap: 'gray', log: true });
-        expect(data[0]).toBe(0);
-        expect(data[4]).toBeGreaterThan(100);
-        expect(data[4]).toBeLessThan(160);
-        expect(data[8]).toBe(255);
-    });
-
-    describe('log mode with non-positive values', () => {
-        const px = (data: Uint8ClampedArray, i: number) => [...data.slice(i * 4, i * 4 + 4)];
-
-        it('paints zero as under-range (transparent by default), distinct from one', () => {
-            const { data } = arrayToRgba([0, 1, 100], 3, 1, { colormap: 'gray', log: true });
-            expect(px(data, 0)).toEqual([0, 0, 0, 0]);
-            expect(px(data, 1)).toEqual([0, 0, 0, 255]);
-            expect(px(data, 0)).not.toEqual(px(data, 1));
-        });
-
-        it('paints negative values as under-range', () => {
-            const { data } = arrayToRgba([-5, 1, 100], 3, 1, { colormap: 'gray', log: true });
-            expect(px(data, 0)).toEqual([0, 0, 0, 0]);
-        });
-
-        it('honours a custom underRangeColor', () => {
-            const { data } = arrayToRgba([0, 1, 100], 3, 1, {
-                colormap: 'gray',
-                log: true,
-                underRangeColor: [255, 0, 255, 128],
+describe('rgbaToObjectUrl', () => {
+    it('encodes the buffer through a canvas and returns an object URL', async () => {
+        const putImageData = vi.fn();
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(
+            () => ({ putImageData }) as unknown as CanvasRenderingContext2D,
+        );
+        const toBlob = vi
+            .spyOn(HTMLCanvasElement.prototype, 'toBlob')
+            .mockImplementation((cb: BlobCallback) => cb(new Blob(['png'])));
+        vi.stubGlobal(
+            'ImageData',
+            class {
+                constructor(
+                    public data: Uint8ClampedArray,
+                    public width: number,
+                    public height: number,
+                ) {}
+            },
+        );
+        const original = URL.createObjectURL;
+        URL.createObjectURL = vi.fn(() => 'blob:encoded');
+        try {
+            const url = await rgbaToObjectUrl({
+                data: new Uint8ClampedArray(8),
+                width: 2,
+                height: 1,
             });
-            expect(px(data, 0)).toEqual([255, 0, 255, 128]);
-        });
-
-        it('keeps sub-unit positive values log-distinguishable under a zero-based domain', () => {
-            // The lower edge becomes log10(0.5), so 0.5 sits at the bottom and 1 above it.
-            const { data } = arrayToRgba([0, 0.5, 1, 1000], 4, 1, {
-                colormap: 'gray',
-                domain: [0, 1000],
-                log: true,
-            });
-            expect(px(data, 0)[3]).toBe(0);
-            expect(data[4]).toBe(0);
-            expect(data[8]).toBeGreaterThan(data[4]);
-            expect(data[12]).toBe(255);
-        });
-
-        it('clamps positive values below a positive lower bound to the bottom of the colormap', () => {
-            const { data } = arrayToRgba([0.5, 10, 100], 3, 1, {
-                colormap: 'gray',
-                domain: [10, 100],
-                log: true,
-            });
-            expect(px(data, 0)).toEqual([0, 0, 0, 255]);
-            expect(px(data, 1)).toEqual([0, 0, 0, 255]);
-        });
-
-        it('leaves zero opaque at the bottom of the colormap without log', () => {
-            const { data } = arrayToRgba([0, 100], 2, 1, { colormap: 'gray' });
-            expect(px(data, 0)).toEqual([0, 0, 0, 255]);
-        });
+            expect(url).toBe('blob:encoded');
+            expect(putImageData).toHaveBeenCalledOnce();
+            expect(toBlob.mock.calls[0][1]).toBe('image/png');
+        } finally {
+            URL.createObjectURL = original;
+            vi.restoreAllMocks();
+            vi.unstubAllGlobals();
+        }
     });
 
-    it('defaults to the gray colormap', () => {
-        const withDefault = arrayToRgba([0, 255], 2, 1, {});
-        const explicit = arrayToRgba([0, 255], 2, 1, { colormap: 'gray' });
-        expect([...withDefault.data]).toEqual([...explicit.data]);
+    it('rejects when no 2D context is available', async () => {
+        vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+        await expect(
+            rgbaToObjectUrl({ data: new Uint8ClampedArray(4), width: 1, height: 1 }),
+        ).rejects.toThrow(/2D canvas context/);
+        vi.restoreAllMocks();
     });
 });
