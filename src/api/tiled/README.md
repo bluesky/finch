@@ -1,7 +1,7 @@
 # Tiled API client (`tiled`)
 
-A complete client for [Tiled](https://github.com/bluesky/tiled): **all 48 API operations** from
-`openapi.json`, the seven auth routes the spec omits, zarr URL builders, the experimental
+A complete client for [Tiled](https://github.com/bluesky/tiled): **all 52 API operations** from
+`openapi.json` (Tiled 0.2.19), the seven auth routes the spec omits, zarr URL builders, the experimental
 [graph of links](#graph-of-links) over GraphQL, and a TanStack Query hook for every one of them.
 
 Built on the client in
@@ -179,6 +179,11 @@ filter matched everything", not as a bug.
 | `keyPresent` | `filter[key_present][condition][…]` | `filter[keypresent][condition][…]`         |
 | `accessBlob` | `filter[access_blob][condition][…]` | `filter[access_blob_filter][condition][…]` |
 
+Tiled 0.2.19 then replaced the last one outright: the filter is `accessTags: { tags }`, sent as
+`filter[access_tags_filter][condition][tags]` (a JSON array). The owner half (`userId`) is gone —
+ownership is itself a tag now — and a node reports `access_tags: string[]` where it reported an
+`access_blob` dict. Finch sends and reads only `access_tags`.
+
 **2. Axios brackets array parameters by default.** `column[]=a&column[]=b` where FastAPI reads
 `column=a&column=b`. So `column` and `field` selections silently returned _everything_, and `fields`
 never narrowed a response. Fixed with `paramsSerializer: { indexes: null }` on every request.
@@ -304,7 +309,7 @@ await create.mutateAsync({
         structure_family: 'array',
         metadata: {},
         specs: [],
-        access_blob: {},
+        access_tags: [],
         data_sources: [
             {
                 /* … structure describing what you are about to write … */
@@ -465,7 +470,8 @@ used a zarr library.
 Tiled's **experimental** entity/link graph (upstream #1387): _entities_ — a project, a sample, a
 dataset — optionally bound to a catalog node, and _links_ `subject —predicate→ object` between them,
 with CURIE namespaces for predicates. It is **GraphQL, not REST**, served at `{origin}/api/graphql`
-(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server.
+(outside `/api/v1`, like `/healthz`), and only on a catalog-backed server. `graphql` sends a POST;
+`graphqlGet` sends a query as a GET, which an HTTP cache can serve.
 
 **Requires Tiled 0.2.19 or later** (0.2.19rc1+ on PyPI). The graph has been in Tiled since 0.2.15,
 but 0.2.15–0.2.18 serve an older shape (`nodeId`, `catalogNodeId`, `accessBlob`) that this client

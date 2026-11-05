@@ -1,0 +1,29 @@
+# Everything Finch uses, for local development. Needs Tiled >= 0.2.19 and Redis on localhost:6379.
+#   Reads are anonymous; writes need the API key `secret`.
+#   Catalog-backed, so the GraphQL graph (/api/graphql) and deep search are served.
+#   streaming_cache enables WebSocket streams.
+# Data lives in ./tiled_data/ under the directory you start the server from. Create it first
+# (`mkdir -p tiled_data`); delete it to reset. See README.md.
+
+authentication:
+  allow_anonymous_access: true
+  single_user_api_key: secret
+
+trees:
+  - tree: catalog
+    path: /
+    args:
+      uri: sqlite:///./tiled_data/catalog.db
+      init_if_not_exists: true
+      writable_storage:
+        - ./tiled_data/data
+        - duckdb:///./tiled_data/tables.duckdb
+
+streaming_cache:
+  uri: redis://localhost:6379
+  data_ttl: 3600
+
+allow_origins:
+  - http://localhost:5173
+  - http://localhost:5174
+  - http://localhost:6006

@@ -2,8 +2,9 @@
 
 `schema.graphql` is the GraphQL SDL of Tiled's entity/link graph, exported from upstream source at
 **bluesky/tiled@849c984a**, whose `tiled/graph/` is byte-identical to the **v0.2.19rc2** release.
-It is not in `../openapi.json`: the graph is served by a Strawberry GraphQL router at
-`{origin}/api/graphql`, outside the `/api/v1` version segment, and only on catalog-backed servers.
+The graph is served by a Strawberry GraphQL router at `{origin}/api/graphql`, outside the `/api/v1`
+version segment, and only on catalog-backed servers. Since 0.2.19 `../openapi.json` lists that route
+(GET and POST), but not the operations inside it — those are checked against this file.
 
 ## Compatibility: Tiled 0.2.19 or later
 

@@ -52,7 +52,7 @@ export const metadataWriteEndpointDescriptors: readonly TiledEndpointDescriptor[
         path: '/api/v1/metadata/{path}',
         operationId: 'put_metadata_api_v1_metadata__path__put',
         fn: 'updateMetadata',
-        summary: 'Replace metadata, specs and access blob wholesale.',
+        summary: 'Replace metadata, specs and access tags wholesale.',
         pathParam: true,
         destructive: true,
         params: [PATH_PARAM, { name: 'drop_revision', in: 'query', required: false }],
@@ -420,6 +420,38 @@ export const managementWriteEndpointDescriptors: readonly TiledEndpointDescripto
         destructive: true,
         params: [PATH_PARAM],
         call: (client, input) => client.closeStream(input.path ?? ''),
+    },
+];
+
+export const assetWriteEndpointDescriptors: readonly TiledEndpointDescriptor[] = [
+    {
+        id: 'asset.delete',
+        group: 'asset',
+        method: 'DELETE',
+        path: '/api/v1/asset/{path}',
+        operationId: 'delete_asset_api_v1_asset__path__delete',
+        fn: 'deleteAsset',
+        summary: 'Detach an asset from a node, deleting it if unreferenced. 409 if internal.',
+        destructive: true,
+        pathParam: true,
+        params: [
+            PATH_PARAM,
+            { name: 'id', in: 'query', required: true, description: 'Asset id' },
+            {
+                name: 'external_only',
+                in: 'query',
+                required: false,
+                description: "'false' to delete internally managed data too",
+            },
+        ],
+        call: (client, input) =>
+            client.deleteAsset(input.path ?? '', {
+                id: numberParam(input, 'id'),
+                external_only:
+                    input.params?.external_only === undefined
+                        ? undefined
+                        : input.params.external_only !== 'false',
+            }),
     },
 ];
 

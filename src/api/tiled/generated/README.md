@@ -2,11 +2,31 @@
 
 `schema.d.ts` is machine output from [`openapi-typescript`](https://www.npmjs.com/package/openapi-typescript),
 derived from `../openapi.json` (fetched from a running Tiled server at
-`http://localhost:8000/openapi.json`, Tiled 0.2.15b1).
+`http://localhost:8000/openapi.json`, Tiled 0.2.19).
 
 ## Regenerating
 
-1. Refresh the spec if the server version changed:
+1. Refresh the spec if the server version changed. **Serve it with webhooks enabled**, or the three
+   webhook routes silently drop out of the spec: since 0.2.19 Tiled mounts them only when the config
+   has a `webhooks:` section, and `tiled serve catalog` never sets one. Serve a catalog-backed tree
+   from a config file instead (the graph route also needs the catalog):
+
+    ```yaml
+    # config.yml — then: tiled serve config config.yml
+    authentication:
+        single_user_api_key: secret
+    trees:
+        - path: /
+          tree: catalog
+          args:
+              uri: sqlite:///./data/catalog.db
+              writable_storage: ./data/storage
+              init_if_not_exists: true
+    webhooks:
+        secret_keys: ['devsecret']
+    ```
+
+    Then fetch it:
 
     ```sh
     curl -s http://localhost:8000/openapi.json | python3 -m json.tool > src/api/tiled/openapi.json

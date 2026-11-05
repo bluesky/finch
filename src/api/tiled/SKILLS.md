@@ -115,7 +115,8 @@ Then the hook: see below.
 
 ### Adding a graph operation
 
-The graph is GraphQL, so `openapi.json` and `TILED_PATHS` are not involved. `graph/schema.graphql` is
+The graph is GraphQL: `openapi.json` and `TILED_PATHS` list only its one route (`graph.execute` /
+`graph.executeViaGet` in the registry), not its operations. `graph/schema.graphql` is
 the source of truth and `TiledGraph.test.tsx` enforces it:
 
 1. **`graph/operations.ts`** — add the named document and its `TILED_GRAPH_OPERATIONS` entry.
@@ -283,7 +284,14 @@ normalisation.
 
 ## Verifying against a live server
 
-The client was built and checked against Tiled 0.2.15b1. To re-verify after a change:
+The client was built and checked against Tiled 0.2.15b1, and its spec is now Tiled 0.2.19's; the
+routes 0.2.19 added are covered by `TiledApi.live.test.ts`:
+
+```sh
+TILED_LIVE_URL=http://localhost:8000/api/v1 TILED_LIVE_API_KEY=secret npx vitest run TiledApi.live
+```
+
+To re-verify the rest after a change:
 
 ```ts
 // run with: npx vite-node <file>.ts   (NOT vitest — the jsdom setup has no `window` in node env,

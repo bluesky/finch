@@ -2,7 +2,8 @@ import type { TiledStreamMessage, WebSocketLike } from '../../api/tiled/client/w
 
 /**
  * One envelope of every Tiled stream type, taken from frames a live Tiled 0.2.15 server sent with
- * `envelope_format=json`. Payloads are trimmed but keep their shape.
+ * `envelope_format=json`. Payloads are trimmed but keep their shape. `container-child-created` carries
+ * `access_tags` where 0.2.15 sent `access_blob`, as 0.2.19's `stream_messages.ChildCreated` declares.
  */
 export const STREAM_FIXTURES = {
     'container-schema': { type: 'container-schema', version: 1 },
@@ -15,7 +16,7 @@ export const STREAM_FIXTURES = {
         specs: [{ name: 'BlueskyRun', version: '3.0' }],
         metadata: { start: { uid: 'abc' } },
         data_sources: [],
-        access_blob: {},
+        access_tags: [],
     },
     'container-child-metadata-updated': {
         type: 'container-child-metadata-updated',

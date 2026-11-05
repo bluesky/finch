@@ -31,6 +31,7 @@ export const TILED_PATHS = {
 
     // #region search
     search: '/api/v1/search/{path}',
+    searchDeep: '/api/v1/search-deep/{path}',
     distinct: '/api/v1/distinct/{path}',
     // #endregion
 
@@ -71,6 +72,7 @@ export const TILED_PATHS = {
     // #endregion
 
     // #region assets
+    asset: '/api/v1/asset/{path}',
     assetBytes: '/api/v1/asset/bytes/{path}',
     assetManifest: '/api/v1/asset/manifest/{path}',
     // #endregion
@@ -79,6 +81,10 @@ export const TILED_PATHS = {
     webhookTarget: '/api/v1/webhooks/target/{path}',
     webhookById: '/api/v1/webhooks/{webhook_id}',
     webhookHistory: '/api/v1/webhooks/history/{webhook_id}',
+    // #endregion
+
+    // #region graph of links — origin-scoped, and only on a catalog-backed server
+    graphql: '/api/graphql',
     // #endregion
 
     // #region zarr — URL surface only; see client/TiledZarrApi.ts
@@ -98,11 +104,11 @@ export const TILED_PATHS = {
 /**
  * The graph-of-links GraphQL endpoint. Origin-scoped, like `/healthz`.
  *
- * Not in {@link TILED_PATHS}, because that table is the spec's path list and is checked against it:
- * the graph router is not in `openapi.json` at all. Its coverage is checked against
- * `../graph/schema.graphql` instead — see `TiledGraph.test.tsx`.
+ * Tiled 0.2.19 is the first release whose `openapi.json` declares it, so it is in
+ * {@link TILED_PATHS} too; this name is kept because it reads better at the call sites. The GraphQL
+ * operations themselves are checked against `../graph/schema.graphql` — see `TiledGraph.test.tsx`.
  */
-export const TILED_GRAPHQL_PATH = '/api/graphql';
+export const TILED_GRAPHQL_PATH = TILED_PATHS.graphql;
 
 /** Alias keys of {@link TILED_PATHS}, e.g. `'arrayFull'`. */
 export type TiledPathAlias = keyof typeof TILED_PATHS;

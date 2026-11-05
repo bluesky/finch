@@ -178,7 +178,8 @@ export type TiledGraphKeyArgs =
     | { readonly op: 'links'; readonly filters: TiledGraphLinkFilters }
     | { readonly op: 'namespaces' }
     | {
-          readonly op: 'raw';
+          /** `raw` is sent as a POST, `rawGet` as a GET — the same answer, kept apart regardless. */
+          readonly op: 'raw' | 'rawGet';
           readonly document: string;
           readonly variables: TiledGraphQLVariables;
       };
@@ -192,6 +193,16 @@ export type TiledGraphKeyArgs =
 export const tiledQueryKeys = {
     search: (scope: TiledQueryScope, args: TiledSearchKeyArgs) =>
         [...tiledQueryRoots.search, args, scope] as const,
+    /**
+     * A deep search — `GET /search-deep/{path}`, every descendant rather than direct children.
+     *
+     * Under the `search` root rather than one of its own: anything that changes what a search
+     * matches changes what a deep search matches too, so every write that invalidates `search`
+     * must reach these, and sharing the root is what guarantees it. `deep: true` in the args slot
+     * keeps a deep and a shallow search of the same path and config apart.
+     */
+    searchDeep: (scope: TiledQueryScope, args: TiledSearchKeyArgs) =>
+        [...tiledQueryRoots.search, { ...args, deep: true as const }, scope] as const,
     metadata: (scope: TiledQueryScope, path: string) =>
         [...tiledQueryRoots.metadata, path, scope] as const,
     array: (scope: TiledQueryScope, args: TiledArrayKeyArgs) =>
@@ -248,3 +259,6 @@ export type TiledQueryKeyFor<N extends TiledQueryRootName> = ReturnType<(typeof 
  * parameterised by its exact key type.
  */
 export type TiledServerInfoVariantKey = ReturnType<typeof tiledQueryKeys.serverInfoVariant>;
+
+/** The key type of a deep search; separate from `TiledQueryKeyFor<'search'>` for the same reason. */
+export type TiledSearchDeepKey = ReturnType<typeof tiledQueryKeys.searchDeep>;

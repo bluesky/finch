@@ -250,6 +250,65 @@ describe('search options', () => {
     });
 });
 
+describe('routes added in Tiled 0.2.19', () => {
+    /** A client over a stub adapter that records each request and answers it with `body`. */
+    function recording(body: unknown = {}) {
+        const seen: InternalAxiosRequestConfig[] = [];
+        const client = new TiledApiClient({
+            baseUrl: 'http://tiled.test:8000/api/v1',
+            client: axios.create({
+                adapter: (config) => {
+                    seen.push(config as InternalAxiosRequestConfig);
+                    return Promise.resolve({
+                        data: body,
+                        status: 200,
+                        statusText: '',
+                        headers: {},
+                        config,
+                    } as AxiosResponse);
+                },
+            }),
+        });
+        return { client, seen };
+    }
+
+    it('sends a deep search to /search-deep with the shared search encoding', async () => {
+        const { client, seen } = recording({ data: [], links: {}, meta: { count: 0 } });
+
+        await client.getSearchDeep('scan/a b', {
+            searchFilters: { eq: { key: 'color', value: 'red' } },
+            searchOptions: { maxDepth: 2 },
+        });
+        await client.getSearchDeep('');
+
+        expect(seen[0].method).toBe('get');
+        expect(seen[0].url).toBe('/search-deep/scan/a%20b');
+        expect(seen[0].params).toEqual({
+            max_depth: 2,
+            'filter[eq][condition][key]': 'color',
+            'filter[eq][condition][value]': '"red"',
+        });
+        // The root container, which the server wants with its trailing slash.
+        expect(seen[1].url).toBe('/search-deep/');
+    });
+
+    it('sends an asset delete to /asset with the id and external_only as query parameters', async () => {
+        const { client, seen } = recording({ asset_deleted: true, data_deleted: false });
+
+        await expect(client.deleteAsset('scan/x', { id: 4 })).resolves.toEqual({
+            asset_deleted: true,
+            data_deleted: false,
+        });
+        await client.deleteAsset('scan/x', { id: 4, external_only: false });
+
+        expect(seen[0].method).toBe('delete');
+        expect(seen[0].url).toBe('/asset/scan/x');
+        // Left undefined, so the server's own default (true) applies.
+        expect(seen[0].params).toEqual({ id: 4, external_only: undefined });
+        expect(seen[1].params).toEqual({ id: 4, external_only: false });
+    });
+});
+
 describe('errors', () => {
     it('reads FastAPI validation detail into a named error', () => {
         const error = toTiledApiError(

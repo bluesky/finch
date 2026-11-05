@@ -8,6 +8,7 @@ import {
     useTiledGraphLinksQuery,
     useTiledGraphNamespacesQuery,
     useTiledGraphNodeEntitiesQuery,
+    useTiledGraphQLGetQuery,
     useTiledGraphQLQuery,
 } from '@/api/tiled';
 import type { TiledGraphQLVariables } from '@/api/tiled';
@@ -45,6 +46,23 @@ const PROJECT_SAMPLES = `query ProjectMembers($id: ID!, $predicate: String) {
     }
   }
 }`;
+
+function GraphQLGetRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
+    const result = useTiledGraphQLGetQuery(
+        str(values, 'document'),
+        json<TiledGraphQLVariables>(values, 'variables'),
+        queryOptions,
+        requestOptions,
+    );
+    return (
+        <QueryResultPanel
+            result={result}
+            resultKind="json"
+            guardedBy={['document']}
+            guardSatisfied={str(values, 'document').trim().length > 0}
+        />
+    );
+}
 
 function GraphQLRunner({ values, queryOptions, requestOptions }: QueryRunnerProps) {
     const result = useTiledGraphQLQuery(
@@ -168,6 +186,26 @@ export const graphQueryDescriptors: readonly QueryDescriptor[] = [
         guardedBy: ['document'],
         resultKind: 'json',
         Runner: GraphQLRunner,
+    },
+    {
+        id: 'graph.rawGet',
+        kind: 'query',
+        group: 'graph',
+        hookName: 'useTiledGraphQLGetQuery',
+        summary: 'The same, sent as a GET so an HTTP cache can serve it. Queries only; 0.2.19+.',
+        fields: [
+            {
+                name: 'document',
+                kind: 'multilineText',
+                label: 'document',
+                required: true,
+                defaultValue: '{ namespaces { prefix uri } }',
+            },
+            { name: 'variables', kind: 'json', label: 'variables', defaultValue: {} },
+        ],
+        guardedBy: ['document'],
+        resultKind: 'json',
+        Runner: GraphQLGetRunner,
     },
     {
         id: 'graph.entity',

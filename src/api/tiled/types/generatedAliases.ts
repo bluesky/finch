@@ -98,8 +98,12 @@ export type SortingItem = Schemas['SortingItem'];
  * Unprefixed because there is nothing to reconcile: the spec's version differs from the package's
  * only in making `version` optional, which is a widening every reader already tolerates and which
  * the write paths need.
+ *
+ * Since Tiled 0.2.19 the spec emits it twice, as `Spec-Input` (request bodies) and `Spec-Output`
+ * (responses) — FastAPI splits a model that way when its validation and serialisation schemas
+ * differ. The two are field-for-field identical, so one alias serves both directions.
  */
-export type Spec = Schemas['Spec'];
+export type Spec = Schemas['Spec-Output'];
 
 // #endregion
 
@@ -155,7 +159,7 @@ export type PutDataSourceRequest = Schemas['PutDataSourceRequest'];
  * One RFC 6902 JSON Patch operation.
  *
  * The spec emits this type twice under two mangled names — `__1` is the one `metadata` and
- * `access_blob` use, `__2` is the one `specs` uses — because FastAPI generated a separate schema
+ * `access_tags` use, `__2` is the one `specs` uses — because FastAPI generated a separate schema
  * per field. They are structurally identical; this alias is the `__1` form and
  * {@link JSONPatchSpecOperation} the `__2` form, so a future divergence is visible rather than
  * silently assumed away.
