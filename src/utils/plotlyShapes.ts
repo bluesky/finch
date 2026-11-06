@@ -55,7 +55,7 @@ export function plotlyStyle(style: AnnotationStyle | undefined): Partial<PlotlyS
 /**
  * A Plotly layout shape for a Finch geometry or annotation. Rectangles map to
  * `rect`, ellipses to `circle` (Plotly's bounding-box ellipse), polygons to a closed
- * `path` with holes as extra subpaths, two-point lines to `line` and longer lines to
+ * `path`, two-point lines to `line` and longer lines to
  * an open `path`. Returns `null` for anything else.
  */
 export function geometryToPlotlyShape(
@@ -73,12 +73,12 @@ export function geometryToPlotlyShape(
         case 'ellipse':
             return { ...base, type: 'circle', x0: g.x0, y0: g.y0, x1: g.x1, y1: g.y1 };
         case 'polygon':
-            // `fillrule` marks a closed, filled path (holes cut by even-odd), as Plotly's own
-            // `drawclosedpath` emits it; backends that rasterise paths may rely on it.
+            // `fillrule` marks a closed, filled path, as Plotly's own `drawclosedpath` emits it;
+            // backends that rasterise paths may rely on it.
             return {
                 ...base,
                 type: 'path',
-                path: pointsToPath(g.points, true, g.holes ?? []),
+                path: pointsToPath(g.points, true),
                 fillrule: 'evenodd',
             };
         case 'line': {
@@ -190,11 +190,11 @@ export function plotlyShapeToGeometry(s: PlotlyShapeDict): DrawEvent | LineGeome
             if (typeof s.path !== 'string') return null;
             const parsed = parsePlotlyPath(s.path);
             if (!parsed) return null;
-            const [outer, ...holes] = parsed.rings;
-            if (!parsed.closed[0]) return { type: 'line', points: outer };
-            return holes.length
-                ? { type: 'polygon', points: outer, holes }
-                : { type: 'polygon', points: outer };
+            // Plotly draws and edits single-ring paths; only the first ring is read.
+            const [outer] = parsed.rings;
+            return parsed.closed[0]
+                ? { type: 'polygon', points: outer }
+                : { type: 'line', points: outer };
         }
         default:
             return null;

@@ -11,7 +11,7 @@ describe('annotation geometry', () => {
         });
     });
 
-    it('builds paths with and without closing and holes', () => {
+    it('builds open and closed paths', () => {
         expect(
             pointsToPath(
                 [
@@ -30,14 +30,8 @@ describe('annotation geometry', () => {
                     [1, 1],
                 ],
                 true,
-                [
-                    [
-                        [0.2, 0.2],
-                        [0.4, 0.2],
-                        [0.4, 0.4],
-                    ],
-                ],
             ),
-        ).toBe('M0,0L1,0L1,1ZM0.2,0.2L0.4,0.2L0.4,0.4Z');
+        ).toBe('M0,0L1,0L1,1Z');
+        expect(pointsToPath([], true)).toBe('');
     });
 });

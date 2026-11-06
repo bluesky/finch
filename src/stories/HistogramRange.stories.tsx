@@ -4,9 +4,14 @@ import { fn } from '@storybook/test';
 
 import DocsPageWithoutPrimaryCopy from './DocsPageWithoutPrimaryCopy';
 
-import HistogramRange from '../components/HistogramRange/HistogramRange';
-import type { HistogramRangeProps } from '../components/HistogramRange/HistogramRange';
-import { computeHistogram, cumulativeCounts, percentileBelowEdge } from '../utils/histogramUtils';
+import HistogramRange from '../components/HistogramRange';
+import type { HistogramRangeProps } from '../components/HistogramRange';
+import {
+    computeHistogram,
+    cumulativeCounts,
+    edgeAtPercentile,
+    percentileBelowEdge,
+} from '../utils/histogramUtils';
 
 // ---------------------------------------------------------------------------
 // Deterministic sample data
@@ -39,13 +44,27 @@ const rand = mulberry32(7);
 const gauss = () => Math.sqrt(-2 * Math.log(1 - rand())) * Math.cos(2 * Math.PI * rand());
 
 /**
- * A detector-like frame, all values positive: a background around 120 counts and 2% bright
- * pixels with a long tail up to about 1.3e4. Binned linearly; the data is not log-transformed.
+ * A detector-like frame: a background around 120 counts, 2% bright pixels with a long tail up to
+ * about 1.3e4, and 1% pixels with value 0. Binned linearly; the data is not log-transformed, so
+ * on a log value axis the first bin (lower edge 0) is not drawn.
  */
 const FRAME = Float64Array.from({ length: 60000 }, (_, i) =>
-    i % 50 === 0 ? 300 - 1500 * Math.log(1 - rand()) : Math.max(1, 120 + 25 * gauss()),
+    i % 100 === 1
+        ? 0
+        : i % 50 === 0
+          ? 300 - 1500 * Math.log(1 - rand())
+          : Math.max(1, 120 + 25 * gauss()),
 );
 const FRAME_HIST = computeHistogram(FRAME, { bins: 512 });
+
+/** The 1st and 99th percentiles of the sample histogram, as an application would mark them. */
+const REFERENCE: [number, number] = (() => {
+    const { cumulative, total } = cumulativeCounts(COUNTS);
+    return [
+        edgeAtPercentile(1, EDGES, cumulative, total),
+        edgeAtPercentile(99, EDGES, cumulative, total),
+    ];
+})();
 /** The first edge at or above 500 counts, so the bright pixels start selected at any bin count. */
 const BRIGHT_FROM = FRAME_HIST.binEdges.find((e) => e >= 500) ?? FRAME_HIST.binEdges[0];
 
@@ -203,7 +222,7 @@ export const ReferenceRange: Story = {
     args: {
         title: 'Reference range (1st–99th percentile)',
         valueAxisTitle: 'Intensity',
-        referenceRange: [148.4, 789.1],
+        referenceRange: REFERENCE,
     },
     render: (args) => (
         <Demo
@@ -234,7 +253,7 @@ export const CustomColor: Story = {
         title: 'Green histogram with magenta reference',
         valueAxisTitle: 'Intensity',
         color: '#16a34a',
-        referenceRange: [148.4, 789.1],
+        referenceRange: REFERENCE,
         referenceColor: '#dc267f',
     },
     render: (args) => (
@@ -248,7 +267,7 @@ export const CustomColor: Story = {
     ),
 };
 
-/** The three scale combinations compared side by side. */
+/** The four scale combinations compared side by side. */
 const LOG_SCALE_PANELS = [
     { title: 'Linear value, linear count', valueScale: 'linear', countScale: 'linear' },
     { title: 'Log value, linear count', valueScale: 'log', countScale: 'linear' },
@@ -285,13 +304,20 @@ function LogScaleDemo({ initial, frame, onChange, ...props }: DemoProps) {
     );
 }
 
-/**
- * Compares the same histogram across four combinations of linear and logarithmic
- * scales. `valueScale` controls the value axis and `countScale` controls bar heights.
- * All four panels share the same selection and thresholds, since only the display changes.
- */
 export const LogScale: Story = {
-    // Three panels side by side, each filling a compact frame.
+    parameters: {
+        docs: {
+            description: {
+                story: `Compares the same histogram across four combinations of linear and logarithmic scales.
+\`valueScale\` controls the value axis and \`countScale\` controls bar heights. All four panels
+share the same selection and thresholds, since only the display changes.
+
+A log value axis cannot place a bin whose lower edge is 0 or below, so those bins are not drawn
+and an ≤0 marker says how many there are. They still count in the percentiles.`,
+            },
+        },
+    },
+    // Four panels in a grid, each filling a compact frame.
     args: { valueAxisTitle: 'Intensity (counts)', size: 'full' },
     // Each panel fixes its own scales, so they are left out of the Controls panel.
     argTypes: {

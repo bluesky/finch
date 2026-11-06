@@ -17,7 +17,7 @@ const lookup = (x: number, y: number) => x + y;
 // Accepted.
 const a1: ImageInput = { type: 'array', data: flat, shape: [2, 3], showColorbar: true };
 const a2: ImageInput = { type: 'array', data: rows, colormap: 'viridis', logScale: true };
-const a3: ImageInput = { type: 'url', url: 'scan.png', shape: [2, 3], smoothing: true };
+const a3: ImageInput = { type: 'url', url: 'scan.png', shape: [2, 3] };
 const a4: ImageInput = { type: 'url', url: 'scan.png', shape: [2, 3], resolveValue: lookup };
 const m1: MaskInput = { type: 'labels', data: flat, classes: [{ id: 1 }], opacity: 0.6 };
 const m2: MaskInput = { type: 'layers', layers: [{ classId: 1, data: flat }] };
@@ -25,6 +25,8 @@ const p1: PlotlyMaskOverlayProps = {
     image: a3,
     imageLayers: [{ id: 'mask', url: 'mask.png' }],
     dragMode: 'pan',
+    frameKey: 'scan-1|0',
+    missingColor: '#ef4444',
 };
 
 // Rejected.
@@ -36,8 +38,8 @@ const r2: ImageInput = { type: 'array', data: rows, shape: [2, 3] };
 const r3: ImageInput = { type: 'url', url: 'scan.png' };
 // @ts-expect-error log scale applies to raw values, not to a rendered PNG
 const r4: ImageInput = { type: 'url', url: 'scan.png', shape: [2, 3], logScale: true };
-// @ts-expect-error smoothing applies to a PNG, not to a heatmap
-const r5: ImageInput = { type: 'array', data: flat, shape: [2, 3], smoothing: true };
+// @ts-expect-error pictures are always drawn with sharp pixels
+const r5: ImageInput = { type: 'url', url: 'scan.png', shape: [2, 3], smoothing: true };
 // @ts-expect-error a mask PNG is a picture: it goes in `imageLayers`
 const r6: MaskInput = { type: 'url', url: 'mask.png' };
 // @ts-expect-error one mask source at a time
@@ -54,6 +56,10 @@ const r11: PlotlyMaskOverlayProps = { imageLayers: [] };
 const r12: Annotation = { type: 'marker', points: [[1, 1]] };
 // @ts-expect-error drawing is chosen through `dragMode`
 const r13: PlotlyMaskOverlayProps = { image: a3, drawTool: 'rect' };
+// @ts-expect-error Plotly's layout is Finch's; the one setting offered is `missingColor`
+const r14: PlotlyMaskOverlayProps = { image: a3, layout: { plot_bgcolor: '#000' } };
+// @ts-expect-error a frame is named by a string or number, not an object
+const r15: PlotlyMaskOverlayProps = { image: a3, frameKey: { scan: 1 } };
 
 // Keeps the accepted examples referenced under `noUnusedLocals`.
 void [a1, a2, a3, a4, m1, m2, p1];

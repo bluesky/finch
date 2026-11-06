@@ -5,7 +5,7 @@ import {
     rgbaToObjectUrl,
     type RgbaBuffer,
 } from '@/utils/maskRaster';
-import type { MaskClass, MaskLayer, ResolvedMaskClass } from '../types';
+import type { MaskLayer, ResolvedMaskClass } from '../types';
 
 /** Inputs to {@link useMaskRaster}. */
 export type UseMaskRasterOptions = {
@@ -42,51 +42,6 @@ export function useMaskRaster({
         }
         return null;
     }, [labels, maskLayers, height, width, classes]);
-}
-
-/**
- * Every `MaskClass` field, listed explicitly so render equality can be checked
- * field by field. Each of these is read by the rasterizer or the legend, so two
- * class lists that agree on all of them render identically. The type check below
- * fails to compile if a field is added to `MaskClass` without being added here,
- * so a new field can never be silently ignored by {@link useStableClasses}.
- */
-const RENDER_KEYS = [
-    'id',
-    'label',
-    'color',
-    'visible',
-    'opacity',
-] as const satisfies readonly (keyof MaskClass)[];
-
-type MissingRenderKeys = Exclude<keyof MaskClass, (typeof RENDER_KEYS)[number]>;
-// Resolves to `never` (and so fails the assignment) when a key is missing.
-const RENDER_KEYS_ARE_EXHAUSTIVE: [MissingRenderKeys] extends [never] ? true : never = true;
-void RENDER_KEYS_ARE_EXHAUSTIVE;
-
-function sameClasses(a: MaskClass[], b: MaskClass[]): boolean {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i += 1) {
-        for (const key of RENDER_KEYS) {
-            if (a[i][key] !== b[i][key]) return false;
-        }
-    }
-    return true;
-}
-
-/**
- * Returns the previous `classes` array when the new one is equal field by field,
- * so a consumer writing `classes: [...]` inline does not trigger a full mask
- * re-raster on every parent render.
- */
-export function useStableClasses(classes: MaskClass[] | undefined): MaskClass[] | undefined {
-    const ref = useRef(classes);
-    if (classes !== ref.current) {
-        if (!classes || !ref.current || !sameClasses(classes, ref.current)) {
-            ref.current = classes;
-        }
-    }
-    return ref.current;
 }
 
 /** A decoded image, the URL it was loaded from, and the reset key it was loaded under. */
@@ -189,9 +144,9 @@ export function useLoadedImages(
 }
 
 /**
- * A PNG object URL for an RGBA buffer, re-encoded when the buffer changes and
- * revoked when it is replaced or the component unmounts. `null` while encoding,
- * without a buffer, or when encoding fails.
+ * A PNG object URL for an RGBA buffer, re-encoded when the buffer changes. Each URL is revoked
+ * once its replacement is on screen, or on unmount, so the picture never points at a revoked
+ * URL. `null` without a buffer or when encoding fails.
  */
 export function useRgbaObjectUrl(buffer: RgbaBuffer | null): string | null {
     const [url, setUrl] = useState<string | null>(null);
@@ -201,10 +156,8 @@ export function useRgbaObjectUrl(buffer: RgbaBuffer | null): string | null {
             return;
         }
         let cancelled = false;
-        let created: string | null = null;
         rgbaToObjectUrl(buffer)
             .then((next) => {
-                created = next;
                 if (cancelled) URL.revokeObjectURL(next);
                 else setUrl(next);
             })
@@ -213,8 +166,13 @@ export function useRgbaObjectUrl(buffer: RgbaBuffer | null): string | null {
             });
         return () => {
             cancelled = true;
-            if (created) URL.revokeObjectURL(created);
         };
     }, [buffer]);
+    useEffect(
+        () => () => {
+            if (url) URL.revokeObjectURL(url);
+        },
+        [url],
+    );
     return url;
 }

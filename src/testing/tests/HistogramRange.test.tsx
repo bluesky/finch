@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import HistogramRange from '../../components/HistogramRange/HistogramRange';
-import type { HistogramRangeProps } from '../../components/HistogramRange/HistogramRange';
+import HistogramRange from '../../components/HistogramRange';
+import type { HistogramRangeProps } from '../../components/HistogramRange';
 
 /** Ten bins with edges 0..10, so edge indices equal data values. */
 const COUNTS = [1, 2, 3, 4, 5, 5, 4, 3, 2, 1];
@@ -146,12 +146,12 @@ describe('HistogramRange', () => {
 
         it('snaps on the display scale: arithmetic on linear edges, geometric under log', () => {
             const props = { counts: [1, 1], binEdges: [10, 100, 1000] };
-            setup({ ...props, value: [31, 33] });
-            expect(sliders().map(valueNow)).toEqual([10, 10]);
+            setup({ ...props, value: [33, 1000] });
+            expect(sliders().map(valueNow)).toEqual([10, 1000]);
             document.body.innerHTML = '';
             // The geometric midpoint of 10 and 100 is 31.6.
-            setup({ ...props, value: [31, 33], valueScale: 'log' });
-            expect(sliders().map(valueNow)).toEqual([10, 100]);
+            setup({ ...props, value: [33, 1000], valueScale: 'log' });
+            expect(sliders().map(valueNow)).toEqual([100, 1000]);
         });
 
         it('snaps on irregular edges', () => {
@@ -176,9 +176,55 @@ describe('HistogramRange', () => {
             rerender(<HistogramRange {...props} counts={[1, 1]} binEdges={[0, 5, 10]} />);
             expect(sliders().map(valueNow)).toEqual([0, 5]);
         });
+
+        it('selects at least one bin when both bounds snap to the same edge', () => {
+            const { rerender, props, onChange } = setup({ value: [3, 3] });
+            expect(sliders().map(valueNow)).toEqual([3, 4]);
+            // Each handle stays on its own side: the minimum cannot pass the maximum.
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            fireEvent.keyDown(sliders()[1], { key: 'ArrowLeft' });
+            expect(onChange).not.toHaveBeenCalled();
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowLeft' });
+            expect(onChange).toHaveBeenLastCalledWith([2, 4], expect.any(Array));
+            // At the top edge, the bin below is selected.
+            rerender(<HistogramRange {...props} value={[10, 10]} />);
+            expect(sliders().map(valueNow)).toEqual([9, 10]);
+            // A value that collapses after re-binning still spans one bin.
+            rerender(
+                <HistogramRange {...props} counts={[1, 1]} binEdges={[0, 5, 10]} value={[6, 7]} />,
+            );
+            expect(sliders().map(valueNow)).toEqual([5, 10]);
+        });
     });
 
     describe('data validation', () => {
+        it('treats infinite counts as zero on both count scales, so a log axis cannot hang', () => {
+            for (const countScale of ['log', 'linear'] as const) {
+                const { container, onChange, unmount } = setup({
+                    counts: [1, Infinity, 2],
+                    binEdges: [0, 1, 2, 3],
+                    value: null,
+                    countScale,
+                });
+                expect(container.querySelector('svg path')?.getAttribute('d')).not.toContain('NaN');
+                fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+                expect(onChange).toHaveBeenCalledWith([1, 3], [expect.closeTo(100 / 3, 9), 100]);
+                unmount();
+            }
+        });
+
+        it('renders a 16-bit histogram (65,536 bins) as a few merged bar paths', () => {
+            const n = 65536;
+            const { container } = setup({
+                counts: Array.from({ length: n }, (_, i) => (i % 7) + 1),
+                binEdges: Array.from({ length: n + 1 }, (_, i) => i),
+                value: [1000, 60000],
+            });
+            // One path per run of faded or included bins, never one element per bin.
+            expect(container.querySelectorAll('svg path')).toHaveLength(3);
+            expect(sliders().map(valueNow)).toEqual([1000, 60000]);
+        });
+
         it('renders "No data" without warning while counts and edges are both empty', () => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
             setup({ counts: [], binEdges: [], value: null });
@@ -250,6 +296,91 @@ describe('HistogramRange', () => {
             expect(runs(container)[0].d).toMatch(/H333\.\d+ .*H666\.\d+ .*H1000/);
             fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
             expect(onChange).toHaveBeenCalledWith([-1, 1], [expect.closeTo(100 / 3, 9), 100]);
+        });
+    });
+
+    describe('log value axis', () => {
+        // Three bins have a lower edge of 0 or below; only [1, 10] and [10, 100] can be drawn.
+        const LOG = {
+            counts: [1, 1, 1, 1, 1],
+            binEdges: [-2, -1, 0, 1, 10, 100],
+            valueScale: 'log' as const,
+        };
+        const undrawn = (c: HTMLElement) =>
+            c.querySelector('[data-testid="histogram-range-undrawn"]');
+
+        it('draws only the bins with a positive lower edge and says how many are not drawn', () => {
+            const { container } = setup({ ...LOG, value: null });
+            const [run] = runs(container);
+            expect(runs(container)).toHaveLength(1);
+            expect(run.d.startsWith('M0,1000')).toBe(true);
+            const marker = undrawn(container);
+            expect(marker).toHaveTextContent('≤0');
+            expect(marker?.getAttribute('title')).toBe(
+                '3 bins with a lower edge of 0 or below (60.0% of counts) cannot be placed on a log axis and are not drawn',
+            );
+        });
+
+        it('names hidden bins by their lower edge, even when their values are positive', () => {
+            // [0, 1] holds positive values but cannot be placed on a log axis.
+            const { container } = setup({
+                counts: [4, 1],
+                binEdges: [0, 1, 10],
+                value: null,
+                valueScale: 'log',
+            });
+            expect(undrawn(container)?.getAttribute('title')).toBe(
+                '1 bin with a lower edge of 0 or below (80.0% of counts) cannot be placed on a log axis and is not drawn',
+            );
+        });
+
+        it('shows no marker on a linear axis or when every edge is positive', () => {
+            const { container, unmount } = setup({ ...LOG, valueScale: 'linear', value: null });
+            expect(undrawn(container)).toBeNull();
+            unmount();
+            const positive = setup({
+                counts: [1, 1],
+                binEdges: [1, 10, 100],
+                value: null,
+                valueScale: 'log',
+            });
+            expect(undrawn(positive.container)).toBeNull();
+        });
+
+        it('keeps a supplied edge of 0 or below as the threshold', () => {
+            const { onChange } = setup({ ...LOG, value: [-1, 100] });
+            expect(valueNow(sliders()[0])).toBe(-1);
+            // Moving the other handle leaves the lower threshold exactly as supplied.
+            fireEvent.keyDown(sliders()[1], { key: 'ArrowLeft' });
+            expect(onChange).toHaveBeenLastCalledWith([-1, 10], [20, 80]);
+        });
+
+        it('reaches undrawn edges with the keyboard and counts them in the percentiles', () => {
+            const { onChange } = setup({ ...LOG, value: null });
+            expect(sliders().map(valueNow)).toEqual([-2, 100]);
+            fireEvent.keyDown(sliders()[0], { key: 'ArrowRight' });
+            expect(onChange).toHaveBeenLastCalledWith([-1, 100], [20, 100]);
+        });
+
+        it('never moves a handle or the band into undrawn bins with the pointer', () => {
+            const { onChange, unmount } = setup({ ...LOG, value: null });
+            press(plot(), 0);
+            expect(onChange).toHaveBeenLastCalledWith([1, 100], [60, 100]);
+            release(0);
+            unmount();
+            const panned = setup({ ...LOG, value: [1, 10] });
+            press(band(panned.container), RECT.width / 4);
+            move(0);
+            for (const [range] of panned.onChange.mock.calls) {
+                expect(range[0]).toBeGreaterThanOrEqual(1);
+            }
+        });
+
+        it('starts a reference range below the axis at the axis start', () => {
+            const { container } = setup({ ...LOG, value: null, referenceRange: [-5, 10] });
+            const rect = container.querySelector('[data-testid="histogram-range-reference"]');
+            expect(Number(rect?.getAttribute('x'))).toBe(0);
+            expect(Number(rect?.getAttribute('width'))).toBeCloseTo(500, 6);
         });
     });
 
@@ -377,6 +508,22 @@ describe('HistogramRange', () => {
             expect(labels('histogram-range-side-axis')).toEqual(['0', '2', '4', '6', '8', '10']);
         });
 
+        it('labels the count axis half as often when vertical, where it runs along the narrow side', () => {
+            const counts = [8000, 1];
+            const binEdges = [0, 1, 2];
+            const { unmount } = setup({ counts, binEdges, value: null });
+            expect(labels('histogram-range-side-axis')).toEqual([
+                '0',
+                '2000',
+                '4000',
+                '6000',
+                '8000',
+            ]);
+            unmount();
+            setup({ counts, binEdges, value: null, orientation: 'vertical' });
+            expect(labels('histogram-range-bottom-axis')).toEqual(['0', '5000', '10000']);
+        });
+
         it('prints plain numbers on linear axes below a million, and 3 digits from there', () => {
             setup({ counts: [25000, 1], binEdges: [0, 6000, 12000], value: null });
             expect(labels('histogram-range-bottom-axis')).toEqual([
@@ -462,6 +609,21 @@ describe('HistogramRange', () => {
             expect(onChange.mock.invocationCallOrder[0]).toBeLessThan(
                 onChangeCommitted.mock.invocationCallOrder[0],
             );
+        });
+
+        it('keeps to the current bins when the histogram shrinks during a drag', () => {
+            const { container, rerender, props, onChange, onChangeCommitted } = setup({
+                value: [2, 9],
+            });
+            press(handleEl(container, 'hi'), xFor(9));
+            // A live histogram re-bins from ten bins to two while the handle is held.
+            rerender(<HistogramRange {...props} counts={[1, 1]} binEdges={[0, 5, 10]} />);
+            move(xFor(6));
+            release(xFor(6));
+            for (const [range] of [...onChange.mock.calls, ...onChangeCommitted.mock.calls]) {
+                for (const v of range) expect([0, 5, 10]).toContain(v);
+            }
+            expect(onChangeCommitted).toHaveBeenCalledTimes(1);
         });
 
         it('ends a drag when pointer capture is lost', () => {

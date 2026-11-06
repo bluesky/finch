@@ -24,8 +24,6 @@ type PlotProps = {
     config: Record<string, unknown>;
     onRelayout: (e: Record<string, unknown>) => void;
     onLegendClick: (e: { curveNumber: number; data: Record<string, unknown>[] }) => boolean;
-    onHover: (e: { points: Record<string, unknown>[] }) => void;
-    onUnhover: () => void;
     onInitialized?: (figure: unknown, gd: HTMLElement) => void;
 };
 
@@ -293,7 +291,7 @@ describe('PlotlyMaskOverlay', () => {
         const heatmap = last().data[0] as Record<string, unknown> & {
             z: ArrayLike<number>[];
             customdata: ArrayLike<number>[];
-            colorbar: { tickvals: number[]; ticktext: string[] };
+            colorbar: { tickprefix: string; ticksuffix: string };
         };
         // The colour range is the native domain, logged once.
         expect(heatmap.zmin).toBeCloseTo(1);
@@ -307,27 +305,45 @@ describe('PlotlyMaskOverlay', () => {
         expect(Array.isArray(heatmap.customdata[0])).toBe(true);
         expect(heatmap.hovertemplate).toBe('value %{customdata:.6~g}<extra></extra>');
         expect(heatmap.hovertemplate).not.toContain('log');
-        // Colorbar ticks sit on decades and are labelled in native units.
-        expect(heatmap.colorbar).toEqual({
-            tickvals: [1, 2, 3],
-            ticktext: ['10<sup>1</sup>', '10<sup>2</sup>', '10<sup>3</sup>'],
-        });
+        // The colorbar is in log10 units, so Plotly's own ticks are labelled as powers of ten.
+        expect(heatmap.showscale).toBe(true);
+        expect(heatmap.colorbar).toMatchObject({ tickprefix: '10<sup>', ticksuffix: '</sup>' });
     });
 
-    it('labels a sub-decade log colorbar at its ends, in native units', () => {
-        render(
+    // A slim horizontal bar just above the image, in paper coordinates. No `yref: 'container'`:
+    // in a real browser that stops Plotly from restoring the x range on a reset.
+    const TOP_COLORBAR = { orientation: 'h', len: 1, thickness: 14 };
+
+    it('draws the colorbar above the image, leaving the right side to the legend', () => {
+        const image = {
+            type: 'array' as const,
+            data: IMAGE,
+            shape: IMAGE_SHAPE,
+            showColorbar: true,
+        };
+        const mask = { type: 'labels' as const, data: LABELS };
+        const { rerender } = render(<PlotlyMaskOverlay image={image} mask={mask} />);
+        expect(last().data[0].colorbar).toEqual(TOP_COLORBAR);
+        // The legend stays where it is without a colorbar.
+        const legend = last().layout.legend;
+        rerender(<PlotlyMaskOverlay image={{ ...image, showColorbar: false }} mask={mask} />);
+        expect(last().layout.legend).toEqual(legend);
+        // The same place with or without a legend.
+        rerender(<PlotlyMaskOverlay image={image} mask={mask} showLegend={false} />);
+        expect(last().data[0].colorbar).toEqual(TOP_COLORBAR);
+    });
+
+    it('shows a colorbar only when asked', () => {
+        const data = new Float32Array([20, 30, 40, 50, 60, 70]);
+        const { rerender } = render(
             <PlotlyMaskOverlay
-                image={{
-                    type: 'array',
-                    data: new Float32Array([20, 30, 40, 50, 60, 70]),
-                    shape: [2, 3],
-                    logScale: true,
-                    showColorbar: true,
-                }}
+                image={{ type: 'array', data, shape: [2, 3], showColorbar: true }}
             />,
         );
-        const { colorbar } = last().data[0] as { colorbar: { ticktext: string[] } };
-        expect(colorbar.ticktext).toEqual(['20', '70']);
+        expect(last().data[0]).toMatchObject({ showscale: true, colorbar: TOP_COLORBAR });
+        rerender(<PlotlyMaskOverlay image={{ type: 'array', data, shape: [2, 3] }} />);
+        expect(last().data[0]).toMatchObject({ showscale: false });
+        expect(last().data[0].colorbar).toBeUndefined();
     });
 
     it('stacks the mask above the traces with its opacity, and lists classes in the legend', async () => {
@@ -353,12 +369,12 @@ describe('PlotlyMaskOverlay', () => {
         expect(names).toEqual(['Beamstop', 'Gap']);
     });
 
-    it('toggles a class from its legend entry and re-renders the mask', async () => {
+    it('asks for a class to be hidden from its legend entry, and hides it once passed back', async () => {
         const onClassVisibilityChange = vi.fn();
-        render(
+        const { rerender } = render(
             <PlotlyMaskOverlay
                 image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
-                mask={{ type: 'labels', data: LABELS }}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1 }] }}
                 onClassVisibilityChange={onClassVisibilityChange}
             />,
         );
@@ -371,13 +387,72 @@ describe('PlotlyMaskOverlay', () => {
         });
         expect(handled).toBe(false);
         expect(onClassVisibilityChange).toHaveBeenCalledWith(1, false);
+        // Visibility is the application's: nothing changes until it passes the value back.
+        expect(last().data[curve].visible).toBe(true);
+        rerender(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1, visible: false }] }}
+                onClassVisibilityChange={onClassVisibilityChange}
+            />,
+        );
         expect(last().data[curve].visible).toBe('legendonly');
         await waitFor(() => expect(last().layout.images[0].source).not.toBe(before));
+        // Asked again from the hidden state, the legend asks to show it.
+        act(() => {
+            last().onLegendClick({ curveNumber: curve, data: last().data });
+        });
+        expect(onClassVisibilityChange).toHaveBeenLastCalledWith(1, true);
     });
 
-    it('turns point layers into named scatter traces and toggles them from the legend', () => {
-        const onPointLayerVisibilityChange = vi.fn();
+    it('does not re-raster the mask for an equal inline class list', async () => {
+        const props = {
+            image: { type: 'array' as const, data: IMAGE, shape: IMAGE_SHAPE },
+        };
+        const { rerender } = render(
+            <PlotlyMaskOverlay
+                {...props}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1, color: '#ff0000' }] }}
+            />,
+        );
+        await waitFor(() => expect(last().layout.images).toHaveLength(1));
+        const before = last().layout.images[0].source;
+        rerender(
+            <PlotlyMaskOverlay
+                {...props}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1, color: '#ff0000' }] }}
+            />,
+        );
+        await act(async () => {});
+        expect(last().layout.images[0].source).toBe(before);
+    });
+
+    it('names point layers in full in hover labels, and leaves unlabelled layers out of the legend', () => {
         render(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                pointLayers={[
+                    { id: 'nuclei', label: 'Nucleus centres', points: [[1, 1]] },
+                    { id: 'beam', points: [[0, 0]] },
+                ]}
+            />,
+        );
+        // Plotly would shorten "Nucleus centres" (15 characters) to "Nucleus cent...".
+        expect(last().layout.hoverlabel).toEqual({ namelength: -1 });
+        const labelled = last().data.find((t) => t.name === 'Nucleus centres')!;
+        const unlabelled = last().data.find(
+            (t) => (t.meta as { layerId?: string }).layerId === 'beam',
+        )!;
+        expect(labelled.showlegend).toBe(true);
+        // Drawn and reported on hover, but not listed.
+        expect(unlabelled.showlegend).toBe(false);
+        expect(unlabelled.visible).toBe(true);
+        expect(unlabelled.hoverinfo).toBe('name+x+y');
+    });
+
+    it('turns point layers into named scatter traces and asks to toggle them from the legend', () => {
+        const onPointLayerVisibilityChange = vi.fn();
+        const { rerender } = render(
             <PlotlyMaskOverlay
                 image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
                 pointLayers={[{ id: 'cp1', label: 'Ring 1', points: [[1, 1]], color: '#abcdef' }]}
@@ -395,6 +470,22 @@ describe('PlotlyMaskOverlay', () => {
             last().onLegendClick({ curveNumber: curve, data: last().data });
         });
         expect(onPointLayerVisibilityChange).toHaveBeenCalledWith('cp1', false);
+        expect(last().data[curve].visible).toBe(true);
+        rerender(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                pointLayers={[
+                    {
+                        id: 'cp1',
+                        label: 'Ring 1',
+                        points: [[1, 1]],
+                        color: '#abcdef',
+                        visible: false,
+                    },
+                ]}
+                onPointLayerVisibilityChange={onPointLayerVisibilityChange}
+            />,
+        );
         expect(last().data[curve].visible).toBe('legendonly');
     });
 
@@ -489,7 +580,7 @@ describe('PlotlyMaskOverlay', () => {
                 onDrawComplete={onDrawComplete}
             />,
         );
-        const before = last().layout.datarevision;
+        const before = last().layout.editrevision;
         act(() =>
             last().onRelayout({
                 shapes: [...last().layout.shapes, { type: 'path', path: 'M0,0L2,0L2,2Z' }],
@@ -505,7 +596,7 @@ describe('PlotlyMaskOverlay', () => {
             ],
         });
         // Finch re-syncs the figure so the shape only stays if the app feeds it back.
-        expect(last().layout.datarevision).not.toBe(before);
+        expect(last().layout.editrevision).not.toBe(before);
     });
 
     it('renews editrevision after a shape change, so Plotly drops a draw the app did not keep', () => {
@@ -553,20 +644,118 @@ describe('PlotlyMaskOverlay', () => {
         expect(onAnnotationChange).toHaveBeenLastCalledWith([annotations[1]]);
     });
 
-    it('merges application traces, layout and config last', () => {
-        render(
+    it('shows missingColor where there is no data, and a dark slate by default', () => {
+        const { rerender } = render(
+            <PlotlyMaskOverlay image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }} />,
+        );
+        expect(last().layout.plot_bgcolor).toBe('#0f172a');
+        rerender(
             <PlotlyMaskOverlay
                 image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
-                extraTraces={[{ type: 'scatter', name: 'app trace', x: [1], y: [1] }]}
-                layout={{ margin: { l: 1, r: 1, t: 1, b: 1 }, xaxis: { title: { text: 'q' } } }}
-                config={{ scrollZoom: false }}
+                missingColor="#ef4444"
             />,
         );
-        expect(last().data.at(-1)).toMatchObject({ name: 'app trace', meta: { kind: 'extra' } });
-        expect(last().layout.margin).toEqual({ l: 1, r: 1, t: 1, b: 1 });
-        // One level deep: the range Finch sets survives an app axis title.
-        expect(last().layout.xaxis).toMatchObject({ range: [-0.5, 2.5], title: { text: 'q' } });
-        expect(last().config.scrollZoom).toBe(false);
+        expect(last().layout.plot_bgcolor).toBe('#ef4444');
+    });
+
+    it('lets Plotly redraw a new frame of the same size: no datarevision', () => {
+        const { rerender } = render(
+            <PlotlyMaskOverlay image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }} />,
+        );
+        // With a datarevision set, Plotly would keep drawing the old arrays until it changed.
+        expect(last().layout.datarevision).toBeUndefined();
+        const next = Float32Array.from(IMAGE, (v) => v + 100);
+        rerender(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: next, shape: IMAGE_SHAPE, domain: [0, 1000] }}
+            />,
+        );
+        expect(last().layout.datarevision).toBeUndefined();
+        expect((last().data[0].z as ArrayLike<number>[])[0][0]).toBe(next[0]);
+    });
+
+    it('keeps the figure objects across a re-render with equal inputs, so a drag is not undone', () => {
+        // A parent re-render (a hover readout, say) during a pan must not hand Plotly a new
+        // layout: Plotly would re-apply the input ranges and cancel the pan.
+        const render1 = () => (
+            <PlotlyMaskOverlay
+                image={{ type: 'url', url: 'scan.png', shape: [4, 6] }}
+                imageLayers={[{ id: 'mask', url: 'mask.png' }]}
+                pointLayers={[]}
+            />
+        );
+        const { rerender } = render(render1());
+        const { layout, data, config } = last();
+        rerender(render1());
+        expect(last().layout).toBe(layout);
+        expect(last().data).toBe(data);
+        expect(last().config).toBe(config);
+    });
+
+    it('shows axes and the legend unless asked not to', () => {
+        const props = {
+            image: { type: 'array' as const, data: IMAGE, shape: IMAGE_SHAPE },
+            mask: { type: 'labels' as const, data: LABELS },
+        };
+        const { rerender } = render(<PlotlyMaskOverlay {...props} />);
+        expect(last().layout.xaxis.visible).toBe(true);
+        expect(last().layout.yaxis.visible).toBe(true);
+        expect(last().layout.showlegend).toBe(true);
+        rerender(<PlotlyMaskOverlay {...props} showAxes={false} showLegend={false} />);
+        expect(last().layout.xaxis.visible).toBe(false);
+        expect(last().layout.yaxis.visible).toBe(false);
+        expect(last().layout.margin).toEqual({ l: 0, r: 0, t: 0, b: 0 });
+        expect(last().layout.showlegend).toBe(false);
+    });
+
+    it('passes className and other div props to the root, valid image or not', () => {
+        const { rerender } = render(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                className="extra"
+                id="overlay"
+                aria-label="Detector"
+            />,
+        );
+        let root = screen.getByTestId('plotly-mask-overlay');
+        expect(root).toHaveClass('extra', 'finch-plotly-mask-overlay');
+        expect(root).toHaveAttribute('id', 'overlay');
+        expect(root).toHaveAttribute('aria-label', 'Detector');
+        vi.spyOn(console, 'warn').mockImplementation(() => {});
+        rerender(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: [5, 5] }}
+                className="extra"
+                id="overlay"
+                aria-label="Detector"
+            />,
+        );
+        root = screen.getByTestId('plotly-mask-overlay');
+        expect(screen.getByRole('alert')).toHaveTextContent('invalid image');
+        expect(root).toHaveClass('extra');
+        expect(root).toHaveAttribute('id', 'overlay');
+        expect(root).toHaveAttribute('aria-label', 'Detector');
+    });
+
+    it('warns once when a class color or annotation fill is not hex', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const { rerender } = render(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1, color: 'red' }] }}
+                annotations={[{ type: 'rect', x0: 0, y0: 0, x1: 1, y1: 1, fill: 'rgb(0,255,0)' }]}
+            />,
+        );
+        rerender(
+            <PlotlyMaskOverlay
+                image={{ type: 'array', data: IMAGE, shape: IMAGE_SHAPE }}
+                mask={{ type: 'labels', data: LABELS, classes: [{ id: 1, color: 'red' }] }}
+                annotations={[{ type: 'rect', x0: 0, y0: 0, x1: 1, y1: 1, fill: 'rgb(0,255,0)' }]}
+            />,
+        );
+        const messages = warn.mock.calls.map(([m]) => String(m));
+        expect(messages.filter((m) => m.includes('class 1 is drawn magenta'))).toHaveLength(1);
+        expect(messages.filter((m) => m.includes('annotation `fill` must be hex'))).toHaveLength(1);
     });
 
     it('keeps the view across image swaps of the same size via uirevision', () => {
@@ -827,6 +1016,34 @@ describe('PlotlyMaskOverlay detector coordinates and display images', () => {
         expect(screen.getByRole('status')).toHaveTextContent('Not shown: rings');
         // A layer failing does not block the image.
         expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it('never puts a URL query or fragment in a load error or a warning', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const onLoadStateChange = vi.fn();
+        const secret = 'https://data.example/scan.png?api_key=k3y#token=t0k';
+        render(
+            <PlotlyMaskOverlay
+                image={{ type: 'url', url: secret, shape: SHAPE }}
+                imageLayers={[{ id: 'mask', url: `${secret}&layer=mask` }]}
+                onLoadStateChange={onLoadStateChange}
+            />,
+        );
+        // A picture of the wrong size warns, naming the layer by id.
+        finishLoad(`${secret}&layer=mask`, 5, 5);
+        failLoad(secret);
+        expect(onLoadStateChange).toHaveBeenCalledWith('image', {
+            status: 'error',
+            message: 'Failed to load https://data.example/scan.png',
+        });
+        const reported = [
+            ...onLoadStateChange.mock.calls.map(([, state]) => JSON.stringify(state)),
+            ...warn.mock.calls.map(([m]) => String(m)),
+            screen.getByTestId('plotly-mask-overlay').textContent ?? '',
+        ].join('\n');
+        expect(reported).not.toMatch(/api_key|k3y|t0k/);
+        // Every picture is loaded without credentials.
+        expect(created.every((i) => i.crossOrigin === 'anonymous')).toBe(true);
     });
 
     it('keeps hidden layers in the figure at opacity 0', () => {
@@ -1131,25 +1348,6 @@ describe('PlotlyMaskOverlay detector coordinates and display images', () => {
             ),
         );
     });
-
-    it('exposes the base-image smoothing mode for the stylesheet', () => {
-        const { rerender } = render(
-            <PlotlyMaskOverlay image={{ type: 'url', url: 'scan.png', shape: SHAPE }} />,
-        );
-        expect(screen.getByTestId('plotly-mask-overlay')).toHaveAttribute(
-            'data-image-smoothing',
-            'auto',
-        );
-        rerender(
-            <PlotlyMaskOverlay
-                image={{ type: 'url', url: 'scan.png', shape: SHAPE, smoothing: true }}
-            />,
-        );
-        expect(screen.getByTestId('plotly-mask-overlay')).toHaveAttribute(
-            'data-image-smoothing',
-            'true',
-        );
-    });
 });
 
 describe('PlotlyMaskOverlay view and canvas parity', () => {
@@ -1168,17 +1366,50 @@ describe('PlotlyMaskOverlay view and canvas parity', () => {
                 onViewportChange={onViewportChange}
             />,
         );
-        expect(names()).toEqual(['zoom2d', 'pan2d', 'resetView', 'eraseshape']);
+        expect(names()).toEqual(['zoom2d', 'pan2d', 'resetView', 'toImage', 'eraseshape']);
         expect(names()).not.toContain('autoScale2d');
         expect(names()).not.toContain('resetScale2d');
 
         const reset = buttons().find((b) => typeof b !== 'string' && b.name === 'resetView');
+        const axisBefore = last().layout.xaxis.uirevision;
         act(() => (reset as Exclude<Button, string>).click({}));
         expect(onViewportChange).toHaveBeenLastCalledWith(null);
-        // A new uirevision makes Plotly apply Finch's full-frame ranges again.
-        expect(last().layout.uirevision).toBe('scan-1#1');
+        // A new axis revision makes Plotly apply Finch's full-frame ranges again; the rest of
+        // the UI state (drag mode, legend) keeps its revision.
+        expect(last().layout.xaxis.uirevision).not.toBe(axisBefore);
+        expect(last().layout.yaxis.uirevision).toBe(last().layout.xaxis.uirevision);
+        expect(last().layout.uirevision).toBe('scan-1');
         expect(last().layout.xaxis.range).toEqual([-0.5, 5.5]);
         expect(last().layout.yaxis.range).toEqual([3.5, -0.5]);
+    });
+
+    it('applies a requested viewport, including null after none, but leaves an unchanged one alone', () => {
+        const props = { image: { type: 'array' as const, data: RAW, shape: SHAPE } };
+        const { rerender } = render(<PlotlyMaskOverlay {...props} />);
+        const revision = () => last().layout.xaxis.uirevision;
+        const uncontrolled = revision();
+        // The user zooms an uncontrolled plot; Plotly keeps that while the revision holds.
+        act(() => last().onRelayout({ 'xaxis.range': [1, 3], 'yaxis.range': [2, 0] }));
+        rerender(<PlotlyMaskOverlay {...props} />);
+        expect(revision()).toBe(uncontrolled);
+        // The application asks for the whole frame: a new revision, so Plotly applies it.
+        rerender(<PlotlyMaskOverlay {...props} viewport={null} />);
+        expect(revision()).not.toBe(uncontrolled);
+        expect(last().layout.xaxis.range).toEqual([-0.5, 5.5]);
+        const reset = revision();
+        rerender(<PlotlyMaskOverlay {...props} viewport={null} />);
+        expect(revision()).toBe(reset);
+        // A viewport is compared by value: a new object with the same ranges is no new request.
+        rerender(<PlotlyMaskOverlay {...props} viewport={{ x: [0, 2], y: [2, 0] }} />);
+        const zoomed = revision();
+        expect(zoomed).not.toBe(reset);
+        expect(last().layout.xaxis.range).toEqual([0, 2]);
+        rerender(<PlotlyMaskOverlay {...props} viewport={{ x: [0, 2], y: [2, 0] }} />);
+        expect(revision()).toBe(zoomed);
+        rerender(<PlotlyMaskOverlay {...props} viewport={{ x: [1, 2], y: [2, 0] }} />);
+        expect(revision()).not.toBe(zoomed);
+        // None of this touches the layout revision, which also holds the drag mode.
+        expect(last().layout.uirevision).toBe(`${SHAPE[0]}x${SHAPE[1]}`);
     });
 
     it('reports zoom and pan as viewport ranges, and autorange as null', () => {
@@ -1226,18 +1457,12 @@ describe('PlotlyMaskOverlay view and canvas parity', () => {
         expect(last().layout.xaxis.range).toEqual([-0.5, 5.5]);
     });
 
-    it('locks the view when zoomable is false', () => {
-        render(
-            <PlotlyMaskOverlay
-                image={{ type: 'array', data: RAW, shape: SHAPE }}
-                zoomable={false}
-            />,
-        );
-        expect(last().layout.xaxis.fixedrange).toBe(true);
-        expect(last().layout.yaxis.fixedrange).toBe(true);
-        expect(last().config.scrollZoom).toBe(false);
+    it('zooms with the wheel, and leaves resetting to the reset button rather than double-click', () => {
+        render(<PlotlyMaskOverlay image={{ type: 'array', data: RAW, shape: SHAPE }} />);
+        expect(last().config.scrollZoom).toBe(true);
+        // Plotly's double-click restores the range at mount, which is not the whole frame.
         expect(last().config.doubleClick).toBe(false);
-        expect(names()).toEqual(['eraseshape']);
+        expect(last().layout.xaxis.fixedrange).toBeUndefined();
     });
 
     it('sizes fixed boxes by the frame aspect ratio, like the canvas renderer', () => {
@@ -1297,28 +1522,12 @@ describe('PlotlyMaskOverlay view and canvas parity', () => {
         expect(last().layout.shapes[1].label).toBeUndefined();
     });
 
-    it('compares an object frameKey by content', () => {
-        const { rerender } = render(
-            <PlotlyMaskOverlay
-                image={{ type: 'array', data: RAW, shape: SHAPE }}
-                frameKey={{ scan: 'a', slice: [0] }}
-            />,
-        );
-        const first = last().layout.uirevision;
-        rerender(
-            <PlotlyMaskOverlay
-                image={{ type: 'array', data: RAW, shape: SHAPE }}
-                frameKey={{ scan: 'a', slice: [0] }}
-            />,
-        );
-        expect(last().layout.uirevision).toBe(first);
-        rerender(
-            <PlotlyMaskOverlay
-                image={{ type: 'array', data: RAW, shape: SHAPE }}
-                frameKey={{ scan: 'b', slice: [0] }}
-            />,
-        );
-        expect(last().layout.uirevision).not.toBe(first);
+    it('names the frame by a string or number frameKey', () => {
+        const props = { image: { type: 'array' as const, data: RAW, shape: SHAPE } };
+        const { rerender } = render(<PlotlyMaskOverlay {...props} frameKey="scan-a|0" />);
+        expect(last().layout.uirevision).toBe('scan-a|0');
+        rerender(<PlotlyMaskOverlay {...props} frameKey={3} />);
+        expect(last().layout.uirevision).toBe('3');
     });
 });
 
@@ -1335,7 +1544,7 @@ describe('PlotlyMaskOverlay annotation editing', () => {
     };
     const roi = { type: 'rect' as const, x0: 0, y0: 0, x1: 2, y1: 2 };
 
-    it('reports each drawn shape once, even if Plotly lists it again before the next update', () => {
+    it('reports each drawn shape once: the next update drops it from Plotly unless the app keeps it', () => {
         const onDrawComplete = vi.fn();
         render(
             <PlotlyMaskOverlay
@@ -1345,13 +1554,18 @@ describe('PlotlyMaskOverlay annotation editing', () => {
                 onDrawComplete={onDrawComplete}
             />,
         );
+        // Plotly sends a fresh copy of its shape list with every relayout.
         const drawn = { type: 'rect', x0: 3, y0: 1, x1: 5, y1: 3 };
         const finch = last().layout.shapes;
-        act(() => last().onRelayout({ shapes: [...finch, drawn] }));
-        act(() => last().onRelayout({ shapes: [...finch, drawn] }));
+        const revision = last().layout.editrevision;
+        act(() => last().onRelayout({ shapes: structuredClone([...finch, drawn]) }));
         expect(onDrawComplete).toHaveBeenCalledTimes(1);
+        // A new editrevision makes Plotly drop the drawn shape, so its next list is Finch's alone.
+        expect(last().layout.editrevision).not.toBe(revision);
         const second = { type: 'rect', x0: 1, y0: 1, x1: 2, y1: 2 };
-        act(() => last().onRelayout({ shapes: [...finch, drawn, second] }));
+        act(() =>
+            last().onRelayout({ shapes: structuredClone([...last().layout.shapes, second]) }),
+        );
         expect(onDrawComplete).toHaveBeenCalledTimes(2);
         expect(onDrawComplete).toHaveBeenLastCalledWith({
             type: 'rect',
@@ -1541,12 +1755,6 @@ describe('PlotlyMaskOverlay hover and click report everything under the pointer'
     const A = { layerId: 'cp', label: 'Control points', index: 0, x: 1, y: 1 };
     const B = { layerId: 'cp', label: 'Control points', index: 1, x: 4, y: 2 };
 
-    /** Plotly's own `plotly_hover` for point `index` of the layer, as its throttle delivers it. */
-    function plotlyHover(index: number) {
-        const trace = last().data.find((t) => t.name === 'Control points')!;
-        const [x, y] = POINTS[index];
-        act(() => last().onHover({ points: [{ data: trace, pointIndex: index, x, y }] }));
-    }
     const lastHover = (fn: ReturnType<typeof vi.fn>) =>
         fn.mock.calls.at(-1)?.[0] as OverlayPickInfo | null | undefined;
 
@@ -1565,67 +1773,54 @@ describe('PlotlyMaskOverlay hover and click report everything under the pointer'
         return { onHover, onClick, ...result };
     }
 
-    it('adds the hovered point to the pixel, and drops it once the pointer has moved on', async () => {
+    it('adds the nearest point to the pixel, and drops it once the pointer has moved on', async () => {
         const { onHover } = setup();
         hoverAt(1.2, 1.1);
-        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 1, y: 1 }));
-        plotlyHover(0);
-        expect(lastHover(onHover)).toEqual(expect.objectContaining({ x: 1, y: 1, point: A }));
-
-        // Rapidly on to B, before Plotly's next hover: A is 30 px away now, so it is not reported.
+        await waitFor(() =>
+            expect(lastHover(onHover)).toEqual(expect.objectContaining({ x: 1, y: 1, point: A })),
+        );
+        // On to B: A is 30 px away now, so B is reported instead.
         hoverAt(4, 2);
-        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 4, y: 2 }));
+        await waitFor(() =>
+            expect(lastHover(onHover)).toEqual(expect.objectContaining({ x: 4, y: 2, point: B })),
+        );
+        // More than 20 CSS px from every point: the pixel alone.
+        hoverAt(0, 3.4);
+        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 0, y: 3 }));
         expect(lastHover(onHover)).not.toHaveProperty('point');
-        plotlyHover(1);
-        expect(lastHover(onHover)).toEqual(expect.objectContaining({ x: 4, y: 2, point: B }));
-
-        // A late hover for A, delivered after the pointer reached B, is ignored as too far.
-        const calls = onHover.mock.calls.length;
-        plotlyHover(0);
-        expect(
-            onHover.mock.calls.slice(calls).every(([i]) => !i?.point || i.point.index !== 0),
-        ).toBe(true);
         // No report ever paired a pixel with a point far from it.
         for (const [info] of onHover.mock.calls) {
             if (info?.point) expect(Math.abs(info.point.x - info.x)).toBeLessThanOrEqual(1);
         }
-        act(() => last().onUnhover());
-        expect(lastHover(onHover)).not.toHaveProperty('point');
     });
 
-    it('clicks the point at the click position, even before its hover arrives', () => {
-        const { onClick } = setup();
-        hoverAt(1, 1);
-        plotlyHover(0);
-        // Click on B while Plotly still has A hovered.
+    it('reports the same point for hover and click at the same position', async () => {
+        const { onHover, onClick } = setup();
+        hoverAt(4.1, 2);
+        await waitFor(() => expect(lastHover(onHover)).toHaveProperty('point', B));
         clickAt(4.1, 2);
         expect(onClick).toHaveBeenLastCalledWith(expect.objectContaining({ x: 4, y: 2, point: B }));
-        // More than 20 CSS px from every point: no point at all.
         clickAt(0, 3.4);
         expect(onClick.mock.calls.at(-1)![0]).not.toHaveProperty('point');
         expect(onClick.mock.calls.flatMap(([i]) => (i.point ? [i.point.index] : []))).toEqual([1]);
     });
 
-    it('reports nothing once the pointer leaves, even if a delayed Plotly hover lands after', async () => {
+    it('reports nothing once the pointer leaves, even with a move still waiting for its frame', async () => {
         const { onHover } = setup();
         hoverAt(1, 1);
-        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 1 }));
-        plotlyHover(0);
-        expect(lastHover(onHover)).toHaveProperty('point', A);
+        await waitFor(() => expect(lastHover(onHover)).toHaveProperty('point', A));
 
         // Leave with a pointer move still waiting for its animation frame.
         hoverAt(1.1, 1);
         fireEvent.pointerLeave(screen.getByTestId('plot'));
         expect(onHover).toHaveBeenLastCalledWith(null);
         const calls = onHover.mock.calls.length;
-        plotlyHover(0);
-        act(() => last().onUnhover());
         await act(async () => new Promise((r) => requestAnimationFrame(() => r(null))));
         expect(onHover.mock.calls.length).toBe(calls);
 
-        // Coming back far from A reports the pixel alone.
-        hoverAt(3, 3);
-        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 3, y: 3 }));
+        // Coming back far from both points reports the pixel alone.
+        hoverAt(0, 3.4);
+        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 0, y: 3 }));
         expect(lastHover(onHover)).not.toHaveProperty('point');
     });
 
@@ -1668,9 +1863,7 @@ describe('PlotlyMaskOverlay hover and click report everything under the pointer'
             />,
         );
         hoverAt(1.3, 0.8);
-        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 1, y: 1 }));
-        plotlyHover(0);
-        expect(lastHover(onHover)).toHaveProperty('point', A);
+        await waitFor(() => expect(lastHover(onHover)).toMatchObject({ x: 1, y: 1, point: A }));
         // 0.1 px off A is 3 CSS px: still A. The same one pixel to the right is now 27 px: no point.
         clickAt(1.1, 1);
         expect(onClick).toHaveBeenLastCalledWith(expect.objectContaining({ x: 1, y: 1, point: A }));

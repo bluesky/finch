@@ -9,12 +9,8 @@ export type Point = readonly [number, number];
 export type RectGeometry = { type: 'rect'; x0: number; y0: number; x1: number; y1: number };
 /** Axis-aligned ellipse given by its bounding box. */
 export type EllipseGeometry = { type: 'ellipse'; x0: number; y0: number; x1: number; y1: number };
-/** Even-odd filled polygon; `holes` are additional rings. */
-export type PolygonGeometry = {
-    type: 'polygon';
-    points: readonly Point[];
-    holes?: readonly (readonly Point[])[];
-};
+/** Filled polygon through `points`, closed back to the first point. */
+export type PolygonGeometry = { type: 'polygon'; points: readonly Point[] };
 
 /** Orders a box's corners so `x0 <= x1` and `y0 <= y1`. */
 export function normalizeBox<T extends { x0: number; y0: number; x1: number; y1: number }>(
@@ -29,17 +25,10 @@ export function normalizeBox<T extends { x0: number; y0: number; x1: number; y1:
     };
 }
 
-/** SVG path data for a polyline or polygon (`close`), with optional hole rings (even-odd fill). */
-export function pointsToPath(
-    points: readonly Point[],
-    close: boolean,
-    holes: readonly (readonly Point[])[] = [],
-): string {
-    const ring = (pts: readonly Point[], closeRing: boolean) =>
-        pts.length === 0
-            ? ''
-            : `M${pts.map(([x, y]) => `${x},${y}`).join('L')}${closeRing ? 'Z' : ''}`;
-    return [ring(points, close), ...holes.map((h) => ring(h, true))].join('');
+/** SVG path data for a polyline, or a polygon when `close` is set. */
+export function pointsToPath(points: readonly Point[], close: boolean): string {
+    if (points.length === 0) return '';
+    return `M${points.map(([x, y]) => `${x},${y}`).join('L')}${close ? 'Z' : ''}`;
 }
 
 /** Marker shapes a point layer can use. */
@@ -90,7 +79,7 @@ export type HitTestGeometry =
 
 /**
  * Whether image coordinate `(x, y)` hits a geometry. Filled shapes hit inside their
- * area (polygons by even-odd, honoring holes); lines hit within `tolerance` image pixels
+ * area (polygons by even-odd); lines hit within `tolerance` image pixels
  * of a segment.
  */
 export function hitTestGeometry(
@@ -118,10 +107,8 @@ export function hitTestGeometry(
             const ny = (y - (b.y0 + b.y1) / 2) / ry;
             return nx * nx + ny * ny <= 1;
         }
-        case 'polygon': {
-            if (!insideRing(g.points, x, y)) return false;
-            return !(g.holes ?? []).some((h) => insideRing(h, x, y));
-        }
+        case 'polygon':
+            return insideRing(g.points, x, y);
         case 'line':
             for (let i = 1; i < g.points.length; i += 1) {
                 if (segmentDistance(g.points[i - 1], g.points[i], x, y) <= tolerance) return true;

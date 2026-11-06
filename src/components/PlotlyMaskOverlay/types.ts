@@ -31,7 +31,10 @@ export type MaskClass = {
     label?: string;
     /** Hex color. Defaults to an entry from `CLASS_PALETTE` chosen by position. */
     color?: string;
-    /** Whether the class is drawn. Setting this on any class makes visibility a controlled prop. */
+    /**
+     * Whether the class is drawn. Defaults to `true`. A legend click calls
+     * `onClassVisibilityChange`; pass the new value back here to hide or show the class.
+     */
     visible?: boolean;
     /** Per-class opacity, 0–1, multiplied by the mask's `opacity`. Defaults to `1`. */
     opacity?: number;
@@ -59,6 +62,7 @@ export type ResolvedMaskClass = Required<Omit<MaskClass, 'label'>> & { label: st
 export type ImageLayer = {
     /** Stable key, reported by `onLoadStateChange` and named when the layer fails to load. */
     id: string;
+    /** The picture: an object or data URL, or an `http(s)` URL loaded without credentials. */
     url: string;
     /** 0–1. Multiplies the PNG's own alpha. Defaults to `1`. */
     opacity?: number;
@@ -68,10 +72,15 @@ export type ImageLayer = {
 
 /** Stroke and fill of a vector annotation. Stroke widths are CSS pixels and do not scale with zoom. */
 export type AnnotationStyle = {
+    /** Outline colour, any CSS colour. Defaults to white. */
     stroke?: string;
+    /** Outline width in CSS pixels. Defaults to `1.5`. */
     strokeWidth?: number;
+    /** Fill colour as a hex string (`#rgb` or `#rrggbb`). No fill by default. */
     fill?: string;
+    /** Fill opacity, 0–1. Defaults to `0.25`. */
     fillOpacity?: number;
+    /** Dash pattern in CSS pixels, for example `[4, 3]`. Solid by default. */
     dash?: number[];
 };
 type AnnotationBase = AnnotationStyle & {
@@ -115,7 +124,9 @@ export type PointLayer = {
     label?: string;
     /**
      * Points in continuous image pixels: a flat `[x0, y0, x1, y1, …]` array (a typed
-     * array is fine) or `[x, y]` pairs. Compared by identity, so memoize it.
+     * array is fine) or `[x, y]` pairs. Compared by identity, so memoize it. Finding the point
+     * under the pointer is linear in the number of points: up to about 200,000 points across all
+     * layers stays under 5 ms per frame.
      */
     points: ArrayLike<number> | readonly Point[];
     /** Stroke color. Defaults to white. */
@@ -126,7 +137,10 @@ export type PointLayer = {
     size?: number;
     /** Stroke width in CSS pixels. Defaults to `1`. */
     strokeWidth?: number;
-    /** Setting this on any layer makes point-layer visibility controlled. */
+    /**
+     * Whether the layer is drawn. Defaults to `true`. A legend click calls
+     * `onPointLayerVisibilityChange`; pass the new value back here to hide or show the layer.
+     */
     visible?: boolean;
     /** Whether hover and click report this layer's points. Defaults to `true`. */
     hoverable?: boolean;
@@ -134,12 +148,15 @@ export type PointLayer = {
 
 /** A point of a {@link PointLayer}, as reported in `OverlayPickInfo.point`. */
 export type PointPickInfo = {
+    /** The `id` of the point's layer. */
     layerId: string;
+    /** The `label` of the point's layer. */
     label?: string;
     /** Index of the point within its layer. */
     index: number;
-    /** The point's own coordinates in continuous image pixels. */
+    /** The point's own x in continuous image pixels. */
     x: number;
+    /** The point's own y in continuous image pixels. */
     y: number;
 };
 
@@ -185,7 +202,10 @@ export type ImageArrayInput = {
     type: 'array';
     /** Colormap of the heatmap. Defaults to `'gray'`. */
     colormap?: string;
-    /** Color range `[min, max]` in native units, for example from `HistogramRange`. Defaults to the data extent. */
+    /**
+     * Color range `[min, max]` in native units, for example from `HistogramRange`, so a value keeps
+     * its color across frames. Defaults to the data extent of each frame.
+     */
     domain?: [number, number];
     /** Color on a log10 scale. Pass native values; values ≤ 0 are left blank. Defaults to `false`. */
     logScale?: boolean;
@@ -208,11 +228,10 @@ export type ImageArrayInput = {
 /** A display PNG rendered by the application's backend, shown as-is and scaled onto the frame. */
 export type ImageUrlInput = {
     type: 'url';
+    /** The picture: an object or data URL, or an `http(s)` URL loaded without credentials. Pixels stay sharp when zoomed in. */
     url: string;
     /** `[height, width]` of the detector frame. A smaller PNG is stretched onto it, so coordinates stay in detector pixels. */
     shape: [number, number];
-    /** Scaling when zoomed in. `'auto'` (default) and `false` keep pixels sharp; `true` smooths. */
-    smoothing?: boolean | 'auto';
     /**
      * Looks up the raw value at pixel `(x, y)`, for example from Tiled, since a PNG holds only
      * display colors. May be async: hover reports the pixel first and again with its value.
@@ -224,7 +243,10 @@ export type ImageUrlInput = {
 export type ImageInput = ImageArrayInput | ImageUrlInput;
 
 type StructuredMask = {
-    /** Name, color, visibility and opacity of each class. Defaults to the ids found in the mask. */
+    /**
+     * Name, color, visibility and opacity of each class. Defaults to the ids found in the mask.
+     * Compared by content, so an inline list is fine.
+     */
     classes?: MaskClass[];
     /** Opacity of the whole mask, 0–1, multiplied by each class's `opacity`. Defaults to `0.5`. */
     opacity?: number;
@@ -240,50 +262,6 @@ export type LayerMaskInput = StructuredMask & { type: 'layers'; layers: MaskLaye
  * has already rendered as a PNG is a picture, so it goes in `imageLayers` instead.
  */
 export type MaskInput = LabelMaskInput | LayerMaskInput;
-
-/**
- * The data and event props of {@link PlotlyMaskOverlay}, independent of Plotly. Plotly-specific
- * options are added by the component's own props type.
- */
-export type ImageOverlayBaseProps = {
-    /** The base image that defines the pixel coordinate system for all overlays */
-    image: ImageInput;
-    /** Structured mask arrays with class colors, visibility, and hover information */
-    mask?: MaskInput;
-    /**
-     * Additional images overlaid on the base image. Drawn in list order, with later layers on
-     * top, and not drawn while the base image fails to load
-     */
-    imageLayers?: ImageLayer[];
-    /** Vector shapes in image coordinates */
-    annotations?: Annotation[];
-    /** Read-only collections of points in image coordinates */
-    pointLayers?: PointLayer[];
-    /** What dragging does: zoom into a box, pan, or draw with a tool */
-    dragMode?: DragMode;
-    /** Called when the user picks zoom or pan in the toolbar. Pass it back to `dragMode` */
-    onDragModeChange?: (mode: DragMode) => void;
-    /** Stroke and fill of a shape while it is drawn. Defaults to a white 1.5 px outline */
-    drawStyle?: AnnotationStyle;
-    /** Called with a finished shape. Add it to `annotations` to keep it displayed */
-    onDrawComplete?: (shape: DrawEvent) => void;
-    /**
-     * Called with pixel, mask, point, and annotation information under the pointer, or null
-     * when the pointer leaves
-     */
-    onHover?: (info: OverlayPickInfo | null) => void;
-    /** Called with what was clicked. Dragging is not a click */
-    onClick?: (info: OverlayPickInfo) => void;
-    /** Called when a mask class is toggled in the legend. Use it with `classes[].visible` */
-    onClassVisibilityChange?: (classId: number, visible: boolean) => void;
-    /** Called when a point layer is toggled in the legend. Use it with `pointLayers[].visible` */
-    onPointLayerVisibilityChange?: (layerId: string, visible: boolean) => void;
-    /**
-     * Identifies the current image frame. Changing it clears previously loaded images and
-     * resets zoom and pan. When unset, the image shape is used
-     */
-    frameKey?: unknown;
-};
 
 /** Visible axis ranges in detector pixels, `[from, to]` as Plotly reports them (y reversed). */
 export type OverlayViewport = { x: [number, number]; y: [number, number] };

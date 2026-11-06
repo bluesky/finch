@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 
@@ -11,6 +11,7 @@ import type {
     DrawEvent,
     MaskClass,
     OverlayPickInfo,
+    PointLayer,
 } from '../components/PlotlyMaskOverlay/types';
 import {
     CELLS,
@@ -19,6 +20,7 @@ import {
     IMAGE_WITH_NAN,
     LABELS,
     MASK_LAYERS,
+    randomPoints,
     renderedUrls,
     SHAPE,
     W,
@@ -43,7 +45,8 @@ const meta = {
                     'logScale',
                     'maskFormat',
                     'maskOpacity',
-                    'missingColor',
+                    'pointCount',
+                    'showColorbar',
                     'source',
                 ],
             },
@@ -96,15 +99,13 @@ A mask that is already a picture goes in \`imageLayers\` and is shown as it is.
         imageLayers: { control: false },
         annotations: { control: false },
         pointLayers: { control: false },
-        extraTraces: { control: false },
-        layout: { control: false },
-        config: { control: false },
+        viewport: { control: false },
+        missingColor: { control: 'color' },
     },
     args: {
         size: 'large',
         // The component's defaults, so Controls show the state each story starts in.
         dragMode: 'zoom',
-        zoomable: true,
         showAxes: true,
         showLegend: true,
         editableAnnotations: false,
@@ -113,6 +114,7 @@ A mask that is already a picture goes in \`imageLayers\` and is shown as it is.
         onDragModeChange: fn(),
         onLoadStateChange: fn(),
         onClassVisibilityChange: fn(),
+        onPointLayerVisibilityChange: fn(),
     },
 } satisfies Meta<typeof PlotlyMaskOverlay>;
 
@@ -172,6 +174,24 @@ function RenderWithHover({ note, ...args }: PlotlyMaskOverlayProps & { note?: Re
     return <WithReadout {...args} onHover={setInfo} text={describePixel(info)} note={note} />;
 }
 
+/**
+ * Which ids are hidden, kept by the story as an application keeps it: a legend click asks to
+ * hide or show, and the story passes the answer back as `visible`.
+ */
+function useVisibility<K>(report?: (id: K, visible: boolean) => void) {
+    const [hidden, setHidden] = useState<ReadonlySet<K>>(() => new Set());
+    const toggle = (id: K, visible: boolean) => {
+        setHidden((prev) => {
+            const next = new Set(prev);
+            if (visible) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+        report?.(id, visible);
+    };
+    return [hidden, toggle] as const;
+}
+
 // ---------------------------------------------------------------------------
 // 1. Mask overlays
 // ---------------------------------------------------------------------------
@@ -180,56 +200,86 @@ type MaskArgs = PlotlyMaskOverlayProps &
     ArrayImageArgs & {
         maskFormat: 'Label array' | 'Binary masks';
         maskOpacity: number;
-        missingColor: string;
         classes: MaskClass[];
+        showColorbar: boolean;
     };
 
-export const MaskOverlay: StoryObj<MaskArgs> = {
-    parameters: {
-        docs: {
-            description: {
-                story: `A segmentation drawn over the image: cells, nuclei and debris, each class with its own
-colour and transparency. Click a class in the legend to hide it. The mask can be one label
-array (one class per pixel) or one binary mask per class, which may overlap. Switch
-**maskFormat** in the story's Controls panel and hide *Nucleus*: with a label array the nuclei
-leave holes, because those pixels belong to no other class; with binary masks the cell mask
-underneath is still there. The Controls panel also edits the classes and **maskOpacity**, and
-**missingColor** sets the background shown through pixels with NaN values.`,
-            },
-        },
-    },
-    render: ({ maskFormat, maskOpacity, missingColor, colormap, logScale, classes, ...args }) => (
+function RenderMask({
+    maskFormat,
+    maskOpacity,
+    colormap,
+    logScale,
+    showColorbar,
+    classes,
+    ...args
+}: MaskArgs) {
+    const [hidden, toggle] = useVisibility(args.onClassVisibilityChange);
+    const shown = useMemo(
+        () => classes.map((c) => ({ ...c, visible: !hidden.has(c.id) })),
+        [classes, hidden],
+    );
+    return (
         <RenderWithHover
             {...args}
-            image={{ type: 'array', data: IMAGE_WITH_NAN, shape: SHAPE, colormap, logScale }}
+            image={{
+                type: 'array',
+                data: IMAGE_WITH_NAN,
+                shape: SHAPE,
+                colormap,
+                logScale,
+                showColorbar,
+            }}
             mask={
                 maskFormat === 'Label array'
-                    ? { type: 'labels', data: LABELS, classes, opacity: maskOpacity }
-                    : { type: 'layers', layers: MASK_LAYERS, classes, opacity: maskOpacity }
+                    ? { type: 'labels', data: LABELS, classes: shown, opacity: maskOpacity }
+                    : { type: 'layers', layers: MASK_LAYERS, classes: shown, opacity: maskOpacity }
             }
-            layout={{ plot_bgcolor: missingColor }}
+            onClassVisibilityChange={toggle}
             note={
                 <p className="flex items-center gap-1.5 text-xs font-light text-slate-600">
                     <span
                         className="inline-block h-2.5 w-2.5 rounded-sm"
-                        style={{ background: missingColor }}
+                        style={{ background: args.missingColor }}
                     />
                     Background: pixels with NaN values (no data), and outside the image when zoomed
                     out
                 </p>
             }
         />
-    ),
+    );
+}
+
+export const MaskOverlay: StoryObj<MaskArgs> = {
+    parameters: {
+        docs: {
+            description: {
+                story: `A segmentation drawn over the image: cells, nuclei and debris, each class with its own
+colour and transparency. Click a class in the legend to hide it. The colorbar above the image
+shows how image values map to colors; where a mask covers the image, hover for the exact value,
+or hide the class to see the image underneath. The mask can be one label array (one class per
+pixel) or one binary mask per class, which may overlap. Switch
+**maskFormat** in the story's Controls panel and hide *Nucleus*: with a label array the nuclei
+leave holes, because those pixels belong to no other class; with binary masks the cell mask
+underneath is still there. The Controls panel also edits the classes and **maskOpacity**, and
+**missingColor** sets the color shown through pixels with NaN values.
+
+The legend asks to hide or show a class through \`onClassVisibilityChange\`; your application
+passes the answer back in \`classes[].visible\`, as this story does.`,
+            },
+        },
+    },
+    render: (args) => <RenderMask {...args} />,
     args: {
         size: 'full',
         maskFormat: 'Label array',
         colormap: 'gray',
         logScale: false,
+        showColorbar: true,
         missingColor: '#ef4444',
-        maskOpacity: 0.6,
+        maskOpacity: 0.4,
         showLegend: true,
         classes: [
-            { id: 1, label: 'Cell', color: '#22c55e', opacity: 0.6 },
+            { id: 1, label: 'Cell', color: '#22c55e', opacity: 1 },
             { id: 2, label: 'Nucleus', color: '#3b82f6', opacity: 1 },
             { id: 3, label: 'Debris', color: '#eab308', opacity: 1 },
         ],
@@ -246,12 +296,9 @@ underneath is still there. The Controls panel also edits the classes and **maskO
             control: { type: 'range', min: 0, max: 1, step: 0.05 },
         },
         classes: { description: "The mask's `classes`" },
-        missingColor: {
-            description: 'Background color shown through pixels with NaN values',
-            control: 'color',
-        },
         colormap: colormapArg,
         logScale: logScaleArg,
+        showColorbar: { description: "The array image's `showColorbar`" },
     },
 };
 
@@ -356,6 +403,11 @@ type RenderedArgs = PlotlyMaskOverlayProps & ArrayImageArgs & { source: Source }
 
 function RenderRendered({ source, colormap, logScale, ...args }: RenderedArgs) {
     const [info, setInfo] = useState<OverlayPickInfo | null>(null);
+    const [hidden, toggle] = useVisibility(args.onClassVisibilityChange);
+    const classes = useMemo(
+        () => CLASSES.map((c) => ({ ...c, visible: !hidden.has(c.id) })),
+        [hidden],
+    );
     const urls = renderedUrls();
     const overlay = source === 'Rendered PNGs';
     const props: PlotlyMaskOverlayProps = overlay
@@ -379,7 +431,8 @@ function RenderRendered({ source, colormap, logScale, ...args }: RenderedArgs) {
               ...args,
               onHover: setInfo,
               image: { type: 'array', data: IMAGE, shape: SHAPE, colormap, logScale },
-              mask: { type: 'labels', data: LABELS, classes: CLASSES },
+              mask: { type: 'labels', data: LABELS, classes },
+              onClassVisibilityChange: toggle,
           };
     return <WithReadout key={source} {...props} text={describePixel(info, overlay)} />;
 }
@@ -497,4 +550,80 @@ failed layer is named in a small note in its corner.`,
     },
     render: (args) => <RenderBroken {...args} />,
     args: { showLegend: false },
+};
+
+// ---------------------------------------------------------------------------
+// 5. Point layers
+// ---------------------------------------------------------------------------
+
+type PointArgs = PlotlyMaskOverlayProps & ArrayImageArgs & { pointCount: number };
+
+/** The centre of each nucleus, as `[x, y]` pairs. */
+const NUCLEUS_CENTRES = CELLS.map((c) => [c.nx, c.ny] as [number, number]);
+
+function RenderPoints({ pointCount, colormap, logScale, ...args }: PointArgs) {
+    const [info, setInfo] = useState<OverlayPickInfo | null>(null);
+    const [hidden, toggle] = useVisibility(args.onPointLayerVisibilityChange);
+    const spots = useMemo(() => randomPoints(pointCount), [pointCount]);
+    const layers = useMemo<PointLayer[]>(
+        () => [
+            {
+                id: 'spots',
+                label: 'Spots',
+                points: spots,
+                color: '#f472b6',
+                symbol: 'circle',
+                size: 4,
+            },
+            {
+                id: 'nuclei',
+                label: 'Nucleus centres',
+                points: NUCLEUS_CENTRES,
+                color: '#facc15',
+                size: 9,
+            },
+        ],
+        [spots],
+    );
+    const shown = useMemo(
+        () => layers.map((l) => ({ ...l, visible: !hidden.has(l.id) })),
+        [layers, hidden],
+    );
+    const point = info?.point;
+    const text = point
+        ? `${describePixel(info)}  ·  ${point.label ?? point.layerId} #${point.index} at (${point.x.toFixed(1)}, ${point.y.toFixed(1)})`
+        : describePixel(info);
+    return (
+        <WithReadout
+            {...args}
+            image={{ type: 'array', data: IMAGE, shape: SHAPE, colormap, logScale }}
+            pointLayers={shown}
+            onPointLayerVisibilityChange={toggle}
+            onHover={setInfo}
+            text={text}
+        />
+    );
+}
+
+export const PointLayers: StoryObj<PointArgs> = {
+    parameters: {
+        docs: {
+            description: {
+                story: `Display point layers over an image, such as detected spots 
+                or fitted positions. Hover over points to inspect them, or use the 
+                legend to show and hide layers.`,
+            },
+        },
+    },
+    render: (args) => <RenderPoints {...args} />,
+    args: { size: 'large', colormap: 'gray', logScale: false, pointCount: 200 },
+    argTypes: {
+        size: sizeArg,
+        colormap: colormapArg,
+        logScale: logScaleArg,
+        pointCount: {
+            description: 'Number of spots',
+            control: { type: 'range', min: 0, max: 50_000, step: 100 },
+        },
+    },
 };

@@ -187,6 +187,31 @@ describe('resolveInputs', () => {
         expect(layer.warnings).toEqual([expect.stringContaining('class 7 has 12 values')]);
     });
 
+    it('rejects a huge or malformed shape before allocating anything', () => {
+        // Accepting either would mean a 10-gigapixel buffer; both are rejected from the lengths alone.
+        const huge = resolveInputs(
+            { type: 'array', data: new Float32Array(6), shape: [100_000, 100_000] },
+            { type: 'labels', data: new Uint8Array(6) },
+        );
+        expect(huge).toMatchObject({ frame: null, imageGrid: null, labelGrid: null });
+        expect(huge.warnings).toEqual([expect.stringContaining('needs 10000000000')]);
+
+        for (const shape of [[2.5, 3], [-2, 3], [NaN, 3], [2]] as never[]) {
+            const bad = resolveInputs({ type: 'url', url: 'scan.png', shape });
+            expect(bad.frame).toBeNull();
+            expect(bad.warnings).toHaveLength(1);
+        }
+
+        // A PNG may name a huge frame, but a mask must still fill it exactly.
+        const bigFrame = resolveInputs(
+            { type: 'url', url: 'scan.png', shape: [100_000, 100_000] },
+            { type: 'labels', data: new Uint8Array(6) },
+        );
+        expect(bigFrame.frame).toEqual([100_000, 100_000]);
+        expect(bigFrame.labelGrid).toBeNull();
+        expect(bigFrame.maskShape).toBeUndefined();
+    });
+
     it('rejects a flat array without a shape and an unknown type (JavaScript callers)', () => {
         const noShape = resolveInputs({ type: 'array', data: new Float32Array(6) } as never);
         expect(noShape.imageGrid).toBeNull();
@@ -228,12 +253,43 @@ describe('nearestPoint', () => {
         expect(nearestPoint([layer('a', [0, 0])], 22, 0, { x: 1, y: 1 }, 20)).not.toBeNull();
     });
 
-    it('skips hidden and non-hoverable layers, and lets the layer on top win a tie', () => {
+    it('skips hidden and non-hoverable layers', () => {
         const hidden = layer('h', [0, 0], { visible: false });
         const silent = layer('s', [0, 0], { hoverable: false });
         expect(nearestPoint([hidden, silent], 0, 0, tenPx, 20)).toBeNull();
+    });
+
+    // These follow plotly.js 2.35 (`traces/scatter/hover.js`, `traces/scattergl/hover.js`), so the
+    // point reported is the one Plotly's tooltip shows.
+    it('prefers the smaller marker when the pointer is inside several, as Plotly does', () => {
+        // The pointer is 0.15 px from a small spot and 0.5 px from a large cross: inside both.
+        const spot = layer('spot', [0, 0], { size: 4 });
+        const cross = layer('cross', [0.065, 0], { size: 14 });
+        expect(nearestPoint([spot, cross], 0.015, 0, tenPx, 20)?.layerId).toBe('spot');
+        expect(nearestPoint([cross, spot], 0.015, 0, tenPx, 20)?.layerId).toBe('spot');
+    });
+
+    it('keeps the later point and layer on an SVG tie, as Plotly does', () => {
+        // Two equal spots, both under the pointer: the same distance for Plotly.
+        expect(nearestPoint([layer('a', [0, 0, 0.1, 0])], 0.05, 0, tenPx, 20)?.index).toBe(1);
         const below = layer('below', [0, 0]);
         const above = layer('above', [0, 0]);
         expect(nearestPoint([below, above], 0, 0, tenPx, 20)?.layerId).toBe('above');
+    });
+
+    it('picks the nearest centre once the layers are drawn with WebGL, as Plotly does', () => {
+        // More than 5000 points in all: Plotly's WebGL hover measures to the centre, without
+        // the marker radius, and only within the tolerance of it.
+        const filler = layer(
+            'filler',
+            Array.from({ length: 2 * 5000 }, () => 500),
+        );
+        const spots = layer('spots', [0, 0, 0.2, 0], { size: 4 });
+        // Inside both 3 px markers; the second centre is nearer.
+        expect(nearestPoint([filler, spots], 0.15, 0, tenPx, 20)?.index).toBe(1);
+        // 2.2 image pixels is 22 px from the centre: beyond 20 px, although the edge is 19 px away.
+        expect(nearestPoint([filler, layer('one', [0, 0])], 2.2, 0, tenPx, 20)).toBeNull();
+        // The same in SVG: within 20 px of the edge.
+        expect(nearestPoint([layer('one', [0, 0])], 2.2, 0, tenPx, 20)).not.toBeNull();
     });
 });

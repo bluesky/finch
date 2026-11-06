@@ -15,9 +15,6 @@ const LUT_SIZE = 256;
 /** Fallback when a hex string cannot be parsed. Magenta, so mistakes are visible rather than silent. */
 const FALLBACK_RGB: [number, number, number] = [255, 0, 255];
 
-/** Hex form of {@link FALLBACK_RGB}, used when a palette is empty. */
-const FALLBACK_HEX = '#ff00ff';
-
 /**
  * Parses a hex color into `[r, g, b]` components in the range 0–255.
  *
@@ -125,14 +122,6 @@ export function colormapLut(
     return lut;
 }
 
-/** Samples a colormap at `t` (0–1), returning `[r, g, b]` in the range 0–255. */
-export function sampleColormap(colormap: string, t: number): [number, number, number] {
-    const lut = colormapLut(colormap);
-    const clamped = Math.max(0, Math.min(1, Number.isFinite(t) ? t : 0));
-    const idx = Math.round(clamped * (LUT_SIZE - 1)) * 3;
-    return [lut[idx], lut[idx + 1], lut[idx + 2]];
-}
-
 /**
  * Default categorical palette for mask classes — matplotlib's `tab20`.
  *
@@ -161,44 +150,3 @@ export const CLASS_PALETTE: string[] = [
     '#17becf',
     '#9edae5',
 ];
-
-/**
- * Colorblind-safe categorical palette — the Okabe–Ito eight followed by Paul Tol's
- * muted set.
- *
- * Okabe–Ito's black is replaced with a mid grey so a class stays visible when drawn
- * over a dark image.
- */
-export const CLASS_PALETTE_COLORBLIND: string[] = [
-    '#e69f00',
-    '#56b4e9',
-    '#009e73',
-    '#f0e442',
-    '#0072b2',
-    '#d55e00',
-    '#cc79a7',
-    '#999999',
-    '#332288',
-    '#88ccee',
-    '#44aa99',
-    '#aa4499',
-];
-
-/**
- * Picks the first palette color not already in `usedColors`.
- *
- * When every color is taken, cycles back through the palette using `fallbackIndex`
- * so repeated calls keep producing different colors instead of all collapsing onto
- * the same one.
- */
-export function pickNextColor(
-    usedColors: Iterable<string>,
-    fallbackIndex: number,
-    palette: string[] = CLASS_PALETTE,
-): string {
-    if (palette.length === 0) return FALLBACK_HEX;
-    const used = new Set<string>();
-    for (const c of usedColors) used.add(c.toLowerCase());
-    const available = palette.find((c) => !used.has(c.toLowerCase()));
-    return available ?? palette[Math.abs(fallbackIndex) % palette.length];
-}

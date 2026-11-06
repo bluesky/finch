@@ -186,22 +186,29 @@ export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
 // HISTOGRAM RANGE
-export { default as HistogramRange } from './components/HistogramRange/HistogramRange';
-export type { HistogramRangeProps } from './components/HistogramRange/HistogramRange';
+export { default as HistogramRange } from './components/HistogramRange';
+export type { HistogramRangeProps } from './components/HistogramRange';
+export {
+    computeHistogram,
+    cumulativeCounts,
+    percentileBelowEdge,
+    edgeAtPercentile,
+    edgesFromCenters,
+} from './utils/histogramUtils';
+export type { HistogramBins, ComputeHistogramOptions } from './utils/histogramUtils';
 
 // MASK OVERLAY
 export { default as PlotlyMaskOverlay } from './components/PlotlyMaskOverlay/PlotlyMaskOverlay';
 export type { PlotlyMaskOverlayProps } from './components/PlotlyMaskOverlay/PlotlyMaskOverlay';
-export type { OverlayLayout } from './components/PlotlyMaskOverlay/hooks/usePlotlyOverlayFigure';
 export type {
     OverlayLayerId,
     OverlayLoadState,
     OverlayViewport,
     OverlayPickInfo,
     PixelPickInfo,
+    PointPickInfo,
     MaskClass,
     MaskLayer,
-    ResolvedMaskClass,
     ImageLayer,
     Annotation,
     AnnotationStyle,
@@ -216,42 +223,8 @@ export type {
     MaskInput,
     LabelMaskInput,
     LayerMaskInput,
-    ImageOverlayBaseProps,
     PointLayer,
-    PointPickInfo,
-    ResolvedPointLayer,
 } from './components/PlotlyMaskOverlay/types';
-export {
-    useImageSources,
-    useResolvedPointLayers,
-    pickPixel,
-    nearestPoint,
-    normalizeGrid,
-    resolveInputs,
-} from './components/PlotlyMaskOverlay/hooks/useImageSources';
-export type {
-    ImageSources,
-    NormalizedGrid,
-    PickSources,
-    ResolvedInputs,
-    ScreenScale,
-    UseImageSourcesOptions,
-} from './components/PlotlyMaskOverlay/hooks/useImageSources';
-export { useRgbaObjectUrl } from './components/PlotlyMaskOverlay/hooks/useMaskRaster';
-export {
-    geometryToPlotlyShape,
-    plotlyShapeToGeometry,
-    parsePlotlyPath,
-    markersToScatterTrace,
-    PLOTLY_MARKER_SYMBOL,
-} from './utils/plotlyShapes';
-export type { PlotlyShapeDict } from './utils/plotlyShapes';
-export {
-    normalizeBox,
-    pointsToPath,
-    flattenPoints,
-    hitTestGeometry,
-} from './utils/annotationGeometry';
 export type {
     Point,
     RectGeometry,
@@ -259,27 +232,11 @@ export type {
     PolygonGeometry,
     MarkerSymbol,
 } from './utils/annotationGeometry';
-
-// VISUALIZATION UTILITIES
-export {
-    computeHistogram,
-    cumulativeCounts,
-    percentileBelowEdge,
-    edgeAtPercentile,
-    edgesFromCenters,
-} from './utils/histogramUtils';
-export type { HistogramBins, ComputeHistogramOptions } from './utils/histogramUtils';
-export {
-    hexToRgb,
-    withAlpha,
-    colormapLut,
-    sampleColormap,
-    pickNextColor,
-    CLASS_PALETTE,
-    CLASS_PALETTE_COLORBLIND,
-} from './utils/colorUtils';
-export { labelsToRgba, binaryMasksToRgba, rgbaToObjectUrl } from './utils/maskRaster';
-export type { RgbaBuffer } from './utils/maskRaster';
+// For applications that store annotations as Plotly shapes.
+export { geometryToPlotlyShape, plotlyShapeToGeometry } from './utils/plotlyShapes';
+export type { PlotlyShapeDict } from './utils/plotlyShapes';
+// The default mask class colors, so an application can match them elsewhere.
+export { CLASS_PALETTE } from './utils/colorUtils';
 
 // EXPERIMENT
 export { default as Experiment } from './components/Experiment/Experiment';

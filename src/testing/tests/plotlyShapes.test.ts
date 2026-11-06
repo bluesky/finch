@@ -31,7 +31,7 @@ describe('geometryToPlotlyShape / plotlyShapeToGeometry', () => {
         expect(plotlyShapeToGeometry(shape)).toEqual(ellipse);
     });
 
-    it('round-trips a polygon with a hole as a closed path', () => {
+    it('round-trips a polygon as a closed path', () => {
         const polygon = {
             type: 'polygon' as const,
             points: [
@@ -40,17 +40,10 @@ describe('geometryToPlotlyShape / plotlyShapeToGeometry', () => {
                 [10, 10],
                 [0, 10],
             ] as [number, number][],
-            holes: [
-                [
-                    [2, 2],
-                    [4, 2],
-                    [4, 4],
-                ] as [number, number][],
-            ],
         };
         const shape = geometryToPlotlyShape(polygon)!;
         expect(shape.type).toBe('path');
-        expect(shape.path).toBe('M0,0L10,0L10,10L0,10ZM2,2L4,2L4,4Z');
+        expect(shape.path).toBe('M0,0L10,0L10,10L0,10Z');
         // Marked as a filled closed path, as Plotly's drawclosedpath emits it.
         expect(shape.fillrule).toBe('evenodd');
         expect(plotlyShapeToGeometry(shape)).toEqual(polygon);
@@ -212,26 +205,24 @@ describe('hitTestGeometry', () => {
         expect(hitTestGeometry(ellipse, 0.5, 0.5, 0)).toBe(false);
     });
 
-    it('respects polygon holes', () => {
+    it('hits inside a polygon by even-odd, including a concave one', () => {
+        // A U shape: the notch between the arms is outside.
         const polygon = {
             type: 'polygon' as const,
             points: [
                 [0, 0],
+                [3, 0],
+                [3, 7],
+                [7, 7],
+                [7, 0],
                 [10, 0],
                 [10, 10],
                 [0, 10],
             ] as [number, number][],
-            holes: [
-                [
-                    [4, 4],
-                    [6, 4],
-                    [6, 6],
-                    [4, 6],
-                ] as [number, number][],
-            ],
         };
-        expect(hitTestGeometry(polygon, 2, 2, 0)).toBe(true);
-        expect(hitTestGeometry(polygon, 5, 5, 0)).toBe(false);
+        expect(hitTestGeometry(polygon, 1, 5, 0)).toBe(true);
+        expect(hitTestGeometry(polygon, 5, 3, 0)).toBe(false);
+        expect(hitTestGeometry(polygon, 5, 9, 0)).toBe(true);
     });
 
     it('hits lines within the tolerance', () => {

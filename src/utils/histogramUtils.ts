@@ -20,11 +20,15 @@ export type HistogramBins = {
 
 /** Options accepted by {@link computeHistogram}. */
 export type ComputeHistogramOptions = {
-    /** Number of bins. Defaults to `256`. Values below 1 are clamped to 1. */
+    /** Number of bins. Defaults to `256`. Values below 1 are clamped to 1; non-finite values use the default. */
     bins?: number;
-    /** Range to bin over, as `[min, max]` in data units. Defaults to the extent of `values`. */
+    /** Range to bin over, as `[min, max]` in data units (either order). Defaults to the extent of `values`. */
     domain?: [number, number];
 };
+
+/** `domain` with its bounds in ascending order. */
+const ascending = (domain: [number, number] | undefined): [number, number] | undefined =>
+    domain && [Math.min(domain[0], domain[1]), Math.max(domain[0], domain[1])];
 
 /**
  * The `[min, max]` range to bin or normalize `values[0..count)` over, in
@@ -37,9 +41,10 @@ export type ComputeHistogramOptions = {
 export function valueRange(
     values: ArrayLike<number>,
     count: number,
-    domain: [number, number] | undefined,
+    domainIn: [number, number] | undefined,
     log: boolean,
 ): [number, number] {
+    const domain = ascending(domainIn);
     const transform = (v: number) => (log ? Math.log10(v) : v);
     if (domain && (!log || domain[0] > 0)) return [transform(domain[0]), transform(domain[1])];
     if (log && domain && domain[1] <= 0) return [0, 0];
@@ -75,8 +80,8 @@ export function computeHistogram(
     values: ArrayLike<number>,
     options: ComputeHistogramOptions = {},
 ): HistogramBins {
-    const { domain } = options;
-    const bins = Math.max(1, Math.floor(options.bins ?? 256));
+    const domain = ascending(options.domain);
+    const bins = Number.isFinite(options.bins) ? Math.max(1, Math.floor(options.bins!)) : 256;
     const [min, max] = valueRange(values, values.length, domain, false);
 
     const degenerate = !(max > min);
@@ -101,7 +106,13 @@ export function computeHistogram(
         if (domain && (v < domain[0] || v > domain[1])) continue;
         // The final bin is closed on the right so the maximum sample is counted;
         // the lower clamp absorbs rounding at the bottom edge.
-        const idx = degenerate ? 0 : Math.max(0, Math.min(bins - 1, Math.floor((v - min) / width)));
+        let idx = degenerate ? 0 : Math.max(0, Math.min(bins - 1, Math.floor((v - min) / width)));
+        // The division can land one bin off for a sample exactly on an edge. As in numpy, a
+        // sample on an edge belongs to the bin above it, so the edges decide, not the division.
+        if (!degenerate) {
+            if (v < binEdges[idx]) idx -= 1;
+            else if (idx < bins - 1 && v >= binEdges[idx + 1]) idx += 1;
+        }
         counts[idx] += 1;
     }
     return { counts, binCenters, binEdges };

@@ -5,17 +5,10 @@ import {
     percentileBelowEdge,
     edgeAtPercentile,
     edgesFromCenters,
+    valueRange,
 } from '../../utils/histogramUtils';
 import type { ColormapDef } from '../../components/ColormapPicker/colormaps';
-import {
-    hexToRgb,
-    withAlpha,
-    colormapLut,
-    sampleColormap,
-    pickNextColor,
-    CLASS_PALETTE,
-    CLASS_PALETTE_COLORBLIND,
-} from '../../utils/colorUtils';
+import { hexToRgb, withAlpha, colormapLut } from '../../utils/colorUtils';
 import { labelsToRgba, binaryMasksToRgba, rgbaToObjectUrl } from '../../utils/maskRaster';
 import type { ResolvedMaskClass } from '../../components/PlotlyMaskOverlay/types';
 
@@ -106,6 +99,74 @@ describe('computeHistogram', () => {
             domain: [0, 255],
         });
         expect(counts).toEqual([2, 1]);
+    });
+
+    it('puts a sample that equals an edge in the bin above it, as numpy does', () => {
+        // (1.5 - 0.7) / 0.1 is 7.999… in floating point, yet binEdges[8] is exactly 1.5.
+        const { counts, binEdges } = computeHistogram([0.7, 1.5, 1.6], { bins: 9 });
+        expect(binEdges[8]).toBe(1.5);
+        expect(counts[8]).toBe(2);
+        expect(counts[7]).toBe(0);
+        // A sample equal to an interior edge is above it, so it is not "below" that threshold.
+        const edge = binEdges[1];
+        const withEdge = computeHistogram([0.7, edge, 1.6], { bins: 9 });
+        expect(withEdge.counts[1]).toBe(1);
+        expect(withEdge.counts[0]).toBe(1);
+        const { cumulative, total } = cumulativeCounts(withEdge.counts);
+        expect(percentileBelowEdge(1, cumulative, total)).toBeCloseTo(100 / 3, 9);
+    });
+
+    it('treats a reversed domain like the same domain in order', () => {
+        const values = [0, 2, 5, 9, 10];
+        expect(computeHistogram(values, { bins: 3, domain: [10, 0] })).toEqual(
+            computeHistogram(values, { bins: 3, domain: [0, 10] }),
+        );
+    });
+
+    it('uses the default bin count for a non-finite one instead of throwing', () => {
+        expect(computeHistogram([1, 2, 3], { bins: NaN }).counts).toHaveLength(256);
+        expect(computeHistogram([1, 2, 3], { bins: Infinity }).counts).toHaveLength(256);
+    });
+
+    it('bins and converts 200,000 bins without overflowing the call stack', () => {
+        const values = Float64Array.from({ length: 400_000 }, (_, i) => i % 200_000);
+        const { counts, binEdges } = computeHistogram(values, { bins: 200_000 });
+        expect(counts).toHaveLength(200_000);
+        const { cumulative, total } = cumulativeCounts(counts);
+        expect(total).toBe(400_000);
+        expect(percentileBelowEdge(100_000, cumulative, total)).toBeCloseTo(50, 3);
+        expect(edgeAtPercentile(50, binEdges, cumulative, total)).toBeCloseTo(binEdges[100_000], 9);
+    });
+});
+
+describe('valueRange', () => {
+    it('returns the data extent, or the domain when one is given', () => {
+        expect(valueRange([3, -1, 7], 3, undefined, false)).toEqual([-1, 7]);
+        expect(valueRange([3, -1, 7], 3, [0, 5], false)).toEqual([0, 5]);
+        expect(valueRange([3, -1, 7], 3, [5, 0], false)).toEqual([0, 5]);
+    });
+
+    it('only counts the first `count` values and skips non-finite ones', () => {
+        expect(valueRange([1, NaN, Infinity, 4, 100], 4, undefined, false)).toEqual([1, 4]);
+    });
+
+    it('works in log10 units under log, from the smallest positive sample', () => {
+        expect(valueRange([0, 0, 5, 50], 4, undefined, true)).toEqual([
+            Math.log10(5),
+            Math.log10(50),
+        ]);
+        // A lower bound at or below zero is replaced by the smallest positive sample in the domain.
+        expect(valueRange([0, 0, 5, 50], 4, [0, 50], true)).toEqual([
+            Math.log10(5),
+            Math.log10(50),
+        ]);
+        expect(valueRange([1, 10, 100], 3, [10, 1000], true)).toEqual([1, 3]);
+    });
+
+    it('falls back when there is nothing to show', () => {
+        expect(valueRange([], 0, undefined, false)).toEqual([0, 1]);
+        expect(valueRange([-1, 0], 2, undefined, true)).toEqual([0, 1]);
+        expect(valueRange([5], 1, [-10, 0], true)).toEqual([0, 0]);
     });
 });
 
@@ -208,7 +269,7 @@ describe('hexToRgb and withAlpha', () => {
     });
 });
 
-describe('colormapLut and sampleColormap', () => {
+describe('colormapLut', () => {
     it('returns 256 RGB entries', () => {
         expect(colormapLut('viridis')).toHaveLength(256 * 3);
     });
@@ -246,49 +307,6 @@ describe('colormapLut and sampleColormap', () => {
     it('strips CSS position tokens from stops such as tab10', () => {
         const lut = colormapLut('tab10');
         expect([lut[0], lut[1], lut[2]]).toEqual(hexToRgb('#1f77b4'));
-    });
-
-    it('samples the endpoints and clamps out-of-range t', () => {
-        expect(sampleColormap('gray', 0)).toEqual([0, 0, 0]);
-        expect(sampleColormap('gray', 1)).toEqual([255, 255, 255]);
-        expect(sampleColormap('gray', -1)).toEqual([0, 0, 0]);
-        expect(sampleColormap('gray', 2)).toEqual([255, 255, 255]);
-        expect(sampleColormap('gray', NaN)).toEqual([0, 0, 0]);
-    });
-
-    it('interpolates between stops', () => {
-        const [r, g, b] = sampleColormap('gray', 0.5);
-        expect(r).toBeGreaterThan(100);
-        expect(r).toBeLessThan(160);
-        expect(g).toBe(r);
-        expect(b).toBe(r);
-    });
-});
-
-describe('pickNextColor', () => {
-    it('returns the first palette color when nothing is used', () => {
-        expect(pickNextColor([], 0)).toBe(CLASS_PALETTE[0]);
-    });
-
-    it('skips colors already in use', () => {
-        expect(pickNextColor([CLASS_PALETTE[0], CLASS_PALETTE[1]], 0)).toBe(CLASS_PALETTE[2]);
-    });
-
-    it('ignores case when comparing used colors', () => {
-        expect(pickNextColor([CLASS_PALETTE[0].toUpperCase()], 0)).toBe(CLASS_PALETTE[1]);
-    });
-
-    it('cycles using the fallback index once every color is taken', () => {
-        expect(pickNextColor(CLASS_PALETTE, 3)).toBe(CLASS_PALETTE[3]);
-        expect(pickNextColor(CLASS_PALETTE, CLASS_PALETTE.length + 1)).toBe(CLASS_PALETTE[1]);
-    });
-
-    it('accepts a custom palette', () => {
-        expect(pickNextColor([], 0, CLASS_PALETTE_COLORBLIND)).toBe(CLASS_PALETTE_COLORBLIND[0]);
-    });
-
-    it('falls back to magenta for an empty palette', () => {
-        expect(pickNextColor([], 0, [])).toBe('#ff00ff');
     });
 });
 

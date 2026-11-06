@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { flattenPoints } from '@/utils/annotationGeometry';
 import { CLASS_PALETTE } from '@/utils/colorUtils';
+import { SCATTER_GL_THRESHOLD } from '@/utils/plotlyShapes';
 import type { RgbaBuffer } from '@/utils/maskRaster';
-import { useMaskRaster, useStableClasses } from './useMaskRaster';
+import { useMaskRaster } from './useMaskRaster';
 import type {
     GridInput,
     ImageInput,
@@ -163,21 +164,18 @@ export function resolveInputs(image: ImageInput | undefined, mask?: MaskInput): 
     return { frame, imageGrid, labelGrid, maskLayers, maskShape, warnings };
 }
 
-/** Inputs to {@link useImageSources}. A subset of `ImageOverlayBaseProps`. */
+/** Inputs to {@link useImageSources}: the overlay's `image` and `mask`. */
 export type UseImageSourcesOptions = {
     image: ImageInput;
     mask?: MaskInput;
-    onClassVisibilityChange?: (classId: number, visible: boolean) => void;
 };
 
 /** Result of {@link useImageSources}. */
 export type ImageSources = Omit<ResolvedInputs, 'warnings'> & {
     /** One message per rejected input (see {@link resolveInputs}). */
     shapeWarnings: string[];
-    /** Classes with every field filled in, including current visibility. */
+    /** Classes with every field filled in. */
     resolvedClasses: ResolvedMaskClass[];
-    /** Toggles a class, tracking it internally unless visibility is controlled. */
-    toggleClass: (classId: number, visible: boolean) => void;
     /** The class mask as RGBA, or `null` without a mask array that fits. */
     maskBuffer: RgbaBuffer | null;
     /** Opacity of the whole mask, 0–1: `mask.opacity`, default 0.5. */
@@ -199,15 +197,11 @@ function useKeyed<T>(value: T, keys: readonly unknown[]): T {
  * draws: the validated grids, resolved classes, and the class-mask raster. Shared by
  * the renderer and by applications that need the same picking outside it.
  *
- * `image` and `mask` are compared by their fields, so inline object literals are fine; the
- * arrays inside them should be stable. The base image is never colour-mapped here; the source
- * arrays are only ever read.
+ * `image` and `mask` are compared by their fields, and `mask.classes` by content, so inline
+ * object literals are fine; the arrays inside them should be stable. The base image is never
+ * colour-mapped here; the source arrays are only ever read.
  */
-export function useImageSources({
-    image,
-    mask,
-    onClassVisibilityChange,
-}: UseImageSourcesOptions): ImageSources {
+export function useImageSources({ image, mask }: UseImageSourcesOptions): ImageSources {
     const imageIn = useKeyed(image, [
         image?.type,
         image?.type === 'array' ? image.data : undefined,
@@ -231,11 +225,10 @@ export function useImageSources({
 
     // --- classes -------------------------------------------------------------
 
-    const classes = useStableClasses(mask?.classes);
-    const [hiddenIds, setHiddenIds] = useState<ReadonlySet<number>>(() => new Set());
-    const visibilityIsControlled = useMemo(
-        () => (classes ?? []).some((c) => c.visible !== undefined),
-        [classes],
+    // By content, so an inline class list does not re-raster the mask on every render.
+    const classes = useKeyed(
+        mask?.classes,
+        (mask?.classes ?? []).flatMap((c) => [c.id, c.label, c.color, c.visible, c.opacity]),
     );
 
     const derivedIds = useMemo(() => {
@@ -245,7 +238,7 @@ export function useImageSources({
             const { data } = labelGrid;
             for (let i = 0; i < data.length; i += 1) {
                 const v = data[i];
-                if (v !== 0) seen.add(v);
+                if (v !== 0 && Number.isFinite(v)) seen.add(v);
             }
         }
         for (const layer of maskLayers ?? []) seen.add(layer.classId);
@@ -259,24 +252,9 @@ export function useImageSources({
             label: cls.label ?? `Class ${cls.id}`,
             color: cls.color ?? CLASS_PALETTE[index % CLASS_PALETTE.length],
             opacity: cls.opacity ?? 1,
-            visible: visibilityIsControlled ? (cls.visible ?? true) : !hiddenIds.has(cls.id),
+            visible: cls.visible ?? true,
         }));
-    }, [classes, derivedIds, visibilityIsControlled, hiddenIds]);
-
-    const toggleClass = useCallback(
-        (classId: number, visible: boolean) => {
-            if (!visibilityIsControlled) {
-                setHiddenIds((prev) => {
-                    const next = new Set(prev);
-                    if (visible) next.delete(classId);
-                    else next.add(classId);
-                    return next;
-                });
-            }
-            onClassVisibilityChange?.(classId, visible);
-        },
-        [visibilityIsControlled, onClassVisibilityChange],
-    );
+    }, [classes, derivedIds]);
 
     // --- class mask raster -------------------------------------------------
 
@@ -295,7 +273,6 @@ export function useImageSources({
         maskShape,
         shapeWarnings,
         resolvedClasses,
-        toggleClass,
         maskBuffer,
         maskOpacity: Math.max(0, Math.min(1, mask?.opacity ?? 0.5)),
     };
@@ -350,29 +327,24 @@ export function pickPixel(fx: number, fy: number, sources: PickSources): PixelPi
 /** CSS pixels per image pixel along x and y, as laid out on screen. */
 export type ScreenScale = { x: number; y: number };
 
-/** Screen radius of a marker in CSS pixels, as Plotly uses for hover: at least 3. */
-const markerRadius = (size: number) => Math.max(3, size / 2);
-
 /**
- * Screen distance, in CSS pixels, from `(fx, fy)` to the edge of a marker at `(px, py)`:
- * the centre distance minus the marker radius, never below 0.
+ * Plotly's own hover distance, in CSS pixels, so the point Finch reports is the one Plotly's
+ * tooltip shows. SVG markers (`scatter`) measure to the marker edge, with a floor that favours the
+ * smaller marker when the pointer is inside several; WebGL markers (`scattergl`) measure to the
+ * centre. Plotly's marker radius is half the marker size, at least 3.
  */
-export function pointScreenDistance(
-    px: number,
-    py: number,
-    size: number,
-    fx: number,
-    fy: number,
-    scale: ScreenScale,
-): number {
-    const d = Math.hypot((px - fx) * scale.x, (py - fy) * scale.y);
-    return Math.max(0, d - markerRadius(size));
+function hoverDistance(centreDistance: number, size: number, gl: boolean): number {
+    if (gl) return centreDistance;
+    const radius = Math.max(3, size / 2);
+    return Math.max(centreDistance - radius, 1 - 3 / radius);
 }
 
 /**
- * The nearest visible, hoverable point within `tolerance` CSS pixels of image coordinate
- * `(fx, fy)`, measured on screen so it behaves the same at every zoom. Ties go to the later
- * layer, which is drawn on top. One pass over the flat point arrays.
+ * The visible, hoverable point under image coordinate `(fx, fy)`, picked the way Plotly picks
+ * the point its tooltip shows: within `tolerance` CSS pixels by Plotly's distance for the renderer
+ * in use (WebGL above {@link SCATTER_GL_THRESHOLD} points in all), measured on screen so it
+ * behaves the same at every zoom. On a tie SVG keeps the later point and layer, WebGL the
+ * earlier. One pass over the flat point arrays.
  */
 export function nearestPoint(
     layers: readonly ResolvedPointLayer[],
@@ -381,16 +353,21 @@ export function nearestPoint(
     scale: ScreenScale,
     tolerance: number,
 ): PointPickInfo | null {
+    const gl = layers.reduce((sum, l) => sum + l.count, 0) > SCATTER_GL_THRESHOLD;
     let best: PointPickInfo | null = null;
-    let bestDistance = Infinity;
+    let bestDistance = tolerance;
     for (const l of layers) {
         if (!l.visible || !l.hoverable) continue;
         const { xy } = l;
         for (let i = 0; i < l.count; i += 1) {
             const px = xy[2 * i];
             const py = xy[2 * i + 1];
-            const d = pointScreenDistance(px, py, l.size, fx, fy, scale);
-            if (d <= tolerance && d <= bestDistance) {
+            const d = hoverDistance(
+                Math.hypot((px - fx) * scale.x, (py - fy) * scale.y),
+                l.size,
+                gl,
+            );
+            if (gl ? d < bestDistance : d <= bestDistance) {
                 bestDistance = d;
                 best = { layerId: l.id, label: l.label, index: i, x: px, y: py };
             }
@@ -400,20 +377,29 @@ export function nearestPoint(
 }
 
 /**
- * Resolves point layers with defaults and tracked visibility. Visibility is
- * controlled when any layer sets `visible`; otherwise legend toggles are tracked
- * internally, as for mask classes.
+ * Resolves point layers with their defaults filled in. Points are flattened once per `points`
+ * identity, so restyling a layer never re-copies its points. The list is compared by content
+ * (each `points` array by identity), so an inline list keeps the figure as it is.
  */
 export function useResolvedPointLayers(
-    pointLayers: PointLayer[] | undefined,
-    onPointLayerVisibilityChange?: (layerId: string, visible: boolean) => void,
-): { layers: ResolvedPointLayer[]; toggleLayer: (layerId: string, visible: boolean) => void } {
-    const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
-    const controlled = (pointLayers ?? []).some((l) => l.visible !== undefined);
-
-    // Flattening is memoized per `points` identity, so restyling a layer never re-copies its points.
+    pointLayersIn: PointLayer[] | undefined,
+): ResolvedPointLayer[] {
+    const pointLayers = useKeyed(
+        pointLayersIn,
+        (pointLayersIn ?? []).flatMap((l) => [
+            l.id,
+            l.label,
+            l.points,
+            l.color,
+            l.symbol,
+            l.size,
+            l.strokeWidth,
+            l.visible,
+            l.hoverable,
+        ]),
+    );
     const flatCache = useRef(new WeakMap<object, ArrayLike<number>>());
-    const layers = useMemo<ResolvedPointLayer[]>(
+    return useMemo<ResolvedPointLayer[]>(
         () =>
             (pointLayers ?? []).map((l) => {
                 const key = l.points as unknown as object;
@@ -431,27 +417,10 @@ export function useResolvedPointLayers(
                     symbol: l.symbol ?? 'x',
                     size: l.size ?? 5,
                     strokeWidth: l.strokeWidth ?? 1,
-                    visible: controlled ? (l.visible ?? true) : !hidden.has(l.id),
+                    visible: l.visible ?? true,
                     hoverable: l.hoverable ?? true,
                 };
             }),
-        [pointLayers, controlled, hidden],
+        [pointLayers],
     );
-
-    const toggleLayer = useCallback(
-        (layerId: string, visible: boolean) => {
-            if (!controlled) {
-                setHidden((prev) => {
-                    const next = new Set(prev);
-                    if (visible) next.delete(layerId);
-                    else next.add(layerId);
-                    return next;
-                });
-            }
-            onPointLayerVisibilityChange?.(layerId, visible);
-        },
-        [controlled, onPointLayerVisibilityChange],
-    );
-
-    return { layers, toggleLayer };
 }

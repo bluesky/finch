@@ -246,3 +246,19 @@ export function renderedUrls() {
     };
     return urls;
 }
+
+// ---------------------------------------------------------------------------
+// Point sets, for the point layer story.
+// ---------------------------------------------------------------------------
+
+/** `count` points spread over the frame, the same every time, as a flat `[x0, y0, …]` array. */
+export function randomPoints(count: number, seed = 11): Float32Array {
+    let s = seed;
+    const rand = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    const out = new Float32Array(count * 2);
+    for (let i = 0; i < count; i += 1) {
+        out[2 * i] = rand() * (W - 1);
+        out[2 * i + 1] = rand() * (H - 1);
+    }
+    return out;
+}

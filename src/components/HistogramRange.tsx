@@ -14,19 +14,20 @@ export type HistogramRangeProps = Omit<
     'onChange' | 'title' | 'defaultValue' | 'color' | 'className'
 > & {
     /**
-     * Number of observations per bin. Negative or NaN entries are treated as zero and excluded from
-     * percentile calculations
+     * Number of observations per bin. Negative, NaN and infinite entries are treated as zero and
+     * excluded from percentile calculations. Memoise the array for best performance
      */
     counts: number[];
     /**
      * Ascending bin boundaries in data units, with one more edge than counts. Uneven bin widths are
-     * supported
+     * supported. Memoise the array for best performance
      */
     binEdges: number[];
     /**
-     * Controls the display scale of the value axis ('linear' or 'log'), including bars, handles,
-     * and ticks. Does not transform the data or change threshold units. Log scaling hides bins
-     * with nonpositive left edges, but still includes them in percentile calculations
+     * Display scale of the value axis. `'log'` places bars, handles and ticks by log10 of the bin
+     * edges, so bins whose lower edge is 0 or below are not drawn (an `≤0` marker shows how many).
+     * They still count in the percentiles and can be selected with the keyboard. Thresholds are
+     * always the supplied edges, in data units
      */
     valueScale?: 'linear' | 'log';
     /**
@@ -37,7 +38,8 @@ export type HistogramRangeProps = Omit<
     countScale?: 'linear' | 'log';
     /**
      * Selected [min, max] thresholds in data units. Values are sorted, constrained to the histogram
-     * boundaries, and snapped to the nearest bin edges. `null` selects the full range
+     * boundaries, and snapped to the nearest bin edges. A selection always spans at least one bin:
+     * equal bounds select the bin above (or below, at the top edge). `null` selects the full range
      */
     value: Range | null;
     /**
@@ -127,6 +129,15 @@ function linearTicks(s: ScaleLinear<number, number>, tickCount: number): Tick[] 
 }
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
+
+/**
+ * What the `≤0` marker on a log axis says. It names bins by their lower edge, not by their
+ * values: a bin from 0 to 1 is not drawn although every value in it may be positive.
+ */
+function undrawnNote(bins: number, percent: number): string {
+    const what = bins === 1 ? '1 bin' : `${bins} bins`;
+    return `${what} with a lower edge of 0 or below (${percent.toFixed(1)}% of counts) cannot be placed on a log axis and ${bins === 1 ? 'is' : 'are'} not drawn`;
+}
 
 /**
  * Index of the position nearest to `p` in an ascending list. Exactly halfway rounds up, so a
@@ -271,10 +282,17 @@ export default function HistogramRange({
         };
     }, [edges, n, firstDrawn, useLog, size]);
 
-    const cleanCounts = useMemo(() => counts.map((c) => (c > 0 ? c : 0)), [counts]);
+    const cleanCounts = useMemo(
+        () => counts.map((c) => (Number.isFinite(c) && c > 0 ? c : 0)),
+        [counts],
+    );
+    // A loop rather than `Math.max(...counts)`, which overflows the call stack on large histograms.
+    const maxCount = useMemo(() => cleanCounts.reduce((m, c) => (c > m ? c : m), 1), [cleanCounts]);
+    // Vertical, the count axis runs along the narrow side: half as many ticks keeps its labels apart.
+    const countTicks = isHorizontal ? COUNT_TICKS[size] : Math.ceil(COUNT_TICKS[size] / 2);
     const bars = useMemo(
-        () => countAxis(Math.max(1, ...cleanCounts), countScale === 'log', COUNT_TICKS[size]),
-        [cleanCounts, countScale, size],
+        () => countAxis(maxCount, countScale === 'log', countTicks),
+        [maxCount, countScale, countTicks],
     );
     const { cumulative, total } = useMemo(() => cumulativeCounts(cleanCounts), [cleanCounts]);
     // An empty population has no percentiles; report the share of bins instead, so a full
@@ -287,10 +305,22 @@ export default function HistogramRange({
               ]
             : [(lo / n) * 100, (hi / n) * 100];
 
-    // The selection is always derived from the controlled value: snapped, sorted, clamped.
-    const toIdx = (v: number) => nearestIndex(values.edgeKeys, values.snapKey(v));
+    // The selection is always derived from the controlled value: snapped, sorted, clamped. A
+    // supplied edge keeps its own index, even one that shares the start of a log axis with others.
+    const toIdx = (v: number) => {
+        const exact = edges.indexOf(v);
+        return exact >= 0 ? exact : nearestIndex(values.edgeKeys, values.snapKey(v));
+    };
     let [loIdx, hiIdx] = value && n > 0 ? [toIdx(value[0]), toIdx(value[1])] : [0, n];
     if (loIdx > hiIdx) [loIdx, hiIdx] = [hiIdx, loIdx];
+    // A selection spans at least one bin, so each handle keeps its own side.
+    if (loIdx === hiIdx && n > 0) {
+        if (hiIdx < n) hiIdx += 1;
+        else loIdx -= 1;
+    }
+
+    // Edge indices from an earlier render, clamped to the current bins in case they shrank.
+    const fit = (lo: number, hi: number): Range => [Math.min(lo, n - 1), Math.min(hi, n)];
 
     const lastEmitted = useRef<Range | null>(null);
     const emit = (lo: number, hi: number) => {
@@ -300,7 +330,7 @@ export default function HistogramRange({
         onChange([edges[lo], edges[hi]], percentilesFor(lo, hi));
     };
     const commit = () => {
-        const [lo, hi] = lastEmitted.current ?? [loIdx, hiIdx];
+        const [lo, hi] = lastEmitted.current ? fit(...lastEmitted.current) : [loIdx, hiIdx];
         onChangeCommitted?.([edges[lo], edges[hi]], percentilesFor(lo, hi));
     };
 
@@ -350,20 +380,22 @@ export default function HistogramRange({
 
     const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
         const d = dragRef.current;
-        if (!d) return;
+        if (!d || n === 0) return;
         const t = fraction(e);
         const { edgePos } = values;
+        // The bins may have changed since the press (a live histogram); keep to the current ones.
+        const [dLo, dHi] = fit(d.lo, d.hi);
         // Handles move by the pointer's offset since the press, so grabbing one off-centre
         // does not make it jump.
         if (d.kind === 'lo') {
-            emit(clamp(pointerIdx(edgePos[d.lo] + t - d.t0), 0, d.hi - 1), d.hi);
+            emit(clamp(pointerIdx(edgePos[dLo] + t - d.t0), 0, dHi - 1), dHi);
         } else if (d.kind === 'hi') {
-            emit(d.lo, clamp(pointerIdx(edgePos[d.hi] + t - d.t0), d.lo + 1, n));
+            emit(dLo, clamp(pointerIdx(edgePos[dHi] + t - d.t0), dLo + 1, n));
         } else {
-            const width = d.hi - d.lo;
+            const width = dHi - dLo;
             const shift = pointerIdx(t) - pointerIdx(d.t0);
             // A pan never moves the band into the undrawn bins, but keeps it there if it started there.
-            const lo = clamp(d.lo + shift, Math.min(d.lo, firstDrawn), n - width);
+            const lo = clamp(dLo + shift, Math.min(dLo, firstDrawn), n - width);
             emit(lo, lo + width);
         }
     };
@@ -517,7 +549,7 @@ export default function HistogramRange({
             {title && <h3 className="text-xs font-medium text-slate-600">{title}</h3>}
             <div
                 // Padding so the end tick labels, which straddle the plot corners, stay inside.
-                className="grid min-h-0 flex-1 pr-3 pt-1.5"
+                className="grid min-h-0 flex-1 pr-4 pt-2"
                 style={{
                     gridTemplateColumns: 'auto minmax(0, 1fr)',
                     gridTemplateRows: 'minmax(0, 1fr) auto',
@@ -527,7 +559,7 @@ export default function HistogramRange({
                 <div className="flex min-h-0" data-testid="histogram-range-side-axis">
                     {sideTitle && (
                         <div className="flex items-center pr-0.5">
-                            <span className="rotate-180 whitespace-nowrap text-[10px] text-slate-500 [writing-mode:vertical-rl]">
+                            <span className="rotate-180 whitespace-nowrap text-xs text-slate-500 [writing-mode:vertical-rl]">
                                 {sideTitle}
                             </span>
                         </div>
@@ -537,7 +569,7 @@ export default function HistogramRange({
                             (which are positioned absolutely) and never runs into the title. */}
                         <span
                             aria-hidden="true"
-                            className="invisible flex items-center gap-0.5 whitespace-nowrap text-[10px] leading-none tabular-nums"
+                            className="invisible flex items-center gap-0.5 whitespace-nowrap text-xs leading-none tabular-nums"
                         >
                             {n > 0 && widestSideLabel}
                             <span className="w-1" />
@@ -546,7 +578,7 @@ export default function HistogramRange({
                             sideTicks.map((t, i) => (
                                 <span
                                     key={i}
-                                    className="absolute right-0 flex translate-y-1/2 items-center gap-0.5 whitespace-nowrap text-[10px] leading-none tabular-nums text-slate-500"
+                                    className="absolute right-0 flex translate-y-1/2 items-center gap-0.5 whitespace-nowrap text-xs leading-none tabular-nums text-slate-500"
                                     style={{ bottom: pct(t.pos) }}
                                 >
                                     {t.label}
@@ -638,6 +670,21 @@ export default function HistogramRange({
                                     />
                                 ))}
                             </svg>
+                            {useLog && firstDrawn > 0 && (
+                                <span
+                                    data-testid="histogram-range-undrawn"
+                                    className={cn(
+                                        'pointer-events-none absolute left-0.5 text-xs leading-none text-slate-500',
+                                        isHorizontal ? 'top-0.5' : 'bottom-0.5',
+                                    )}
+                                    title={undrawnNote(
+                                        firstDrawn,
+                                        percentilesFor(0, firstDrawn)[1],
+                                    )}
+                                >
+                                    ≤0
+                                </span>
+                            )}
                             {canPan && (
                                 <div
                                     data-role="band"
@@ -658,12 +705,12 @@ export default function HistogramRange({
                 {/* Bottom axis: values (horizontal) or counts (vertical), low at the left. */}
                 <div />
                 <div className="flex flex-col" data-testid="histogram-range-bottom-axis">
-                    <div className="relative h-4">
+                    <div className="relative h-5">
                         {n > 0 &&
                             bottomTicks.map((t, i) => (
                                 <span
                                     key={i}
-                                    className="absolute top-0 flex -translate-x-1/2 flex-col items-center text-[10px] leading-none tabular-nums text-slate-500"
+                                    className="absolute top-0 flex -translate-x-1/2 flex-col items-center text-xs leading-none tabular-nums text-slate-500"
                                     style={{ left: pct(t.pos) }}
                                 >
                                     <span
@@ -677,9 +724,7 @@ export default function HistogramRange({
                             ))}
                     </div>
                     {bottomTitle && (
-                        <span className="text-center text-[10px] text-slate-500">
-                            {bottomTitle}
-                        </span>
+                        <span className="text-center text-xs text-slate-500">{bottomTitle}</span>
                     )}
                 </div>
             </div>

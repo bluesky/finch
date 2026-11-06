@@ -83,8 +83,8 @@ jobs:
           npm run test:run -- src/testing/tests/Main.test.tsx
           npm run test:run -- src/testing/tests/Paper.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
-          npm run test:run -- src/testing/tests/PlotlyMaskOverlay.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyMaskOverlay.test.tsx
           npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
           npm run test:run -- src/testing/tests/QSConsoleFormatting.test.tsx
           npm run test:run -- src/testing/tests/QueueServer.test.tsx

@@ -106,16 +106,18 @@ export const EMPTY_IMAGE =
  * Plotly's layout plus `newshape`, a real layout option (styling a shape while it is
  * drawn) that `@types/plotly.js` does not declare yet.
  */
-export type OverlayLayout = Partial<Layout> & {
+type OverlayLayout = Partial<Layout> & {
     newshape?: { line?: { color?: string; width?: number }; fillcolor?: string };
 };
+
+/** Plot background: what shows through pixels without data, unless `missingColor` is set. */
+export const DEFAULT_MISSING_COLOR = '#0f172a';
 
 /** What a trace stands for, stored in its `meta` so legend and hover events map back. */
 export type TraceMeta =
     | { kind: 'image' }
     | { kind: 'points'; layerId: string; label?: string }
-    | { kind: 'class'; classId: number }
-    | { kind: 'extra' };
+    | { kind: 'class'; classId: number };
 
 /** A Plotly colorscale sampled from a Finch colormap, for heatmap traces. */
 export function colormapToColorscale(colormap: string, stops = 16): [number, string][] {
@@ -127,26 +129,6 @@ export function colormapToColorscale(colormap: string, stops = 16): [number, str
         out.push([t, `rgb(${lut[k]},${lut[k + 1]},${lut[k + 2]})`]);
     }
     return out;
-}
-
-/**
- * Colorbar ticks for a log10 colour axis spanning `[lo, hi]` (log10 units), labelled in
- * native units: one tick per decade, or the two ends when the range is under a decade.
- */
-export function logColorbarTicks(
-    lo: number,
-    hi: number,
-): { tickvals: number[]; ticktext: string[] } {
-    const decades: number[] = [];
-    for (let k = Math.ceil(lo); k <= Math.floor(hi); k += 1) decades.push(k);
-    if (decades.length >= 2) {
-        return { tickvals: decades, ticktext: decades.map((k) => `10<sup>${k}</sup>`) };
-    }
-    const ends = [lo, hi];
-    return {
-        tickvals: ends,
-        ticktext: ends.map((v) => Number((10 ** v).toPrecision(3)).toString()),
-    };
 }
 
 /**
@@ -196,17 +178,20 @@ export type PlotlyOverlayFigureInput = {
     showAxes: boolean;
     showLegend: boolean;
     showColorbar: boolean;
+    /** Background colour, shown through pixels without data. */
+    missingColor?: string;
     uirevision: string;
+    /**
+     * Revision of the axis ranges alone. A new value makes Plotly apply `viewport` (or the
+     * whole frame) instead of the user's zoom, without resetting anything else.
+     */
+    axisRevision: string;
     /** Bumped after each shape change, so Plotly shows exactly the annotations passed in. */
     tick: number;
     /** Controlled ranges; `null` or `undefined` shows the whole frame. */
     viewport?: OverlayViewport | null;
-    zoomable: boolean;
     /** Called by the modebar's reset button. */
     onResetView: () => void;
-    extraTraces?: Data[];
-    layout?: OverlayLayout;
-    config?: Partial<Config>;
 };
 
 /**
@@ -276,14 +261,12 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
         showAxes,
         showLegend,
         showColorbar,
+        missingColor,
         uirevision,
+        axisRevision,
         tick,
         viewport,
-        zoomable,
         onResetView,
-        extraTraces,
-        layout: layoutOverride,
-        config: configOverride,
     } = input;
 
     const domainLo = imageDomain?.[0];
@@ -318,7 +301,19 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
             zsmooth: false,
             colorscale: colormapToColorscale(imageColormap),
             showscale: showColorbar,
-            ...(imageLogScale && showColorbar && { colorbar: logColorbarTicks(lo, hi) }),
+            // A slim horizontal bar just above the image, Plotly's own place for one: the legend
+            // keeps the right side to itself, and the bar spans the image like a value axis. Paper
+            // coordinates on purpose: a container-referenced colorbar (`yref: 'container'`) stops
+            // Plotly from restoring the x range when the view is reset.
+            ...(showColorbar && {
+                colorbar: {
+                    orientation: 'h',
+                    len: 1,
+                    thickness: 14,
+                    // Under log the colour axis is in log10 units; Plotly's own ticks on it read 10^k.
+                    ...(imageLogScale && { tickprefix: '10<sup>', ticksuffix: '</sup>' }),
+                },
+            }),
             hovertemplate: `value %{${imageLogScale ? 'customdata' : 'z'}:.6~g}<extra></extra>`,
             // A gap (NaN, or a value that cannot be logged) has nothing to fill the template
             // with; Plotly would print it verbatim. Finch's own onHover still reports the pixel.
@@ -395,15 +390,8 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
     );
 
     const data = useMemo(
-        (): Data[] => [
-            ...(heatmapTrace ? [heatmapTrace] : []),
-            ...pointTraces,
-            ...classTraces,
-            ...(extraTraces ?? []).map(
-                (t) => ({ meta: { kind: 'extra' } satisfies TraceMeta, ...t }) as Data,
-            ),
-        ],
-        [heatmapTrace, pointTraces, classTraces, extraTraces],
+        (): Data[] => [...(heatmapTrace ? [heatmapTrace] : []), ...pointTraces, ...classTraces],
+        [heatmapTrace, pointTraces, classTraces],
     );
 
     const layerSignature = layers
@@ -431,15 +419,19 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
         const controlled =
             vx0 !== undefined && vx1 !== undefined && vy0 !== undefined && vy1 !== undefined;
         const ranges = controlled ? { x: [vx0, vx1], y: [vy0, vy1] } : full;
-        const base: OverlayLayout = {
+        // No `datarevision`: without it Plotly redraws any data array with a new identity, which
+        // is how every Finch input is compared. Setting it would hide new frames.
+        return {
             autosize: true,
             uirevision,
-            datarevision: tick,
             // Plotly keeps user-drawn and user-edited shapes while `editrevision` is unchanged
             // (it defaults to `uirevision`, which stays fixed to keep zoom). A new value after
             // every shape change makes Plotly show exactly the annotations the app passes.
             editrevision: `${uirevision}:${tick}`,
             hovermode: 'closest',
+            // Plotly shortens trace names of 15 characters or more in hover labels; show layer
+            // labels in full.
+            hoverlabel: { namelength: -1 },
             dragmode: PLOTLY_DRAGMODE[dragMode],
             // The same styling as a finished annotation with this style.
             newshape: {
@@ -451,10 +443,10 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
             showlegend: showLegend,
             legend: { orientation: 'v', x: 1.02, y: 1, xanchor: 'left', yanchor: 'top' },
             margin: showAxes ? { l: 50, r: 10, t: 10, b: 40 } : { l: 0, r: 0, t: 0, b: 0 },
-            plot_bgcolor: '#0f172a',
+            plot_bgcolor: missingColor ?? DEFAULT_MISSING_COLOR,
             xaxis: {
                 range: ranges.x,
-                fixedrange: !zoomable,
+                uirevision: axisRevision,
                 constrain: 'domain',
                 showgrid: false,
                 zeroline: false,
@@ -463,7 +455,7 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
             },
             yaxis: {
                 range: ranges.y,
-                fixedrange: !zoomable,
+                uirevision: axisRevision,
                 scaleanchor: 'x',
                 constrain: 'domain',
                 showgrid: false,
@@ -472,16 +464,10 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
                 title: showAxes ? { text: 'y [pixel]' } : undefined,
             },
         };
-        if (!layoutOverride) return base;
-        return {
-            ...base,
-            ...layoutOverride,
-            xaxis: { ...base.xaxis, ...layoutOverride.xaxis },
-            yaxis: { ...base.yaxis, ...layoutOverride.yaxis },
-        };
     }, [
         imageSize,
         uirevision,
+        axisRevision,
         tick,
         dragMode,
         drawStyle,
@@ -489,12 +475,11 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
         shapes,
         showLegend,
         showAxes,
-        zoomable,
+        missingColor,
         vx0,
         vx1,
         vy0,
         vy1,
-        layoutOverride,
     ]);
 
     const config = useMemo((): Partial<Config> => {
@@ -508,15 +493,17 @@ export function usePlotlyOverlayFigure(input: PlotlyOverlayFigureInput) {
         };
         return {
             displaylogo: false,
-            scrollZoom: zoomable,
-            doubleClick: zoomable ? 'reset' : false,
+            scrollZoom: true,
+            // Plotly's double-click restores the range at mount, not the whole frame; the reset
+            // button does that.
+            doubleClick: false,
             responsive: true,
+            // `toImage` exports the figure; Plotly inlines layout images, so it works for PNGs too.
             modeBarButtons: [
-                zoomable ? ['zoom2d', 'pan2d', resetView, 'eraseshape'] : ['eraseshape'],
+                ['zoom2d', 'pan2d', resetView, 'toImage', 'eraseshape'],
             ] as Config['modeBarButtons'],
-            ...configOverride,
         };
-    }, [configOverride, zoomable, onResetView]);
+    }, [onResetView]);
 
     return { data, layout, config, shapes };
 }

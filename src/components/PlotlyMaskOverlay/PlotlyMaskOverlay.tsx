@@ -1,27 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Plot from '@/lib/plot';
-import type { Config, Data, LegendClickEvent, PlotHoverEvent, PlotRelayoutEvent } from 'plotly.js';
+import type { LegendClickEvent, PlotRelayoutEvent } from 'plotly.js';
 import { cn } from '@/lib/utils';
 import { hitTestGeometry } from '@/utils/annotationGeometry';
 import { plotlyShapeToGeometry, type PlotlyShapeDict } from '@/utils/plotlyShapes';
 import {
     nearestPoint,
     pickPixel,
-    pointScreenDistance,
     useImageSources,
     useResolvedPointLayers,
-    type ImageSources,
     type ScreenScale,
 } from './hooks/useImageSources';
 import { useLoadedImages, useRgbaObjectUrl } from './hooks/useMaskRaster';
 import type {
     Annotation,
-    ImageOverlayBaseProps,
+    AnnotationStyle,
+    DragMode,
+    DrawEvent,
+    ImageInput,
+    ImageLayer,
+    MaskInput,
     OverlayLayerId,
     OverlayLoadState,
     OverlayPickInfo,
     OverlayViewport,
     PixelPickInfo,
+    PointLayer,
     PointPickInfo,
     ResolvedPointLayer,
 } from './types';
@@ -31,7 +35,6 @@ import {
     FINCH_SHAPE_PREFIX,
     usePlotlyOverlayFigure,
     viewportFromRelayout,
-    type OverlayLayout,
     type TraceMeta,
 } from './hooks/usePlotlyOverlayFigure';
 import './PlotlyMaskOverlay.css';
@@ -39,14 +42,20 @@ import './PlotlyMaskOverlay.css';
 /** Array images larger than this are slow as a heatmap; a warning suggests a PNG. */
 const HEATMAP_WARN_PIXELS = 1_000_000;
 
-/** Pointer travel, in CSS pixels, after which a press counts as a drag rather than a click. */
-const CLICK_SLOP = 3;
+/**
+ * Pointer travel, in CSS pixels, after which a press counts as a drag rather than a click.
+ * Plotly's own threshold (`MINDRAG`), so a press is a click for Finch exactly when it is for Plotly.
+ */
+const CLICK_SLOP = 8;
 
 /** Annotation hit tolerance, in CSS pixels. */
 const ANNOTATION_SLOP = 4;
 
-/** Point hit tolerance, in CSS pixels: Plotly's default `hoverdistance`, so clicks match the tooltip. */
+/** Point hit tolerance, in CSS pixels: Plotly's default `hoverdistance`, so picks match the tooltip. */
 const POINT_HOVER_DISTANCE = 20;
+
+/** A hex colour as `hexToRgb` reads it; anything else is drawn magenta. */
+const HEX_COLOR = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
 
 /** Length of the longer side, in rem, for each fixed size. The other side follows the image. */
 const SIZE_REM = {
@@ -54,6 +63,9 @@ const SIZE_REM = {
     medium: 24,
     large: 40,
 } as const;
+
+/** The frame used while the image is invalid, so the hooks below stay no-ops. */
+const NO_FRAME: [number, number] = [1, 1];
 
 /** Root classes for `size="full"`, which fills the parent instead. */
 const FULL_SIZE_CLASS = 'w-full h-full min-w-32 min-h-32';
@@ -65,57 +77,87 @@ function fitBox(longSide: number, [ih, iw]: [number, number]): { width: string; 
     return { width: `${width}rem`, height: `${height}rem` };
 }
 
-/** `frameKey` as a string. Objects compare by content, not by `String()`. */
-function revisionOf(key: unknown): string {
-    if (key !== null && typeof key === 'object') {
-        try {
-            return JSON.stringify(key);
-        } catch {
-            return String(key);
-        }
-    }
-    return String(key);
-}
-
-/** Props for {@link PlotlyMaskOverlay}: the shared overlay inputs plus Plotly view and editing options. */
+/** Props for {@link PlotlyMaskOverlay}: the image, what is drawn over it, and how the user works with it. */
 export type PlotlyMaskOverlayProps = Omit<
     React.ComponentPropsWithoutRef<'div'>,
     'onClick' | 'onError'
-> &
-    ImageOverlayBaseProps & {
-        /**
-         * Called as the image and each image layer start loading, decode, or fail. A failed URL
-         * is retried when its URL or the `frameKey` changes
-         */
-        onLoadStateChange?: (layer: OverlayLayerId, state: OverlayLoadState) => void;
-        /** The visible area in image coordinates, for a controlled view. `null` shows the whole frame */
-        viewport?: OverlayViewport | null;
-        /** Called with the visible area after zooming or panning, or `null` after a reset */
-        onViewportChange?: (viewport: OverlayViewport | null) => void;
-        /** Let the user zoom and pan */
-        zoomable?: boolean;
-        /** Show pixel axes with titles */
-        showAxes?: boolean;
-        /** Show a legend of mask classes and labelled point layers */
-        showLegend?: boolean;
-        /** Let the user move, resize and erase annotations. Changes are reported by `onAnnotationChange` */
-        editableAnnotations?: boolean;
-        /** Called with the whole annotation list after an edit. Pass it back to `annotations` */
-        onAnnotationChange?: (annotations: Annotation[]) => void;
-        /** Additional Plotly traces drawn after Finch's traces. Not reported by `onHover` or `onClick` */
-        extraTraces?: Data[];
-        /** Plotly layout overrides, merged last. Use `annotations` instead of `layout.shapes` */
-        layout?: OverlayLayout;
-        /** Plotly configuration overrides, merged last */
-        config?: Partial<Config>;
-        /**
-         * The component's size. Fixed sizes set the longer side and follow the image's aspect
-         * ratio; `'full'` fills the parent, which must have a defined height
-         */
-        size?: 'small' | 'medium' | 'large' | 'full';
-        /** Additional CSS classes applied to the root element */
-        className?: string;
-    };
+> & {
+    /** The base image that defines the pixel coordinate system for all overlays */
+    image: ImageInput;
+    /** Structured mask arrays with class colors, visibility, and hover information */
+    mask?: MaskInput;
+    /**
+     * Additional images overlaid on the base image. Drawn in list order, with later layers on
+     * top, and not drawn while the base image fails to load
+     */
+    imageLayers?: ImageLayer[];
+    /** Vector shapes in image coordinates */
+    annotations?: Annotation[];
+    /** Read-only collections of points in image coordinates */
+    pointLayers?: PointLayer[];
+    /** What dragging does: zoom into a box, pan, or draw with a tool */
+    dragMode?: DragMode;
+    /** Called when the user picks zoom or pan in the toolbar. Pass it back to `dragMode` */
+    onDragModeChange?: (mode: DragMode) => void;
+    /** Stroke and fill of a shape while it is drawn. Defaults to a white 1.5 px outline */
+    drawStyle?: AnnotationStyle;
+    /** Called with a finished shape. Add it to `annotations` to keep it displayed */
+    onDrawComplete?: (shape: DrawEvent) => void;
+    /**
+     * Called with pixel, mask, point, and annotation information under the pointer, or null
+     * when the pointer leaves
+     */
+    onHover?: (info: OverlayPickInfo | null) => void;
+    /** Called with what was clicked. Dragging is not a click */
+    onClick?: (info: OverlayPickInfo) => void;
+    /**
+     * Called when a mask class is clicked in the legend, with the visibility it asks for. Pass it
+     * back in `mask.classes[].visible`
+     */
+    onClassVisibilityChange?: (classId: number, visible: boolean) => void;
+    /**
+     * Called when a point layer is clicked in the legend, with the visibility it asks for. Pass it
+     * back in `pointLayers[].visible`
+     */
+    onPointLayerVisibilityChange?: (layerId: string, visible: boolean) => void;
+    /**
+     * Identifies the current image frame. Changing it clears previously loaded images and
+     * resets zoom and pan. When unset, the image shape is used
+     */
+    frameKey?: string | number;
+    /**
+     * Called as the image and each image layer start loading, decode, or fail. A failed URL
+     * is retried when its URL or the `frameKey` changes
+     */
+    onLoadStateChange?: (layer: OverlayLayerId, state: OverlayLoadState) => void;
+    /**
+     * The visible area in image coordinates. A new value is applied, replacing the user's zoom;
+     * `null` shows the whole frame. Pass `onViewportChange` values back to keep it in sync
+     */
+    viewport?: OverlayViewport | null;
+    /** Called with the visible area after zooming or panning, or `null` after a reset */
+    onViewportChange?: (viewport: OverlayViewport | null) => void;
+    /** Show pixel axes with titles */
+    showAxes?: boolean;
+    /** Show a legend of mask classes and labelled point layers */
+    showLegend?: boolean;
+    /** Let the user move, resize and erase annotations. Changes are reported by `onAnnotationChange` */
+    editableAnnotations?: boolean;
+    /** Called with the whole annotation list after an edit. Pass it back to `annotations` */
+    onAnnotationChange?: (annotations: Annotation[]) => void;
+    /**
+     * Color shown where there is no image data: pixels with NaN values, transparent pixels of a
+     * picture, and the area around the image when zoomed out. Any CSS color. Defaults to dark slate
+     */
+    missingColor?: string;
+    /**
+     * The component's size. Fixed sizes set the longer side and follow the image's aspect
+     * ratio; `'full'` fills the parent, which must have a defined height
+     */
+    size?: 'small' | 'medium' | 'large' | 'full';
+    /** Additional CSS classes applied to the root element */
+    className?: string;
+};
 
 /** Internals of a rendered Plotly axis that map pixels back to data. */
 type AxisInternals = { range: [number, number]; _offset: number; _length: number };
@@ -177,30 +219,64 @@ const samePoint = (a: PointPickInfo | null | undefined, b: PointPickInfo | null 
  * backend has already rendered is a picture: pass it in `imageLayers`.
  *
  * **Pictures.** The application builds every URL and owns fetching, authentication and
- * caching; for servers that need credentials, pass object or data URLs. A PNG of any size is
- * stretched onto the frame. A changed URL replaces the picture once it has decoded; a changed
- * `frameKey` drops it at once, so a picture from another frame is never shown. While the image
- * fails to load, neither image layers nor the mask are drawn.
+ * caching; for servers that need credentials, pass object or data URLs. Finch loads URLs
+ * without credentials and never makes any other request. A PNG of any size is stretched onto
+ * the frame. A changed URL replaces the picture once it has decoded; a changed `frameKey`
+ * drops it at once, so a picture from another frame is never shown. While the image fails to
+ * load, neither image layers nor the mask are drawn.
  *
- * **Layers, bottom to top.** The image, `pointLayers` and `extraTraces`, `imageLayers` in list
- * order, the `mask`, then `annotations`. Plotly draws pictures above every trace, so image
- * layers and the mask cover the points beneath them.
+ * **Frames and view.** A new `image` or `pointLayers` of the same shape is redrawn in place and
+ * the current zoom is kept, so a live detector stream can replace its frame on every update.
+ * `image.domain` fixes the color range, so a value keeps its color from frame to frame. A new
+ * `frameKey` means a different frame: pictures of the previous one are dropped at once and the
+ * view returns to the whole image. `viewport` is applied whenever its value changes (`null` is
+ * the whole image), and the user's zoom persists while it is unchanged; pass `onViewportChange`
+ * values back to keep it in step. The toolbar's home button resets the view in either case.
+ *
+ * **Layers, bottom to top.** The image, `pointLayers`, `imageLayers` in list order, the `mask`,
+ * then `annotations`. Plotly draws pictures above every trace, so image layers and the mask
+ * cover the points beneath them.
+ *
+ * **Plotly coupling** (tested with plotly.js 2.35 and 4.1). Hover and click read Plotly's laid-out axes
+ * (`_fullLayout.xaxis._offset`/`_length`); `PlotlyMaskOverlay.css` targets Plotly's image layer
+ * classes; layout images get distinct sizes (`IMAGE_KEY_STEP`) so a Plotly that joins them by
+ * geometry keeps them apart. Finch warns once if the axis internals are missing.
  */
 export default function PlotlyMaskOverlay({
+    image,
+    mask,
+    imageLayers,
+    annotations,
+    pointLayers,
     dragMode = 'zoom',
-    zoomable = true,
+    onDragModeChange,
+    drawStyle,
+    onDrawComplete,
+    onHover,
+    onClick,
+    onClassVisibilityChange,
+    onPointLayerVisibilityChange,
+    frameKey,
+    onLoadStateChange,
+    viewport,
+    onViewportChange,
     showAxes = true,
     showLegend = true,
     editableAnnotations = false,
+    onAnnotationChange,
+    missingColor,
     size = 'medium',
-    ...rest
+    className,
+    style,
+    ...props
 }: PlotlyMaskOverlayProps) {
-    const props = { ...rest, dragMode, zoomable, showAxes, showLegend, editableAnnotations, size };
-    const sources = useImageSources({
-        image: props.image,
-        mask: props.mask,
-        onClassVisibilityChange: props.onClassVisibilityChange,
-    });
+    const sources = useImageSources({ image, mask });
+    const { frame, imageGrid, labelGrid, maskLayers, maskShape, resolvedClasses } = sources;
+    const resolvedPointLayers = useResolvedPointLayers(pointLayers);
+    // Without a valid frame nothing is loaded or drawn; every hook below is then a no-op. The
+    // frame keeps its identity across renders: a new layout during a drag would undo the drag.
+    const imageSize = frame ?? NO_FRAME;
+    const [frameHeight, frameWidth] = imageSize;
 
     // Inputs that do not fit the frame are not drawn; say why, once per message per instance.
     const warned = useRef(new Set<string>());
@@ -212,115 +288,50 @@ export default function PlotlyMaskOverlay({
     const { shapeWarnings } = sources;
     useEffect(() => shapeWarnings.forEach(warn), [shapeWarnings, warn]);
 
-    if (!sources.frame) {
-        const { className, style } = props;
-        const side = size === 'full' ? undefined : `${SIZE_REM[size]}rem`;
-        return (
-            <div
-                className={cn(
-                    'finch-plotly-mask-overlay relative',
-                    size === 'full' && FULL_SIZE_CLASS,
-                    className,
-                )}
-                style={{ width: side, height: side, ...style }}
-                data-testid="plotly-mask-overlay"
-            >
-                <p
-                    role="alert"
-                    className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-2 text-center text-xs text-slate-400"
-                >
-                    Error: invalid image
-                </p>
-            </div>
-        );
-    }
-    return <OverlayFrame {...props} sources={sources} frame={sources.frame} warn={warn} />;
-}
-
-/** The props {@link PlotlyMaskOverlay} gives defaults to. */
-type Defaulted =
-    | 'dragMode'
-    | 'zoomable'
-    | 'showAxes'
-    | 'showLegend'
-    | 'editableAnnotations'
-    | 'size';
-
-type OverlayFrameProps = PlotlyMaskOverlayProps &
-    Required<Pick<PlotlyMaskOverlayProps, Defaulted>> & {
-        sources: ImageSources;
-        frame: [number, number];
-        warn: (message: string) => void;
-    };
-
-/** The overlay for a valid frame. */
-function OverlayFrame({
-    sources,
-    frame,
-    warn,
-    image,
-    mask: _mask,
-    imageLayers,
-    annotations,
-    pointLayers,
-    dragMode,
-    onDragModeChange,
-    drawStyle,
-    onDrawComplete,
-    onHover,
-    onClick,
-    onClassVisibilityChange: _onClassVisibilityChange,
-    onPointLayerVisibilityChange,
-    frameKey,
-    onLoadStateChange,
-    viewport,
-    onViewportChange,
-    zoomable,
-    showAxes,
-    showLegend,
-    editableAnnotations,
-    onAnnotationChange,
-    extraTraces,
-    layout: layoutOverride,
-    config: configOverride,
-    size,
-    className,
-    style,
-    ...props
-}: OverlayFrameProps) {
-    const { imageGrid, labelGrid, maskLayers, maskShape, resolvedClasses, toggleClass } = sources;
-    const { layers: resolvedPointLayers, toggleLayer } = useResolvedPointLayers(
-        pointLayers,
-        onPointLayerVisibilityChange,
-    );
-    const [frameHeight, frameWidth] = frame;
-
     // Display options of the variant in use.
     const isArray = image.type === 'array';
     const imageColormap = (isArray && image.colormap) || 'gray';
     const imageDomain = isArray ? image.domain : undefined;
     const imageLogScale = isArray && !!image.logScale;
     const showColorbar = isArray && !!image.showColorbar;
-    const imageSmoothing = (!isArray && image.smoothing) || 'auto';
-    const imageUrl = isArray ? undefined : image.url;
+    const imageUrl = !frame || isArray ? undefined : image.url;
     const resolveValue = isArray ? undefined : image.resolveValue;
 
     /** What is on screen. A new revision resets the view and drops every loaded picture. */
     const frameRevision =
-        frameKey === undefined ? `${frameHeight}x${frameWidth}` : revisionOf(frameKey);
+        frameKey === undefined ? `${frameHeight}x${frameWidth}` : String(frameKey);
+
+    // Colours that are not hex are drawn magenta by the mask raster and fills; say which.
+    const nonHexClasses = resolvedClasses
+        .filter((c) => !HEX_COLOR.test(c.color.trim()))
+        .map((c) => c.id)
+        .join(', ');
+    const hasNonHexFill = (annotations ?? []).some((a) => a.fill && !HEX_COLOR.test(a.fill.trim()));
+    useEffect(() => {
+        if (nonHexClasses) {
+            warn(
+                `PlotlyMaskOverlay: mask class colors must be hex (#rgb or #rrggbb); class ${nonHexClasses} is drawn magenta.`,
+            );
+        }
+        if (hasNonHexFill) {
+            warn(
+                'PlotlyMaskOverlay: annotation `fill` must be hex (#rgb or #rrggbb); it is drawn magenta.',
+            );
+        }
+    }, [nonHexClasses, hasNonHexFill, warn]);
 
     // --- URL pictures: decoded once for load state, natural size and errors ----
 
     // Each id loads once: the base image is `'image'`, so a layer may not reuse it.
     const layerList = useMemo(() => {
         const seen = new Set<string>(['image']);
-        return (imageLayers ?? []).filter((l) => {
+        return (frame ? (imageLayers ?? []) : []).filter((l) => {
             if (seen.has(l.id)) return false;
             seen.add(l.id);
             return true;
         });
-    }, [imageLayers]);
-    const droppedLayerIds = (imageLayers?.length ?? 0) - layerList.length;
+    }, [imageLayers, frame]);
+    const droppedLayerIds = frame ? (imageLayers?.length ?? 0) - layerList.length : 0;
     useEffect(() => {
         if (droppedLayerIds > 0) {
             warn(
@@ -402,16 +413,19 @@ function OverlayFrame({
     // Bumped after each shape change; it renews `editrevision`, so Plotly drops any drawn or
     // edited shape the app did not pass back in `annotations`.
     const [tick, setTick] = useState(0);
-    // Drawn shapes already passed to `onDrawComplete`, until the app's next annotation list.
-    const reportedDraws = useRef(new WeakSet<object>());
-    useEffect(() => {
-        reportedDraws.current = new WeakSet();
-    }, [annotations]);
-    // Bumped by the reset button: a new `uirevision` makes Plotly apply Finch's full-frame ranges.
+    // Bumped by the reset button, so Plotly applies the whole frame instead of the user's zoom.
     const [resets, setResets] = useState(0);
-    const uirevision = frameRevision + (resets ? `#${resets}` : '');
 
     // --- view: reset, controlled ranges ---------------------------------------
+    //
+    // Plotly keeps the user's zoom while the axes' `uirevision` is unchanged, even when Finch
+    // passes the ranges it passed before. So the axis revision names the requested view by
+    // value: any new `viewport` value (including `null` after none) is applied, an unchanged one
+    // leaves the user's zoom alone. Other UI state, such as the drag mode, is not touched.
+    const viewportKey = viewport
+        ? `${viewport.x[0]},${viewport.x[1]},${viewport.y[0]},${viewport.y[1]}`
+        : String(viewport);
+    const axisRevision = `${frameRevision}|${viewportKey}|${resets}`;
 
     const [graphDiv, setGraphDiv] = useState<HTMLElement | null>(null);
     const handleGraphDiv = useCallback((_: unknown, gd: Readonly<HTMLElement>) => {
@@ -425,7 +439,7 @@ function OverlayFrame({
     }, []);
 
     const { data, layout, config, shapes } = usePlotlyOverlayFigure({
-        imageSize: frame,
+        imageSize,
         imageGrid,
         imageColormap,
         imageDomain,
@@ -450,14 +464,12 @@ function OverlayFrame({
         showAxes,
         showLegend,
         showColorbar,
-        uirevision,
+        missingColor,
+        uirevision: frameRevision,
+        axisRevision,
         tick,
         viewport,
-        zoomable,
         onResetView: resetView,
-        extraTraces,
-        layout: layoutOverride,
-        config: configOverride,
     });
 
     // --- relayout: view, drag mode, drawn, edited and erased shapes -----------
@@ -476,12 +488,10 @@ function OverlayFrame({
             !!a && (a.editable ?? editableAnnotations);
         if (Array.isArray(raw.shapes)) {
             const full = raw.shapes as PlotlyShapeDict[];
-            // New shapes are the ones Finch did not name. Plotly keeps a drawn shape in its
-            // list until Finch's next update, so each one is reported only once.
+            // New shapes are the ones Finch did not name. The `tick` bump below renews
+            // `editrevision`, so Plotly drops each one before the next relayout: reported once.
             for (const s of full) {
                 if (typeof s.name === 'string' && s.name.startsWith(FINCH_SHAPE_PREFIX)) continue;
-                if (reportedDraws.current.has(s)) continue;
-                reportedDraws.current.add(s);
                 const g = plotlyShapeToGeometry(s);
                 if (g && g.type !== 'line') onDrawComplete?.(g);
             }
@@ -526,18 +536,18 @@ function OverlayFrame({
         setTick((t) => t + 1);
     };
 
-    // --- legend: drive visibility from Finch state ---------------------------
+    // --- legend: visibility is the application's, the legend only asks -------
 
     const handleLegendClick = (event: Readonly<LegendClickEvent>): boolean => {
         const meta = (event.data[event.curveNumber] as { meta?: TraceMeta } | undefined)?.meta;
         if (meta?.kind === 'points') {
             const layer = resolvedPointLayers.find((l) => l.id === meta.layerId);
-            if (layer) toggleLayer(layer.id, !layer.visible);
+            if (layer) onPointLayerVisibilityChange?.(layer.id, !layer.visible);
             return false;
         }
         if (meta?.kind === 'class') {
             const cls = resolvedClasses.find((c) => c.id === meta.classId);
-            if (cls) toggleClass(cls.id, !cls.visible);
+            if (cls) onClassVisibilityChange?.(cls.id, !cls.visible);
             return false;
         }
         return true;
@@ -545,45 +555,9 @@ function OverlayFrame({
 
     // --- hover and click -------------------------------------------------------
     //
-    // Pixels and annotations are read from the laid-out axes on every pointer move. The point
-    // under the pointer during hover is Plotly's own pick (the one its tooltip shows), held in
-    // `hoverPoint` and re-checked against the current pointer before it is reported. Clicks
-    // never use it: they look up the nearest point at the click position.
-
-    const hoverPoint = useRef<PointPickInfo | null>(null);
-    const pointerInside = useRef(false);
-    const refreshHover = useRef(() => {});
-    const hoverDistance =
-        typeof layoutOverride?.hoverdistance === 'number' && layoutOverride.hoverdistance >= 0
-            ? layoutOverride.hoverdistance
-            : POINT_HOVER_DISTANCE;
-
-    const handleHover = (event: Readonly<PlotHoverEvent>) => {
-        // Plotly hovers on a trailing timer: one that lands after the pointer left is stale.
-        if (!pointerInside.current) return;
-        const p = event.points.find(
-            (pt) => (pt.data as { meta?: TraceMeta }).meta?.kind === 'points',
-        );
-        const meta = (p?.data as { meta?: TraceMeta } | undefined)?.meta;
-        const next: PointPickInfo | null =
-            p && meta?.kind === 'points'
-                ? {
-                      layerId: meta.layerId,
-                      label: meta.label,
-                      index: p.pointIndex,
-                      x: Number(p.x),
-                      y: Number(p.y),
-                  }
-                : null;
-        if (samePoint(next, hoverPoint.current)) return;
-        hoverPoint.current = next;
-        refreshHover.current();
-    };
-    const handleUnhover = () => {
-        if (!hoverPoint.current) return;
-        hoverPoint.current = null;
-        refreshHover.current();
-    };
+    // Pixels, points and annotations are read from the laid-out axes at the pointer, the same
+    // way for hover and click. Points are found by screen distance with Plotly's own metric and
+    // `hoverdistance`, so the reported point is the one its tooltip shows.
 
     // Latest values for the native listeners, so they stay attached across renders.
     const latest = useRef({
@@ -591,7 +565,6 @@ function OverlayFrame({
         onClick,
         annotations,
         pointLayers: resolvedPointLayers as ResolvedPointLayer[],
-        hoverDistance,
         resolver: resolveValue,
         valueKey: '',
         pick: (_fx: number, _fy: number): PixelPickInfo | null => null,
@@ -601,7 +574,6 @@ function OverlayFrame({
         onClick,
         annotations,
         pointLayers: resolvedPointLayers,
-        hoverDistance,
         // Raw values are read from an array image directly; the lookup is only for PNGs.
         resolver: resolveValue,
         // Looked-up values belong to one picture of one frame.
@@ -620,6 +592,11 @@ function OverlayFrame({
     useEffect(() => {
         const gd = graphDiv;
         if (!gd) return;
+        if (!axesOf(gd).xa) {
+            warn(
+                'PlotlyMaskOverlay: Plotly axis internals not found; hover and click are disabled. Check the plotly.js version.',
+            );
+        }
         let raf: number | null = null;
         let pending: { x: number; y: number } | null = null;
         let down: { x: number; y: number; target: Element | null } | null = null;
@@ -658,22 +635,13 @@ function OverlayFrame({
             }
             return undefined;
         };
-        /** Plotly's hovered point, if it is still near the pointer and its layer still reports. */
-        const hoveredPointAt = (fx: number, fy: number): PointPickInfo | undefined => {
-            const p = hoverPoint.current;
-            if (!p) return undefined;
-            const layer = latest.current.pointLayers.find((l) => l.id === p.layerId);
-            if (!layer || !layer.visible || !layer.hoverable || p.index >= layer.count) {
-                return undefined;
-            }
-            const d = pointScreenDistance(p.x, p.y, layer.size, fx, fy, screenScale(gd));
-            return d <= latest.current.hoverDistance ? p : undefined;
-        };
+        const pointAt = (fx: number, fy: number) =>
+            nearestPoint(latest.current.pointLayers, fx, fy, screenScale(gd), POINT_HOVER_DISTANCE);
         const compose = (
             pixel: PixelPickInfo,
             fx: number,
             fy: number,
-            point: PointPickInfo | null | undefined,
+            point: PointPickInfo | null,
         ): OverlayPickInfo => {
             const annotation = annotationAt(fx, fy);
             return {
@@ -684,7 +652,12 @@ function OverlayFrame({
         };
 
         // --- hover ----------------------------------------------------------
-        let last: { pixel: PixelPickInfo; fx: number; fy: number } | null = null;
+        let last: {
+            pixel: PixelPickInfo;
+            fx: number;
+            fy: number;
+            point: PointPickInfo | null;
+        } | null = null;
         let emitted: OverlayPickInfo | null = null;
         const emit = (info: OverlayPickInfo | null) => {
             const prev = emitted;
@@ -707,7 +680,7 @@ function OverlayFrame({
         };
         const emitCurrent = () => {
             if (!last) return emit(null);
-            emit(compose(last.pixel, last.fx, last.fy, hoveredPointAt(last.fx, last.fy)));
+            emit(compose(last.pixel, last.fx, last.fy, last.point));
         };
         const resolveHover = (info: PixelPickInfo) => {
             if (inFlight || samePixel(info, current())) return;
@@ -726,16 +699,12 @@ function OverlayFrame({
         };
         const hoverAt = (fx: number, fy: number) => {
             const pixel = latest.current.pick(fx, fy);
-            last = pixel ? { pixel, fx, fy } : null;
+            last = pixel ? { pixel, fx, fy, point: pointAt(fx, fy) } : null;
             emitCurrent();
             if (pixel && latest.current.resolver) resolveHover(pixel);
         };
-        refreshHover.current = () => {
-            if (latest.current.onHover) emitCurrent();
-        };
 
         const onMove = (e: PointerEvent) => {
-            pointerInside.current = true;
             if (!latest.current.onHover) return;
             const p = clientToData(gd, e.clientX, e.clientY);
             pending = p && p.inside ? { x: p.x, y: p.y } : null;
@@ -754,8 +723,6 @@ function OverlayFrame({
             });
         };
         const onLeave = () => {
-            pointerInside.current = false;
-            hoverPoint.current = null;
             if (raf !== null) cancelAnimationFrame(raf);
             raf = null;
             pending = null;
@@ -788,15 +755,7 @@ function OverlayFrame({
             if (!p || !p.inside) return;
             const pixel = latest.current.pick(p.x, p.y);
             if (!pixel) return;
-            // The point at the click position, never a hovered point from earlier.
-            const point = nearestPoint(
-                latest.current.pointLayers,
-                p.x,
-                p.y,
-                screenScale(gd),
-                latest.current.hoverDistance,
-            );
-            const info = compose(pixel, p.x, p.y, point);
+            const info = compose(pixel, p.x, p.y, pointAt(p.x, p.y));
             if (!latest.current.resolver || samePixel(pixel, current())) {
                 latest.current.onClick(info);
                 return;
@@ -812,25 +771,44 @@ function OverlayFrame({
         window.addEventListener('click', onClickEvent);
         return () => {
             if (raf !== null) cancelAnimationFrame(raf);
-            refreshHover.current = () => {};
             gd.removeEventListener('pointermove', onMove);
             gd.removeEventListener('pointerleave', onLeave);
             gd.removeEventListener('pointerdown', onDown, true);
             window.removeEventListener('click', onClickEvent);
         };
-    }, [graphDiv]);
+    }, [graphDiv, warn]);
+
+    const rootClassName = cn(
+        'finch-plotly-mask-overlay relative',
+        size === 'full' && FULL_SIZE_CLASS,
+        className,
+    );
+
+    if (!frame) {
+        const side = size === 'full' ? undefined : `${SIZE_REM[size]}rem`;
+        return (
+            <div
+                className={rootClassName}
+                style={{ width: side, height: side, ...style }}
+                data-testid="plotly-mask-overlay"
+                {...props}
+            >
+                <p
+                    role="alert"
+                    className="absolute inset-x-0 top-1/2 -translate-y-1/2 px-2 text-center text-xs text-slate-600"
+                >
+                    Error: invalid image
+                </p>
+            </div>
+        );
+    }
 
     const box = size === 'full' ? undefined : fitBox(SIZE_REM[size], frame);
     return (
         <div
-            className={cn(
-                'finch-plotly-mask-overlay relative',
-                size === 'full' && FULL_SIZE_CLASS,
-                className,
-            )}
+            className={rootClassName}
             style={{ ...box, ...style }}
             data-testid="plotly-mask-overlay"
-            data-image-smoothing={String(imageSmoothing)}
             {...props}
         >
             <Plot
@@ -840,8 +818,6 @@ function OverlayFrame({
                 onInitialized={handleGraphDiv}
                 onUpdate={handleGraphDiv}
                 onRelayout={handleRelayout}
-                onHover={handleHover}
-                onUnhover={handleUnhover}
                 onLegendClick={handleLegendClick}
                 useResizeHandler
                 style={{ width: '100%', height: '100%' }}
