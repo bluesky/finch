@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { MemoryRouter } from 'react-router';
 import FinchAppLayout, {
@@ -162,5 +162,46 @@ describe('FinchAppLayout Component', () => {
             classNamePageTabs: 'my-tabs-class',
         });
         expect(container.querySelector('nav')).toHaveClass('my-tabs-class');
+    });
+
+    describe('fullscreen', () => {
+        it('hides the sidebar and header when the url has ?fullscreen', () => {
+            const { container } = renderLayout({ path: '/home?fullscreen' });
+            expect(container.querySelector('aside')).not.toBeInTheDocument();
+            expect(container.querySelector('header')).not.toBeInTheDocument();
+            expect(screen.getByText('Home Page')).toBeInTheDocument();
+        });
+
+        it('leaves fullscreen on Escape', () => {
+            const { container } = renderLayout({ path: '/home?fullscreen' });
+            fireEvent.keyDown(window, { key: 'Escape' });
+            expect(container.querySelector('aside')).toBeInTheDocument();
+            expect(container.querySelector('header')).toBeInTheDocument();
+        });
+
+        it('stays fullscreen when Escape is pressed inside an input', () => {
+            const { container } = renderLayout({
+                path: '/home?fullscreen',
+                routes: [{ path: '/home', label: 'Home', element: <input aria-label="field" /> }],
+            });
+            fireEvent.keyDown(screen.getByLabelText('field'), { key: 'Escape' });
+            expect(container.querySelector('aside')).not.toBeInTheDocument();
+        });
+
+        it('stays fullscreen when another handler already took the Escape', () => {
+            const { container } = renderLayout({ path: '/home?fullscreen' });
+            const event = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+            event.preventDefault();
+            window.dispatchEvent(event);
+            expect(container.querySelector('aside')).not.toBeInTheDocument();
+        });
+
+        it('ignores ?fullscreen when allowFullscreen is false', () => {
+            const { container } = renderLayout({
+                path: '/home?fullscreen',
+                allowFullscreen: false,
+            });
+            expect(container.querySelector('aside')).toBeInTheDocument();
+        });
     });
 });

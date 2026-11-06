@@ -2,6 +2,7 @@ import FinchHeader from './FinchHeader';
 import FinchMainContent from './FinchMainContent';
 import FinchSidebar from './FinchSidebar';
 import { useActiveRoute } from './hooks/useActiveRoute';
+import { useFullscreen } from './hooks/useFullscreen';
 import { cn } from '@/lib/utils';
 
 import { RouteItem } from '@/types/navigationRouterTypes';
@@ -51,6 +52,11 @@ export type FinchAppLayoutProps = {
     classNameImage?: string;
     /** Additional CSS classes applied to the root layout element. */
     className?: string;
+    /**
+     * Whether adding `?fullscreen` to the url hides the sidebar and header so the page
+     * fills the window. Escape leaves fullscreen. Defaults to `true`.
+     */
+    allowFullscreen?: boolean;
 };
 export default function FinchAppLayout({
     routes,
@@ -72,39 +78,53 @@ export default function FinchAppLayout({
     classNameSidebarInactiveLink,
     classNameImage,
     className,
+    allowFullscreen = true,
     ...props
 }: FinchAppLayoutProps) {
     const activeRoute = useActiveRoute(routes);
+    const fullscreen = useFullscreen({ listenForExitKey: allowFullscreen });
+    const isFullscreen = allowFullscreen && fullscreen.isFullscreen;
     const isPageTitleShown = activeRoute?.showPageTitle ?? showPageTitle ?? true;
     const pageTitle = isPageTitleShown ? activeRoute?.label : undefined;
 
     return (
         <div
             className={cn(
-                'grid grid-cols-[6rem_1fr] grid-rows-[auto_1fr] h-screen w-screen',
+                'grid h-screen w-screen',
+                isFullscreen
+                    ? 'grid-cols-1 grid-rows-1'
+                    : 'grid-cols-[6rem_1fr] grid-rows-[auto_1fr]',
                 className,
             )}
+            data-fullscreen={isFullscreen || undefined}
             {...props}
         >
-            <FinchSidebar
-                routes={routes}
-                className={classNameSidebar}
-                classNameActiveLink={classNameSidebarActiveLink}
-                classNameInactiveLink={classNameSidebarInactiveLink}
-            />
-            <FinchHeader
-                title={headerTitle}
-                pageTitle={pageTitle}
-                logoUrl={headerLogoUrl}
-                logoIcon={headerLogoIcon}
-                className={classNameHeader}
-                classNameTitle={classNameHeaderTitle}
-                classNamePageTitle={classNameHeaderPageTitle}
-                classNameImage={classNameImage}
-            />
+            {!isFullscreen && (
+                <>
+                    <FinchSidebar
+                        routes={routes}
+                        className={classNameSidebar}
+                        classNameActiveLink={classNameSidebarActiveLink}
+                        classNameInactiveLink={classNameSidebarInactiveLink}
+                    />
+                    <FinchHeader
+                        title={headerTitle}
+                        pageTitle={pageTitle}
+                        logoUrl={headerLogoUrl}
+                        logoIcon={headerLogoIcon}
+                        className={classNameHeader}
+                        classNameTitle={classNameHeaderTitle}
+                        classNamePageTitle={classNameHeaderPageTitle}
+                        classNameImage={classNameImage}
+                    />
+                </>
+            )}
             <FinchMainContent
                 routes={routes}
-                className={cn('h-[calc(100vh-4rem)]', classNameMainContent)}
+                className={cn(
+                    isFullscreen ? 'h-screen' : 'h-[calc(100vh-4rem)]',
+                    classNameMainContent,
+                )}
                 classNameScrollContainer={classNameMainContentScrollContainer}
                 classNameInnerContainer={classNameMainContentInnerContainer}
                 classNamePageTabs={classNamePageTabs}

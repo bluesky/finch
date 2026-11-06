@@ -45,6 +45,11 @@ export type { FinchPageTabsProps } from './components/FinchAppLayout/FinchPageTa
 
 export { default as FinchSidebar } from './components/FinchAppLayout/FinchSidebar';
 export type { FinchSidebarProps } from './components/FinchAppLayout/FinchSidebar';
+export {
+    useFullscreen,
+    FULLSCREEN_PARAM,
+    FULLSCREEN_EXIT_KEY,
+} from './components/FinchAppLayout/hooks/useFullscreen';
 
 // @deprecated — use Finch* equivalents
 export { default as HubAppLayout } from './components/FinchAppLayout/FinchAppLayout';
