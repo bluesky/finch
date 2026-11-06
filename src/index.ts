@@ -47,6 +47,7 @@ export { default as FinchSidebar } from './components/FinchAppLayout/FinchSideba
 export type { FinchSidebarProps } from './components/FinchAppLayout/FinchSidebar';
 export {
     useFullscreen,
+    withFullscreenParam,
     FULLSCREEN_PARAM,
     FULLSCREEN_EXIT_KEY,
 } from './components/FinchAppLayout/hooks/useFullscreen';

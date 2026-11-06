@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, useLocation } from 'react-router';
 import FinchAppLayout, {
     FinchAppLayoutProps,
 } from '../../components/FinchAppLayout/FinchAppLayout';
@@ -9,6 +9,23 @@ import { RouteItem } from '../../types/navigationRouterTypes';
 const mockRoutes: RouteItem[] = [
     { path: '/home', label: 'Home', element: <div>Home Page</div> },
     { path: '/settings', label: 'Settings', element: <div>Settings Page</div> },
+];
+
+/** Renders the current url, so tests can assert on where a redirect or link landed. */
+function LocationProbe() {
+    const { pathname, search, hash } = useLocation();
+    return <output aria-label="location">{`${pathname}${search}${hash}`}</output>;
+}
+
+const tabbedRoutes: RouteItem[] = [
+    {
+        path: '/data',
+        label: 'Data',
+        tabs: [
+            { path: 'overview', label: 'Overview', element: <LocationProbe /> },
+            { path: 'details', label: 'Details', element: <LocationProbe /> },
+        ],
+    },
 ];
 
 type RenderLayoutOptions = Partial<FinchAppLayoutProps> & { path?: string };
@@ -194,6 +211,33 @@ describe('FinchAppLayout Component', () => {
             event.preventDefault();
             window.dispatchEvent(event);
             expect(container.querySelector('aside')).not.toBeInTheDocument();
+        });
+
+        it('keeps fullscreen through the redirect to the default tab', () => {
+            const { container } = renderLayout({ routes: tabbedRoutes, path: '/data?fullscreen' });
+            expect(screen.getByLabelText('location')).toHaveTextContent(
+                '/data/overview?fullscreen',
+            );
+            expect(container.querySelector('aside')).not.toBeInTheDocument();
+        });
+
+        it('keeps fullscreen when switching tabs, without carrying other params', () => {
+            const { container } = renderLayout({
+                routes: tabbedRoutes,
+                path: '/data/overview?fullscreen&filter=a',
+            });
+            fireEvent.click(screen.getByRole('link', { name: 'Details' }));
+            expect(screen.getByLabelText('location')).toHaveTextContent('/data/details?fullscreen');
+            expect(container.querySelector('aside')).not.toBeInTheDocument();
+        });
+
+        it('keeps the other params and the hash when leaving fullscreen', () => {
+            renderLayout({
+                routes: [{ path: '/home', label: 'Home', element: <LocationProbe /> }],
+                path: '/home?fullscreen&filter=a#section',
+            });
+            fireEvent.keyDown(window, { key: 'Escape' });
+            expect(screen.getByLabelText('location')).toHaveTextContent('/home?filter=a#section');
         });
 
         it('ignores ?fullscreen when allowFullscreen is false', () => {
