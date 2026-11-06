@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo } from 'react';
 import { useOphydApiUrls } from '@/utils/apiUtils';
 import { createWebSocketTransport } from './transport/createWebSocketTransport';
 import { createWebSocketDeviceTransport } from './transport/createWebSocketDeviceTransport';
+import { createLazyTransport } from './transport/createLazyTransport';
 import type { OphydPVTransport } from './transport/types';
 import type { OphydDeviceTransport } from './transport/deviceTypes';
 import type { CameraSocketFactory, CameraSocketLike } from '@/lib/ophyd-sim';
@@ -34,10 +35,11 @@ export function useOphydPVTransport(overrideUrl?: string): OphydPVTransport {
     // Construct fallback transports on demand. useMemo keyed on url means we
     // get one transport per (url) per consumer that lacks a provider. This
     // matches the prior per-hook WebSocket behavior — see plan for the
-    // shared-state caveat that motivated the refactor.
+    // shared-state caveat that motivated the refactor. The socket opens only on the
+    // first send, so a consumer with nothing to subscribe to holds no connection.
     const fallback = useMemo(() => {
         if (fromContext) return null;
-        return createWebSocketTransport({ url });
+        return createLazyTransport(() => createWebSocketTransport({ url }));
     }, [fromContext, url]);
 
     if (fromContext) return fromContext;
@@ -54,7 +56,7 @@ export function useOphydDeviceTransport(overrideUrl?: string): OphydDeviceTransp
 
     const fallback = useMemo(() => {
         if (fromContext) return null;
-        return createWebSocketDeviceTransport({ url });
+        return createLazyTransport(() => createWebSocketDeviceTransport({ url }));
     }, [fromContext, url]);
 
     if (fromContext) return fromContext;
