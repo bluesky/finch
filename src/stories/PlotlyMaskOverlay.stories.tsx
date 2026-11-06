@@ -76,8 +76,8 @@ function ImageWithMask() {
 }
 \`\`\`
 
-Note: Image and mask arrays must have matching dimensions and pixel alignment. If Tiled downsamples
-one response (e.g., through \`maxBytesAllowed\`), they may no longer align.
+**Note:** Image and mask dimensions must match. Finch's Tiled client supports specifying a 
+\`downSampleRatio\` to downsample arrays if needed.
 `,
             description: {
                 component: `
@@ -254,10 +254,9 @@ export const MaskOverlay: StoryObj<MaskArgs> = {
         docs: {
             description: {
                 story: `A segmentation drawn over the image: cells, nuclei and debris, each class with its own
-colour and transparency. Click a class in the legend to hide it. The colorbar above the image
-shows how image values map to colors; where a mask covers the image, hover for the exact value,
-or hide the class to see the image underneath. The mask can be one label array (one class per
-pixel) or one binary mask per class, which may overlap. Switch
+colour and transparency. The colorbar shows how image values map to colors. Click a class in
+the legend to hide it. The mask can be one label
+array (one class per pixel) or one binary mask per class, which may overlap. Switch
 **maskFormat** in the story's Controls panel and hide *Nucleus*: with a label array the nuclei
 leave holes, because those pixels belong to no other class; with binary masks the cell mask
 underneath is still there. The Controls panel also edits the classes and **maskOpacity**, and
