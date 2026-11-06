@@ -25,6 +25,7 @@ type PlotProps = {
     onRelayout: (e: Record<string, unknown>) => void;
     onLegendClick: (e: { curveNumber: number; data: Record<string, unknown>[] }) => boolean;
     onInitialized?: (figure: unknown, gd: HTMLElement) => void;
+    onUpdate?: (figure: unknown, gd: HTMLElement) => void;
 };
 
 /** CSS pixels per data unit in the fake laid-out axes, unless `plot.length` fixes the plot size. */
@@ -34,6 +35,8 @@ const plot = vi.hoisted(() => ({
     props: null as PlotProps | null,
     /** A fixed plot-area size in CSS pixels, so zooming in spreads each pixel over more of it. */
     length: null as { x: number; y: number } | null,
+    /** Where Plotly put the plot area in the graph div, as a colorbar or the aspect ratio moves it. */
+    offset: null as { x: number; y: number } | null,
 }));
 
 /** Shape indices Plotly's own click handler activated, in order (see the fake plot). */
@@ -58,14 +61,22 @@ vi.mock('react-plotly.js', async () => {
                 el.addEventListener('click', () => activated.list.push(index));
                 gd.appendChild(el);
             });
-            const axis = (range: [number, number], fixed: number | undefined) => ({
+            const axis = (range: [number, number], fixed?: number, offset?: number) => ({
                 range,
-                _offset: 0,
+                _offset: offset ?? 0,
                 _length: fixed ?? PX * Math.abs(range[1] - range[0]),
             });
             (gd as unknown as { _fullLayout: unknown })._fullLayout = {
-                xaxis: axis(props.layout.xaxis.range as [number, number], plot.length?.x),
-                yaxis: axis(props.layout.yaxis.range as [number, number], plot.length?.y),
+                xaxis: axis(
+                    props.layout.xaxis.range as [number, number],
+                    plot.length?.x,
+                    plot.offset?.x,
+                ),
+                yaxis: axis(
+                    props.layout.yaxis.range as [number, number],
+                    plot.length?.y,
+                    plot.offset?.y,
+                ),
             };
             props.onInitialized?.({}, gd);
         });
@@ -189,6 +200,7 @@ let urlCount = 0;
 beforeEach(() => {
     plot.props = null;
     plot.length = null;
+    plot.offset = null;
     activated.list = [];
     urlCount = 0;
     // The test DOM has no 2D context, ImageData, toBlob or object URLs.
@@ -1176,13 +1188,22 @@ describe('PlotlyMaskOverlay detector coordinates and display images', () => {
                 'class 2 has 12 values',
             ],
         ];
-        it.each(misfits)('drops %s and warns once', async (_, mask, message) => {
+        it.each(misfits)('drops %s, warns once and says so', async (_, misfit, message) => {
             const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const mask = { ...misfit, classes: [{ id: 1, label: 'Cell' }] };
             const { rerender } = render(<PlotlyMaskOverlay image={img} mask={mask} />);
             rerender(<PlotlyMaskOverlay image={img} mask={mask} className="x" />);
             expect(await settledMasks()).toHaveLength(0);
             expect(warn).toHaveBeenCalledTimes(1);
             expect(warn.mock.calls[0][0]).toContain(message);
+            // A mask can misfit at runtime, such as when a server downsamples it, so the
+            // viewer is told too, not only the console, and told apart from a failed layer.
+            expect(screen.getByRole('status')).toHaveTextContent('Not shown: mask (size mismatch)');
+            // The legend does not list classes of a mask that is not drawn.
+            const classTraces = last().data.filter(
+                (t) => (t.meta as { kind: string }).kind === 'class',
+            );
+            expect(classTraces).toHaveLength(0);
         });
 
         it('rejects a mask PNG passed as a mask, pointing to imageLayers', async () => {
@@ -1192,6 +1213,46 @@ describe('PlotlyMaskOverlay detector coordinates and display images', () => {
             expect(await settledMasks()).toHaveLength(0);
             expect(created).toHaveLength(0);
             expect(warn).toHaveBeenCalledWith(expect.stringContaining('pass it in `imageLayers`'));
+            expect(screen.getByRole('status')).toHaveTextContent('Not shown: mask (wrong type)');
+        });
+
+        describe('the "Not shown" note sits inside the plot area as Plotly laid it out', () => {
+            const misfit: MaskInput = { type: 'labels', data: LABELS.slice(1) };
+            const noteAt = () => {
+                const { left, top } = screen.getByRole('status').style;
+                return [left, top];
+            };
+            beforeEach(() => {
+                vi.spyOn(console, 'warn').mockImplementation(() => {});
+            });
+
+            it('below a colorbar, which pushes the plot area down', () => {
+                plot.offset = { x: 50, y: 96 };
+                render(<PlotlyMaskOverlay image={{ ...img, showColorbar: true }} mask={misfit} />);
+                expect(noteAt()).toEqual(['58px', '104px']);
+            });
+
+            it('where square pixels centre a narrow plot area in a wide box', () => {
+                plot.offset = { x: 140, y: 10 };
+                render(<PlotlyMaskOverlay image={img} mask={misfit} size="full" />);
+                expect(noteAt()).toEqual(['148px', '18px']);
+            });
+
+            it('after Plotly re-lays out on its own, as when its container is resized', () => {
+                plot.offset = { x: 50, y: 10 };
+                render(<PlotlyMaskOverlay image={img} mask={misfit} size="full" />);
+                expect(noteAt()).toEqual(['58px', '18px']);
+                // A resize re-lays out inside Plotly, with no React render; react-plotly
+                // then reports the new layout through `onUpdate`. The fake keeps it too.
+                const gd = screen.getByTestId('plot') as unknown as HTMLElement & {
+                    _fullLayout: { xaxis: FakeAxis; yaxis: FakeAxis };
+                };
+                plot.offset = { x: 30, y: 64 };
+                gd._fullLayout.xaxis._offset = 30;
+                gd._fullLayout.yaxis._offset = 64;
+                act(() => last().onUpdate?.({}, gd));
+                expect(noteAt()).toEqual(['38px', '72px']);
+            });
         });
 
         it('draws nothing and requests nothing when the image itself is rejected', () => {
@@ -1206,6 +1267,8 @@ describe('PlotlyMaskOverlay detector coordinates and display images', () => {
             expect(plot.props).toBeNull();
             expect(created).toHaveLength(0);
             expect(screen.getByRole('alert')).toHaveTextContent('invalid image');
+            // The image's own error explains the missing mask; no second note.
+            expect(screen.queryByRole('status')).toBeNull();
             expect(warn).toHaveBeenCalledTimes(1);
             expect(warn).toHaveBeenCalledWith(
                 expect.stringContaining('6 values but 2 × 2 needs 4'),

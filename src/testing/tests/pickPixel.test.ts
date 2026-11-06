@@ -117,7 +117,12 @@ describe('resolveInputs', () => {
 
     it('takes the frame from the image and accepts a mask that fits, without warnings', () => {
         const a = resolveInputs(flat, { type: 'labels', data: new Uint8Array(6) });
-        expect(a).toMatchObject({ frame: [2, 3], maskShape: [2, 3], warnings: [] });
+        expect(a).toMatchObject({
+            frame: [2, 3],
+            maskShape: [2, 3],
+            maskRejection: null,
+            warnings: [],
+        });
         expect(a.imageGrid?.shape).toEqual([2, 3]);
 
         const layers = [{ classId: 1, data: new Uint8Array(6) }];
@@ -144,7 +149,8 @@ describe('resolveInputs', () => {
             { type: 'layers', layers: [{ classId: 1, data: new Uint8Array(6) }] },
         ] as MaskInput[]) {
             const r = resolveInputs(undefined, mask);
-            expect(r).toMatchObject({ frame: null, labelGrid: null });
+            // Not the mask's fault: the image's own warning says why nothing is drawn.
+            expect(r).toMatchObject({ frame: null, labelGrid: null, maskRejection: null });
             expect(r.maskShape).toBeUndefined();
             expect(r.warnings).toEqual([expect.stringContaining("must be { type: 'array' }")]);
         }
@@ -156,6 +162,7 @@ describe('resolveInputs', () => {
     it('points a mask PNG passed as a mask to imageLayers', () => {
         const r = resolveInputs(png, { type: 'url', url: 'mask.png' } as never);
         expect(r.maskShape).toBeUndefined();
+        expect(r.maskRejection).toBe('wrong type');
         expect(r.warnings).toEqual([expect.stringContaining('pass it in `imageLayers`')]);
     });
 
@@ -177,6 +184,7 @@ describe('resolveInputs', () => {
         const mask = resolveInputs(flat, { type: 'labels', data: [[1, 0, 2]] });
         expect(mask.labelGrid).toBeNull();
         expect(mask.maskShape).toBeUndefined();
+        expect(mask.maskRejection).toBe('size mismatch');
         expect(mask.warnings).toEqual([expect.stringContaining('1 × 3 but 2 × 3 was expected')]);
 
         const layer = resolveInputs(flat, {
@@ -184,6 +192,7 @@ describe('resolveInputs', () => {
             layers: [{ classId: 7, data: new Uint8Array(12) }],
         });
         expect(layer.maskLayers).toBeUndefined();
+        expect(layer.maskRejection).toBe('size mismatch');
         expect(layer.warnings).toEqual([expect.stringContaining('class 7 has 12 values')]);
     });
 

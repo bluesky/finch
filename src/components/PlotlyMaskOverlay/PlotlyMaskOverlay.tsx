@@ -215,7 +215,9 @@ const samePoint = (a: PointPickInfo | null | undefined, b: PointPickInfo | null 
  * everything else is placed in its pixels, and hover rounds to the nearest pixel centre.
  *
  * **Masks.** A `mask` is data Finch draws and understands: classes, legend, the class under the
- * pointer. Its arrays must match the image pixel for pixel and are never resampled. A mask your
+ * pointer. Its arrays must match the image pixel for pixel and are never resampled; a mask that
+ * does not fit is not drawn and its classes leave the legend, a note on the plot says so and
+ * the console says why. A mask your
  * backend has already rendered is a picture: pass it in `imageLayers`.
  *
  * **Pictures.** The application builds every URL and owns fetching, authentication and
@@ -408,7 +410,13 @@ export default function PlotlyMaskOverlay({
     const maskObjectUrl = useRgbaObjectUrl(sources.maskBuffer);
     const baseUrl = imageUrl ? sourceFor('image') : null;
     const baseFailed = !!imageUrl && failedIds.has('image');
-    const failedLayers = layerList.map((l) => l.id).filter((id) => failedIds.has(id));
+    // A misfit mask is named too: a server that downsamples one array but not the other
+    // causes it at runtime, so the viewer needs to know, not only the console. The reason
+    // tells it apart from an image layer that happens to be called "mask".
+    const notShown = [
+        ...(sources.maskRejection ? [`mask (${sources.maskRejection})`] : []),
+        ...layerList.map((l) => l.id).filter((id) => failedIds.has(id)),
+    ];
 
     // Bumped after each shape change; it renews `editrevision`, so Plotly drops any drawn or
     // edited shape the app did not pass back in `annotations`.
@@ -428,8 +436,19 @@ export default function PlotlyMaskOverlay({
     const axisRevision = `${frameRevision}|${viewportKey}|${resets}`;
 
     const [graphDiv, setGraphDiv] = useState<HTMLElement | null>(null);
+    // The plot area's top-left corner as Plotly laid it out. A colorbar, the legend or square
+    // pixels in a box of another shape move it away from the configured margins.
+    const [plotCorner, setPlotCorner] = useState<{ left: number; top: number } | null>(null);
+    // Called after every plot, and after every relayout, including Plotly's own on a resize.
     const handleGraphDiv = useCallback((_: unknown, gd: Readonly<HTMLElement>) => {
         setGraphDiv((prev) => (prev === gd ? prev : (gd as HTMLElement)));
+        const { xa, ya } = axesOf(gd as HTMLElement);
+        if (!xa || !ya) return;
+        setPlotCorner((prev) =>
+            prev?.left === xa._offset && prev.top === ya._offset
+                ? prev
+                : { left: xa._offset, top: ya._offset },
+        );
     }, []);
     const onViewportChangeRef = useRef(onViewportChange);
     onViewportChangeRef.current = onViewportChange;
@@ -457,7 +476,8 @@ export default function PlotlyMaskOverlay({
         annotations,
         pointLayers: resolvedPointLayers,
         classes: resolvedClasses,
-        showClassLegend: resolvedClasses.length > 0,
+        // A rejected mask lists no classes: the legend would say it is drawn.
+        showClassLegend: resolvedClasses.length > 0 && !sources.maskRejection,
         dragMode,
         drawStyle,
         editableAnnotations,
@@ -830,14 +850,17 @@ export default function PlotlyMaskOverlay({
                     Error: failed to load image
                 </p>
             )}
-            {failedLayers.length > 0 && (
+            {notShown.length > 0 && (
                 <p
                     role="status"
                     className="pointer-events-none absolute rounded bg-slate-900/70 px-2 py-0.5 text-xs text-amber-300"
-                    // Inside the plot area, clear of the axis labels.
-                    style={{ left: (layout.margin?.l ?? 0) + 8, top: (layout.margin?.t ?? 0) + 8 }}
+                    // Inside the plot area's corner; the margins until Plotly has laid it out.
+                    style={{
+                        left: (plotCorner?.left ?? layout.margin?.l ?? 0) + 8,
+                        top: (plotCorner?.top ?? layout.margin?.t ?? 0) + 8,
+                    }}
                 >
-                    Not shown: {failedLayers.join(', ')}
+                    Not shown: {notShown.join(', ')}
                 </p>
             )}
         </div>

@@ -61,6 +61,11 @@ export type ResolvedInputs = {
     maskLayers: MaskLayer[] | undefined;
     /** `[height, width]` of a mask array that fits the frame: always the frame itself. */
     maskShape: [number, number] | undefined;
+    /**
+     * Why a mask given for a valid frame is not drawn: its arrays do not fit the frame, or it
+     * is not a mask array at all. `null` when it is drawn, or when the image itself is rejected.
+     */
+    maskRejection: 'size mismatch' | 'wrong type' | null;
     warnings: string[];
 };
 
@@ -136,15 +141,19 @@ export function resolveInputs(image: ImageInput | undefined, mask?: MaskInput): 
     let labelGrid: NormalizedGrid | null = null;
     let maskLayers: MaskLayer[] | undefined;
     let maskShape: [number, number] | undefined;
+    let maskRejection: ResolvedInputs['maskRejection'] = null;
     if (!frame || !mask) {
         // Without a frame nothing is drawn, and the image's own warning says why.
     } else if (mask.type === 'labels') {
+        // Against a valid frame, every rejection here is about rows or length.
         labelGrid = gridOf(mask.data, frame, '`mask`', MASK_HINT, reject);
         maskShape = labelGrid?.shape;
+        if (!labelGrid) maskRejection = 'size mismatch';
     } else if (mask.type === 'layers') {
         const need = frame[0] * frame[1];
         const bad = mask.layers.find((l) => l.data.length !== need);
         if (bad) {
+            maskRejection = 'size mismatch';
             reject(
                 `mask layer for class ${bad.classId} has ${bad.data.length} values but the ${fmt(frame)} frame needs ${need}; the mask is not drawn.${MASK_HINT}`,
             );
@@ -154,6 +163,7 @@ export function resolveInputs(image: ImageInput | undefined, mask?: MaskInput): 
         }
     } else {
         const type = (mask as { type?: unknown }).type;
+        maskRejection = 'wrong type';
         reject(
             type === 'url'
                 ? 'a mask PNG is a picture, not a mask: pass it in `imageLayers`. The mask is not drawn.'
@@ -161,7 +171,7 @@ export function resolveInputs(image: ImageInput | undefined, mask?: MaskInput): 
         );
     }
 
-    return { frame, imageGrid, labelGrid, maskLayers, maskShape, warnings };
+    return { frame, imageGrid, labelGrid, maskLayers, maskShape, maskRejection, warnings };
 }
 
 /** Inputs to {@link useImageSources}: the overlay's `image` and `mask`. */
@@ -220,6 +230,7 @@ export function useImageSources({ image, mask }: UseImageSourcesOptions): ImageS
         labelGrid,
         maskLayers,
         maskShape,
+        maskRejection,
         warnings: shapeWarnings,
     } = useMemo(() => resolveInputs(imageIn, maskIn), [imageIn, maskIn]);
 
@@ -271,6 +282,7 @@ export function useImageSources({ image, mask }: UseImageSourcesOptions): ImageS
         labelGrid,
         maskLayers,
         maskShape,
+        maskRejection,
         shapeWarnings,
         resolvedClasses,
         maskBuffer,
