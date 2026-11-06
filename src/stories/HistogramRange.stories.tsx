@@ -4,8 +4,8 @@ import { fn } from '@storybook/test';
 
 import DocsPageWithoutPrimaryCopy from './DocsPageWithoutPrimaryCopy';
 
-import HistogramRange from '../components/HistogramRange';
-import type { HistogramRangeProps } from '../components/HistogramRange';
+import HistogramRange from '../components/HistogramRange/HistogramRange';
+import type { HistogramRangeProps } from '../components/HistogramRange/HistogramRange';
 import {
     computeHistogram,
     cumulativeCounts,

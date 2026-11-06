@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import HistogramRange from '../../components/HistogramRange';
-import type { HistogramRangeProps } from '../../components/HistogramRange';
+import HistogramRange from '../../components/HistogramRange/HistogramRange';
+import type { HistogramRangeProps } from '../../components/HistogramRange/HistogramRange';
 
 /** Ten bins with edges 0..10, so edge indices equal data values. */
 const COUNTS = [1, 2, 3, 4, 5, 5, 4, 3, 2, 1];

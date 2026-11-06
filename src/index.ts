@@ -186,8 +186,8 @@ export { default as HistogramPlot } from './components/Histogram/HistogramPlot';
 export { default as HistogramPlotSettings } from './components/Histogram/HistogramPlotSettings';
 
 // HISTOGRAM RANGE
-export { default as HistogramRange } from './components/HistogramRange';
-export type { HistogramRangeProps } from './components/HistogramRange';
+export { default as HistogramRange } from './components/HistogramRange/HistogramRange';
+export type { HistogramRangeProps } from './components/HistogramRange/HistogramRange';
 export {
     computeHistogram,
     cumulativeCounts,
