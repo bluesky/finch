@@ -1,0 +1,12 @@
+/*
+ * Plotly draws `layout.images` as SVG <image> elements: an axis-referenced image with
+ * `layer: 'below'` goes into the subplot's `.layer-subplot .imagelayer` (the base image),
+ * and `layer: 'above'` images into `.layer-above .imagelayer` (masks and extra layers).
+ *
+ * Every picture is scaled without smoothing, so a detector image keeps its pixels, and a mask
+ * rendered at detector resolution, or an exact integer fraction of it, keeps hard pixel edges at
+ * any zoom.
+ */
+.finch-plotly-mask-overlay .imagelayer image {
+    image-rendering: pixelated;
+}

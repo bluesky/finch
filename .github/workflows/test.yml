@@ -74,6 +74,7 @@ jobs:
           npm run test:run -- src/testing/tests/Header.test.tsx
           npm run test:run -- src/testing/tests/Hexapod.test.tsx
           npm run test:run -- src/testing/tests/Histogram.test.tsx
+          npm run test:run -- src/testing/tests/HistogramRange.test.tsx
           npm run test:run -- src/testing/tests/IFrame.test.tsx
           npm run test:run -- src/testing/tests/InputCheckBox.test.tsx
           npm run test:run -- src/testing/tests/InputEnumBoxRounded.test.tsx
@@ -83,6 +84,7 @@ jobs:
           npm run test:run -- src/testing/tests/Paper.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmap.test.tsx
           npm run test:run -- src/testing/tests/PlotlyHeatmapTiled.test.tsx
+          npm run test:run -- src/testing/tests/PlotlyMaskOverlay.test.tsx
           npm run test:run -- src/testing/tests/PlotlyScatter.test.tsx
           npm run test:run -- src/testing/tests/QSConsoleFormatting.test.tsx
           npm run test:run -- src/testing/tests/QueueServer.test.tsx
@@ -95,7 +97,11 @@ jobs:
           npm run test:run -- src/testing/tests/TiledComponents.test.tsx
           npm run test:run -- src/testing/tests/TiledLinePlotMaker.test.tsx
           npm run test:run -- src/testing/tests/Widget.test.tsx
+          npm run test:run -- src/testing/tests/annotationGeometry.test.ts
+          npm run test:run -- src/testing/tests/pickPixel.test.ts
+          npm run test:run -- src/testing/tests/plotlyShapes.test.ts
           npm run test:run -- src/testing/tests/useActiveRoute.test.tsx
+          npm run test:run -- src/testing/tests/visualizationUtils.test.ts
           echo "Running queue server client test suites..."
           npm run test:run -- src/testing/tests/QServerRegistry.test.tsx
           npm run test:run -- src/testing/tests/QServerClient.test.tsx
