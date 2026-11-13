@@ -448,13 +448,15 @@ spec and the server both contradict the package, and nothing in this repo read t
 `@blueskyproject/tiled` is no longer a dependency. Its viewer component now lives in
 `src/components/Tiled/TiledFinder/` and reads through this layer:
 
-- **Its own client.** `TiledFinder/Tiled.tsx` builds a `TiledApiClient` from its props (`tiledBaseUrl`,
-  `apiKey`, `bearerToken` or the stored session, `initialPath`) and mounts it with `TiledApiProvider`.
-  Nothing it is given reaches the default client, so two viewers on one page can point at different
-  servers with different keys.
-- **The hooks and the cache.** Previews, login and server info use the hooks directly. The column
-  browser (`useTiled`) is imperative, so it calls `queryClient.fetchQuery` with `tiledQueryKeys` —
-  its entries are the same ones `useTiledSearchQuery` / `useTiledMetadataQuery` would create.
+- **The app's client, or its own.** Inside an app-level `TiledApiProvider` the viewer uses that
+  client, and its `tiledBaseUrl` / `apiKey` / `bearerToken` / `initialPath` props are not applied.
+  Otherwise `TiledFinder/Tiled.tsx` builds a `TiledApiClient` from those props and provides it, so
+  nothing it is given reaches the default client and two viewers can use different servers.
+- **Only the hooks.** Every read is a hook from this folder: each column calls
+  `useTiledSearchQuery` / `useTiledMetadataQuery` itself (`useTiledColumnResult`), previews use the
+  array/table hooks, login uses `useTiledServerInfoQuery` and `useTiledLoginMutation`. `useTiled`
+  only tracks which columns are open. `TiledFinderUsesFinchHooks.test.ts` fails if a viewer file
+  builds its own keys, query functions or `useQuery`/`fetchQuery` calls, or imports the facade.
 - **Its own `QueryClient` only when it has to.** `TiledFinderQueryBoundary` uses the app's
   `QueryClientProvider` when there is one, and otherwise creates a private client.
 - **401s.** With no stored session, the client throws on a 401 without calling `onAuthError`, so

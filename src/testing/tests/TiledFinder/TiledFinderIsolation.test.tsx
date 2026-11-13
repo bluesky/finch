@@ -5,7 +5,13 @@ import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import Tiled from '@/components/Tiled/TiledFinder/Tiled';
 import { mockTiledResponse } from './mocks/responses';
-import { getDefaultTiledApiClient, resetDefaultTiledApiClient, tiledQueryRoots } from '@/api/tiled';
+import {
+    TiledApiClient,
+    TiledApiProvider,
+    getDefaultTiledApiClient,
+    resetDefaultTiledApiClient,
+    tiledQueryRoots,
+} from '@/api/tiled';
 
 /**
  * The viewer builds its own Tiled client from its props and reads through TanStack Query. These
@@ -71,6 +77,30 @@ describe('TiledFinder client isolation', () => {
         expect(defaultClient.getApiKey()).toBeNull();
         expect(defaultClient.getInitialPath()).toBe('');
         expect(defaultClient.getBaseUrl()).toBe(defaultBaseUrl);
+    });
+});
+
+describe('TiledFinder inside an app-level TiledApiProvider', () => {
+    it('uses the provided client instead of building one from its props', async () => {
+        const appHeaders: (string | null)[] = [];
+        const propHeaders: (string | null)[] = [];
+        server.use(
+            captureAuthHeaders(SERVER_B, appHeaders),
+            captureAuthHeaders(SERVER_A, propHeaders),
+        );
+        const appClient = new TiledApiClient({ baseUrl: SERVER_B, apiKey: 'app-key' });
+
+        render(
+            <TiledApiProvider client={appClient}>
+                <Tiled tiledBaseUrl={SERVER_A} apiKey="prop-key" />
+            </TiledApiProvider>,
+        );
+
+        expect(await screen.findByText('sampleFolder')).toBeInTheDocument();
+        expect(new Set(appHeaders)).toEqual(new Set(['ApiKey app-key']));
+        expect(propHeaders).toEqual([]);
+        // The header shows the server actually being browsed.
+        expect(screen.getByText(SERVER_B)).toBeInTheDocument();
     });
 });
 

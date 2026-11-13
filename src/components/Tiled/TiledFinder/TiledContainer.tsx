@@ -80,6 +80,7 @@ export default function TiledContainer({
         handleSearchSpec,
         selectedContainerForPreview,
         handleRowItemClick,
+        handleColumnError,
     } = tiledData;
 
     return warning ? (
@@ -113,6 +114,7 @@ export default function TiledContainer({
                     <div className="w-80 flex-shrink-0 border-r border-r-slate-300 overflow-y-auto scrollbar-always-visible px-4">
                         <TiledRowList
                             columns={columns}
+                            onError={handleColumnError}
                             breadcrumbs={breadcrumbs}
                             onItemClick={handleRowItemClick}
                             handleNewPageClick={handleNewPageClick}
@@ -136,9 +138,8 @@ export default function TiledContainer({
                     {columns.map((column, index) => (
                         <TiledColumn
                             handleSelectClick={handleSelectClick}
-                            data={column.data}
-                            meta={column.meta}
-                            links={column.links}
+                            request={column}
+                            onError={handleColumnError}
                             key={index}
                             index={index}
                             onItemClick={

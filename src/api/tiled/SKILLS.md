@@ -265,9 +265,9 @@ normalisation.
   `null` on a server with auth disabled. Descriptors carry `operationId: null`.
 - **`interceptorRegistry.ts` is duplicated from qServer on purpose.** Fix bugs in both.
 - **`@blueskyproject/tiled` is gone.** The `<TiledFinder>` viewer is in
-  `src/components/Tiled/TiledFinder/`, with its own `TiledApiClient` behind `TiledApiProvider`, so its
-  props never configure the default client. Its column browser uses `queryClient.fetchQuery` with
-  `tiledQueryKeys` rather than hooks; keep those keys built with the builders.
+  `src/components/Tiled/TiledFinder/` and reads only through these hooks (enforced by
+  `TiledFinderUsesFinchHooks.test.ts`). It uses an app-level `TiledApiProvider` when present, and
+  otherwise provides its own `TiledApiClient` built from its props.
 - **Websocket auth is a first frame.** The server reads `api_key` from the `Authorization` header
   only, so `apiKeyLocation: 'query'` does nothing for sockets. Do not "fix" this by putting the key in
   the URL.

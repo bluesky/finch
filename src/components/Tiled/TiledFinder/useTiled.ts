@@ -1,15 +1,8 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { isTiledApiError, useTiledClient, useTiledSearchQuery } from '@/api/tiled';
+import type { TiledColumnRequest } from './useTiledColumnResult';
 import {
-    isTiledApiError,
-    tiledQueryKeys,
-    useTiledClient,
-    useTiledQueryScope,
-    type TiledSearchConfig,
-} from '@/api/tiled';
-import {
-    TiledSearchResult,
     TiledSearchItem,
     Breadcrumb,
     ArrayStructure,
@@ -85,57 +78,58 @@ export const useTiled = ({
     reloadLastItemOnStartup,
     onAuthError,
 }: useTiledProps) => {
-    // Finch's client only calls its global auth-error callback after a failed token refresh against
-    // its own configured server, and the viewer sends a per-call baseUrl. A 401 here therefore
-    // surfaces as a rejected request, and the viewer routes it to the login screen itself. Held in a
-    // ref because several callbacks below have frozen dependency arrays.
+    // Every read goes through Finch's query hooks: each column calls them itself (see
+    // useTiledColumnResult), so this hook only decides *which* columns are open. The client — the
+    // app's TiledApiProvider, or the one Tiled.tsx builds from its props — is resolved by the hooks.
+    const { client } = useTiledClient();
+    const initialPathRef = useRef('');
+    initialPathRef.current =
+        typeof client.getInitialPath === 'function' ? client.getInitialPath() : '';
+
+    const rootRequest = useCallback(
+        (revision?: number): TiledColumnRequest => ({
+            kind: 'search',
+            path: searchPath || '',
+            config: { searchOptions: { sort: reverseSort ? '-' : '', pageLimit } },
+            isRoot: true,
+            revision,
+        }),
+        [searchPath, reverseSort, pageLimit],
+    );
+    const containerRequest = useCallback(
+        (item: TiledSearchItem<TiledStructures>): TiledColumnRequest => ({
+            kind: 'search',
+            path: generateSearchPath(item),
+            //sort key may be 'time' for RE data or defaults to '_'
+            config: {
+                searchOptions: {
+                    sort: item.attributes.sorting ? item.attributes.sorting[0].key : undefined,
+                    pageLimit,
+                },
+            },
+        }),
+        [pageLimit],
+    );
+
+    // A 401 with no stored session rejects without reaching the client's onAuthError, so columns
+    // report failures here and a 401 opens the login screen. A failed top-level listing means the
+    // server could not be reached.
     const onAuthErrorRef = useRef(onAuthError);
     onAuthErrorRef.current = onAuthError;
-    const handleRequestError = useCallback((error: unknown) => {
+    const handleColumnError = useCallback((request: TiledColumnRequest, error: unknown) => {
         if (isTiledApiError(error) && error.status === 401) {
             onAuthErrorRef.current?.();
             return;
         }
         console.error('Tiled request failed:', error);
+        if (request.kind === 'search' && request.isRoot) {
+            setWarning(
+                'There was an error connecting to the Tiled server. Please check the console for more details.',
+            );
+        }
     }, []);
 
-    // Requests go through the QueryClient, keyed exactly as useTiledSearchQuery / useTiledMetadataQuery
-    // key them, so the viewer's reads land in (and refresh) the same cache as Finch's hooks. The
-    // client comes from the viewer's TiledApiProvider, which carries its URL, credentials and initial
-    // path. `fetchQuery` refetches anything stale (immediately, under default options), so browsing
-    // still shows new runs as they arrive.
-    const queryClient = useQueryClient();
-    const { client } = useTiledClient();
-    const requestOptions = useMemo(
-        () => (initialSearchPath !== undefined ? { initialPath: initialSearchPath } : undefined),
-        [initialSearchPath],
-    );
-    const scope = useTiledQueryScope(requestOptions);
-    const fetchers = {
-        search: (path: string, config: TiledSearchConfig): Promise<TiledSearchResult> =>
-            queryClient.fetchQuery({
-                queryKey: tiledQueryKeys.search(scope, { searchPath: path, config }),
-                queryFn: ({ signal }) =>
-                    client.getSearch(path, config, { ...requestOptions, signal }),
-            }),
-        metadata: (path: string): Promise<TiledSearchItem<TiledStructures>> =>
-            queryClient.fetchQuery({
-                queryKey: tiledQueryKeys.metadata(scope, path),
-                queryFn: ({ signal }) => client.getMetadata(path, { ...requestOptions, signal }),
-            }),
-    };
-    const fetchersRef = useRef(fetchers);
-    fetchersRef.current = fetchers;
-    // Stable wrappers: several callbacks below have frozen dependency arrays.
-    const searchTiled = useCallback(
-        (path: string, config: TiledSearchConfig) => fetchersRef.current.search(path, config),
-        [],
-    );
-    const fetchMetadata = useCallback((path: string) => fetchersRef.current.metadata(path), []);
-    const initialPathRef = useRef('');
-    initialPathRef.current =
-        typeof client.getInitialPath === 'function' ? client.getInitialPath() : '';
-    const [columns, setColumns] = useState<TiledSearchResult[]>([]);
+    const [columns, setColumns] = useState<TiledColumnRequest[]>([]);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [imageUrl, setImageUrl] = useState<string | undefined>();
     const [popoutUrl, setPopoutUrl] = useState<string | undefined>();
@@ -176,11 +170,7 @@ export const useTiled = ({
             currentAncestorId.current = currentAncestorId.current - 1;
             if (currentAncestorId.current < 0) {
                 //uesr has clicked back onto the root directory
-                void searchTiled(searchPath || '', {
-                    searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-                })
-                    .then((res: TiledSearchResult) => setColumns([res]))
-                    .catch(handleRequestError);
+                setColumns([rootRequest(Date.now())]);
                 setBreadcrumbs([]);
                 setImageUrl('');
                 setPopoutUrl('');
@@ -207,7 +197,7 @@ export const useTiled = ({
     const defaultPreviewSize = 'medium';
 
     const updateColumns = useCallback(
-        (clickedItem: TiledSearchItem<TiledStructures>, newColumn?: TiledSearchResult) => {
+        (clickedItem: TiledSearchItem<TiledStructures>, newColumn?: TiledColumnRequest) => {
             setColumns((prevState) => {
                 const effectiveAncestorLength = getEffectiveAncestorLength(
                     clickedItem.attributes.ancestors,
@@ -225,7 +215,7 @@ export const useTiled = ({
         [],
     );
 
-    const replaceLastColumnWithSingleSearchResult = useCallback((newColumn: TiledSearchResult) => {
+    const replaceLastColumn = useCallback((newColumn: TiledColumnRequest) => {
         setColumns((prevState) => {
             const newState = [...prevState.slice(0, -1), newColumn];
             return newState;
@@ -297,18 +287,8 @@ export const useTiled = ({
                         currentAncestorId.current = depth - 1;
                         return prevBreadcrumbs.slice(0, depth);
                     }
-                    // otherwise expand: fire network request
-                    const searchPath = generateSearchPath(item);
-                    const firstSortKey = item.attributes.sorting
-                        ? item.attributes.sorting[0].key
-                        : undefined;
-                    void searchTiled(searchPath, {
-                        searchOptions: { sort: firstSortKey, pageLimit },
-                    })
-                        .then((res: TiledSearchResult) => {
-                            updateColumns(item, res);
-                        })
-                        .catch(handleRequestError);
+                    // otherwise expand: open a column for its contents
+                    updateColumns(item, containerRequest(item));
                     setSelectedContainerForPreview(item);
                     setPreviewItem(null);
                     setPreviewSize('hidden');
@@ -332,7 +312,7 @@ export const useTiled = ({
             }
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [url, initialSearchPath, pageLimit, updateColumns],
+        [containerRequest, updateColumns],
     );
 
     const updateCurrentSelectedItem = (item: TiledSearchItem<TiledStructures>) => {
@@ -374,11 +354,8 @@ export const useTiled = ({
     const handleContainerClick = (item: TiledSearchItem<ContainerStructure>) => {
         //search container, put results into column, disable preview
         setPreviewItem(null);
-        const searchPath = generateSearchPath(item);
-        const firstSortKey = item.attributes.sorting ? item.attributes.sorting[0].key : undefined; //sort key may be 'time' for RE data or defaults to '_'
-        void searchTiled(searchPath, { searchOptions: { sort: firstSortKey, pageLimit } })
-            .then((res: TiledSearchResult) => handleSearchResponse(item, res))
-            .catch(handleRequestError);
+        updateColumns(item, containerRequest(item));
+        updateBreadcrumbs(item);
         closePreview();
     };
 
@@ -396,15 +373,6 @@ export const useTiled = ({
         updateColumns(item);
     };
 
-    const handleSearchResponse = useCallback(
-        (clickedItem: TiledSearchItem<TiledStructures>, res: TiledSearchResult) => {
-            updateColumns(clickedItem, res);
-            updateBreadcrumbs(clickedItem);
-        },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [],
-    );
-
     const resetAllData = () => {
         setBreadcrumbs([]);
         writeSearchPathToLocalStorage('');
@@ -413,16 +381,11 @@ export const useTiled = ({
         setPreviewItem(null);
         setSelectedContainerForPreview(null);
         setPreviewSize('hidden');
-        setColumns([]); //api call can take some time for larger dbs, so clear out existing columns first
-        void searchTiled(searchPath || '', {
-            searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-        })
-            .then((res: TiledSearchResult) => setColumns([res]))
-            .catch(handleRequestError);
+        setColumns([rootRequest(Date.now())]); //refetch the top level so new runs appear
     };
 
     const handleSearchId = useCallback(
-        async (id: string) => {
+        (id: string) => {
             //the tiled api doesn't provide a direct way to do a partial search on id (only metadata and spec)
             //so we make new api request to tiled for the specific id as the path in the url
             //this is not really a 'search' as a much as a shot in the dark to see if there is a path
@@ -436,220 +399,140 @@ export const useTiled = ({
                           id,
                       )
                     : id;
-            try {
-                //check if the items metadata exists and append to the last column if it does
-                const metadataResult = await fetchMetadata(searchPathWithId).catch(() => null);
-                if (metadataResult) {
-                    //construct new column array because metadata searches are missing the links field
-                    //wipe out the current column and place only the specified item
-                    const newColumn: TiledSearchResult = {
-                        data: [metadataResult],
-                        links: {
-                            self: '?page[offset]=0&page[limit]=1',
-                            first: '?page[offset]=0&page[limit]=1',
-                            last: '?page[offset]=0&page[limit]=1',
-                            next: null,
-                            prev: null,
-                        },
-                        meta: { count: 1 },
-                        error: null,
-                    };
-                    replaceLastColumnWithSingleSearchResult(newColumn);
-                } else {
-                    //TODO display something to say no results found
-                    const emptyColumn: TiledSearchResult = {
-                        data: [],
-                        links: {
-                            self: '?page[offset]=0&page[limit]=1',
-                            first: '?page[offset]=0&page[limit]=1',
-                            last: '?page[offset]=0&page[limit]=1',
-                            next: null,
-                            prev: null,
-                        },
-                        meta: { count: 0 },
-                        error: null,
-                    };
-                    replaceLastColumnWithSingleSearchResult(emptyColumn);
-                }
-            } catch (error) {
-                console.error('Error performing search by ID:', error);
-            }
+            //show only that item in the last column (empty if it does not exist)
+            replaceLastColumn({ kind: 'item', path: searchPathWithId });
         },
-        [replaceLastColumnWithSingleSearchResult, fetchMetadata],
+        [replaceLastColumn],
     );
 
     const handleSearchMetadata = useCallback(
-        async (metadata: string) => {
+        (metadata: string) => {
             //perform a metadata search on the current path
             const currentPath =
                 ancestorStack.current.length > 0
                     ? generateSearchPath(ancestorStack.current[ancestorStack.current.length - 1])
                     : '';
-            try {
-                const results: TiledSearchResult = await searchTiled(currentPath, {
+            //update the last column with the search results
+            replaceLastColumn({
+                kind: 'search',
+                path: currentPath,
+                config: {
                     searchFilters: { fulltext: { text: metadata } },
                     searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-                });
-                if (results) {
-                    //update the last column with the new search results
-                    console.log('handleSearchMetadata results');
-                    replaceLastColumnWithSingleSearchResult(results);
-                }
-            } catch (error) {
-                //TODO display error. maybe something to say no results found
-                console.error('Error performing metadata search:', error);
-            }
+                },
+            });
         },
-        [pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, searchTiled],
+        [pageLimit, replaceLastColumn, reverseSort],
     );
 
     const handleSearchSpec = useCallback(
-        async (spec: string) => {
+        (spec: string) => {
             //perform a spec search on the current path
             const currentPath =
                 ancestorStack.current.length > 0
                     ? generateSearchPath(ancestorStack.current[ancestorStack.current.length - 1])
                     : '';
-            try {
-                const results: TiledSearchResult = await searchTiled(currentPath, {
+            //update the last column with the search results
+            replaceLastColumn({
+                kind: 'search',
+                path: currentPath,
+                config: {
                     searchFilters: { specs: { include: [spec], exclude: [] } },
                     searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-                });
-                if (results) {
-                    //update the last column with the new search results
-                    replaceLastColumnWithSingleSearchResult(results);
-                }
-            } catch (error) {
-                //TODO display error. maybe something to say no results found
-                console.error('Error performing spec search:', error);
-            }
-        },
-        [pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, searchTiled],
-    );
-
-    const initializeData = useCallback(async () => {
-        //attempt to get data from base Tiled Url. Display error on UI if no data comes back
-        let response = null;
-        // Credentials (apiKey, bearerToken, stored session) live on the viewer's own client, which
-        // Tiled.tsx builds from props and hands down through TiledApiProvider.
-        try {
-            response = await searchTiled(searchPath || '', {
-                searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+                },
             });
-        } catch (error) {
-            if (isTiledApiError(error) && error.status === 401) {
-                onAuthErrorRef.current?.();
-                return;
-            }
-            console.error('Error fetching search results:', error);
-            setWarning(
-                'There was an error connecting to the Tiled server. Please check the console for more details.',
-            );
-        }
-        if (response !== null && typeof response !== 'string' && 'data' in response) {
-            setColumns([response]);
-        } else {
-            setWarning(
-                'There was an error connecting to the Tiled server. Please check the console for more details.',
-            );
-        }
-        // `url`, `apiKey` and `bearerToken` are not read here: they mean a new client (built in
-        // Tiled.tsx), which is a reason to reload from the root.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [apiKey, bearerToken, reverseSort, searchPath, url, pageLimit, searchTiled]);
-
-    const reloadLastSearch = useCallback(
-        (searchPath: string) => {
-            //make a search for the searchPath id in the last column
-            const lastColumn = columns[columns.length - 1];
-
-            //columns contains an array of objects, each object has an id, if the id matches the searchPath then call handleColumnItemClick(matchingItem)
-            const matchingItem = lastColumn.data.find(
-                (item: TiledSearchItem<TiledStructures>) => item.id === searchPath,
-            );
-            if (matchingItem) {
-                handleColumnItemClick(matchingItem);
-                setRemainingHistoryArray((prev) => (prev ? prev.slice(1) : null)); //return the original array with the first element removed. returns empty array on last search
-            } else {
-                console.warn(
-                    `Attempted to load previous search, no matching item found for search path: ${searchPath} in the current page offset, initializing at root.`,
-                );
-                setRemainingHistoryArray(null);
-            }
         },
-        [columns, handleColumnItemClick],
+        [pageLimit, replaceLastColumn, reverseSort],
     );
 
     const handleNewPageClick = (link: Url, columnIndex: number, nextPageIndex?: number) => {
-        //in a column if results exceed page limit the left/right arrows are enabled for making subsequent requests at the same path with different page offsets
+        //in a column if results exceed page limit the left/right arrows are enabled for viewing other pages at the same path
         if (!link) return; //if no link is provided, do nothing
-        //we don't want to use the exact hostname in case the user has any sort of proxy setup, therefore strip off the page offset and limit as a single string
+        //only the paging parameters are read from the link; the column keeps its own path and filters
         const newPageUrl = new URL(link);
         const pageOffset = nextPageIndex
             ? nextPageIndex
             : parseInt(newPageUrl.searchParams.get('page[offset]') || '0');
         const pageLimit = parseInt(newPageUrl.searchParams.get('page[limit]') || '100');
 
-        //grab the search path after /search and before the query params
-        const searchPath = newPageUrl.pathname.split('/search/')[1].split('?')[0];
-        void searchTiled(searchPath, {
-            searchOptions: { pageOffset, pageLimit, sort: reverseSort ? '-' : '' },
-        })
-            .then((res: TiledSearchResult) => updateColumnWithNewPage(res, columnIndex))
-            .catch(handleRequestError);
-    };
-
-    const updateColumnWithNewPage = (newColumn: TiledSearchResult, columnIndex: number) => {
-        if (newColumn === null || newColumn.data.length === 0) {
-            console.warn('No data returned for the new page.');
-            return;
-        }
         setColumns((prevState) => {
+            const column = prevState[columnIndex];
+            if (!column || column.kind !== 'search') return prevState;
             const newState = [...prevState];
-            newState[columnIndex] = newColumn;
+            newState[columnIndex] = {
+                ...column,
+                config: {
+                    ...column.config,
+                    searchOptions: { ...column.config.searchOptions, pageOffset, pageLimit },
+                },
+            };
             return newState;
         });
     };
 
+    // Open the top-level listing, and again whenever the client or listing options change. The
+    // revision makes an already-open column refetch (e.g. after a new API key).
     useEffect(() => {
-        //get first set of results from root
-        try {
-            initializeData();
-        } catch (e) {
-            console.error('error getting first tiled request: ', e);
-            setWarning('Error initializing Tiled data. Please check the console for more details.');
-        }
+        setWarning(undefined);
+        setColumns([rootRequest(Date.now())]);
+        // `url`, `apiKey` and `bearerToken` are not read here: they mean a new client, which is a
+        // reason to reload from the root.
+    }, [rootRequest, url, apiKey, bearerToken]);
 
-        //kick off the calls to populate the viewer from optional user defined initial path or localStorage history
+    //kick off restoring the viewer from optional user defined initial path or localStorage history
+    useEffect(() => {
         if (preloadedColumnsPath) {
-            const searchArray = preloadedColumnsPath.split('/').filter(Boolean);
-            setRemainingHistoryArray(searchArray);
+            setRemainingHistoryArray(preloadedColumnsPath.split('/').filter(Boolean));
         }
-    }, [initializeData, preloadedColumnsPath]);
+    }, [preloadedColumnsPath]);
 
+    // Restore one path segment at a time, as if the user clicked it: find the next segment's item in
+    // the column that lists it, then select it, which opens the following column. The listing is read
+    // with the same useTiledSearchQuery call that column makes, so TanStack serves both from one cache
+    // entry and no extra request is sent.
+    const fullHistoryArray = useMemo(
+        () => (preloadedColumnsPath ? preloadedColumnsPath.split('/').filter(Boolean) : []),
+        [preloadedColumnsPath],
+    );
+    const historyColumnIndex =
+        reloadLastItemOnStartup && remainingHistoryArray && remainingHistoryArray.length > 0
+            ? fullHistoryArray.length - remainingHistoryArray.length
+            : -1;
+    // Only once that column is the last one open, i.e. the previous segment has been selected.
+    const historyColumn =
+        historyColumnIndex >= 0 && columns.length === historyColumnIndex + 1
+            ? columns[historyColumnIndex]
+            : undefined;
+    const historySearch = historyColumn?.kind === 'search' ? historyColumn : undefined;
+    const historyListing = useTiledSearchQuery(historySearch?.path ?? '', historySearch?.config, {
+        enabled: historySearch !== undefined,
+    });
     useEffect(() => {
-        //keeps triggering to simulate a user clicking a column element until every subpath of preloadedColumnsPath is displayed in the viewer
-        //this must be done sequentially so that various state vars can update properly before each successive search
-
-        if (reloadLastItemOnStartup) {
-            if (columns.length <= 0) return; //base case when this runs prior to columns initialized with data
-            if (!remainingHistoryArray || remainingHistoryArray.length === 0) return; //base case when there are no more subpaths to display
-
-            if (preloadedColumnsPath && remainingHistoryArray) {
-                const fullHistoryArray = preloadedColumnsPath.split('/').filter(Boolean);
-                const currentHistoryIndex = fullHistoryArray.length - remainingHistoryArray.length; //get the column index we should be searching in
-                if (columns.length === currentHistoryIndex + 1) {
-                    //only do the search if the column state is ready
-                    reloadLastSearch(remainingHistoryArray[0]);
-                }
-            }
+        if (!historySearch || !remainingHistoryArray) return;
+        if (historyListing.isError) {
+            setRemainingHistoryArray(null);
+            return;
+        }
+        if (!historyListing.data) return;
+        const searchPath = remainingHistoryArray[0];
+        const matchingItem = historyListing.data.data.find(
+            (item: TiledSearchItem<TiledStructures>) => item.id === searchPath,
+        );
+        if (matchingItem) {
+            handleColumnItemClick(matchingItem);
+            setRemainingHistoryArray((prev) => (prev ? prev.slice(1) : null)); //return the original array with the first element removed. returns empty array on last search
+        } else {
+            console.warn(
+                `Attempted to load previous search, no matching item found for search path: ${searchPath} in the current page offset, initializing at root.`,
+            );
+            setRemainingHistoryArray(null);
         }
     }, [
+        historySearch,
+        historyListing.data,
+        historyListing.isError,
         remainingHistoryArray,
-        columns,
-        preloadedColumnsPath,
-        reloadLastSearch,
-        reloadLastItemOnStartup,
+        handleColumnItemClick,
     ]);
 
     return useMemo(
@@ -671,6 +554,7 @@ export const useTiled = ({
             handleSearchId,
             handleSearchMetadata,
             handleSearchSpec,
+            handleColumnError,
         }),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [

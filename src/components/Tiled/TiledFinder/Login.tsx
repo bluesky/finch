@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 import TiledHeader from './TiledHeader';
 import LoginUsernamePassword from './LoginUsernamePassword';
@@ -20,9 +20,8 @@ export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
     const [warning, setWarning] = useState<string | null>(null);
     const [selectedProvider, setSelectedProvider] = useState<TiledAuthProvider | null>(null);
 
-    const requestOptions = useMemo(() => ({ baseUrl: url }), [url]);
     // Resolves `null` rather than rejecting when the server cannot be reached.
-    const { data, isSuccess } = useTiledServerInfoQuery(undefined, requestOptions);
+    const { data, isSuccess } = useTiledServerInfoQuery();
     const serverInfo = (data ?? null) as TiledInfoResponse | null;
 
     //unlikely to occur because we should only render the login component if we previously reached the server (and it responded with a 401)
@@ -52,7 +51,6 @@ export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
             {(selectedProvider?.mode === 'password' || selectedProvider?.mode === 'internal') && (
                 <LoginUsernamePassword
                     onSuccess={onSuccess}
-                    url={url}
                     setWarning={setWarning}
                     handleCancel={() => setSelectedProvider(null)}
                     provider={selectedProvider}

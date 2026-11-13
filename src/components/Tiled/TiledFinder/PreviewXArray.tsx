@@ -6,10 +6,11 @@ import Table from './Table';
 
 type PreviewXArrayProps = {
     xarrayItem: TiledSearchItem<XArrayStructure>;
+    /** Not used for requests: the client (and its base URL) comes from TiledApiProvider. */
     url?: string;
 };
 
-export default function PreviewXArray({ xarrayItem, url }: PreviewXArrayProps) {
+export default function PreviewXArray({ xarrayItem }: PreviewXArrayProps) {
     const [visibleData, setVisibleData] = useState<TiledTableRow[]>([]);
 
     const observerRef = useRef<HTMLDivElement | null>(null);
@@ -65,12 +66,11 @@ export default function PreviewXArray({ xarrayItem, url }: PreviewXArrayProps) {
         [dims],
     );
 
-    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
     const {
         data: xarrayData,
         isPending: isLoading,
         error,
-    } = useTiledArrayAsJSONQuery<number[][]>(searchPath, undefined, undefined, requestOptions);
+    } = useTiledArrayAsJSONQuery<number[][]>(searchPath);
 
     useEffect(() => {
         if (error) console.error(error);

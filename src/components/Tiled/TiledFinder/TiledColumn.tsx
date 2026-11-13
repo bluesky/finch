@@ -1,12 +1,14 @@
-import { TiledSearchItem, TiledStructures, Breadcrumb, TiledSearchResult } from './types';
+import { TiledSearchItem, TiledStructures, Breadcrumb } from './types';
+import { useTiledColumnResult, type TiledColumnRequest } from './useTiledColumnResult';
 import { cn } from '@/lib/utils';
 import { TiledRowItem } from './TiledRowItem';
 import dayjs from 'dayjs';
 
 type TiledColumnProps = {
-    data: TiledSearchItem<TiledStructures>[];
-    links: TiledSearchResult['links'];
-    meta: TiledSearchResult['meta'];
+    /** What this column lists; it reads the data itself through Finch's query hooks. */
+    request: TiledColumnRequest;
+    /** Called when the column's search fails. */
+    onError?: (request: TiledColumnRequest, error: unknown) => void;
     onItemClick: (item: TiledSearchItem<TiledStructures>, index: number) => void;
     index: number;
     breadcrumbs: Breadcrumb[];
@@ -19,9 +21,8 @@ type TiledColumnProps = {
 };
 
 export function TiledColumn({
-    data,
-    meta,
-    links,
+    request,
+    onError,
     index,
     onItemClick,
     breadcrumbs,
@@ -32,6 +33,13 @@ export function TiledColumn({
     showPlanName = true,
     showPlanStartTime = true,
 }: TiledColumnProps) {
+    const { result, isLoading } = useTiledColumnResult(request, (error) =>
+        onError?.(request, error),
+    );
+    const data = result?.data ?? [];
+    const links = result?.links ?? { self: '', first: '', last: '', next: null, prev: null };
+    const meta = result?.meta ?? { count: 0 };
+
     //parse the links.self to get the value after ...page[offset]=
     const currentOffset = (() => {
         if (!links.self) return 0;
@@ -47,8 +55,10 @@ export function TiledColumn({
         <div
             className={cn(
                 'flex flex-col-reverse border-r border-r-slate-300 min-w-56 w-fit max-w-xs px-4 h-auto pt-2',
+                isLoading && 'animate-pulse opacity-60',
                 className,
             )}
+            aria-busy={isLoading}
         >
             {nextResultsLink || prevResultsLink ? (
                 <p className="text-center text-sm py-1">

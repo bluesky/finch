@@ -5,6 +5,7 @@ import { useTiledLoginMutation } from '@/api/tiled';
 import { TiledAuthProvider } from './types';
 export type LoginUsernamePasswordProps = {
     onSuccess: () => void;
+    /** Not used for requests: the client (and its base URL) comes from TiledApiProvider. */
     url?: string;
     setWarning: (warning: string | null) => void;
     handleCancel: () => void;
@@ -12,7 +13,6 @@ export type LoginUsernamePasswordProps = {
 };
 export default function LoginUsernamePassword({
     onSuccess,
-    url,
     setWarning,
     handleCancel,
     provider,
@@ -29,7 +29,7 @@ export default function LoginUsernamePassword({
         if (isPending) return;
         setWarning(null);
         // Resolves `null` on bad credentials; a rejection (network, server error) is treated the same.
-        const result = await login({ username, password, url, provider }).catch((error) => {
+        const result = await login({ username, password, provider }).catch((error) => {
             console.error(error);
             return null;
         });
@@ -43,7 +43,7 @@ export default function LoginUsernamePassword({
                 passwordRef.current.select();
             }
         }
-    }, [username, password, onSuccess, provider, url, setWarning, login, isPending]);
+    }, [username, password, onSuccess, provider, setWarning, login, isPending]);
     return (
         <section className="flex flex-col items-center space-y-8 mt-8 flex-shrink-0">
             <h2 className="text-slate-700 font-light text-lg">Please login to access Tiled</h2>

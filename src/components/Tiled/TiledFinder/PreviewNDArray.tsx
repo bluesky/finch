@@ -9,6 +9,7 @@ import { ArrowUpRight, PaletteIcon } from '@phosphor-icons/react';
 
 type PreviewNDArrayProps = {
     arrayItem: TiledSearchItem<ArrayStructure>;
+    /** Not used for requests: the client (and its base URL) comes from TiledApiProvider. */
     url?: string;
     isFullWidth?: boolean;
     handleSelectClick?: (item: TiledSearchItem<ArrayStructure>, currentSlice: number[]) => void;
@@ -16,7 +17,6 @@ type PreviewNDArrayProps = {
 
 export default function PreviewNDArray({
     arrayItem,
-    url,
     isFullWidth,
     handleSelectClick,
 }: PreviewNDArrayProps) {
@@ -50,7 +50,6 @@ export default function PreviewNDArray({
         });
     };
 
-    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
     const imageOptions = useMemo(
         () => ({
             stack: stack ?? undefined,
@@ -71,10 +70,9 @@ export default function PreviewNDArray({
         { ...imageOptions, arrayItem },
         // Keep the previous frame up (under the spinner) while the next one loads.
         { enabled: stack !== null, placeholderData: keepPreviousData },
-        requestOptions,
     );
     const isLoading = (isPending && !error) || isPlaceholderData;
-    const imagePath = useTiledArrayImagePath(searchPath, imageOptions, requestOptions);
+    const imagePath = useTiledArrayImagePath(searchPath, imageOptions);
     // Without a stack the URL would ask for the whole N-D array, so only offer it once a frame is set.
     const popoutUrl = stack ? imagePath : '';
 

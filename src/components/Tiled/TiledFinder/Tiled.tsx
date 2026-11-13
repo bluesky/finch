@@ -13,14 +13,19 @@ import {
     getApiKeyFromLocalStorage,
     getAuthFromLocalStorage,
 } from './utils';
-import { TiledApiClient, TiledApiProvider, getDefaultTiledApiClient } from '@/api/tiled';
+import {
+    TiledApiClient,
+    TiledApiProvider,
+    getDefaultTiledApiClient,
+    useTiledApiClientOptional,
+} from '@/api/tiled';
 
 export type TiledProps = {
     /** Callback fired when a user selects an item, receives the item's selection data (links, structure, slice info, etc.). */
     onSelectCallback?: (data: TiledItemSelectionData) => void;
-    /** API key used to authenticate requests to the Tiled server. If omitted, the key is read from local storage. */
+    /** API key used to authenticate requests to the Tiled server. If omitted, the key is read from local storage. Ignored inside an app-level `TiledApiProvider`, whose client is used instead. */
     apiKey?: string;
-    /** Bearer token used to authenticate requests to the Tiled server. */
+    /** Bearer token used to authenticate requests to the Tiled server. Ignored inside an app-level `TiledApiProvider`, whose client is used instead. */
     bearerToken?: string;
     /** Overall size preset for the viewer UI. Defaults to `'small'`. */
     size?: 'small' | 'medium' | 'large';
@@ -30,7 +35,7 @@ export type TiledProps = {
     isPopup?: boolean;
     /** When true, displays a startup screen prompting the user to enter / confirm the Tiled URL before loading. Defaults to `false`. */
     enableStartupScreen?: boolean;
-    /** Base URL of the Tiled server to connect to. Falls back to the default configured URL when omitted. */
+    /** Base URL of the Tiled server to connect to. Falls back to the default configured URL when omitted. Ignored inside an app-level `TiledApiProvider`, whose client is used instead. */
     tiledBaseUrl?: string;
     /** Additional className applied to the outer background wrapper. */
     backgroundClassName?: string;
@@ -54,7 +59,7 @@ export type TiledProps = {
     buttonModeText?: string;
     /** Sort listings in descending order (newest first). Defaults to `true`. */
     reverseSort?: boolean;
-    /** Path within the Tiled tree to open on mount (e.g. `"my/dataset"`). */
+    /** Path within the Tiled tree to open on mount (e.g. `"my/dataset"`). Ignored inside an app-level `TiledApiProvider`, whose client is used instead. */
     initialPath?: string;
     /** When true, show the Bluesky `plan_name` next to each item in the listing if available. */
     showPlanName?: boolean;
@@ -128,31 +133,41 @@ function TiledViewer({
     const [userInputReverseSort, setUserInputReverseSort] = useState<boolean>(reverseSort || false);
     const [showLogin, setShowLogin] = useState<boolean>(false);
 
-    // The viewer's own client, so its URL, credentials and initial path never leak into the app's
-    // default Tiled client (and the app's settings never leak into the viewer). Every request below
-    // resolves it through TiledApiProvider. A bearerToken prop takes precedence over a stored session.
-    const client = useMemo(
+    // Which Tiled client the viewer reads through:
+    // - an app-level TiledApiProvider, when there is one — the app decides the server and credentials,
+    //   and `tiledBaseUrl`, `apiKey`, `bearerToken` and `initialPath` are not applied;
+    // - otherwise a client of its own built from those props, so they never leak into the app's
+    //   default Tiled client (and two viewers can point at different servers).
+    // Every request below resolves the client through the hooks, so this is the only place it is chosen.
+    const appClient = useTiledApiClientOptional();
+    const ownClient = useMemo(
         () =>
-            new TiledApiClient({
-                baseUrl: url || getDefaultTiledApiClient().getBaseUrl(),
-                apiKey: userInputApiKey || null,
-                bearerToken: bearerToken || getAuthFromLocalStorage()?.accessToken || null,
-                initialPath,
-                //on auth failures the client cannot recover from (e.g. a failed token refresh) show the login component
-                onAuthError: (error) => {
-                    console.error('Authentication error:', error);
-                    setShowLogin(true);
-                },
-            }),
-        [url, userInputApiKey, bearerToken, initialPath],
+            appClient
+                ? null
+                : new TiledApiClient({
+                      baseUrl: url || getDefaultTiledApiClient().getBaseUrl(),
+                      apiKey: userInputApiKey || null,
+                      // A bearerToken prop takes precedence over a stored session.
+                      bearerToken: bearerToken || getAuthFromLocalStorage()?.accessToken || null,
+                      initialPath,
+                      //on auth failures the client cannot recover from (e.g. a failed token refresh) show the login component
+                      onAuthError: (error) => {
+                          console.error('Authentication error:', error);
+                          setShowLogin(true);
+                      },
+                  }),
+        [appClient, url, userInputApiKey, bearerToken, initialPath],
     );
+    // The server actually being browsed: shown in the header and used to build selection links.
+    const serverUrl =
+        appClient && typeof appClient.getBaseUrl === 'function' ? appClient.getBaseUrl() : url;
 
     const handleLoginSuccess = useCallback(() => {
         setShowLogin(false);
     }, []);
 
     const handleSelectClick = (item: TiledSearchItem<TiledStructures>, currentSlice?: number[]) => {
-        const links: TiledItemLinks = generateLinksForCallback(item, url);
+        const links: TiledItemLinks = generateLinksForCallback(item, serverUrl);
         setSelectedData(links);
         const selectedDataInfo: TiledItemSelectionData = {
             ...links,
@@ -214,8 +229,8 @@ function TiledViewer({
     };
 
     if (!isClosed) {
-        return (
-            <TiledApiProvider client={client}>
+        const content = (
+            <>
                 {isButtonMode && (
                     <OpenTiledRow
                         userInputApiKey={userInputApiKey}
@@ -268,12 +283,12 @@ function TiledViewer({
                                     {showLogin ? (
                                         <Login
                                             onSuccess={handleLoginSuccess}
-                                            url={url}
+                                            url={serverUrl}
                                             oidcRedirectUrl={oidcRedirectUrl}
                                         />
                                     ) : (
                                         <TiledContainer
-                                            url={url}
+                                            url={serverUrl}
                                             onAuthError={() => setShowLogin(true)}
                                             handleSelectClick={handleSelectClick}
                                             singleColumnMode={singleColumnMode}
@@ -302,7 +317,12 @@ function TiledViewer({
                         </div>
                     </div>
                 )}
-            </TiledApiProvider>
+            </>
+        );
+        return ownClient ? (
+            <TiledApiProvider client={ownClient}>{content}</TiledApiProvider>
+        ) : (
+            content
         );
     }
 }

@@ -8,12 +8,12 @@ import Table from './Table';
 
 type PreviewStructuredArrayProps = {
     structuredArrayItem: TiledSearchItem<StructuredArrayStructure>;
+    /** Not used for requests: the client (and its base URL) comes from TiledApiProvider. */
     url?: string;
 };
 
 export default function PreviewStructuredArray({
     structuredArrayItem,
-    url,
 }: PreviewStructuredArrayProps) {
     const [visibleData, setVisibleData] = useState<TiledStructuredArrayData>([]);
     const [block, setBlock] = useState<number>(0);
@@ -44,17 +44,11 @@ export default function PreviewStructuredArray({
 
     // `block` only drives the selector: the request is for the whole array either way, so it is not
     // part of the query and changing it is served from cache.
-    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
     const {
         data,
         isPending: isLoading,
         error,
-    } = useTiledArrayAsJSONQuery<TiledStructuredArrayData>(
-        searchPath,
-        undefined,
-        undefined,
-        requestOptions,
-    );
+    } = useTiledArrayAsJSONQuery<TiledStructuredArrayData>(searchPath, undefined, undefined);
     const structuredArrayData = useMemo(() => data ?? [], [data]);
 
     useEffect(() => {

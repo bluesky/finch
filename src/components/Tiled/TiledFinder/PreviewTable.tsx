@@ -10,10 +10,11 @@ import Table from './Table';
 
 type PreviewTableProps = {
     tableItem: TiledSearchItem<TableStructure>;
+    /** Not used for requests: the client (and its base URL) comes from TiledApiProvider. */
     url?: string;
 };
 
-export default function PreviewTable({ tableItem, url }: PreviewTableProps) {
+export default function PreviewTable({ tableItem }: PreviewTableProps) {
     const [visibleData, setVisibleData] = useState<TiledTableRow[]>([]);
     const [partition, setPartition] = useState<number>(0);
     const [domain, setDomain] = useState<[number, number] | undefined>(undefined);
@@ -30,7 +31,6 @@ export default function PreviewTable({ tableItem, url }: PreviewTableProps) {
         setPartition(0);
     }, [searchPath]);
 
-    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
     const { data, isPending, isPlaceholderData, error } = useTiledTablePartitionAsJSONSequenceQuery<
         TiledTableRow[]
     >(
@@ -38,7 +38,6 @@ export default function PreviewTable({ tableItem, url }: PreviewTableProps) {
         { partition },
         // Keep the current partition on screen (dimmed) while the next one loads.
         { placeholderData: keepPreviousData },
-        requestOptions,
     );
     const tableData = useMemo(() => data ?? [], [data]);
     const isLoading = isPending || isPlaceholderData;
