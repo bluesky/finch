@@ -446,19 +446,19 @@ spec and the server both contradict the package, and nothing in this repo read t
 ## The `<TiledFinder>` viewer
 
 `@blueskyproject/tiled` is no longer a dependency. Its viewer component now lives in
-`src/components/Tiled/TiledFinder/` and calls this layer's free-function facade (`getTiledSearch`,
-`getTiledArrayAsJSON`, …) — there is one client and one singleton.
+`src/components/Tiled/TiledFinder/` and reads through this layer:
 
-Two consequences while the viewer still uses the facade rather than the hooks:
-
-- **It writes to the default client.** On load it calls `setGlobalApiKey` / `setDefaultBearerToken`
-  and `setDefaultInitialPath`, so a key passed to `<TiledFinder>` also reaches every other Tiled hook
-  in the app. It sends its `tiledBaseUrl` per call, so the default client's URL is left alone.
-- **It routes 401s to its login screen itself.** Because of that per-call `baseUrl`, the client's
-  refresh-then-`onAuthError` path does not run for the viewer's requests; `useTiled` checks for
-  `TiledApiError` with status 401 instead.
-
-Moving the viewer onto the TanStack hooks with its own `TiledApiProvider` removes both.
+- **Its own client.** `TiledFinder/Tiled.tsx` builds a `TiledApiClient` from its props (`tiledBaseUrl`,
+  `apiKey`, `bearerToken` or the stored session, `initialPath`) and mounts it with `TiledApiProvider`.
+  Nothing it is given reaches the default client, so two viewers on one page can point at different
+  servers with different keys.
+- **The hooks and the cache.** Previews, login and server info use the hooks directly. The column
+  browser (`useTiled`) is imperative, so it calls `queryClient.fetchQuery` with `tiledQueryKeys` —
+  its entries are the same ones `useTiledSearchQuery` / `useTiledMetadataQuery` would create.
+- **Its own `QueryClient` only when it has to.** `TiledFinderQueryBoundary` uses the app's
+  `QueryClientProvider` when there is one, and otherwise creates a private client.
+- **401s.** With no stored session, the client throws on a 401 without calling `onAuthError`, so
+  `useTiled` checks for `TiledApiError` with status 401 itself and shows the login screen.
 
 ## Completeness is checked, not claimed
 

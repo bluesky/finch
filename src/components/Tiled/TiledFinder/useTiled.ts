@@ -1,14 +1,13 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
     isTiledApiError,
-    getTiledSearch,
-    setDefaultBearerToken,
-    setGlobalApiKey,
-    getDefaultTiledInitialPath,
-    getTiledMetadata,
+    tiledQueryKeys,
+    useTiledClient,
+    useTiledQueryScope,
+    type TiledSearchConfig,
 } from '@/api/tiled';
-import { getAuthFromLocalStorage } from './utils';
 import {
     TiledSearchResult,
     TiledSearchItem,
@@ -50,10 +49,10 @@ type Url = string;
 /**
  * Helper function to calculate the effective ancestor length accounting for global initial path
  * @param ancestors - Array of ancestor strings from a TiledSearchItem
+ * @param globalInitialPath - The client's initial path, which ancestors include but columns do not
  * @returns The effective ancestor length after accounting for global initial path segments
  */
-const getEffectiveAncestorLength = (ancestors: string[]): number => {
-    const globalInitialPath = getDefaultTiledInitialPath();
+const getEffectiveAncestorLength = (ancestors: string[], globalInitialPath: string): number => {
     let effectiveAncestorLength = ancestors.length;
 
     if (globalInitialPath) {
@@ -99,6 +98,43 @@ export const useTiled = ({
         }
         console.error('Tiled request failed:', error);
     }, []);
+
+    // Requests go through the QueryClient, keyed exactly as useTiledSearchQuery / useTiledMetadataQuery
+    // key them, so the viewer's reads land in (and refresh) the same cache as Finch's hooks. The
+    // client comes from the viewer's TiledApiProvider, which carries its URL, credentials and initial
+    // path. `fetchQuery` refetches anything stale (immediately, under default options), so browsing
+    // still shows new runs as they arrive.
+    const queryClient = useQueryClient();
+    const { client } = useTiledClient();
+    const requestOptions = useMemo(
+        () => (initialSearchPath !== undefined ? { initialPath: initialSearchPath } : undefined),
+        [initialSearchPath],
+    );
+    const scope = useTiledQueryScope(requestOptions);
+    const fetchers = {
+        search: (path: string, config: TiledSearchConfig): Promise<TiledSearchResult> =>
+            queryClient.fetchQuery({
+                queryKey: tiledQueryKeys.search(scope, { searchPath: path, config }),
+                queryFn: ({ signal }) =>
+                    client.getSearch(path, config, { ...requestOptions, signal }),
+            }),
+        metadata: (path: string): Promise<TiledSearchItem<TiledStructures>> =>
+            queryClient.fetchQuery({
+                queryKey: tiledQueryKeys.metadata(scope, path),
+                queryFn: ({ signal }) => client.getMetadata(path, { ...requestOptions, signal }),
+            }),
+    };
+    const fetchersRef = useRef(fetchers);
+    fetchersRef.current = fetchers;
+    // Stable wrappers: several callbacks below have frozen dependency arrays.
+    const searchTiled = useCallback(
+        (path: string, config: TiledSearchConfig) => fetchersRef.current.search(path, config),
+        [],
+    );
+    const fetchMetadata = useCallback((path: string) => fetchersRef.current.metadata(path), []);
+    const initialPathRef = useRef('');
+    initialPathRef.current =
+        typeof client.getInitialPath === 'function' ? client.getInitialPath() : '';
     const [columns, setColumns] = useState<TiledSearchResult[]>([]);
     const [breadcrumbs, setBreadcrumbs] = useState<Breadcrumb[]>([]);
     const [imageUrl, setImageUrl] = useState<string | undefined>();
@@ -140,11 +176,9 @@ export const useTiled = ({
             currentAncestorId.current = currentAncestorId.current - 1;
             if (currentAncestorId.current < 0) {
                 //uesr has clicked back onto the root directory
-                void getTiledSearch(
-                    searchPath || '',
-                    { searchOptions: { sort: reverseSort ? '-' : '', pageLimit } },
-                    { baseUrl: url, initialPath: initialSearchPath },
-                )
+                void searchTiled(searchPath || '', {
+                    searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+                })
                     .then((res: TiledSearchResult) => setColumns([res]))
                     .catch(handleRequestError);
                 setBreadcrumbs([]);
@@ -177,6 +211,7 @@ export const useTiled = ({
             setColumns((prevState) => {
                 const effectiveAncestorLength = getEffectiveAncestorLength(
                     clickedItem.attributes.ancestors,
+                    initialPathRef.current,
                 );
                 const newState = prevState.slice(0, effectiveAncestorLength + 1);
 
@@ -203,6 +238,7 @@ export const useTiled = ({
             const stateCopy = [...prevState]; //must use shallow to copy to hold function references
             const effectiveAncestorLength = getEffectiveAncestorLength(
                 clickedItem.attributes.ancestors,
+                initialPathRef.current,
             );
 
             while (stateCopy.length > effectiveAncestorLength) {
@@ -229,7 +265,10 @@ export const useTiled = ({
 
     const updateAncestorRefs = (item: TiledSearchItem<TiledStructures>) => {
         //this function is only called when the user navigates by directly clicking an item, not using the nav arrows
-        const effectiveAncestorLength = getEffectiveAncestorLength(item.attributes.ancestors);
+        const effectiveAncestorLength = getEffectiveAncestorLength(
+            item.attributes.ancestors,
+            initialPathRef.current,
+        );
 
         currentAncestorId.current = effectiveAncestorLength;
         ancestorStack.current = ancestorStack.current.slice(0, currentAncestorId.current);
@@ -263,11 +302,9 @@ export const useTiled = ({
                     const firstSortKey = item.attributes.sorting
                         ? item.attributes.sorting[0].key
                         : undefined;
-                    void getTiledSearch(
-                        searchPath,
-                        { searchOptions: { sort: firstSortKey, pageLimit } },
-                        { baseUrl: url, initialPath: initialSearchPath },
-                    )
+                    void searchTiled(searchPath, {
+                        searchOptions: { sort: firstSortKey, pageLimit },
+                    })
                         .then((res: TiledSearchResult) => {
                             updateColumns(item, res);
                         })
@@ -339,11 +376,7 @@ export const useTiled = ({
         setPreviewItem(null);
         const searchPath = generateSearchPath(item);
         const firstSortKey = item.attributes.sorting ? item.attributes.sorting[0].key : undefined; //sort key may be 'time' for RE data or defaults to '_'
-        void getTiledSearch(
-            searchPath,
-            { searchOptions: { sort: firstSortKey, pageLimit } },
-            { baseUrl: url, initialPath: initialSearchPath },
-        )
+        void searchTiled(searchPath, { searchOptions: { sort: firstSortKey, pageLimit } })
             .then((res: TiledSearchResult) => handleSearchResponse(item, res))
             .catch(handleRequestError);
         closePreview();
@@ -381,11 +414,9 @@ export const useTiled = ({
         setSelectedContainerForPreview(null);
         setPreviewSize('hidden');
         setColumns([]); //api call can take some time for larger dbs, so clear out existing columns first
-        void getTiledSearch(
-            searchPath || '',
-            { searchOptions: { sort: reverseSort ? '-' : '', pageLimit } },
-            { baseUrl: url, initialPath: initialSearchPath },
-        )
+        void searchTiled(searchPath || '', {
+            searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+        })
             .then((res: TiledSearchResult) => setColumns([res]))
             .catch(handleRequestError);
     };
@@ -407,9 +438,7 @@ export const useTiled = ({
                     : id;
             try {
                 //check if the items metadata exists and append to the last column if it does
-                const metadataResult = await getTiledMetadata(searchPathWithId, {
-                    baseUrl: url || '',
-                }).catch(() => null);
+                const metadataResult = await fetchMetadata(searchPathWithId).catch(() => null);
                 if (metadataResult) {
                     //construct new column array because metadata searches are missing the links field
                     //wipe out the current column and place only the specified item
@@ -446,7 +475,7 @@ export const useTiled = ({
                 console.error('Error performing search by ID:', error);
             }
         },
-        [replaceLastColumnWithSingleSearchResult, url],
+        [replaceLastColumnWithSingleSearchResult, fetchMetadata],
     );
 
     const handleSearchMetadata = useCallback(
@@ -457,14 +486,10 @@ export const useTiled = ({
                     ? generateSearchPath(ancestorStack.current[ancestorStack.current.length - 1])
                     : '';
             try {
-                const results: TiledSearchResult = await getTiledSearch(
-                    currentPath,
-                    {
-                        searchFilters: { fulltext: { text: metadata } },
-                        searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-                    },
-                    { baseUrl: url, initialPath: initialSearchPath },
-                );
+                const results: TiledSearchResult = await searchTiled(currentPath, {
+                    searchFilters: { fulltext: { text: metadata } },
+                    searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+                });
                 if (results) {
                     //update the last column with the new search results
                     console.log('handleSearchMetadata results');
@@ -475,7 +500,7 @@ export const useTiled = ({
                 console.error('Error performing metadata search:', error);
             }
         },
-        [initialSearchPath, pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, url],
+        [pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, searchTiled],
     );
 
     const handleSearchSpec = useCallback(
@@ -486,14 +511,10 @@ export const useTiled = ({
                     ? generateSearchPath(ancestorStack.current[ancestorStack.current.length - 1])
                     : '';
             try {
-                const results: TiledSearchResult = await getTiledSearch(
-                    currentPath,
-                    {
-                        searchFilters: { specs: { include: [spec], exclude: [] } },
-                        searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
-                    },
-                    { baseUrl: url, initialPath: initialSearchPath },
-                );
+                const results: TiledSearchResult = await searchTiled(currentPath, {
+                    searchFilters: { specs: { include: [spec], exclude: [] } },
+                    searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+                });
                 if (results) {
                     //update the last column with the new search results
                     replaceLastColumnWithSingleSearchResult(results);
@@ -503,26 +524,18 @@ export const useTiled = ({
                 console.error('Error performing spec search:', error);
             }
         },
-        [initialSearchPath, pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, url],
+        [pageLimit, replaceLastColumnWithSingleSearchResult, reverseSort, searchTiled],
     );
 
     const initializeData = useCallback(async () => {
         //attempt to get data from base Tiled Url. Display error on UI if no data comes back
         let response = null;
-        const auth = getAuthFromLocalStorage();
-        if (auth) {
-            setDefaultBearerToken(auth.accessToken);
-        }
-        if (bearerToken) setDefaultBearerToken(bearerToken); //if there is both accessToken in localStorage and a bearerToken prop, the bearerToken prop takes precedence
-        if (apiKey) {
-            setGlobalApiKey(apiKey); //will add apiKey to ALL future requests, in testing there were issues with the cookies being sent after the intial apiKey call so this is done on each req
-        }
+        // Credentials (apiKey, bearerToken, stored session) live on the viewer's own client, which
+        // Tiled.tsx builds from props and hands down through TiledApiProvider.
         try {
-            response = await getTiledSearch(
-                searchPath || '',
-                { searchOptions: { sort: reverseSort ? '-' : '', pageLimit } },
-                { baseUrl: url, initialPath: initialSearchPath },
-            );
+            response = await searchTiled(searchPath || '', {
+                searchOptions: { sort: reverseSort ? '-' : '', pageLimit },
+            });
         } catch (error) {
             if (isTiledApiError(error) && error.status === 401) {
                 onAuthErrorRef.current?.();
@@ -540,7 +553,10 @@ export const useTiled = ({
                 'There was an error connecting to the Tiled server. Please check the console for more details.',
             );
         }
-    }, [apiKey, bearerToken, reverseSort, searchPath, url, initialSearchPath, pageLimit]);
+        // `url`, `apiKey` and `bearerToken` are not read here: they mean a new client (built in
+        // Tiled.tsx), which is a reason to reload from the root.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [apiKey, bearerToken, reverseSort, searchPath, url, pageLimit, searchTiled]);
 
     const reloadLastSearch = useCallback(
         (searchPath: string) => {
@@ -576,11 +592,9 @@ export const useTiled = ({
 
         //grab the search path after /search and before the query params
         const searchPath = newPageUrl.pathname.split('/search/')[1].split('?')[0];
-        void getTiledSearch(
-            searchPath,
-            { searchOptions: { pageOffset, pageLimit, sort: reverseSort ? '-' : '' } },
-            { baseUrl: url, initialPath: initialSearchPath },
-        )
+        void searchTiled(searchPath, {
+            searchOptions: { pageOffset, pageLimit, sort: reverseSort ? '-' : '' },
+        })
             .then((res: TiledSearchResult) => updateColumnWithNewPage(res, columnIndex))
             .catch(handleRequestError);
     };

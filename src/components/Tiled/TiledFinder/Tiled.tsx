@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import TiledContainer from './TiledContainer';
 import TiledFinderQueryBoundary from './TiledFinderQueryBoundary';
 import Login from './Login';
@@ -13,7 +13,7 @@ import {
     getApiKeyFromLocalStorage,
     getAuthFromLocalStorage,
 } from './utils';
-import { setDefaultAuthErrorCallback, setDefaultInitialPath } from '@/api/tiled';
+import { TiledApiClient, TiledApiProvider, getDefaultTiledApiClient } from '@/api/tiled';
 
 export type TiledProps = {
     /** Callback fired when a user selects an item, receives the item's selection data (links, structure, slice info, etc.). */
@@ -128,15 +128,24 @@ function TiledViewer({
     const [userInputReverseSort, setUserInputReverseSort] = useState<boolean>(reverseSort || false);
     const [showLogin, setShowLogin] = useState<boolean>(false);
 
-    //on 401 errors show the login component
-    setDefaultAuthErrorCallback((error) => {
-        console.error('Authentication error:', error);
-        setShowLogin(true);
-    });
-
-    if (initialPath) {
-        setDefaultInitialPath(initialPath);
-    }
+    // The viewer's own client, so its URL, credentials and initial path never leak into the app's
+    // default Tiled client (and the app's settings never leak into the viewer). Every request below
+    // resolves it through TiledApiProvider. A bearerToken prop takes precedence over a stored session.
+    const client = useMemo(
+        () =>
+            new TiledApiClient({
+                baseUrl: url || getDefaultTiledApiClient().getBaseUrl(),
+                apiKey: userInputApiKey || null,
+                bearerToken: bearerToken || getAuthFromLocalStorage()?.accessToken || null,
+                initialPath,
+                //on auth failures the client cannot recover from (e.g. a failed token refresh) show the login component
+                onAuthError: (error) => {
+                    console.error('Authentication error:', error);
+                    setShowLogin(true);
+                },
+            }),
+        [url, userInputApiKey, bearerToken, initialPath],
+    );
 
     const handleLoginSuccess = useCallback(() => {
         setShowLogin(false);
@@ -206,7 +215,7 @@ function TiledViewer({
 
     if (!isClosed) {
         return (
-            <>
+            <TiledApiProvider client={client}>
                 {isButtonMode && (
                     <OpenTiledRow
                         userInputApiKey={userInputApiKey}
@@ -293,7 +302,7 @@ function TiledViewer({
                         </div>
                     </div>
                 )}
-            </>
+            </TiledApiProvider>
         );
     }
 }
