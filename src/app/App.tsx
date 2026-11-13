@@ -1,5 +1,4 @@
 import './App.css';
-import '@blueskyproject/tiled/style.css';
 
 import { FinchConfigProvider } from './FinchConfigProvider';
 import AboutFinchPage from './pages/AboutFinchPage';

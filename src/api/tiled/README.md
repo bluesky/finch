@@ -443,14 +443,22 @@ what the validator on the other end checks against.
 One correction was made: `attributes.data_sources` is `unknown[] | null`, not `string | null`. The
 spec and the server both contradict the package, and nothing in this repo read the field.
 
-## `@blueskyproject/tiled` is still a dependency
+## The `<TiledFinder>` viewer
 
-For the `<Tiled>` **viewer component** and its CSS only — `src/components/Tiled/Tiled.tsx`,
-`src/features/TiledHeatmapSelector.tsx`, `src/app/App.tsx`.
+`@blueskyproject/tiled` is no longer a dependency. Its viewer component now lives in
+`src/components/Tiled/TiledFinder/` and calls this layer's free-function facade (`getTiledSearch`,
+`getTiledArrayAsJSON`, …) — there is one client and one singleton.
 
-That component keeps its own internal client and its own singleton, so `setGlobalTiledApiKey` here
-does **not** configure it. `Tiled.tsx` passes the URL and key as props from Finch config, which is the
-arrangement to keep. Login tokens _are_ shared, through the `localStorage` keys above.
+Two consequences while the viewer still uses the facade rather than the hooks:
+
+- **It writes to the default client.** On load it calls `setGlobalApiKey` / `setDefaultBearerToken`
+  and `setDefaultInitialPath`, so a key passed to `<TiledFinder>` also reaches every other Tiled hook
+  in the app. It sends its `tiledBaseUrl` per call, so the default client's URL is left alone.
+- **It routes 401s to its login screen itself.** Because of that per-call `baseUrl`, the client's
+  refresh-then-`onAuthError` path does not run for the viewer's requests; `useTiled` checks for
+  `TiledApiError` with status 401 instead.
+
+Moving the viewer onto the TanStack hooks with its own `TiledApiProvider` removes both.
 
 ## Completeness is checked, not claimed
 

@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import TiledFinder from '../components/Tiled/Tiled';
-import '@blueskyproject/tiled/style.css'; // Import the Tiled styles
 
 const meta = {
     title: 'Bluesky Components/TiledFinder',
