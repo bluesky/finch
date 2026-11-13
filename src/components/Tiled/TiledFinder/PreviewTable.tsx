@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { keepPreviousData } from '@tanstack/react-query';
 import { TiledSearchItem, TableStructure, TiledTableRow } from './types';
-import { getTiledTablePartitionAsJSONSequence } from '@/api/tiled';
+import { useTiledTablePartitionAsJSONSequenceQuery } from '@/api/tiled';
 import { generateSearchPath } from './utils';
 import InputSliderRange from './ui/InputSliderRange';
 import VisxLinePlot from './VisxLinePlot/VisxLinePlot';
@@ -13,10 +14,8 @@ type PreviewTableProps = {
 };
 
 export default function PreviewTable({ tableItem, url }: PreviewTableProps) {
-    const [tableData, setTableData] = useState<TiledTableRow[]>([]);
     const [visibleData, setVisibleData] = useState<TiledTableRow[]>([]);
     const [partition, setPartition] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [domain, setDomain] = useState<[number, number] | undefined>(undefined);
 
     const observerRef = useRef<HTMLDivElement | null>(null);
@@ -26,41 +25,41 @@ export default function PreviewTable({ tableItem, url }: PreviewTableProps) {
     const searchPath = useMemo(() => generateSearchPath(tableItem), [tableItem]);
     const rowLoadSize = 20;
 
-    const columns = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+    // A different table starts again at its first partition.
+    useEffect(() => {
+        setPartition(0);
+    }, [searchPath]);
 
-    const updateTable = (newTableData: TiledTableRow[]) => {
-        setTableData(newTableData);
-        setVisibleData(newTableData.slice(0, rowLoadSize));
-        setIsLoading(false);
-        setDomain([0, newTableData.length - 1]);
-    };
-
-    const handlePartitionChange = useCallback(
-        (newValue: number) => {
-            setIsLoading(true);
-            getTiledTablePartitionAsJSONSequence(searchPath, {
-                partition: newValue,
-                ...(url ? { baseUrl: url } : {}),
-            })
-                .then(updateTable)
-                .catch(console.error);
-            setPartition(newValue);
-        },
-        [searchPath, url],
+    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
+    const { data, isPending, isPlaceholderData, error } = useTiledTablePartitionAsJSONSequenceQuery<
+        TiledTableRow[]
+    >(
+        searchPath,
+        { partition },
+        // Keep the current partition on screen (dimmed) while the next one loads.
+        { placeholderData: keepPreviousData },
+        requestOptions,
     );
+    const tableData = useMemo(() => data ?? [], [data]);
+    const isLoading = isPending || isPlaceholderData;
+
+    useEffect(() => {
+        if (error) console.error(error);
+    }, [error]);
 
     useEffect(() => {
         if (tableContainerRef.current) {
             tableContainerRef.current.scrollTop = 0;
         }
-        setPartition(0);
-        getTiledTablePartitionAsJSONSequence(searchPath, {
-            partition: 0,
-            ...(url ? { baseUrl: url } : {}),
-        })
-            .then(updateTable)
-            .catch(console.error);
-    }, [tableItem, searchPath, url]);
+        setVisibleData(tableData.slice(0, rowLoadSize));
+        setDomain(tableData.length > 0 ? [0, tableData.length - 1] : undefined);
+    }, [tableData]);
+
+    const columns = tableData.length > 0 ? Object.keys(tableData[0]) : [];
+
+    const handlePartitionChange = useCallback((newValue: number) => {
+        setPartition(newValue);
+    }, []);
 
     const loadMoreRows = useCallback(() => {
         setVisibleData((prev) => {

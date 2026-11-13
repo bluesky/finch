@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { TiledSearchItem, XArrayStructure, TiledTableRow } from './types';
-import { getTiledArrayAsJSON } from '@/api/tiled';
+import { useTiledArrayAsJSONQuery } from '@/api/tiled';
 import { generateSearchPath } from './utils';
 import Table from './Table';
 
@@ -10,9 +10,7 @@ type PreviewXArrayProps = {
 };
 
 export default function PreviewXArray({ xarrayItem, url }: PreviewXArrayProps) {
-    const [xarrayData, setXarrayData] = useState<number[][]>([]);
     const [visibleData, setVisibleData] = useState<TiledTableRow[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     const observerRef = useRef<HTMLDivElement | null>(null);
     const tableContainerRef = useRef<HTMLDivElement | null>(null);
@@ -67,34 +65,36 @@ export default function PreviewXArray({ xarrayItem, url }: PreviewXArrayProps) {
         [dims],
     );
 
-    const updateXArray = useCallback(
-        (newXArrayData: number[][]) => {
-            setXarrayData(newXArrayData);
-            const tableData = convertToTableFormat(newXArrayData);
-            setVisibleData(tableData.slice(0, rowLoadSize));
-            setIsLoading(false);
-        },
-        [convertToTableFormat, rowLoadSize],
+    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
+    const {
+        data: xarrayData,
+        isPending: isLoading,
+        error,
+    } = useTiledArrayAsJSONQuery<number[][]>(searchPath, undefined, undefined, requestOptions);
+
+    useEffect(() => {
+        if (error) console.error(error);
+    }, [error]);
+
+    const tableData = useMemo(
+        () => (xarrayData ? convertToTableFormat(xarrayData) : []),
+        [xarrayData, convertToTableFormat],
     );
 
+    // New data (a different item, or a cache hit): start from the top with the first page of rows.
     useEffect(() => {
         if (tableContainerRef.current) {
             tableContainerRef.current.scrollTop = 0;
         }
-        getTiledArrayAsJSON<number[][]>(searchPath, {
-            ...(url ? { baseUrl: url } : {}),
-        })
-            .then(updateXArray)
-            .catch(console.error);
-    }, [xarrayItem, searchPath, url, updateXArray]);
+        setVisibleData(tableData.slice(0, rowLoadSize));
+    }, [tableData, rowLoadSize]);
 
     const loadMoreRows = useCallback(() => {
-        const tableData = convertToTableFormat(xarrayData);
         setVisibleData((prev) => {
             const nextRows = tableData.slice(prev.length, prev.length + rowLoadSize);
             return [...prev, ...nextRows];
         });
-    }, [xarrayData, convertToTableFormat, rowLoadSize]);
+    }, [tableData, rowLoadSize]);
 
     useEffect(() => {
         if (!observerRef.current) return;

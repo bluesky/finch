@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 import Button from './ui/Button';
-import { getTiledServerInfo } from '@/api/tiled';
+import { useTiledServerInfoQuery } from '@/api/tiled';
 
 type StartupScreenProps = {
     url: string | undefined;
@@ -16,17 +16,43 @@ export default function StartupScreen({
 }: StartupScreenProps) {
     const [warning, setWarning] = useState<JSX.Element | null>(null);
 
-    const testTiledConnection = async (url: string | undefined) => {
+    // The URL most recently submitted for testing; `null` until the user submits.
+    const [probeUrl, setProbeUrl] = useState<string | null>(null);
+    const requestOptions = useMemo(
+        () => (probeUrl ? { baseUrl: probeUrl } : undefined),
+        [probeUrl],
+    );
+    // Resolves `null` rather than rejecting when the server cannot be reached.
+    const { data, isSuccess, isFetching, dataUpdatedAt, refetch } = useTiledServerInfoQuery(
+        { enabled: probeUrl !== null, staleTime: 0 },
+        requestOptions,
+    );
+
+    const testTiledConnection = (url: string | undefined) => {
         //ping the tiled server at the url and check if we get a response.
-        const res = await getTiledServerInfo({ baseUrl: url });
-        if (res) {
+        const next = url ?? '';
+        if (next === probeUrl) {
+            void refetch();
+        } else {
+            setProbeUrl(next);
+        }
+    };
+
+    // Act once per completed probe, not on every render.
+    const handledProbe = useRef<number | null>(null);
+    useEffect(() => {
+        if (probeUrl === null || !isSuccess || isFetching) return;
+        if (handledProbe.current === dataUpdatedAt) return;
+        handledProbe.current = dataUpdatedAt;
+
+        if (data) {
             handleSubmit();
         } else {
             setWarning(
                 <p className="px-8">
                     Did not receive a valid response from{' '}
                     <b>
-                        <i>{url}</i>
+                        <i>{probeUrl}</i>
                     </b>
                     , please verify your Tiled server can be reached from this path. The most common
                     issue is CORS restrictions, which need to be set during Tiled server
@@ -34,7 +60,7 @@ export default function StartupScreen({
                 </p>,
             );
         }
-    };
+    }, [probeUrl, isSuccess, isFetching, dataUpdatedAt, data, handleSubmit]);
 
     const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 
 import Button from './ui/Button';
-import { loginWithDefaultTiledClient } from '@/api/tiled';
+import { useTiledLoginMutation } from '@/api/tiled';
 import { TiledAuthProvider } from './types';
 export type LoginUsernamePasswordProps = {
     onSuccess: () => void;
@@ -21,9 +21,18 @@ export default function LoginUsernamePassword({
     const [password, setPassword] = useState<string>('');
     const passwordRef = useRef<HTMLInputElement>(null);
 
+    // On success this also invalidates every cached Tiled query, since what the user can see changes
+    // with their identity.
+    const { mutateAsync: login, isPending } = useTiledLoginMutation();
+
     const attemptLogin = useCallback(async () => {
+        if (isPending) return;
         setWarning(null);
-        const result = await loginWithDefaultTiledClient(username, password, url, provider);
+        // Resolves `null` on bad credentials; a rejection (network, server error) is treated the same.
+        const result = await login({ username, password, url, provider }).catch((error) => {
+            console.error(error);
+            return null;
+        });
         if (result) {
             onSuccess();
         } else {
@@ -34,7 +43,7 @@ export default function LoginUsernamePassword({
                 passwordRef.current.select();
             }
         }
-    }, [username, password, onSuccess, provider, url, setWarning]);
+    }, [username, password, onSuccess, provider, url, setWarning, login, isPending]);
     return (
         <section className="flex flex-col items-center space-y-8 mt-8 flex-shrink-0">
             <h2 className="text-slate-700 font-light text-lg">Please login to access Tiled</h2>
@@ -59,7 +68,11 @@ export default function LoginUsernamePassword({
                 }}
             />
             <span className="flex items-center space-x-4">
-                <Button cb={attemptLogin} text="Login" disabled={!username || !password} />
+                <Button
+                    cb={attemptLogin}
+                    text="Login"
+                    disabled={!username || !password || isPending}
+                />
                 <Button isSecondary={true} cb={handleCancel} text="Cancel" />
             </span>
         </section>

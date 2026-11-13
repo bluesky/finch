@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import TiledContainer from './TiledContainer';
+import TiledFinderQueryBoundary from './TiledFinderQueryBoundary';
 import Login from './Login';
 import StartupScreen from './StartupScreen';
 import OpenTiledRow from './OpenTiledRow';
@@ -72,7 +73,19 @@ export type TiledProps = {
     /**Applies additoinal CSS classes to the button when in button mode only */
     buttonClassName?: string;
 };
-export default function Tiled({
+/**
+ * The Tiled data browser. Uses the app's `QueryClientProvider` when there is one, and a private
+ * client otherwise, so it works both inside a Finch app and dropped into a page on its own.
+ */
+export default function Tiled(props: TiledProps) {
+    return (
+        <TiledFinderQueryBoundary>
+            <TiledViewer {...props} />
+        </TiledFinderQueryBoundary>
+    );
+}
+
+function TiledViewer({
     onSelectCallback,
     apiKey,
     bearerToken,

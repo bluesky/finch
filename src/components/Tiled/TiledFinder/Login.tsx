@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 
 import TiledHeader from './TiledHeader';
 import LoginUsernamePassword from './LoginUsernamePassword';
@@ -8,7 +8,7 @@ import LoginHelp from './LoginHelp';
 
 import { Warning } from '@phosphor-icons/react';
 
-import { getTiledServerInfo } from '@/api/tiled';
+import { useTiledServerInfoQuery } from '@/api/tiled';
 import { TiledAuthProvider, TiledInfoResponse } from './types';
 
 export type LoginProps = {
@@ -18,27 +18,21 @@ export type LoginProps = {
 };
 export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
     const [warning, setWarning] = useState<string | null>(null);
-    const [serverInfo, setServerInfo] = useState<TiledInfoResponse | null>(null);
     const [selectedProvider, setSelectedProvider] = useState<TiledAuthProvider | null>(null);
 
-    useEffect(() => {
-        const fetchServerInfo = async () => {
-            const info = await getTiledServerInfo({ baseUrl: url });
-            if (info !== null) {
-                setServerInfo(info as TiledInfoResponse);
-                setWarning(null);
-            } else {
-                //unlikely to occur because we should only render the login component if we previously reached the server (and it responded with a 401)
-                setWarning(
-                    'Could not fetch server info on public route. Please ensure the Tiled server is running and accessible.',
-                );
+    const requestOptions = useMemo(() => ({ baseUrl: url }), [url]);
+    // Resolves `null` rather than rejecting when the server cannot be reached.
+    const { data, isSuccess } = useTiledServerInfoQuery(undefined, requestOptions);
+    const serverInfo = (data ?? null) as TiledInfoResponse | null;
 
-                //it is also possible that there is a cookie on the client with and invalid session causing continued 401 errors
-                //this needs further testing but should be resolved here only when we get a 401 error
-            }
-        };
-        fetchServerInfo();
-    }, [url]);
+    //unlikely to occur because we should only render the login component if we previously reached the server (and it responded with a 401)
+    //it is also possible that there is a cookie on the client with and invalid session causing continued 401 errors
+    //this needs further testing but should be resolved here only when we get a 401 error
+    const serverInfoWarning =
+        isSuccess && data === null
+            ? 'Could not fetch server info on public route. Please ensure the Tiled server is running and accessible.'
+            : null;
+    const displayedWarning = warning ?? serverInfoWarning;
 
     return (
         <div className="w-full h-full bg-white flex flex-col items-center overflow-auto">
@@ -72,10 +66,10 @@ export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
                     provider={selectedProvider}
                 />
             )}
-            {warning && (
+            {displayedWarning && (
                 <section className="flex items-center max-w-72 m-auto space-x-4 my-4 flex-shrink-0">
                     <Warning className="text-red-700 flex-shrink-0" size={32} />
-                    <p className="text-red-700 text-left text-sm">{warning}</p>
+                    <p className="text-red-700 text-left text-sm">{displayedWarning}</p>
                 </section>
             )}
             <LoginHelp serverInfo={serverInfo} />

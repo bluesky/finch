@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { keepPreviousData } from '@tanstack/react-query';
 import InputSlider from './ui/InputSlider';
 import Button from './ui/Button';
 import { TiledSearchItem, ArrayStructure, Slider } from './types';
 import { generateSearchPath, onPopoutClick, createSliders, detectRGBInfo } from './utils';
-import { getTiledArrayAsPng, getTiledArrayAsImagePath } from '@/api/tiled';
+import { useTiledArrayAsPngQuery, useTiledArrayImagePath } from '@/api/tiled';
 import { ArrowUpRight, PaletteIcon } from '@phosphor-icons/react';
 
 type PreviewNDArrayProps = {
@@ -20,9 +21,9 @@ export default function PreviewNDArray({
     handleSelectClick,
 }: PreviewNDArrayProps) {
     const [sliders, setSliders] = useState<Slider[]>([]);
-    const [imageUrl, setImageUrl] = useState('');
-    const [popoutUrl, setPopoutUrl] = useState('');
-    const [isLoading, setIsLoading] = useState(true);
+    // The selected frame, tagged with the item/mode it was chosen for. Reading it through `frameKey`
+    // means a stale stack from the previous item is never requested against the new one.
+    const [frame, setFrame] = useState<{ key: string; stack: number[] } | null>(null);
     const [userToggledRGB, setUserToggledRGB] = useState(false);
 
     const shape = arrayItem.attributes.structure.shape;
@@ -33,10 +34,15 @@ export default function PreviewNDArray({
     // For channelFirst arrays ([3, H, W, ...]) the first dim is channel — skip it for sliders
     const shapeForSliders = rgbInfo.channelFirst ? shape.slice(1) : shape;
 
+    const searchPath = generateSearchPath(arrayItem);
+    const frameKey = `${searchPath}|${sliderCount}|${rgbInfo.channelFirst}`;
+    const stack = frame?.key === frameKey ? frame.stack : null;
+
     const handleSliderChange = (newValue: number, slider: Slider) => {
-        const stack = sliders.map((slider) => slider.value);
-        stack[slider.index] = newValue;
-        updateImage(stack);
+        if (!stack) return;
+        const next = [...stack];
+        next[slider.index] = newValue;
+        setFrame({ key: frameKey, stack: next });
         setSliders((prevState) => {
             const newState = [...prevState];
             newState[slider.index].value = newValue;
@@ -44,46 +50,67 @@ export default function PreviewNDArray({
         });
     };
 
-    const searchPath = generateSearchPath(arrayItem);
-
-    const updateImage = useCallback(
-        async (stack?: number[]) => {
-            setIsLoading(true);
-            const requestOptions = {
-                stack,
-                arrayItem,
-                ...(url ? { baseUrl: url } : {}),
-                ...(rgbInfo.isRGB ? { isRGB: true } : {}),
-                ...(rgbInfo.channelFirst ? { channelFirst: true } : {}),
-            };
-
-            const blob = await getTiledArrayAsPng(searchPath, requestOptions);
-            setImageUrl(URL.createObjectURL(blob));
-            setIsLoading(false);
-
-            const fullSizeImagePath = getTiledArrayAsImagePath(searchPath, {
-                stack,
-                ...(url ? { baseUrl: url } : {}),
-                ...(rgbInfo.isRGB ? { isRGB: true } : {}),
-                ...(rgbInfo.channelFirst ? { channelFirst: true } : {}),
-            });
-            setPopoutUrl(fullSizeImagePath);
-        },
-        [arrayItem, searchPath, url, rgbInfo.isRGB, rgbInfo.channelFirst],
+    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
+    const imageOptions = useMemo(
+        () => ({
+            stack: stack ?? undefined,
+            ...(rgbInfo.isRGB ? { isRGB: true } : {}),
+            ...(rgbInfo.channelFirst ? { channelFirst: true } : {}),
+        }),
+        [stack, rgbInfo.isRGB, rgbInfo.channelFirst],
     );
+
+    const {
+        data: blob,
+        isPending,
+        isPlaceholderData,
+        error,
+    } = useTiledArrayAsPngQuery(
+        searchPath,
+        // `arrayItem` lets the client downsample large frames; it is not part of the cache key.
+        { ...imageOptions, arrayItem },
+        // Keep the previous frame up (under the spinner) while the next one loads.
+        { enabled: stack !== null, placeholderData: keepPreviousData },
+        requestOptions,
+    );
+    const isLoading = (isPending && !error) || isPlaceholderData;
+    const imagePath = useTiledArrayImagePath(searchPath, imageOptions, requestOptions);
+    // Without a stack the URL would ask for the whole N-D array, so only offer it once a frame is set.
+    const popoutUrl = stack ? imagePath : '';
+
+    useEffect(() => {
+        if (error) console.error(error);
+    }, [error]);
+
+    // One object URL per blob, released when the blob changes or the preview unmounts.
+    const [imageUrl, setImageUrl] = useState('');
+    useEffect(() => {
+        if (!blob) {
+            setImageUrl('');
+            return;
+        }
+        const objectUrl = URL.createObjectURL(blob);
+        setImageUrl(objectUrl);
+        return () => URL.revokeObjectURL(objectUrl);
+    }, [blob]);
 
     // Reset toggle when the viewed item changes
     useEffect(() => {
         setUserToggledRGB(false);
     }, [arrayItem]);
 
+    // Start each item (or RGB mode, which changes the slider count) on its middle frame.
     useEffect(() => {
         if (!arrayItem) return;
 
-        const stack = shapeForSliders.slice(0, sliderCount).map((dim) => Math.floor(dim / 2));
         setSliders(createSliders(sliderCount, shapeForSliders));
-        updateImage(stack);
-    }, [arrayItem, sliderCount, shapeForSliders, updateImage]);
+        setFrame({
+            key: frameKey,
+            stack: shapeForSliders.slice(0, sliderCount).map((dim) => Math.floor(dim / 2)),
+        });
+        // `shapeForSliders` is a fresh array each render; `frameKey` already captures what matters.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [arrayItem, frameKey]);
 
     return (
         <>

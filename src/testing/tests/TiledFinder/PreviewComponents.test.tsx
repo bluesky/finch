@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import type { ReactElement } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TiledApiProvider, type TiledClientLike } from '@/api/tiled';
 import { setupServer } from 'msw/node';
 import { detectRGBInfo } from '@/components/Tiled/TiledFinder/utils';
 
@@ -24,13 +27,28 @@ import {
     TiledStructuredArrayData,
 } from '@/components/Tiled/TiledFinder/types';
 
-// Mock the new API client functions
-vi.mock('@/api/tiled', () => ({
-    getTiledArrayAsPng: vi.fn().mockResolvedValue(new Blob(['mock-image'], { type: 'image/png' })),
-    getTiledArrayAsImagePath: vi.fn().mockReturnValue('http://mock-url/image.png'),
-    getTiledTablePartitionAsJSONSequence: vi.fn(),
-    getTiledArrayAsJSON: vi.fn(),
-}));
+// The previews read through Finch's Tiled hooks, so the test injects a fake client through
+// TiledApiProvider (the hooks' injection seam) rather than mocking module exports. Methods the
+// previews never call are filled in by the provider and throw if reached.
+const fakeClient = {
+    getArrayAsPng: vi.fn(),
+    getArrayAsImagePath: vi.fn(),
+    getTablePartitionAsJSONSequence: vi.fn(),
+    getArrayAsJSON: vi.fn(),
+};
+
+function renderWithClient(ui: ReactElement) {
+    const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+    return render(
+        <QueryClientProvider client={queryClient}>
+            <TiledApiProvider client={fakeClient as unknown as TiledClientLike}>
+                {ui}
+            </TiledApiProvider>
+        </QueryClientProvider>,
+    );
+}
 
 // Mock utils functions
 vi.mock('@/components/Tiled/TiledFinder/utils', async (importOriginal) => {
@@ -49,6 +67,11 @@ const server = setupServer();
 // Start server before all tests
 beforeEach(() => {
     server.listen({ onUnhandledRequest: 'error' });
+
+    fakeClient.getArrayAsPng.mockResolvedValue(new Blob(['mock-image'], { type: 'image/png' }));
+    fakeClient.getArrayAsImagePath.mockReturnValue('http://mock-url/image.png');
+    fakeClient.getTablePartitionAsJSONSequence.mockResolvedValue([]);
+    fakeClient.getArrayAsJSON.mockResolvedValue([]);
 
     // jsdom doesn't implement URL.createObjectURL
     global.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url');
@@ -317,7 +340,7 @@ describe('Preview Components', () => {
 
     describe('PreviewNDArray Component', () => {
         it('should render array item with title and image container', async () => {
-            render(<PreviewNDArray arrayItem={mockArrayItem} />);
+            renderWithClient(<PreviewNDArray arrayItem={mockArrayItem} />);
 
             await waitFor(() => {
                 expect(screen.getByText('test-array')).toBeInTheDocument();
@@ -344,7 +367,7 @@ describe('Preview Components', () => {
                 },
             };
 
-            render(<PreviewNDArray arrayItem={threeDArray} />);
+            renderWithClient(<PreviewNDArray arrayItem={threeDArray} />);
 
             await waitFor(() => {
                 expect(screen.getByText('test-array')).toBeInTheDocument();
@@ -356,7 +379,7 @@ describe('Preview Components', () => {
         });
 
         it('should handle isFullWidth prop', async () => {
-            render(<PreviewNDArray arrayItem={mockArrayItem} isFullWidth={true} />);
+            renderWithClient(<PreviewNDArray arrayItem={mockArrayItem} isFullWidth={true} />);
 
             await waitFor(() => {
                 expect(screen.getByText('test-array')).toBeInTheDocument();
@@ -364,7 +387,9 @@ describe('Preview Components', () => {
         });
 
         it('should handle custom URL prop', async () => {
-            render(<PreviewNDArray arrayItem={mockArrayItem} url="https://custom-url.com" />);
+            renderWithClient(
+                <PreviewNDArray arrayItem={mockArrayItem} url="https://custom-url.com" />,
+            );
 
             await waitFor(() => {
                 expect(screen.getByText('test-array')).toBeInTheDocument();
@@ -374,7 +399,7 @@ describe('Preview Components', () => {
 
     describe('PreviewAwkward Component', () => {
         it('should render awkward item with placeholder message', () => {
-            render(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
+            renderWithClient(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
 
             expect(screen.getByText(/You've clicked an awkward item!/)).toBeInTheDocument();
             expect(screen.getByText(/We don't have a preview for this yet/)).toBeInTheDocument();
@@ -382,7 +407,7 @@ describe('Preview Components', () => {
         });
 
         it('should handle custom URL prop', () => {
-            render(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
+            renderWithClient(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
 
             expect(screen.getByText('Awkward item ID: test-awkward')).toBeInTheDocument();
         });
@@ -390,7 +415,7 @@ describe('Preview Components', () => {
 
     describe('PreviewSparse Component', () => {
         it('should render sparse item with placeholder message', () => {
-            render(<PreviewSparse sparseItem={mockSparseItem} />);
+            renderWithClient(<PreviewSparse sparseItem={mockSparseItem} />);
 
             expect(screen.getByText(/You've clicked a sparse item!/)).toBeInTheDocument();
             expect(screen.getByText(/We don't have a preview for this yet/)).toBeInTheDocument();
@@ -398,7 +423,7 @@ describe('Preview Components', () => {
         });
 
         it('should handle custom URL prop', () => {
-            render(<PreviewSparse sparseItem={mockSparseItem} />);
+            renderWithClient(<PreviewSparse sparseItem={mockSparseItem} />);
 
             expect(screen.getByText('Sparse item ID: test-sparse')).toBeInTheDocument();
         });
@@ -406,12 +431,13 @@ describe('Preview Components', () => {
 
     describe('PreviewStructuredArray Component', () => {
         beforeEach(async () => {
-            const { getTiledArrayAsJSON } = await import('@/api/tiled');
-            vi.mocked(getTiledArrayAsJSON).mockResolvedValue(mockStructuredArrayData);
+            fakeClient.getArrayAsJSON.mockResolvedValue(mockStructuredArrayData);
         });
 
         it('should render structured array item with table', async () => {
-            render(<PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />);
+            renderWithClient(
+                <PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />,
+            );
 
             expect(screen.getByText('test-structured-array')).toBeInTheDocument();
 
@@ -422,16 +448,17 @@ describe('Preview Components', () => {
         });
 
         it('should show loading state initially', async () => {
-            const { getTiledArrayAsJSON } = await import('@/api/tiled');
-            vi.mocked(getTiledArrayAsJSON).mockReturnValue(new Promise(() => {})); // Never resolves
+            fakeClient.getArrayAsJSON.mockReturnValue(new Promise(() => {})); // Never resolves
 
-            render(<PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />);
+            renderWithClient(
+                <PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />,
+            );
 
             expect(screen.getByText('test-structured-array')).toBeInTheDocument();
         });
 
         it('should handle custom URL prop', async () => {
-            render(
+            renderWithClient(
                 <PreviewStructuredArray
                     structuredArrayItem={mockStructuredArrayItem}
                     url="https://custom-url.com"
@@ -446,12 +473,11 @@ describe('Preview Components', () => {
 
     describe('PreviewTable Component', () => {
         beforeEach(async () => {
-            const { getTiledTablePartitionAsJSONSequence } = await import('@/api/tiled');
-            vi.mocked(getTiledTablePartitionAsJSONSequence).mockResolvedValue(mockTableData);
+            fakeClient.getTablePartitionAsJSONSequence.mockResolvedValue(mockTableData);
         });
 
         it('should render table item with data', async () => {
-            render(<PreviewTable tableItem={mockTableItem} />);
+            renderWithClient(<PreviewTable tableItem={mockTableItem} />);
 
             // Table title appears immediately; plot title appears after data loads
             await waitFor(() => {
@@ -470,7 +496,7 @@ describe('Preview Components', () => {
         });
 
         it('should show partition selector when multiple partitions exist', async () => {
-            render(<PreviewTable tableItem={mockTableItem} />);
+            renderWithClient(<PreviewTable tableItem={mockTableItem} />);
 
             // Wait for component to render
             await waitFor(() => {
@@ -495,7 +521,7 @@ describe('Preview Components', () => {
                 },
             };
 
-            render(<PreviewTable tableItem={singlePartitionTable} />);
+            renderWithClient(<PreviewTable tableItem={singlePartitionTable} />);
 
             await waitFor(() => {
                 expect(screen.getAllByText('test-table')).toHaveLength(2);
@@ -506,7 +532,9 @@ describe('Preview Components', () => {
         });
 
         it('should handle custom URL prop', async () => {
-            render(<PreviewTable tableItem={mockTableItem} url="https://custom-url.com" />);
+            renderWithClient(
+                <PreviewTable tableItem={mockTableItem} url="https://custom-url.com" />,
+            );
 
             await waitFor(() => {
                 expect(screen.getAllByText('test-table')).toHaveLength(2);
@@ -516,15 +544,14 @@ describe('Preview Components', () => {
 
     describe('PreviewXArray Component', () => {
         beforeEach(async () => {
-            const { getTiledArrayAsJSON } = await import('@/api/tiled');
-            vi.mocked(getTiledArrayAsJSON).mockResolvedValue([
+            fakeClient.getArrayAsJSON.mockResolvedValue([
                 [1, 2],
                 [3, 4],
             ]);
         });
 
         it('should render xarray item with dimensions info', async () => {
-            render(<PreviewXArray xarrayItem={mockXArrayItem} />);
+            renderWithClient(<PreviewXArray xarrayItem={mockXArrayItem} />);
 
             expect(screen.getByText('test-xarray')).toBeInTheDocument();
             expect(screen.getByText(/Dimensions: x\(100\) × y\(100\)/)).toBeInTheDocument();
@@ -548,14 +575,16 @@ describe('Preview Components', () => {
                 },
             };
 
-            render(<PreviewXArray xarrayItem={oneDXArray} />);
+            renderWithClient(<PreviewXArray xarrayItem={oneDXArray} />);
 
             expect(screen.getByText('test-xarray')).toBeInTheDocument();
             expect(screen.getByText(/Dimensions: x\(100\)/)).toBeInTheDocument();
         });
 
         it('should handle custom URL prop', async () => {
-            render(<PreviewXArray xarrayItem={mockXArrayItem} url="https://custom-url.com" />);
+            renderWithClient(
+                <PreviewXArray xarrayItem={mockXArrayItem} url="https://custom-url.com" />,
+            );
 
             await waitFor(() => {
                 expect(screen.getByText('test-xarray')).toBeInTheDocument();
@@ -565,32 +594,31 @@ describe('Preview Components', () => {
 
     describe('Component Error Handling', () => {
         it('should handle API errors gracefully in PreviewTable', async () => {
-            const { getTiledTablePartitionAsJSONSequence } = await import('@/api/tiled');
-            vi.mocked(getTiledTablePartitionAsJSONSequence).mockRejectedValue(
+            fakeClient.getTablePartitionAsJSONSequence.mockRejectedValue(
                 new Error('Mock API error'),
             );
 
-            render(<PreviewTable tableItem={mockTableItem} />);
+            renderWithClient(<PreviewTable tableItem={mockTableItem} />);
 
             expect(screen.getByText('test-table')).toBeInTheDocument();
             // Component should still render even if API fails
         });
 
         it('should handle API errors gracefully in PreviewStructuredArray', async () => {
-            const { getTiledArrayAsJSON } = await import('@/api/tiled');
-            vi.mocked(getTiledArrayAsJSON).mockRejectedValue(new Error('Mock API error'));
+            fakeClient.getArrayAsJSON.mockRejectedValue(new Error('Mock API error'));
 
-            render(<PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />);
+            renderWithClient(
+                <PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />,
+            );
 
             expect(screen.getByText('test-structured-array')).toBeInTheDocument();
             // Component should still render even if API fails
         });
 
         it('should handle API errors gracefully in PreviewXArray', async () => {
-            const { getTiledArrayAsJSON } = await import('@/api/tiled');
-            vi.mocked(getTiledArrayAsJSON).mockRejectedValue(new Error('Mock API error'));
+            fakeClient.getArrayAsJSON.mockRejectedValue(new Error('Mock API error'));
 
-            render(<PreviewXArray xarrayItem={mockXArrayItem} />);
+            renderWithClient(<PreviewXArray xarrayItem={mockXArrayItem} />);
 
             expect(screen.getByText('test-xarray')).toBeInTheDocument();
             // Component should still render even if API fails
@@ -644,14 +672,16 @@ describe('Preview Components', () => {
 
         describe('PreviewNDArray RGB rendering', () => {
             it('shows palette toggle icon when last dim is 3 and no color_mode metadata', async () => {
-                render(<PreviewNDArray arrayItem={makeArrayItem([256, 256, 3])} />);
+                renderWithClient(<PreviewNDArray arrayItem={makeArrayItem([256, 256, 3])} />);
                 await waitFor(() => {
                     expect(screen.getByTitle('Change view to RGB')).toBeInTheDocument();
                 });
             });
 
             it('does not show palette icon when color_mode is RGB (auto mode)', async () => {
-                render(<PreviewNDArray arrayItem={makeArrayItem([256, 256, 3], 'RGB')} />);
+                renderWithClient(
+                    <PreviewNDArray arrayItem={makeArrayItem([256, 256, 3], 'RGB')} />,
+                );
                 await waitFor(() => {
                     expect(screen.getByText('test-array')).toBeInTheDocument();
                 });
@@ -659,7 +689,7 @@ describe('Preview Components', () => {
             });
 
             it('does not show palette icon for a normal 3D array without dim-3 last', async () => {
-                render(<PreviewNDArray arrayItem={makeArrayItem([10, 256, 256])} />);
+                renderWithClient(<PreviewNDArray arrayItem={makeArrayItem([10, 256, 256])} />);
                 await waitFor(() => {
                     expect(screen.getByText('test-array')).toBeInTheDocument();
                 });
@@ -667,7 +697,7 @@ describe('Preview Components', () => {
             });
 
             it('toggles palette icon active state on click', async () => {
-                render(<PreviewNDArray arrayItem={makeArrayItem([256, 256, 3])} />);
+                renderWithClient(<PreviewNDArray arrayItem={makeArrayItem([256, 256, 3])} />);
                 const icon = await screen.findByTitle('Change view to RGB');
                 expect(icon).not.toHaveClass('text-sky-600');
                 fireEvent.click(icon);
@@ -679,42 +709,43 @@ describe('Preview Components', () => {
     describe('Component Integration', () => {
         it('should handle missing optional props gracefully', async () => {
             // Test all components without optional URL prop
-            render(<PreviewNDArray arrayItem={mockArrayItem} />);
+            renderWithClient(<PreviewNDArray arrayItem={mockArrayItem} />);
             await waitFor(() => {
                 expect(screen.getByText('test-array')).toBeInTheDocument();
             });
 
-            render(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
+            renderWithClient(<PreviewAwkward awkwardItem={mockAwkwardItem} />);
             await waitFor(() => {
                 expect(screen.getByText(/Awkward item ID:/)).toBeInTheDocument();
             });
 
-            render(<PreviewSparse sparseItem={mockSparseItem} />);
+            renderWithClient(<PreviewSparse sparseItem={mockSparseItem} />);
             await waitFor(() => {
                 expect(screen.getByText(/Sparse item ID:/)).toBeInTheDocument();
             });
 
-            render(<PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />);
+            renderWithClient(
+                <PreviewStructuredArray structuredArrayItem={mockStructuredArrayItem} />,
+            );
             await waitFor(() => {
                 expect(screen.getByText('test-structured-array')).toBeInTheDocument();
             });
 
-            render(<PreviewTable tableItem={mockTableItem} />);
+            renderWithClient(<PreviewTable tableItem={mockTableItem} />);
             await waitFor(() => {
                 expect(screen.getByText('test-table')).toBeInTheDocument();
             });
 
-            render(<PreviewXArray xarrayItem={mockXArrayItem} />);
+            renderWithClient(<PreviewXArray xarrayItem={mockXArrayItem} />);
             await waitFor(() => {
                 expect(screen.getByText('test-xarray')).toBeInTheDocument();
             });
         });
 
         it('should handle empty data gracefully', async () => {
-            const { getTiledTablePartitionAsJSONSequence } = await import('@/api/tiled');
-            vi.mocked(getTiledTablePartitionAsJSONSequence).mockResolvedValue([]);
+            fakeClient.getTablePartitionAsJSONSequence.mockResolvedValue([]);
 
-            render(<PreviewTable tableItem={mockTableItem} />);
+            renderWithClient(<PreviewTable tableItem={mockTableItem} />);
 
             await waitFor(() => {
                 expect(screen.getByText('test-table')).toBeInTheDocument();

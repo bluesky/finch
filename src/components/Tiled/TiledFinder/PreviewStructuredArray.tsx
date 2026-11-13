@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { TiledSearchItem, StructuredArrayStructure, TiledStructuredArrayData } from './types';
-import { getTiledArrayAsJSON } from '@/api/tiled';
+import { useTiledArrayAsJSONQuery } from '@/api/tiled';
 import { generateSearchPath } from './utils';
 import InputSliderRange from './ui/InputSliderRange';
 import SelectInteger from './ui/SelectInteger';
@@ -15,10 +15,8 @@ export default function PreviewStructuredArray({
     structuredArrayItem,
     url,
 }: PreviewStructuredArrayProps) {
-    const [structuredArrayData, setStructuredArrayData] = useState<TiledStructuredArrayData>([]);
     const [visibleData, setVisibleData] = useState<TiledStructuredArrayData>([]);
     const [block, setBlock] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [domain, setDomain] = useState<[number, number] | undefined>(undefined);
 
     const observerRef = useRef<HTMLDivElement | null>(null);
@@ -39,37 +37,41 @@ export default function PreviewStructuredArray({
         (field) => field.name,
     );
 
-    const updateStructuredArray = (newStructuredArrayData: TiledStructuredArrayData) => {
-        setStructuredArrayData(newStructuredArrayData);
-        setVisibleData(newStructuredArrayData.slice(0, rowLoadSize));
-        setIsLoading(false);
-        setDomain([0, newStructuredArrayData.length - 1]);
-    };
+    // A different array starts again at its first block.
+    useEffect(() => {
+        setBlock(0);
+    }, [searchPath]);
 
-    const handleBlockChange = useCallback(
-        (newValue: number) => {
-            setIsLoading(true);
-            getTiledArrayAsJSON<TiledStructuredArrayData>(searchPath, {
-                ...(url ? { baseUrl: url } : {}),
-            })
-                .then(updateStructuredArray)
-                .catch(console.error);
-            setBlock(newValue);
-        },
-        [searchPath, url],
+    // `block` only drives the selector: the request is for the whole array either way, so it is not
+    // part of the query and changing it is served from cache.
+    const requestOptions = useMemo(() => (url ? { baseUrl: url } : undefined), [url]);
+    const {
+        data,
+        isPending: isLoading,
+        error,
+    } = useTiledArrayAsJSONQuery<TiledStructuredArrayData>(
+        searchPath,
+        undefined,
+        undefined,
+        requestOptions,
     );
+    const structuredArrayData = useMemo(() => data ?? [], [data]);
+
+    useEffect(() => {
+        if (error) console.error(error);
+    }, [error]);
 
     useEffect(() => {
         if (tableContainerRef.current) {
             tableContainerRef.current.scrollTop = 0;
         }
-        setBlock(0);
-        getTiledArrayAsJSON<TiledStructuredArrayData>(searchPath, {
-            ...(url ? { baseUrl: url } : {}),
-        })
-            .then(updateStructuredArray)
-            .catch(console.error);
-    }, [structuredArrayItem, searchPath, url]);
+        setVisibleData(structuredArrayData.slice(0, rowLoadSize));
+        setDomain(structuredArrayData.length > 0 ? [0, structuredArrayData.length - 1] : undefined);
+    }, [structuredArrayData]);
+
+    const handleBlockChange = useCallback((newValue: number) => {
+        setBlock(newValue);
+    }, []);
 
     const loadMoreRows = useCallback(() => {
         setVisibleData((prev) => {

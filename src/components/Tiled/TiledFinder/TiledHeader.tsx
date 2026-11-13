@@ -1,10 +1,8 @@
 import { Breadcrumb } from './types';
-import { getDefaultTiledApiClient } from '@/api/tiled';
+import { useTiledClient } from '@/api/tiled';
 import blueskyLogo from './bluesky_logo.png';
 import { CaretLeft, CaretRight, ArrowsIn, ArrowsOut } from '@phosphor-icons/react';
 import TiledSearchBar from './TiledSearchBar';
-
-const defaultUrl = getDefaultTiledApiClient().getBaseUrl();
 
 type TiledHeaderProps = {
     breadcrumbs?: Breadcrumb[];
@@ -29,7 +27,7 @@ export default function TiledHeader({
     onHomeClick,
     imageUrl = blueskyLogo,
     title = 'Tiled',
-    secondaryTitle = defaultUrl,
+    secondaryTitle,
     handleExpandClick,
     isExpanded,
     showExpandButton = true,
@@ -39,6 +37,12 @@ export default function TiledHeader({
     handleSearchSpec,
     ...props
 }: TiledHeaderProps) {
+    // Read at render time from the resolved client (provider or default), so the title follows config
+    // set after this module loaded.
+    const { client } = useTiledClient();
+    const displayedSecondaryTitle =
+        secondaryTitle ??
+        (typeof client.getBaseUrl === 'function' ? client.getBaseUrl() : undefined);
     type ArrowProps = {
         onClick?: () => void;
         icon: JSX.Element;
@@ -76,7 +80,7 @@ export default function TiledHeader({
                 <img src={imageUrl} className="w-16 h-auto" alt="Bluesky Logo" />
                 <div className="flex items-center gap-4">
                     <h2 className="text-sky-900 font-semibold text-lg">{title}</h2>
-                    <p className="text-sm">{secondaryTitle}</p>
+                    <p className="text-sm">{displayedSecondaryTitle}</p>
                 </div>
             </div>
             <div className="absolute top-0 right-0 mr-3 mt-3 h-10 items-center aspect-square  flex gap-2">
