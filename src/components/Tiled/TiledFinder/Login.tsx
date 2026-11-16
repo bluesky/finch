@@ -5,10 +5,11 @@ import LoginUsernamePassword from './LoginUsernamePassword';
 import LoginSelectProvider from './LoginSelectProvider';
 import LoginOIDC from './LoginOIDC';
 import LoginHelp from './LoginHelp';
+import TiledLoading from './TiledLoading';
 
 import { Warning } from '@phosphor-icons/react';
 
-import { useTiledServerInfoQuery } from '@/api/tiled';
+import { useTiledClient, useTiledServerInfoQuery } from '@/api/tiled';
 import { TiledAuthProvider, TiledInfoResponse } from './types';
 
 export type LoginProps = {
@@ -21,7 +22,8 @@ export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
     const [selectedProvider, setSelectedProvider] = useState<TiledAuthProvider | null>(null);
 
     // Resolves `null` rather than rejecting when the server cannot be reached.
-    const { data, isSuccess } = useTiledServerInfoQuery();
+    const { data, isSuccess, isPending } = useTiledServerInfoQuery();
+    const { client } = useTiledClient();
     const serverInfo = (data ?? null) as TiledInfoResponse | null;
 
     //unlikely to occur because we should only render the login component if we previously reached the server (and it responded with a 401)
@@ -42,7 +44,13 @@ export default function Login({ onSuccess, url, oidcRedirectUrl }: LoginProps) {
                 showExpandButton={false}
                 showSearchBar={false}
             />
-            {selectedProvider === null && (
+            {isPending && (
+                <TiledLoading
+                    message="Fetching login options"
+                    requestUrl={`${client.getBaseUrl()}/`}
+                />
+            )}
+            {!isPending && selectedProvider === null && (
                 <LoginSelectProvider
                     handleClick={setSelectedProvider}
                     providers={serverInfo?.authentication?.providers || []}

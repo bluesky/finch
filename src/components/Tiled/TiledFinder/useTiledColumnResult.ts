@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { keepPreviousData } from '@tanstack/react-query';
-import { useTiledMetadataQuery, useTiledSearchQuery, type TiledSearchConfig } from '@/api/tiled';
+import {
+    isTiledApiError,
+    resolveTiledPath,
+    useTiledClient,
+    useTiledMetadataQuery,
+    useTiledSearchQuery,
+    type TiledSearchConfig,
+} from '@/api/tiled';
 import type { TiledSearchItem, TiledSearchResult, TiledStructures } from './types';
 
 /**
@@ -43,6 +50,23 @@ export type TiledColumnResult = {
     result: TiledSearchResult | undefined;
     /** True while there is nothing to show yet, or while a new page/filter replaces old contents. */
     isLoading: boolean;
+    /** True only while there is nothing to show yet: the first response has not arrived. */
+    isFirstLoad: boolean;
+    /** The URL this column reads, without query parameters — for the loading message. */
+    requestUrl: string;
+    /** Failed attempts so far for the current request. */
+    failureCount: number;
+};
+
+/**
+ * Retry once, and only failures that might go away: network errors, timeouts and 5xx. A 4xx (401 most of all)
+ * is the server's answer, so it is surfaced at once — otherwise an app QueryClient's default of three
+ * retries with backoff holds the viewer on a spinner for several seconds before the login appears.
+ */
+const retryTransientFailures = (failureCount: number, error: unknown) => {
+    const status = isTiledApiError(error) ? error.status : undefined;
+    if (status !== undefined && status < 500) return false;
+    return failureCount < 1;
 };
 
 /**
@@ -64,9 +88,12 @@ export function useTiledColumnResult(
     const search = useTiledSearchQuery(
         isSearch ? request.path : '',
         isSearch ? request.config : undefined,
-        { enabled: isSearch, placeholderData: keepPreviousData },
+        { enabled: isSearch, placeholderData: keepPreviousData, retry: retryTransientFailures },
     );
-    const item = useTiledMetadataQuery(isSearch ? '' : request.path, { enabled: !isSearch });
+    const item = useTiledMetadataQuery(isSearch ? '' : request.path, {
+        enabled: !isSearch,
+        retry: retryTransientFailures,
+    });
 
     const result = useMemo(() => {
         if (isSearch) return search.data;
@@ -92,7 +119,12 @@ export function useTiledColumnResult(
         void refetchRef.current();
     }, [request.revision]);
 
+    const { client } = useTiledClient();
+    const resolvedPath = resolveTiledPath(request.path, client.getInitialPath());
+    const requestUrl = `${client.getBaseUrl()}/${isSearch ? 'search' : 'metadata'}/${resolvedPath}`;
+
     const failed = isSearch && search.isError;
-    const isLoading = (result === undefined && !failed) || (isSearch && search.isPlaceholderData);
-    return { result, isLoading };
+    const isFirstLoad = result === undefined && !failed;
+    const isLoading = isFirstLoad || (isSearch && search.isPlaceholderData);
+    return { result, isLoading, isFirstLoad, requestUrl, failureCount: active.failureCount };
 }

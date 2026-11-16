@@ -30,3 +30,5 @@ dist-ssr
 storybook-static
 
 src/app/pages/About.tsx
+# Session databases created by the Tiled auth configs when run from the repo root
+tiled_sessions*.db

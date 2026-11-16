@@ -20,7 +20,7 @@ It serves `http://localhost:8000/api/v1`. CORS allows the Vite dev server (`5173
 | `tiled_demo.yml` | Read-only browsing of generated example data, no login | — |
 | `tiled_api_key.yml` | Single-user API key auth over the example data | `TILED_SINGLE_USER_API_KEY` |
 | `tiled_username_password.yml` | Login with username and password (alice, bob, cara) | `ALICE_PASSWORD`, `BOB_PASSWORD`, `CARA_PASSWORD` |
-| `tiled_oidc.yml` | ORCID login | `ORCID_CLIENT_ID`, `ORCID_CLIENT_SECRET`, and `tiled.localhost` resolving to `127.0.0.1` |
+| `tiled_oidc.yml` | ORCID login (setup: [OIDC_SETUP.md](OIDC_SETUP.md)) | `ORCID_CLIENT_ID`, `ORCID_CLIENT_SECRET`, and `tiled.localhost` resolving to `127.0.0.1` |
 
 Only `tiled_dev.yml` serves a catalog. The other configs serve read-only example data, so they don't support writes, deep search, the graph or streaming.
 

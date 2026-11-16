@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 import Button from './ui/Button';
+import TiledLoading from './TiledLoading';
 import { useTiledServerInfoQuery } from '@/api/tiled';
 
 type StartupScreenProps = {
@@ -90,7 +91,17 @@ export default function StartupScreen({
                     cb={() => testTiledConnection(url)}
                 />
             </div>
-            <div className="h-1/2">{warning}</div>
+            <div className="h-1/2">
+                {probeUrl !== null && isFetching ? (
+                    <TiledLoading
+                        size="small"
+                        message="Checking the server"
+                        requestUrl={`${probeUrl.replace(/\/+$/, '')}/`}
+                    />
+                ) : (
+                    warning
+                )}
+            </div>
         </div>
     );
 }

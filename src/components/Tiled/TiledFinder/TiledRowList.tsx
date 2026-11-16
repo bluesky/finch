@@ -3,6 +3,7 @@ import { useTiledColumnResult, type TiledColumnRequest } from './useTiledColumnR
 import { isContainerStructure } from './types';
 import { TiledRowItem } from './TiledRowItem';
 import dayjs from 'dayjs';
+import TiledLoading from './TiledLoading';
 
 type TiledRowListProps = {
     /** One request per level; each level reads its own data through Finch's query hooks. */
@@ -37,7 +38,10 @@ function TiledRowLevel({
     depth,
 }: TiledRowListProps & { depth: number }) {
     const request = columns[depth];
-    const { result } = useTiledColumnResult(request, (error) => onError?.(request, error));
+    const { result, isFirstLoad, requestUrl, failureCount } = useTiledColumnResult(
+        request,
+        (error) => onError?.(request, error),
+    );
     const column = result ?? {
         data: [],
         links: { self: '', first: '', last: '', next: null, prev: null },
@@ -55,6 +59,20 @@ function TiledRowLevel({
     const endIndex = startIndex + column.data.length - 1;
     const nextLink = column.links.next ?? null;
     const prevLink = column.links.prev ?? null;
+
+    if (isFirstLoad) {
+        return (
+            <li className="list-none" style={{ paddingLeft: `${depth * 1.25}rem` }} aria-busy>
+                <TiledLoading
+                    size={depth === 0 ? 'large' : 'small'}
+                    message={depth === 0 ? 'Connecting to Tiled' : 'Loading'}
+                    requestUrl={requestUrl}
+                    failureCount={failureCount}
+                    className={depth === 0 ? 'py-16' : ''}
+                />
+            </li>
+        );
+    }
 
     return (
         <>

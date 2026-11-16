@@ -15,8 +15,8 @@ authentication:
       client_secret: ${ORCID_CLIENT_SECRET}
       well_known_uri: https://orcid.org/.well-known/openid-configuration
       confirmation_message: "You have logged in with ORCID as {id}."
-      redirect_on_success: https://seijdeleon.github.io/redirect/
-      redirect_on_failure: http://localhost:8000/docs
+      redirect_on_success: http://tiled.localhost:8000/ui/auth-callback
+      redirect_on_failure: http://tiled.localhost:8000/docs
 trees:
  # Just some arbitrary example data...
  # The point of this example is the authentication above.

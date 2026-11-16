@@ -3,6 +3,7 @@ import { useTiledColumnResult, type TiledColumnRequest } from './useTiledColumnR
 import { cn } from '@/lib/utils';
 import { TiledRowItem } from './TiledRowItem';
 import dayjs from 'dayjs';
+import TiledLoading from './TiledLoading';
 
 type TiledColumnProps = {
     /** What this column lists; it reads the data itself through Finch's query hooks. */
@@ -33,9 +34,35 @@ export function TiledColumn({
     showPlanName = true,
     showPlanStartTime = true,
 }: TiledColumnProps) {
-    const { result, isLoading } = useTiledColumnResult(request, (error) =>
-        onError?.(request, error),
+    const { result, isLoading, isFirstLoad, requestUrl, failureCount } = useTiledColumnResult(
+        request,
+        (error) => onError?.(request, error),
     );
+
+    // Nothing to show yet: say what is being fetched. The first column fills the body, so a slow or
+    // unreachable server is not just a blank viewer.
+    if (isFirstLoad) {
+        const isFirstColumn = index === 0;
+        return (
+            <div
+                className={cn(
+                    'flex border-r border-r-slate-300 px-4',
+                    isFirstColumn ? 'flex-grow' : 'min-w-56 w-fit max-w-xs pt-2',
+                    className,
+                )}
+                aria-busy
+            >
+                <TiledLoading
+                    size={isFirstColumn ? 'large' : 'small'}
+                    message={isFirstColumn ? 'Connecting to Tiled' : 'Loading'}
+                    requestUrl={requestUrl}
+                    failureCount={failureCount}
+                    className={isFirstColumn ? '' : 'justify-start'}
+                />
+            </div>
+        );
+    }
+
     const data = result?.data ?? [];
     const links = result?.links ?? { self: '', first: '', last: '', next: null, prev: null };
     const meta = result?.meta ?? { count: 0 };
