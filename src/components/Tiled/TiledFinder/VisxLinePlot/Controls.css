@@ -1,0 +1,22 @@
+.controls {
+  font-size: 13px;
+  line-height: 1.5em;
+}
+
+.controls > div {
+  margin-bottom: 4px;
+}
+
+label {
+  font-size: 12px;
+}
+
+input[type='radio'] {
+  height: 10px;
+}
+
+.pattern-lines {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}

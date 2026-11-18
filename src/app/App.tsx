@@ -1,5 +1,4 @@
 import './App.css';
-import '@blueskyproject/tiled/style.css';
 
 import { FinchConfigProvider } from './FinchConfigProvider';
 import AboutFinchPage from './pages/AboutFinchPage';
@@ -10,6 +9,7 @@ import Experiment from '@/components/Experiment/Experiment';
 import TestTiled from '@/components/TiledTest/TestTiled';
 import TiledWebsocket from '@/components/TiledWebsocket/TiledWebsocket';
 import TiledQueryPlayground from '@/components/TiledQueryPlayground/TiledQueryPlayground';
+import TiledFinderManualTest from '@/components/Tiled/TiledFinder/TiledFinderManualTest';
 
 import FinchAppLayout from '@/components/FinchAppLayout/FinchAppLayout';
 
@@ -38,7 +38,7 @@ function App() {
             classNameContainer: 'bg-slate-50',
         },
         {
-            // Four manual testbeds, as real nested routes rather than local state — so each has
+            // Five manual testbeds, as real nested routes rather than local state — so each has
             // its own url, back and forward work, and a reload keeps you where you were.
             path: '/test',
             label: 'Test',
@@ -88,6 +88,15 @@ function App() {
                     path: 'tiled-websocket',
                     label: 'Tiled WebSocket',
                     element: <TiledWebsocket />,
+                    isBackgroundTransparent: false,
+                    classNameContainer: 'h-auto min-h-full bg-slate-50 p-4 text-slate-800',
+                },
+                {
+                    // The TiledFinder viewer in each of its UI modes, with the command that starts
+                    // the Tiled server each one needs.
+                    path: 'tiled-finder',
+                    label: 'TiledFinder',
+                    element: <TiledFinderManualTest />,
                     isBackgroundTransparent: false,
                     classNameContainer: 'h-auto min-h-full bg-slate-50 p-4 text-slate-800',
                 },

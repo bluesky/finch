@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Tiled } from '@blueskyproject/tiled';
+import Tiled from '@/components/Tiled/TiledFinder/Tiled';
 import PlotlyHeatmapTiled from '@/components/PlotlyHeatmapTiled';
 
 export type TiledHeatmapSelectorProps = {

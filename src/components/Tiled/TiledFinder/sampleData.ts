@@ -1,0 +1,806 @@
+import { TiledSearchResult } from './types';
+
+export const sampleTiledSearchData: TiledSearchResult = {
+    data: [
+        {
+            id: 'big_image',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [
+                        [4096, 4096, 1808],
+                        [4096, 4096, 1808],
+                    ],
+                    shape: [10000, 10000],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/big_image',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/big_image',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/big_image?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'small_image',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[300], [300]],
+                    shape: [300, 300],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/small_image',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/small_image',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/small_image?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'medium_image',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[1000], [1000]],
+                    shape: [1000, 1000],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/medium_image',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/medium_image',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/medium_image?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'sparse_image',
+            attributes: {
+                ancestors: [],
+                structure_family: 'sparse',
+                specs: [],
+                metadata: {},
+                structure: {
+                    shape: [100, 100],
+                    chunks: [[100], [100]],
+                    dims: null,
+                    resizable: false,
+                    layout: 'COO',
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/sparse_image',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/sparse_image',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/sparse_image?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'awkward_array',
+            attributes: {
+                ancestors: [],
+                structure_family: 'awkward',
+                specs: [],
+                metadata: {},
+                structure: {
+                    length: 3,
+                    form: {
+                        class: 'ListOffsetArray',
+                        offsets: 'i64',
+                        content: {
+                            class: 'RecordArray',
+                            fields: ['x', 'y'],
+                            contents: [
+                                {
+                                    class: 'NumpyArray',
+                                    primitive: 'float64',
+                                    inner_shape: [],
+                                    parameters: {},
+                                    form_key: 'node2',
+                                },
+                                {
+                                    class: 'ListOffsetArray',
+                                    offsets: 'i64',
+                                    content: {
+                                        class: 'NumpyArray',
+                                        primitive: 'int64',
+                                        inner_shape: [],
+                                        parameters: {},
+                                        form_key: 'node4',
+                                    },
+                                    parameters: {},
+                                    form_key: 'node3',
+                                },
+                            ],
+                            parameters: {},
+                            form_key: 'node1',
+                        },
+                        parameters: {},
+                        form_key: 'node0',
+                    },
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/awkward_array',
+                buffers: 'http://127.0.0.1:8000/api/v1/awkward/buffers/awkward_array',
+                full: 'http://127.0.0.1:8000/api/v1/awkward/full/awkward_array',
+            },
+            meta: null,
+        },
+        {
+            id: 'tiny_image',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[50], [50]],
+                    shape: [50, 50],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/tiny_image',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/tiny_image',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/tiny_image?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'tiny_cube',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[50], [50], [50]],
+                    shape: [50, 50, 50],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/tiny_cube',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/tiny_cube',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/tiny_cube?block={0},{1},{2}',
+            },
+            meta: null,
+        },
+        {
+            id: 'tiny_hypercube',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [
+                        [27, 23],
+                        [27, 23],
+                        [27, 23],
+                        [27, 23],
+                        [27, 23],
+                    ],
+                    shape: [50, 50, 50, 50, 50],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/tiny_hypercube',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/tiny_hypercube',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/tiny_hypercube?block={0},{1},{2},{3},{4}',
+            },
+            meta: null,
+        },
+        {
+            id: 'short_table',
+            attributes: {
+                ancestors: [],
+                structure_family: 'table',
+                specs: [
+                    {
+                        name: 'dataframe',
+                        version: null,
+                    },
+                ],
+                metadata: {
+                    animal: 'dog',
+                    color: 'red',
+                },
+                structure: {
+                    arrow_schema:
+                        'data:application/vnd.apache.arrow.file;base64,/////+gDAAAQAAAAAAAKAA4ABgAFAAgACgAAAAABBAAQAAAAAAAKAAwAAAAEAAgACgAAAOACAAAEAAAAAQAAAAwAAAAIAAwABAAIAAgAAAC4AgAABAAAAKkCAAB7ImluZGV4X2NvbHVtbnMiOiBbImluZGV4Il0sICJjb2x1bW5faW5kZXhlcyI6IFt7Im5hbWUiOiBudWxsLCAiZmllbGRfbmFtZSI6IG51bGwsICJwYW5kYXNfdHlwZSI6ICJ1bmljb2RlIiwgIm51bXB5X3R5cGUiOiAib2JqZWN0IiwgIm1ldGFkYXRhIjogeyJlbmNvZGluZyI6ICJVVEYtOCJ9fV0sICJjb2x1bW5zIjogW3sibmFtZSI6ICJBIiwgImZpZWxkX25hbWUiOiAiQSIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiQiIsICJmaWVsZF9uYW1lIjogIkIiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkMiLCAiZmllbGRfbmFtZSI6ICJDIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJpbmRleCIsICJmaWVsZF9uYW1lIjogImluZGV4IiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxOC4xLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjIuMi4zIn0AAAAGAAAAcGFuZGFzAAAEAAAAqAAAAGwAAABAAAAABAAAAHj///8AAAECEAAAACAAAAAEAAAAAAAAAAUAAABpbmRleAAAAAgADAAIAAcACAAAAAAAAAFAAAAAsP///wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEMAAACi////AAACANj///8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABCAAAAyv///wAAAgAQABQACAAGAAcADAAAABAAEAAAAAAAAQMQAAAAGAAAAAQAAAAAAAAAAQAAAEEABgAIAAYABgAAAAAAAgAAAAAA',
+                    npartitions: 1,
+                    columns: ['A', 'B', 'C'],
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/short_table',
+                full: 'http://127.0.0.1:8000/api/v1/table/full/short_table',
+                partition:
+                    'http://127.0.0.1:8000/api/v1/table/partition/short_table?partition={index}',
+            },
+            meta: null,
+        },
+        {
+            id: 'long_table',
+            attributes: {
+                ancestors: [],
+                structure_family: 'table',
+                specs: [
+                    {
+                        name: 'dataframe',
+                        version: null,
+                    },
+                ],
+                metadata: {
+                    animal: 'dog',
+                    color: 'green',
+                },
+                structure: {
+                    arrow_schema:
+                        'data:application/vnd.apache.arrow.file;base64,/////+gDAAAQAAAAAAAKAA4ABgAFAAgACgAAAAABBAAQAAAAAAAKAAwAAAAEAAgACgAAAOACAAAEAAAAAQAAAAwAAAAIAAwABAAIAAgAAAC4AgAABAAAAKkCAAB7ImluZGV4X2NvbHVtbnMiOiBbImluZGV4Il0sICJjb2x1bW5faW5kZXhlcyI6IFt7Im5hbWUiOiBudWxsLCAiZmllbGRfbmFtZSI6IG51bGwsICJwYW5kYXNfdHlwZSI6ICJ1bmljb2RlIiwgIm51bXB5X3R5cGUiOiAib2JqZWN0IiwgIm1ldGFkYXRhIjogeyJlbmNvZGluZyI6ICJVVEYtOCJ9fV0sICJjb2x1bW5zIjogW3sibmFtZSI6ICJBIiwgImZpZWxkX25hbWUiOiAiQSIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiQiIsICJmaWVsZF9uYW1lIjogIkIiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkMiLCAiZmllbGRfbmFtZSI6ICJDIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJpbmRleCIsICJmaWVsZF9uYW1lIjogImluZGV4IiwgInBhbmRhc190eXBlIjogImludDY0IiwgIm51bXB5X3R5cGUiOiAiaW50NjQiLCAibWV0YWRhdGEiOiBudWxsfV0sICJjcmVhdG9yIjogeyJsaWJyYXJ5IjogInB5YXJyb3ciLCAidmVyc2lvbiI6ICIxOC4xLjAifSwgInBhbmRhc192ZXJzaW9uIjogIjIuMi4zIn0AAAAGAAAAcGFuZGFzAAAEAAAAqAAAAGwAAABAAAAABAAAAHj///8AAAECEAAAACAAAAAEAAAAAAAAAAUAAABpbmRleAAAAAgADAAIAAcACAAAAAAAAAFAAAAAsP///wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEMAAACi////AAACANj///8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABCAAAAyv///wAAAgAQABQACAAGAAcADAAAABAAEAAAAAAAAQMQAAAAGAAAAAQAAAAAAAAAAQAAAEEABgAIAAYABgAAAAAAAgAAAAAA',
+                    npartitions: 5,
+                    columns: ['A', 'B', 'C'],
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/long_table',
+                full: 'http://127.0.0.1:8000/api/v1/table/full/long_table',
+                partition:
+                    'http://127.0.0.1:8000/api/v1/table/partition/long_table?partition={index}',
+            },
+            meta: null,
+        },
+        {
+            id: 'wide_table',
+            attributes: {
+                ancestors: [],
+                structure_family: 'table',
+                specs: [
+                    {
+                        name: 'dataframe',
+                        version: null,
+                    },
+                ],
+                metadata: {
+                    animal: 'dog',
+                    color: 'red',
+                },
+                structure: {
+                    arrow_schema:
+                        'data:application/vnd.apache.arrow.file;base64,/////xgRAAAQAAAAAAAKAA4ABgAFAAgACgAAAAABBAAQAAAAAAAKAAwAAAAEAAgACgAAACAMAAAEAAAAAQAAAAwAAAAIAAwABAAIAAgAAAD4CwAABAAAAOoLAAB7ImluZGV4X2NvbHVtbnMiOiBbImluZGV4Il0sICJjb2x1bW5faW5kZXhlcyI6IFt7Im5hbWUiOiBudWxsLCAiZmllbGRfbmFtZSI6IG51bGwsICJwYW5kYXNfdHlwZSI6ICJ1bmljb2RlIiwgIm51bXB5X3R5cGUiOiAib2JqZWN0IiwgIm1ldGFkYXRhIjogeyJlbmNvZGluZyI6ICJVVEYtOCJ9fV0sICJjb2x1bW5zIjogW3sibmFtZSI6ICJBIiwgImZpZWxkX25hbWUiOiAiQSIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiQiIsICJmaWVsZF9uYW1lIjogIkIiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkMiLCAiZmllbGRfbmFtZSI6ICJDIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJEIiwgImZpZWxkX25hbWUiOiAiRCIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiRSIsICJmaWVsZF9uYW1lIjogIkUiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkYiLCAiZmllbGRfbmFtZSI6ICJGIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJHIiwgImZpZWxkX25hbWUiOiAiRyIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiSCIsICJmaWVsZF9uYW1lIjogIkgiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkkiLCAiZmllbGRfbmFtZSI6ICJJIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJKIiwgImZpZWxkX25hbWUiOiAiSiIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiSyIsICJmaWVsZF9uYW1lIjogIksiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIkwiLCAiZmllbGRfbmFtZSI6ICJMIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJNIiwgImZpZWxkX25hbWUiOiAiTSIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiTiIsICJmaWVsZF9uYW1lIjogIk4iLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIk8iLCAiZmllbGRfbmFtZSI6ICJPIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJQIiwgImZpZWxkX25hbWUiOiAiUCIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiUSIsICJmaWVsZF9uYW1lIjogIlEiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIlIiLCAiZmllbGRfbmFtZSI6ICJSIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJTIiwgImZpZWxkX25hbWUiOiAiUyIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiVCIsICJmaWVsZF9uYW1lIjogIlQiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIlUiLCAiZmllbGRfbmFtZSI6ICJVIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJWIiwgImZpZWxkX25hbWUiOiAiViIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiVyIsICJmaWVsZF9uYW1lIjogIlciLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogIlgiLCAiZmllbGRfbmFtZSI6ICJYIiwgInBhbmRhc190eXBlIjogImZsb2F0NjQiLCAibnVtcHlfdHlwZSI6ICJmbG9hdDY0IiwgIm1ldGFkYXRhIjogbnVsbH0sIHsibmFtZSI6ICJZIiwgImZpZWxkX25hbWUiOiAiWSIsICJwYW5kYXNfdHlwZSI6ICJmbG9hdDY0IiwgIm51bXB5X3R5cGUiOiAiZmxvYXQ2NCIsICJtZXRhZGF0YSI6IG51bGx9LCB7Im5hbWUiOiAiWiIsICJmaWVsZF9uYW1lIjogIloiLCAicGFuZGFzX3R5cGUiOiAiZmxvYXQ2NCIsICJudW1weV90eXBlIjogImZsb2F0NjQiLCAibWV0YWRhdGEiOiBudWxsfSwgeyJuYW1lIjogImluZGV4IiwgImZpZWxkX25hbWUiOiAiaW5kZXgiLCAicGFuZGFzX3R5cGUiOiAiaW50NjQiLCAibnVtcHlfdHlwZSI6ICJpbnQ2NCIsICJtZXRhZGF0YSI6IG51bGx9XSwgImNyZWF0b3IiOiB7ImxpYnJhcnkiOiAicHlhcnJvdyIsICJ2ZXJzaW9uIjogIjE4LjEuMCJ9LCAicGFuZGFzX3ZlcnNpb24iOiAiMi4yLjMifQAABgAAAHBhbmRhcwAAGwAAAJwEAABgBAAANAQAAAgEAADcAwAAsAMAAIQDAABYAwAALAMAAAADAADUAgAAqAIAAHwCAABQAgAAJAIAAPgBAADMAQAAoAEAAHQBAABIAQAAHAEAAPAAAADEAAAAmAAAAGwAAABAAAAABAAAAOD7//8AAAECEAAAACAAAAAEAAAAAAAAAAUAAABpbmRleAAAAAgADAAIAAcACAAAAAAAAAFAAAAAGPz//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAFoAAAAK/P//AAACAED8//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABZAAAAMvz//wAAAgBo/P//AAABAxAAAAAUAAAABAAAAAAAAAABAAAAWAAAAFr8//8AAAIAkPz//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAFcAAACC/P//AAACALj8//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABWAAAAqvz//wAAAgDg/P//AAABAxAAAAAUAAAABAAAAAAAAAABAAAAVQAAANL8//8AAAIACP3//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAFQAAAD6/P//AAACADD9//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABTAAAAIv3//wAAAgBY/f//AAABAxAAAAAUAAAABAAAAAAAAAABAAAAUgAAAEr9//8AAAIAgP3//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAFEAAABy/f//AAACAKj9//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABQAAAAmv3//wAAAgDQ/f//AAABAxAAAAAUAAAABAAAAAAAAAABAAAATwAAAML9//8AAAIA+P3//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAE4AAADq/f//AAACACD+//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABNAAAAEv7//wAAAgBI/v//AAABAxAAAAAUAAAABAAAAAAAAAABAAAATAAAADr+//8AAAIAcP7//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEsAAABi/v//AAACAJj+//8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABKAAAAiv7//wAAAgDA/v//AAABAxAAAAAUAAAABAAAAAAAAAABAAAASQAAALL+//8AAAIA6P7//wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEgAAADa/v//AAACABD///8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABHAAAAAv///wAAAgA4////AAABAxAAAAAUAAAABAAAAAAAAAABAAAARgAAACr///8AAAIAYP///wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEUAAABS////AAACAIj///8AAAEDEAAAABQAAAAEAAAAAAAAAAEAAABEAAAAev///wAAAgCw////AAABAxAAAAAUAAAABAAAAAAAAAABAAAAQwAAAKL///8AAAIA2P///wAAAQMQAAAAFAAAAAQAAAAAAAAAAQAAAEIAAADK////AAACABAAFAAIAAYABwAMAAAAEAAQAAAAAAABAxAAAAAYAAAABAAAAAAAAAABAAAAQQAGAAgABgAGAAAAAAACAA==',
+                    npartitions: 1,
+                    columns: [
+                        'A',
+                        'B',
+                        'C',
+                        'D',
+                        'E',
+                        'F',
+                        'G',
+                        'H',
+                        'I',
+                        'J',
+                        'K',
+                        'L',
+                        'M',
+                        'N',
+                        'O',
+                        'P',
+                        'Q',
+                        'R',
+                        'S',
+                        'T',
+                        'U',
+                        'V',
+                        'W',
+                        'X',
+                        'Y',
+                        'Z',
+                    ],
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/wide_table',
+                full: 'http://127.0.0.1:8000/api/v1/table/full/wide_table',
+                partition:
+                    'http://127.0.0.1:8000/api/v1/table/partition/wide_table?partition={index}',
+            },
+            meta: null,
+        },
+        {
+            id: 'structured_data',
+            attributes: {
+                ancestors: [],
+                structure_family: 'container',
+                specs: [],
+                metadata: {
+                    animal: 'cat',
+                    color: 'green',
+                },
+                structure: {
+                    contents: null,
+                    count: 2,
+                },
+                sorting: [
+                    {
+                        key: '_',
+                        direction: 1,
+                    },
+                ],
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/structured_data',
+                search: 'http://127.0.0.1:8000/api/v1/search/structured_data',
+                full: 'http://127.0.0.1:8000/api/v1/container/full/structured_data',
+            },
+            meta: null,
+        },
+        {
+            id: 'flat_array',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[100]],
+                    shape: [100],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/flat_array',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/flat_array',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/flat_array?block={0}',
+            },
+            meta: null,
+        },
+        {
+            id: 'low_entropy',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[100], [100]],
+                    shape: [100, 100],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/low_entropy',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/low_entropy',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/low_entropy?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'high_entropy',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[100], [100]],
+                    shape: [100, 100],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/high_entropy',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/high_entropy',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/high_entropy?block={0},{1}',
+            },
+            meta: null,
+        },
+        {
+            id: 'dynamic',
+            attributes: {
+                ancestors: [],
+                structure_family: 'array',
+                specs: [],
+                metadata: {},
+                structure: {
+                    data_type: {
+                        endianness: 'little',
+                        kind: 'f',
+                        itemsize: 8,
+                        dt_units: null,
+                    },
+                    chunks: [[3], [3]],
+                    shape: [3, 3],
+                    dims: null,
+                    resizable: false,
+                },
+                sorting: null,
+                data_sources: null,
+            },
+            links: {
+                self: 'http://127.0.0.1:8000/api/v1/metadata/dynamic',
+                full: 'http://127.0.0.1:8000/api/v1/array/full/dynamic',
+                block: 'http://127.0.0.1:8000/api/v1/array/block/dynamic?block={0},{1}',
+            },
+            meta: null,
+        },
+    ],
+    error: null,
+    links: {
+        self: 'http://127.0.0.1:8000/api/v1/search/?page[offset]=0&page[limit]=100',
+        first: 'http://127.0.0.1:8000/api/v1/search/?page[offset]=0&page[limit]=100',
+        last: 'http://127.0.0.1:8000/api/v1/search/?page[offset]=0&page[limit]=100',
+        next: null,
+        prev: null,
+    },
+    meta: {
+        count: 16,
+    },
+};
+
+export const sampleServerInfoRespnse = {
+    api_version: 0,
+    library_version: '0.1.dev2523+g6314f1d.d20250507',
+    formats: {
+        container: ['application/x-hdf5', 'application/json'],
+        array: [
+            'application/octet-stream',
+            'application/json',
+            'text/csv',
+            'text/x-comma-separated-values',
+            'text/plain',
+            'image/png',
+            'image/tiff',
+            'text/html',
+        ],
+        awkward: [
+            'application/zip',
+            'application/json',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+        ],
+        table: [
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/x-comma-separated-values',
+            'text/plain',
+            'text/html',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/json',
+            'application/json-seq',
+            'application/x-hdf5',
+        ],
+        sparse: [
+            'application/x-hdf5',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/plain',
+            'text/html',
+            'application/json',
+        ],
+        xarray_dataset: [
+            'application/netcdf',
+            'application/x-netcdf',
+            'application/vnd.apache.arrow.file',
+            'application/x-parquet',
+            'text/csv',
+            'text/comma-separated-values',
+            'text/plain',
+            'text/html',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/json',
+            'application/x-hdf5',
+        ],
+    },
+    aliases: {
+        container: {
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/json': ['json'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+        array: {
+            'application/json': ['json'],
+            'text/csv': ['csv'],
+            'image/png': ['png'],
+            'image/tiff': ['tiff', 'tif'],
+            'text/html': ['html', 'htm'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+        awkward: {
+            'application/zip': ['zip'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+        table: {
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+        sparse: {
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/json': ['json'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+        xarray_dataset: {
+            'application/x-netcdf': ['cdf', 'nc'],
+            'text/csv': ['csv'],
+            'text/html': ['html', 'htm'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['xlsx'],
+            'application/json': ['json'],
+            'application/x-hdf5': ['h5', 'hdf5'],
+            'application/x-parquet': ['parquet'],
+            'application/vnd.apache.arrow.file': ['arrow', 'feather'],
+            'application/netcdf': ['nc'],
+            'text/plain': ['text', 'txt'],
+        },
+    },
+    queries: [
+        'fulltext',
+        'lookup',
+        'keys_filter',
+        'regex',
+        'eq',
+        'noteq',
+        'comparison',
+        'contains',
+        'in',
+        'notin',
+        'specs',
+        'structure_family',
+    ],
+    authentication: {
+        required: true,
+        providers: [
+            {
+                provider: 'toy',
+                mode: 'password',
+                links: {
+                    auth_endpoint: 'http://localhost:8000/api/v1/auth/provider/toy/token',
+                },
+                confirmation_message: 'You have logged in as {id}.',
+            },
+        ],
+        links: {
+            whoami: 'http://localhost:8000/api/v1/auth/whoami',
+            apikey: 'http://localhost:8000/api/v1/auth/apikey',
+            refresh_session: 'http://localhost:8000/api/v1/auth/session/refresh',
+            revoke_session: 'http://localhost:8000/api/v1/auth/session/revoke/{session_id}',
+            logout: 'http://localhost:8000/api/v1/auth/logout',
+        },
+    },
+    links: {
+        self: 'http://localhost:8000/api/v1',
+        documentation: 'http://localhost:8000/api/v1/docs',
+    },
+    meta: {
+        root_path: '/api',
+    },
+};
+
+export const sampleLoginSuccessResponse = {
+    access_token:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0ZDMxOTBhMzVkNmE0MmYzYWE0YTQzZmE2Mjk2MzgyNCIsInN1Yl90eXAiOiJ1c2VyIiwic2NwIjpbIndyaXRlOm1ldGFkYXRhIiwid3JpdGU6ZGF0YSIsImFwaWtleXMiLCJhZG1pbjphcGlrZXlzIiwibWV0cmljcyIsInJlZ2lzdGVyIiwicmVhZDpkYXRhIiwiY3JlYXRlIiwicmVhZDptZXRhZGF0YSIsIndyaXRlOnByaW5jaXBhbHMiLCJyZWFkOnByaW5jaXBhbHMiXSwic3RhdGUiOnt9LCJpZHMiOlt7ImlkIjoiYWxpY2UiLCJpZHAiOiJ0b3kifV0sImV4cCI6MTc1NzM1NzU1NSwidHlwZSI6ImFjY2VzcyJ9.9ojNtBo--qW6ZoVYAcn_nIZUV4xI6XTNNk-_FjWjCno',
+    expires_in: 900.0,
+    refresh_token:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoicmVmcmVzaCIsInNpZCI6Ijk5ZDIzYjEyNGI5YjQ4Yjg4M2FkNjU2NzY4YWY4Mjc5IiwiZXhwIjoxNzU3OTYxNDU1fQ.kztx1ZMtiOKpuupnTvhuUvJ4YPIPGq8iFCHJpmahMzE',
+    refresh_token_expires_in: 604800.0,
+    token_type: 'bearer',
+    identity: {
+        id: 'alice',
+        provider: 'toy',
+    },
+    principal: '4d3190a35d6a42f3aa4a43fa62963824',
+};
+
+export const sampleLoginFailureResponse = {
+    detail: 'Incorrect username or password',
+};
+
+export const sampleBlueskyPlanMetadataResponse = {
+    data: {
+        id: 'aba7753b-ec5f-464d-abc2-809b620bb66b',
+        attributes: {
+            ancestors: [],
+            structure_family: 'container',
+            specs: [
+                {
+                    name: 'BlueskyRun',
+                    version: '3.0',
+                },
+            ],
+            metadata: {
+                start: {
+                    uid: 'aba7753b-ec5f-464d-abc2-809b620bb66b',
+                    time: 1762972767.16652,
+                    versions: {
+                        ophyd: '1.11.0',
+                        bluesky: '1.14.4',
+                    },
+                    scan_id: 3,
+                    plan_type: 'generator',
+                    plan_name: 'count',
+                    detectors: ['motor1'],
+                    num_points: 10,
+                    num_intervals: 9,
+                    plan_args: {
+                        detectors: [
+                            "SynAxis(prefix='', name='motor1', read_attrs=['readback', 'setpoint'], configuration_attrs=['velocity', 'acceleration'])",
+                        ],
+                        num: 10,
+                        delay: 10,
+                    },
+                    hints: {
+                        dimensions: [[['time'], 'primary']],
+                    },
+                },
+                stop: {
+                    uid: 'fd287c55-a47c-4673-9e4f-d3cbe7031468',
+                    time: 1762972867.23871,
+                    run_start: 'aba7753b-ec5f-464d-abc2-809b620bb66b',
+                    exit_status: 'success',
+                    reason: '',
+                    num_events: {
+                        primary: 10,
+                    },
+                },
+            },
+            structure: {
+                contents: null,
+                count: 1,
+            },
+            access_blob: {},
+            sorting: [
+                {
+                    key: '',
+                    direction: 1,
+                },
+            ],
+            data_sources: null,
+        },
+        links: {
+            self: 'http://localhost:8000/api/v1/metadata/aba7753b-ec5f-464d-abc2-809b620bb66b',
+            search: 'http://localhost:8000/api/v1/search/aba7753b-ec5f-464d-abc2-809b620bb66b',
+            full: 'http://localhost:8000/api/v1/container/full/aba7753b-ec5f-464d-abc2-809b620bb66b',
+        },
+        meta: null,
+    },
+    error: null,
+    links: null,
+    meta: {},
+};

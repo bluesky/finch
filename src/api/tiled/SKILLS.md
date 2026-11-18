@@ -264,9 +264,10 @@ normalisation.
 - **The auth routes are not in `openapi.json`.** URLs come from `About.authentication.links`, which is
   `null` on a server with auth disabled. Descriptors carry `operationId: null`.
 - **`interceptorRegistry.ts` is duplicated from qServer on purpose.** Fix bugs in both.
-- **`@blueskyproject/tiled` is still installed, for the `<Tiled>` viewer only.** Nothing in this
-  folder may import it. The viewer has its own client and singleton; only `localStorage` tokens are
-  shared.
+- **`@blueskyproject/tiled` is gone.** The `<TiledFinder>` viewer is in
+  `src/components/Tiled/TiledFinder/` and reads only through these hooks (enforced by
+  `TiledFinderUsesFinchHooks.test.ts`). It uses an app-level `TiledApiProvider` when present, and
+  otherwise provides its own `TiledApiClient` built from its props.
 - **Websocket auth is a first frame.** The server reads `api_key` from the `Authorization` header
   only, so `apiKeyLocation: 'query'` does nothing for sockets. Do not "fix" this by putting the key in
   the URL.
