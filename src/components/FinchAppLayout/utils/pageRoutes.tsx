@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router';
+import RedirectToTab from './RedirectToTab';
 
 import type { RouteObject } from 'react-router';
 import { RouteItem, RouteTab } from '@/types/navigationRouterTypes';
@@ -150,7 +150,7 @@ export function buildPageRoutes(routes: RouteItem[], renderPage?: PageRenderer):
         }
 
         const redirectToFirstTab = (
-            <Navigate to={toTabPath({ basePath: path, tab: tabs[0] })} replace />
+            <RedirectToTab to={toTabPath({ basePath: path, tab: tabs[0] })} />
         );
 
         return {

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router';
+import { useFullscreen, withFullscreenParam } from './hooks/useFullscreen';
 import { toTabPath } from './utils/pageRoutes';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,9 @@ export default function FinchPageTabs({
     classNameInactiveTab,
     ...props
 }: FinchPageTabsProps) {
+    // Switching tabs keeps fullscreen, but not the other params, which belong to the page.
+    const { isFullscreen } = useFullscreen();
+    const search = withFullscreenParam('', isFullscreen);
     return (
         <nav
             className={cn(
@@ -39,7 +43,7 @@ export default function FinchPageTabs({
             {tabs.map((tab) => (
                 <NavLink
                     key={tab.path}
-                    to={toTabPath({ basePath, tab })}
+                    to={{ pathname: toTabPath({ basePath, tab }), search }}
                     end
                     className={({ isActive }) =>
                         cn(
