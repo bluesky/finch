@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import PlotlyScatter from './PlotlyScatter';
+import type { PlotlyScatterProps } from './PlotlyScatter';
 import { PlotlyScatterData } from '@/types/plotTypes';
-import { Datum } from 'plotly.js';
+import { Datum, Layout, LayoutAxis } from 'plotly.js';
 import { blankScatterData } from '@/utils/plotGenerators';
 import { cn } from '@/lib/utils';
 
@@ -27,12 +28,26 @@ export type SignalMonitorPlotDeviceProps = {
     tickTextIntervalSeconds?: number;
     /** CSS color string for the scatter trace markers and line. Defaults to '#082f49'. */
     color?: string;
+    /** CSS color string for the line. When omitted Plotly uses its default trace color. */
+    lineColor?: string;
     /** Y-axis label. When omitted, falls back to the device's reported units. */
     yAxisTitle?: string;
     /** Fixed [min, max] range for the y-axis. When omitted Plotly auto-scales. */
     yAxisRange?: [number, number];
     /** When true, renders markers on each data point with size scaled by recency. Defaults to false. */
     showMarkers?: boolean;
+    /** When false, hides the current value and units overlaid on the plot. Defaults to true. */
+    showValue?: boolean;
+    /** Additional CSS classes applied to the plot container inside the root. */
+    plotClassName?: string;
+    /** Plotly x-axis overrides, merged on top of the rolling time ticks. */
+    xAxisLayout?: Partial<LayoutAxis>;
+    /** Plotly y-axis overrides. */
+    yAxisLayout?: Partial<LayoutAxis>;
+    /** Plotly layout overrides, e.g. background colors. */
+    layout?: Partial<Layout>;
+    /** Plotly configuration options, e.g. `{ staticPlot: true }`. */
+    config?: PlotlyScatterProps['config'];
 };
 
 export default function SignalMonitorPlotDevice({
@@ -44,9 +59,15 @@ export default function SignalMonitorPlotDevice({
     demo = false,
     tickTextIntervalSeconds = 10,
     color = '#082f49',
+    lineColor,
     yAxisTitle,
     yAxisRange,
     showMarkers = false,
+    showValue = true,
+    plotClassName,
+    xAxisLayout,
+    yAxisLayout,
+    layout,
     ...props
 }: SignalMonitorPlotDeviceProps) {
     const styledData = {
@@ -176,18 +197,41 @@ export default function SignalMonitorPlotDevice({
         [yAxisTitle, device?.units],
     );
 
+    // Color is applied here rather than baked into `data` state, so a caller that
+    // changes it (e.g. on a light/dark switch) recolors the existing trace.
+    const traces = useMemo(
+        () => [
+            {
+                ...data,
+                marker: { ...data.marker, color },
+                ...(lineColor ? { line: { color: lineColor } } : {}),
+            },
+        ],
+        [data, color, lineColor],
+    );
+
+    const resolvedXAxisLayout = useMemo(
+        () => (xAxisLayout ? { ...xLayout, ...xAxisLayout } : xLayout),
+        [xLayout, xAxisLayout],
+    );
+
     return (
         <div className={cn('relative flex flex-col bg-white', className)}>
-            <div className="absolute top-1/3 right-2 z-10 w-16 flex flex-col text-slate-500">
-                <span className="font-normal text-left">{valueDisplay}</span>
-                <span className="font-normal text-left text-xs">{device?.units}</span>
-            </div>
+            {showValue && (
+                <div className="absolute top-1/3 right-2 z-10 w-16 flex flex-col text-slate-500">
+                    <span className="font-normal text-left">{valueDisplay}</span>
+                    <span className="font-normal text-left text-xs">{device?.units}</span>
+                </div>
+            )}
             <PlotlyScatter
-                data={[data]}
-                xAxisLayout={xLayout}
+                data={traces}
+                xAxisLayout={resolvedXAxisLayout}
                 xAxisTitle={deviceLabel}
                 yAxisTitle={resolvedYAxisTitle}
                 yAxisRange={yAxisRange}
+                yAxisLayout={yAxisLayout}
+                layout={layout}
+                className={plotClassName}
                 {...props}
             />
         </div>

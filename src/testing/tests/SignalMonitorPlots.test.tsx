@@ -178,6 +178,74 @@ describe('SignalMonitorPlotDevice', () => {
         });
         expect(ScatterMock.mock.calls.length).toBe(callsBefore);
     });
+
+    // --- Pass-through props ---
+
+    const lastScatterProps = (): PlotlyScatterProps =>
+        ScatterMock.mock.calls[ScatterMock.mock.calls.length - 1][0];
+
+    it('hides the value overlay when showValue is false', () => {
+        render(
+            <SignalMonitorPlotDevice
+                device={{ value: 42, units: 'mm' }}
+                deviceLabel="PV"
+                showValue={false}
+            />,
+        );
+        expect(screen.queryByText('42')).not.toBeInTheDocument();
+        expect(screen.queryByText('mm')).not.toBeInTheDocument();
+    });
+
+    it('applies color to the markers and lineColor to the line', () => {
+        render(
+            <SignalMonitorPlotDevice device={null} deviceLabel="PV" color="red" lineColor="blue" />,
+        );
+        const [trace] = lastScatterProps().data;
+        expect(trace.marker?.color).toBe('red');
+        expect(trace.line?.color).toBe('blue');
+    });
+
+    it('recolors the existing trace when color changes', () => {
+        const { rerender } = render(
+            <SignalMonitorPlotDevice device={null} deviceLabel="PV" color="red" />,
+        );
+        rerender(<SignalMonitorPlotDevice device={null} deviceLabel="PV" color="green" />);
+        expect(lastScatterProps().data[0].marker?.color).toBe('green');
+    });
+
+    it('merges xAxisLayout over the rolling time ticks', () => {
+        render(
+            <SignalMonitorPlotDevice
+                device={null}
+                deviceLabel="PV"
+                xAxisLayout={{ showgrid: false }}
+            />,
+        );
+        const xLayout = lastScatterProps().xAxisLayout;
+        expect(xLayout?.showgrid).toBe(false);
+        expect(xLayout?.tickvals).toBeDefined();
+    });
+
+    it('forwards yAxisLayout, layout, config and plotClassName to PlotlyScatter', () => {
+        const yAxisLayout = { showgrid: false };
+        const layout = { paper_bgcolor: 'black' };
+        const config = { staticPlot: true };
+        render(
+            <SignalMonitorPlotDevice
+                device={null}
+                deviceLabel="PV"
+                yAxisLayout={yAxisLayout}
+                layout={layout}
+                config={config}
+                plotClassName="plot-class"
+            />,
+        );
+        const props = lastScatterProps();
+        expect(props.yAxisLayout).toBe(yAxisLayout);
+        expect(props.layout).toBe(layout);
+        expect(props.config).toBe(config);
+        expect(props.className).toBe('plot-class');
+    });
 });
 
 // ─── SignalMonitorPlotPV ──────────────────────────────────────────────────────
